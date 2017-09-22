@@ -1,0 +1,10 @@
+module.exports = function(rt) {
+  return {
+    doIt() {
+      setTimeout(rt.waitFor(() => {
+        console.log('What is up 22?!');
+      }), 100);
+      return 'WHAT IS UP 22!';
+    }
+  };
+};

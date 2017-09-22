@@ -1,0 +1,9 @@
+module.exports = function(rt) { return {
+
+  addTwo(a, b)
+  {
+      rt.print(a+b);
+  },
+  numberFive: 5
+};
+};
