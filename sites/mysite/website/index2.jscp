@@ -1,0 +1,46 @@
+console.log('Let us do this.');
+const whatIsUp = rt.module('moduletest');
+whatIsUp(rt);
+
+setTimeout(rt.waitFor(() => { console.log('hello.'); }), 2000);
+
+if (rt.postParams['submitIt'])
+{
+  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', false)
+  .rtOnSuccess(
+    (theFile) =>
+  {
+    rt.fileExists('nice.txt')
+    .rtOnSuccess(() => {
+      console.log('FILE EXISTS!!');
+      rt.print('FILE EXISTS');
+    })
+    .rtOnError((err) =>
+    {
+      console.log('FILE DOES NOT EXIST!!');
+      rt.print('FILE DOES NOT EXIST');
+      console.log(err);
+    });
+  })
+  .rtOnError((err) =>
+  {
+    console.log('error!!!!');
+    console.log(err);
+    rt.print('ERRORRRRRRR!');
+  });
+  /*
+  */
+}
+
+rt.runAfter(() => {
+  rt.print('Love it.');
+});
+
+/js>
+
+<h1>COOOL 1</h1>
+<p>This is a test.</p>
+<form method="post" enctype="multipart/form-data">
+  <input name="myFile" type="file" />
+  <input type="submit" name="submitIt" value="Submit it!" />
+</form>

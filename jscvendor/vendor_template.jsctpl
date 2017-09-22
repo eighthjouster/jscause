@@ -1,0 +1,54 @@
+var thisModuleName = '__JSCAUSE__THIS_MODULE__NAME__jscau$e1919';
+
+var fsPath = require('path');
+var modulePath = fsPath.join(process.cwd(), thisModuleName);
+
+var allModules = {};
+
+var currentlyProcessingModuleName;
+var currentlyLoadingThisModule;
+
+
+// Module: formidable
+
+currentlyProcessingModuleName = './jscvendor/formidable';
+currentlyLoadingThisModule = (thisModuleName === currentlyProcessingModuleName);
+
+allModules[currentlyProcessingModuleName] = {
+  './lib': currentlyLoadingThisModule && require(fsPath.join(modulePath, './lib'))
+};
+
+
+// Module: sanitize-filename
+
+currentlyProcessingModuleName = './jscvendor/sanitize-filename';
+currentlyLoadingThisModule = (thisModuleName === currentlyProcessingModuleName);
+
+var originalTruncate = currentlyLoadingThisModule && require(fsPath.join(modulePath, '../truncate-utf8-bytes'));
+
+allModules[currentlyProcessingModuleName] = {
+  'truncate-utf8-bytes': originalTruncate
+};
+
+
+// Module: cookies
+
+currentlyProcessingModuleName = './jscvendor/cookies';
+currentlyLoadingThisModule = (thisModuleName === currentlyProcessingModuleName);
+
+allModules[currentlyProcessingModuleName] = {
+  'depd': () => Object.assign(() => {}, { property: () => {} }),
+  'keygrip': null,
+  'http': require('http')
+};
+
+
+// Done with all the modules.
+
+function jsModuleSupport(thisModuleName, name) {
+  return allModules[thisModuleName][name];
+}
+
+var _jscause_require = function(moduleName) { 
+  return jsModuleSupport(thisModuleName, moduleName);
+};
