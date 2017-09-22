@@ -1,0 +1,24 @@
+JSFramework: working title.
+
+Make JS work as if it was Perl or PHP:
+
+A site/ folder.
+
+With a hierarchy like the followng:
+
+sites/
+sites/mysite/
+sites/mysite/site_configuration.json
+sites/mysite/site_routes.json
+sites/mysite/public/
+sites/mysite/public/index.html
+sites/mysite/public/index.sjs
+sites/mysite/files/
+sites/mysite/files/user_list.csv
+sites/mysite/json/
+sites/mysite/json/database.json
+sites/mysite/json/custom_config.json
+sites/mysite/scripts/
+sites/mysite/scripts/main.sjs
+
+public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
