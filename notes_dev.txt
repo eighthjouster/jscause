@@ -15,7 +15,6 @@ The framework should do this:
 Good luck, friend.
 
 Pending:
-
 - Implement:
   public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 
