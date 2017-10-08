@@ -35,3 +35,14 @@ Each site contains:
     - A scripts/ folder:  With server-side Javascript files.  They can only be accessed via routes, or by importing.
 
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
+
+This is valid:
+    const run = (rt) => {
+      rt.print('WHOA 4!');
+    };
+    module.exports = { run };
+Or this:
+    module.exports = (rt) => {
+      rt.print('WHOA 4!');
+    };
+

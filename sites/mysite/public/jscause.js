@@ -1,3 +1,5 @@
+'use strict';
+
 const http = require('http');
 const util = require('util');
 const fs = require('fs');
@@ -29,7 +31,12 @@ server.on('request', (req, res) => {
 
     if (indexRun)
     {
-      indexRun(res.end.bind(res));
+      printInit();
+      indexRun(runTime);
+      res.end(printQueue());
+    }
+    else {
+      res.end('Oops 5');
     }
   });
 });
@@ -39,18 +46,26 @@ server.listen(port, hostname, () =>
   console.log(`Server 0.1.001 running at http://${hostname}:${port}/`);
 });
 
-/**************************************
-*
-* Setup
-*
-***************************************/
+/* *************************************
+   *
+   * Setup
+   *
+   ************************************** */
+
+let outputQueue;
+const printInit = () => { outputQueue = []; };
+const printQueue = () => outputQueue.join('');
+
+const runTime = {
+  print: (output = '') => outputQueue.push(output),
+};
 
 fs.stat('index.jsse', (err, stats) =>
 {
   if (err)
   {
     console.log(err);
-    res.end('Oops 1');
+    console.log('Oops 1');
   }
   else
   {
@@ -62,29 +77,31 @@ fs.stat('index.jsse', (err, stats) =>
     }
     catch (e)
     {
-      res.end('Oops 2');
+      console.log(e);
+      console.log('Oops 2');
     }
-
-    let index;
 
     if (indexExists)
     {
       try {
-        index = require('./index.jsse');
+        indexRun = require('./index.jsse');
       }
       catch(e)
       {
-        res.end('Oops 3');
+        console.log(e);
+        console.log('Oops 3');
       }
 
-      if (index) {
-        if (typeof(index.run) === 'function')
+      if (typeof(indexRun) !== 'function')
+      {
+        if (typeof(indexRun.run) === 'function')
         {
-          indexRun = index.run;
+          indexRun = indexRun.run;
         }
         else
         {
-          res.end('Oops 4');
+          indexRun = undefined;
+          console.log('Oops 4');
         }
       }
     }

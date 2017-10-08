@@ -1,5 +1,3 @@
-const run = (print) => {
-  print('WHOA!');
+module.exports = (rt) => {
+  rt.print('WHOA 5!');
 };
-
-module.exports = { run };
