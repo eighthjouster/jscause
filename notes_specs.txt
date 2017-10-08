@@ -22,3 +22,16 @@ sites/mysite/scripts/
 sites/mysite/scripts/main.sjs
 
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
+
+Each site contains:
+    - A site_configuration.json file:  Site name, listening port, domain name, ssl, etc.
+    - A site_routes.json (optional):  Will map files to routes, overriding whatever is on public/.
+    - A public/ folder, which will contain files that can be requested directly by the browser.
+    - Files with an SJS extension (for example, index.sjs) will be executed first, with its output sent to the browser.
+    - A files/ folder, which will contain files that can only be accessed by server-side scripts.
+    - A json/ folder, with extra configuration files:
+    - database.json:  Database connection info.
+    - custom_config.json: Application-specific configuration.
+    - A scripts/ folder:  With server-side Javascript files.  They can only be accessed via routes, or by importing.
+
+public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
