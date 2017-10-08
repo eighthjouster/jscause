@@ -1,3 +1,4 @@
-module.exports = (rt) => {
-  rt.print('WHOA 5!');
-};
+rt.print('WHOA 6! \
+can I actually do this?');
+rt.print('<br />');
+rt.print(require('./moduletest')());

@@ -3,6 +3,7 @@
 const http = require('http');
 const util = require('util');
 const fs = require('fs');
+const path = require('path');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -32,7 +33,15 @@ server.on('request', (req, res) => {
     if (indexRun)
     {
       printInit();
-      indexRun(runTime);
+      try
+      {
+        indexRun(runTime);
+      }
+      catch (e)
+      {
+        console.log(e);
+        runTime.print('<br />Oops - runtime error!<br />');
+      }
       res.end(printQueue());
     }
     else {
@@ -69,41 +78,48 @@ fs.stat('index.jsse', (err, stats) =>
   }
   else
   {
-    let indexExists = false;
-    try
+    fs.readFile('index.jsse', 'utf-8', (err, data) =>
     {
-      require.resolve('./index.jsse');
-      indexExists = true;
-    }
-    catch (e)
-    {
-      console.log(e);
-      console.log('Oops 2');
-    }
-
-    if (indexExists)
-    {
-      try {
-        indexRun = require('./index.jsse');
-      }
-      catch(e)
+      if (err)
       {
-        console.log(e);
-        console.log('Oops 3');
+        console.log(err);
+        console.log('Oops 1.1');
       }
-
-      if (typeof(indexRun) !== 'function')
+      else
       {
-        if (typeof(indexRun.run) === 'function')
+        const Module = module.constructor;
+        Module._nodeModulePaths(path.dirname(''))
+        const m = new Module();
+        let indexExists = false;
+        try
         {
-          indexRun = indexRun.run;
+          m._compile(`module.exports = (rt) => {${data}};`, '');
+          indexExists = true;
         }
-        else
+        catch (e)
         {
-          indexRun = undefined;
-          console.log('Oops 4');
+          console.log(e);
+          console.log('Oops 2');
+        }
+
+        if (indexExists)
+        {
+          indexRun = m.exports;
+
+          if (typeof(indexRun) !== 'function')
+          {
+            if (typeof(indexRun.run) === 'function')
+            {
+              indexRun = indexRun.run;
+            }
+            else
+            {
+              indexRun = undefined;
+              console.log('Oops 4');
+            }
+          }
         }
       }
-    }
+    });
   }
 });
