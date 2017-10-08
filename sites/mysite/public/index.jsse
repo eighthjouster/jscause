@@ -1,0 +1,5 @@
+const run = (print) => {
+  print('WHOA!');
+};
+
+module.exports = { run };
