@@ -1,10 +1,11 @@
-WHOA 7! \
+\ WHOA 7! \
+\
 can I actually do this?
-<js
+<JS
 rt.print('<br />');
 rt.print(require('./moduletest')());
 /js>
 <h1>COOOL</h1>
-<js
+<JS
 rt.print('Yes');
 /js>

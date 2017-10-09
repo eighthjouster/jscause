@@ -99,16 +99,23 @@ fs.stat('index.jssp', (err, stats) =>
           let processAfter;
           do
           {
-            // Matches the first '<js' or '<JS'.
-            [processBefore, processAfter] = unprocessedData.split(/\<js([\s\S]+)|\<JS([\s\S]+)/);
+            // Matches the first '<js' or '<JS'
+            [processBefore, processAfter] = unprocessedData.split(/\<js([\s\S]+)/i);
 
             if (processAfter)
             {
               unprocessedData = processAfter;
 
+              const printedStuff = processBefore
+                                   .replace(/^\\|([^\<])\\/g,'$1\\\\') // Match '/' as first character or when it's not part of a HTML tag.
+                                   .split('\n')
+                                   .map((line) => `${line} \\\n`)
+                                   .join('');
+            
+              processedDataArray.push(`rt.print('${printedStuff}');\n`);
 
-              // Matches the first '/js>' or '/JS>'.
-              [processBefore, processAfter] = unprocessedData.split(/\/js\>([\s\S]+)|\/JS\>([\s\S]+)/);
+              // Matches the first '/js>' or '/JS>'
+              [processBefore, processAfter] = unprocessedData.split(/\/js\>([\s\S]+)/i);
 
               if (processAfter)
               {
@@ -127,7 +134,7 @@ fs.stat('index.jssp', (err, stats) =>
           } while (processAfter);
           
           const processedData = processedDataArray.join('');
-          //console.log(processedData);
+          
           m._compile(`module.exports = (rt) => {${processedData}};`, '');
           indexExists = true;
         }

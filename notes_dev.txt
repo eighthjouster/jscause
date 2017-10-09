@@ -8,8 +8,6 @@ ESLint.
 
 \<js should be ignored (part of HTML instead of control sequence.)
  - Same with \/js>
-
-<js /js> should be case insensitive (<JS /JS>)
  - And ignore \<JS \/JS>
 
 - Implement:
