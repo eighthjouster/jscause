@@ -93,7 +93,42 @@ fs.stat('index.jssp', (err, stats) =>
         let indexExists = false;
         try
         {
-          m._compile(`module.exports = (rt) => {${data}};`, '');
+          let unprocessedData = data;
+          const processedDataArray = [];
+          let processBefore;
+          let processAfter;
+          do
+          {
+            // Matches the first '<js' or '<JS'.
+            [processBefore, processAfter] = unprocessedData.split(/\<js([\s\S]+)|\<JS([\s\S]+)/);
+
+            if (processAfter)
+            {
+              unprocessedData = processAfter;
+
+
+              // Matches the first '/js>' or '/JS>'.
+              [processBefore, processAfter] = unprocessedData.split(/\/js\>([\s\S]+)|\/JS\>([\s\S]+)/);
+
+              if (processAfter)
+              {
+                unprocessedData = processAfter;
+                processedDataArray.push(processBefore);
+              }
+              else
+              {
+                processedDataArray.push(unprocessedData);
+              }
+            }
+            else
+            {
+              processedDataArray.push(unprocessedData);
+            }
+          } while (processAfter);
+          
+          const processedData = processedDataArray.join('');
+          //console.log(processedData);
+          m._compile(`module.exports = (rt) => {${processedData}};`, '');
           indexExists = true;
         }
         catch (e)

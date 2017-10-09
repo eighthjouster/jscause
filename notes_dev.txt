@@ -6,6 +6,12 @@ Hard-coded values should go in a global file.
 
 ESLint.
 
+\<js should be ignored (part of HTML instead of control sequence.)
+ - Same with \/js>
+
+<js /js> should be case insensitive (<JS /JS>)
+ - And ignore \<JS \/JS>
+
 - Implement:
   public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 

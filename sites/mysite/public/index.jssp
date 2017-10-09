@@ -1,4 +1,10 @@
-rt.print('WHOA 6! \
-can I actually do this?');
+WHOA 7! \
+can I actually do this?
+<js
 rt.print('<br />');
 rt.print(require('./moduletest')());
+/js>
+<h1>COOOL</h1>
+<js
+rt.print('Yes');
+/js>
