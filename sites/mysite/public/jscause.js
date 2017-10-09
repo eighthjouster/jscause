@@ -69,7 +69,7 @@ const runTime = {
   print: (output = '') => outputQueue.push(output),
 };
 
-fs.stat('index.jsse', (err, stats) =>
+fs.stat('index.jssp', (err, stats) =>
 {
   if (err)
   {
@@ -78,7 +78,7 @@ fs.stat('index.jsse', (err, stats) =>
   }
   else
   {
-    fs.readFile('index.jsse', 'utf-8', (err, data) =>
+    fs.readFile('index.jssp', 'utf-8', (err, data) =>
     {
       if (err)
       {
