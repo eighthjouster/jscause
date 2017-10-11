@@ -93,6 +93,7 @@ fs.stat('index.jssp', (err, stats) =>
         let indexExists = false;
         try
         {
+          let firstPass = true;
           let unprocessedData = data;
           const processedDataArray = [];
           let processBefore;
@@ -103,9 +104,9 @@ fs.stat('index.jssp', (err, stats) =>
             // But not '\<js' or '\<JS'.
             [processBefore, processAfter] = unprocessedData.split(/[^\\]\<js([\s\S]+)/i);
 
-            if (processAfter)
+            if (processAfter || !firstPass)
             {
-              unprocessedData = processAfter;
+              unprocessedData = processAfter || '';
 
               const printedStuff = processBefore
                                    .replace(/^\\|([^\<])\\/g,'$1\\\\') // Matches '/' as first character or when it's not part of an HTML tag.
@@ -117,24 +118,29 @@ fs.stat('index.jssp', (err, stats) =>
             
               processedDataArray.push(`rt.print('${printedStuff}');\n`);
 
-              // Matches the first '/js>' or '/JS>'.
-              // But not '\/js>' or '\/JS>'.
-              [processBefore, processAfter] = unprocessedData.split(/[^\\]\/js\>([\s\S]+)/i);
+              if (unprocessedData)
+              {
+                // Matches the first '/js>' or '/JS>'.
+                // But not '\/js>' or '\/JS>'.
+                [processBefore, processAfter] = unprocessedData.split(/[^\\]\/js\>([\s\S]+)/i);
 
-              if (processAfter)
-              {
-                unprocessedData = processAfter;
-                processedDataArray.push(processBefore);
-              }
-              else
-              {
-                processedDataArray.push(unprocessedData);
+                if (processAfter)
+                {
+                  unprocessedData = processAfter;
+                  processedDataArray.push(processBefore);
+                }
+                else
+                {
+                  processedDataArray.push(unprocessedData);
+                }
               }
             }
             else
             {
               processedDataArray.push(unprocessedData);
             }
+
+            firstPass = false;
           } while (processAfter);
           
           const processedData = processedDataArray.join('');
