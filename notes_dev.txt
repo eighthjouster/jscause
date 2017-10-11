@@ -1,3 +1,5 @@
+Why is text after the second /js> throwing an error?
+
 The framework should do this:
  - Enumerate the folders in sites/
    - Each folder will represent a site.
@@ -5,10 +7,6 @@ The framework should do this:
 Hard-coded values should go in a global file.
 
 ESLint.
-
-\<js should be ignored (part of HTML instead of control sequence.)
- - Same with \/js>
- - And ignore \<JS \/JS>
 
 - Implement:
   public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.

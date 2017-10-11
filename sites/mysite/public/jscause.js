@@ -99,23 +99,27 @@ fs.stat('index.jssp', (err, stats) =>
           let processAfter;
           do
           {
-            // Matches the first '<js' or '<JS'
-            [processBefore, processAfter] = unprocessedData.split(/\<js([\s\S]+)/i);
+            // Matches the first '<js' or '<JS'.
+            // But not '\<js' or '\<JS'.
+            [processBefore, processAfter] = unprocessedData.split(/[^\\]\<js([\s\S]+)/i);
 
             if (processAfter)
             {
               unprocessedData = processAfter;
 
               const printedStuff = processBefore
-                                   .replace(/^\\|([^\<])\\/g,'$1\\\\') // Match '/' as first character or when it's not part of a HTML tag.
+                                   .replace(/^\\|([^\<])\\/g,'$1\\\\') // Matches '/' as first character or when it's not part of an HTML tag.
+                                   .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                                   .replace(/\\(\/js\>)/gi,'$1') // Matches '\js>' or '\JS>' and gets rid of the '\'.
                                    .split('\n')
                                    .map((line) => `${line} \\\n`)
                                    .join('');
             
               processedDataArray.push(`rt.print('${printedStuff}');\n`);
 
-              // Matches the first '/js>' or '/JS>'
-              [processBefore, processAfter] = unprocessedData.split(/\/js\>([\s\S]+)/i);
+              // Matches the first '/js>' or '/JS>'.
+              // But not '\/js>' or '\/JS>'.
+              [processBefore, processAfter] = unprocessedData.split(/[^\\]\/js\>([\s\S]+)/i);
 
               if (processAfter)
               {

@@ -37,12 +37,14 @@ Each site contains:
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 
 This is valid:
-    const run = (rt) => {
-      rt.print('WHOA 4!');
-    };
-    module.exports = { run };
-Or this:
-    module.exports = (rt) => {
-      rt.print('WHOA 4!');
-    };
+<js rt.print('WHOA 4!'); /js>
 
+Or this:
+<js
+      rt.print('WHOA 4!');
+/js>
+
+- Anything outside of <js /js> will be printed out as is (regular text or HTML).
+<h2><js rt.print('WHOA 4!'); /js></h2>
+- To '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
+- '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
