@@ -5,4 +5,4 @@ rt.print('<br />');
 rt.print(require('./moduletest')());
   /js>
 <h1>COOOL</h1>
-<h2><JS rt.print('Yes2'); /js></h2>
+<h2> <JS rt.print('Yes2'); /js></h2>

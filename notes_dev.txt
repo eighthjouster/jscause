@@ -1,4 +1,10 @@
-Why is text after the second /js> throwing an error?
+<h2><JS rt.print('Yes2')/js></h2>
+The above is interpreted as:
+ - <h2<JS rt.print('Yes2'/js></h2>
+which will throw an error.  This has to do with that "ignore character before js tag" thing.
+ - Fix, but keeping the original intent of that ignoring.
+
+At this point, start abstracting away the engine.
 
 The framework should do this:
  - Enumerate the folders in sites/
