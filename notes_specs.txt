@@ -48,3 +48,6 @@ Or this:
 <h2><js rt.print('WHOA 4!'); /js></h2>
 - To '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
 - '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
+- If there are no tags, the whole file is considered Javascript.
+- If there are no tags, but there is a <html/> tag at the top of the file, the file is considered HTML.
+- If the first thing in a file is an opening tag it can be omitted.  Likewise, the last thing in a file is a closing file, it can be omitted.

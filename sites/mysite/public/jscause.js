@@ -97,14 +97,21 @@ fs.stat('index.jssp', (err, stats) =>
           const CONTEXT_JAVASCRIPT = 1;
 
           let unprocessedData = data
+                                  .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
                                   .replace(/([^\\])\<js/gi,'$1 <js')
                                   .replace(/^\<js/i,' <js')
                                   .replace(/([^\\])\/js\>/gi, '$1 /js>')
                                   .replace(/^\/js\>/i, ' /js>');
+
           const processedDataArray = [];
 
-          let processingContext = CONTEXT_HTML;
-          let firstPass = true;
+          const $firstOpeningTag = unprocessedData.indexOf(' <js');
+          const $firstClosingTag = unprocessedData.indexOf(' /js>');
+
+          let processingContext = (($firstOpeningTag === -1) && ($firstClosingTag === -1) || ($firstClosingTag < $firstOpeningTag) && ($firstClosingTag > -1)) ?
+                                   CONTEXT_JAVASCRIPT :
+                                   CONTEXT_HTML;
+
           do
           {
             if (processingContext === CONTEXT_HTML) {
@@ -121,26 +128,23 @@ fs.stat('index.jssp', (err, stats) =>
               console.log('****** ProcessAfter is:');
               console.log(processAfter);
 
-              if (processAfter || !firstPass)
-              {
-                unprocessedData = processAfter;
+              unprocessedData = processAfter;
 
-                const printedStuff = (processBefore) ?
-                                     processBefore
-                                       .replace(/^\\|([^\<])\\/,'$1\\\\') // Matches '\' as first character or when it's not part of an HTML tag.
-                                       .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                                       .replace(/\\(\/js\>)/gi,'$1') // Matches '\js>' or '\JS>' and gets rid of the '\'.
-                                       .split(/\n/)
-                                       .map((line) => ((line.replace(/^\s{1}$/,'')) ? `${line} \\n` : null))
-                                       .filter((line) => !!line)
-                                       .join('')
-                                       .replace(/[\s\r\n]{2,}/g, ' ') :
-                                     '';
-              
-                if (printedStuff)
-                {
-                  processedDataArray.push(`rt.print('${printedStuff}');\n`);
-                }
+              const printedStuff = (processBefore) ?
+                                    processBefore
+                                      .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                                      .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+                                      .replace(/\\/g,'\\\\')
+                                      .replace(/\'/g,'\\\'')
+                                      .replace(/\n{2,}/g, '\n')
+                                      .replace(/\s{2,}/g, ' ')
+                                      .split(/\n/)
+                                      .join(' \\n \\\n') :
+                                    '';
+            
+              if (printedStuff)
+              {
+                processedDataArray.push(`rt.print('${printedStuff}');`);
               }
 
               console.log('****** UnprocessedData is:');
@@ -166,6 +170,11 @@ fs.stat('index.jssp', (err, stats) =>
               console.log('****** ProcessAfter is:');
               console.log(processAfter);
 
+              if (processBefore.match(/\<html\s*\//i))
+              {
+                console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+              }
+
               processedDataArray.push(processBefore);
               
               unprocessedData = processAfter;
@@ -176,9 +185,6 @@ fs.stat('index.jssp', (err, stats) =>
 
               processingContext = CONTEXT_HTML;
             }
-
-            firstPass = false;
-
           } while (unprocessedData);
           
           const processedData = processedDataArray.join('');
