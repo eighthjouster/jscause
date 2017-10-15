@@ -93,58 +93,98 @@ fs.stat('index.jssp', (err, stats) =>
         let indexExists = false;
         try
         {
-          let firstPass = true;
-          let unprocessedData = data;
+          const CONTEXT_HTML = 0;
+          const CONTEXT_JAVASCRIPT = 1;
+
+          let unprocessedData = data
+                                  .replace(/([^\\])\<js/gi,'$1 <js')
+                                  .replace(/^\<js/i,' <js')
+                                  .replace(/([^\\])\/js\>/gi, '$1 /js>')
+                                  .replace(/^\/js\>/i, ' /js>');
           const processedDataArray = [];
-          let processBefore;
-          let processAfter;
+
+          let processingContext = CONTEXT_HTML;
+          let firstPass = true;
           do
           {
-            // Matches the first '<js' or '<JS'.
-            // But not '\<js' or '\<JS'.
-            [processBefore, processAfter] = unprocessedData.split(/[^\\]\<js([\s\S]+)/i);
+            if (processingContext === CONTEXT_HTML) {
+              // Matches the first '<js' or '<JS'.
+              // But not '\<js' or '\<JS'.
+              // Adds a prefixing space to distinguish from '\<js', for easy splitting.
+              // (Otherwise, it would delete whatever character is right before.)
+              const [processBefore, processAfter] = unprocessedData
+                                                     .split(/\s\<js([\s\S]*)/);
 
-            if (processAfter || !firstPass)
-            {
-              unprocessedData = processAfter || '';
+              console.log('THE CONTEXT IS HTML.');
+              console.log('****** ProcessBefore is:');
+              console.log(processBefore);
+              console.log('****** ProcessAfter is:');
+              console.log(processAfter);
 
-              const printedStuff = processBefore
-                                   .replace(/^\\|([^\<])\\/g,'$1\\\\') // Matches '/' as first character or when it's not part of an HTML tag.
-                                   .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                                   .replace(/\\(\/js\>)/gi,'$1') // Matches '\js>' or '\JS>' and gets rid of the '\'.
-                                   .split('\n')
-                                   .map((line) => `${line} \\\n`)
-                                   .join('');
-            
-              processedDataArray.push(`rt.print('${printedStuff}');\n`);
-
-              if (unprocessedData)
+              if (processAfter || !firstPass)
               {
-                // Matches the first '/js>' or '/JS>'.
-                // But not '\/js>' or '\/JS>'.
-                [processBefore, processAfter] = unprocessedData.split(/[^\\]\/js\>([\s\S]+)/i);
+                unprocessedData = processAfter;
 
-                if (processAfter)
+                const printedStuff = (processBefore) ?
+                                     processBefore
+                                       .replace(/^\\|([^\<])\\/,'$1\\\\') // Matches '\' as first character or when it's not part of an HTML tag.
+                                       .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                                       .replace(/\\(\/js\>)/gi,'$1') // Matches '\js>' or '\JS>' and gets rid of the '\'.
+                                       .split(/\n/)
+                                       .map((line) => ((line.replace(/^\s{1}$/,'')) ? `${line} \\n` : null))
+                                       .filter((line) => !!line)
+                                       .join('')
+                                       .replace(/[\s\r\n]{2,}/g, ' ') :
+                                     '';
+              
+                if (printedStuff)
                 {
-                  unprocessedData = processAfter;
-                  processedDataArray.push(processBefore);
-                }
-                else
-                {
-                  processedDataArray.push(unprocessedData);
+                  processedDataArray.push(`rt.print('${printedStuff}');\n`);
                 }
               }
+
+              console.log('****** UnprocessedData is:');
+              console.log(unprocessedData);
+              console.log('******');
+
+              processingContext = CONTEXT_JAVASCRIPT;
             }
             else
             {
-              processedDataArray.push(unprocessedData);
+              // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+              // Matches the first '/js>' or '/JS>'.
+              // But not '\/js>' or '\/JS>'.
+              // Adds a prefixing space to distinguish from 'js>', for easy splitting
+              // (Otherwise, it would delete whatever character is right before.)
+              const [processBefore, processAfter] = unprocessedData
+                                                      .split(/\s\/js\>([\s\S]*)/);
+
+              console.log('THE CONTEXT IS JAVASCRIPT.');
+              console.log('****** ProcessBefore is:');
+              console.log(processBefore);
+              console.log('****** ProcessAfter is:');
+              console.log(processAfter);
+
+              processedDataArray.push(processBefore);
+              
+              unprocessedData = processAfter;
+
+              console.log('****** UnprocessedData is:');
+              console.log(unprocessedData);
+              console.log('******');
+
+              processingContext = CONTEXT_HTML;
             }
 
             firstPass = false;
-          } while (processAfter);
+
+          } while (unprocessedData);
           
           const processedData = processedDataArray.join('');
-          
+          console.log('======================'); //__RP
+          console.log(processedData); //__RP
+          console.log('======================'); //__RP
           m._compile(`module.exports = (rt) => {${processedData}};`, '');
           indexExists = true;
         }
