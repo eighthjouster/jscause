@@ -8,9 +8,24 @@ const path = require('path');
 const hostname = '127.0.0.1';
 const port = 3000;
 
-const server = http.createServer();
-
 let indexRun;
+
+function extractErrorFromCompileObject(e)
+{
+  const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
+  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
+  return `${e.message} at line ${lineNumber}`;
+}
+
+function extractErrorFromRuntimeObject(e)
+{
+  const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
+  const lineNumber = (lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)';
+  return `${e.message} at line ${lineNumber}`;
+}
+
+
+const server = http.createServer();
 
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
@@ -39,8 +54,9 @@ server.on('request', (req, res) => {
       }
       catch (e)
       {
-        console.log(e);
         runTime.print('<br />Oops - runtime error!<br />');
+        console.log('Oops - runtime error:');
+        console.log(extractErrorFromRuntimeObject(e));
       }
       res.end(printQueue());
     }
@@ -54,7 +70,7 @@ server.listen(port, hostname, () =>
 {
   console.log(`Server 0.1.001 running at http://${hostname}:${port}/`);
 });
-
+  
 /* *************************************
    *
    * Setup
@@ -89,7 +105,7 @@ fs.stat('index.jssp', (err, stats) =>
       {
         const Module = module.constructor;
         Module._nodeModulePaths(path.dirname(''))
-        const m = new Module();
+        const compiledModule = new Module();
         let indexExists = false;
         try
         {
@@ -191,18 +207,25 @@ fs.stat('index.jssp', (err, stats) =>
           console.log('======================'); //__RP
           console.log(processedData); //__RP
           console.log('======================'); //__RP
-          m._compile(`module.exports = (rt) => {${processedData}};`, '');
-          indexExists = true;
+          try
+          {
+            compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+            indexExists = true;
+          }
+          catch (e)
+          {
+            console.log('Oops - compile error:');
+            console.log(extractErrorFromCompileObject(e));
+          }
         }
         catch (e)
         {
-          console.log(e);
           console.log('Oops 2');
         }
 
         if (indexExists)
         {
-          indexRun = m.exports;
+          indexRun = compiledModule.exports;
 
           if (typeof(indexRun) !== 'function')
           {
