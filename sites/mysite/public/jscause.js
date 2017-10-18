@@ -32,6 +32,7 @@ server.on('request', (req, res) => {
   let bodyChunks = [];
   req.on('error', (err) =>
   {
+    console.log('ERROR: Request related error.');
     console.log(err);
   })
   .on('data', (chunk) =>
@@ -54,21 +55,21 @@ server.on('request', (req, res) => {
       }
       catch (e)
       {
-        runTime.print('<br />Oops - runtime error!<br />');
-        console.log('Oops - runtime error:');
-        console.log(extractErrorFromRuntimeObject(e));
+        runTime.print('<br />Runtime error!<br />');
+        console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
+        console.log(e);
       }
       res.end(printQueue());
     }
     else {
-      res.end('Oops 5');
+      res.end('Application is in error state.');
     }
   });
 });
 
 server.listen(port, hostname, () =>
 {
-  console.log(`Server 0.1.001 running at http://${hostname}:${port}/`);
+  console.log(`Server 0.1.003 running at http://${hostname}:${port}/`);
 });
   
 /* *************************************
@@ -89,8 +90,8 @@ fs.stat('index.jssp', (err, stats) =>
 {
   if (err)
   {
+    console.log('ERROR: Cannot find index file');
     console.log(err);
-    console.log('Oops 1');
   }
   else
   {
@@ -98,8 +99,8 @@ fs.stat('index.jssp', (err, stats) =>
     {
       if (err)
       {
+        console.log('ERROR: Cannot load index file.');
         console.log(err);
-        console.log('Oops 1.1');
       }
       else
       {
@@ -138,12 +139,6 @@ fs.stat('index.jssp', (err, stats) =>
               const [processBefore, processAfter] = unprocessedData
                                                      .split(/\s\<js([\s\S]*)/);
 
-              console.log('THE CONTEXT IS HTML.');
-              console.log('****** ProcessBefore is:');
-              console.log(processBefore);
-              console.log('****** ProcessAfter is:');
-              console.log(processAfter);
-
               unprocessedData = processAfter;
 
               const printedStuff = (processBefore) ?
@@ -163,10 +158,6 @@ fs.stat('index.jssp', (err, stats) =>
                 processedDataArray.push(`rt.print('${printedStuff}');`);
               }
 
-              console.log('****** UnprocessedData is:');
-              console.log(unprocessedData);
-              console.log('******');
-
               processingContext = CONTEXT_JAVASCRIPT;
             }
             else
@@ -180,12 +171,6 @@ fs.stat('index.jssp', (err, stats) =>
               const [processBefore, processAfter] = unprocessedData
                                                       .split(/\s\/js\>([\s\S]*)/);
 
-              console.log('THE CONTEXT IS JAVASCRIPT.');
-              console.log('****** ProcessBefore is:');
-              console.log(processBefore);
-              console.log('****** ProcessAfter is:');
-              console.log(processAfter);
-
               if (processBefore.match(/\<html\s*\//i))
               {
                 console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
@@ -195,18 +180,12 @@ fs.stat('index.jssp', (err, stats) =>
               
               unprocessedData = processAfter;
 
-              console.log('****** UnprocessedData is:');
-              console.log(unprocessedData);
-              console.log('******');
-
               processingContext = CONTEXT_HTML;
             }
           } while (unprocessedData);
           
           const processedData = processedDataArray.join('');
-          console.log('======================'); //__RP
-          console.log(processedData); //__RP
-          console.log('======================'); //__RP
+
           try
           {
             compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
@@ -214,13 +193,14 @@ fs.stat('index.jssp', (err, stats) =>
           }
           catch (e)
           {
-            console.log('Oops - compile error:');
-            console.log(extractErrorFromCompileObject(e));
+            console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
+            console.log(e);
           }
         }
         catch (e)
         {
-          console.log('Oops 2');
+          console.log('ERROR: Parsing error, possibly internal.');
+          console.log(e);
         }
 
         if (indexExists)
@@ -229,15 +209,8 @@ fs.stat('index.jssp', (err, stats) =>
 
           if (typeof(indexRun) !== 'function')
           {
-            if (typeof(indexRun.run) === 'function')
-            {
-              indexRun = indexRun.run;
-            }
-            else
-            {
-              indexRun = undefined;
-              console.log('Oops 4');
-            }
+            indexRun = undefined;
+            console.log('ERROR: Could not compile code.');
           }
         }
       }

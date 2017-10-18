@@ -1,8 +1,4 @@
-\ WHOA 7! \
-\
-can I actually do \<js hehe \/js> this? <JS
-rt.print('<br />');
-rt.print(require('./moduletesto')());
-  /js>
-<h1>COOOL</h1>
-<h2> <js rt.print('Yes2'); /JS></h2>
+hoooo hooo
+
+hello
+ var g; hooo

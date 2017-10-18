@@ -1,6 +1,6 @@
-What about indicating the line number in the source file?  Gulp.
+Error reporting:  line numbers in required modules?
 
-Ger rid of the console.log debug sentences.
+If reporting "runtime error" or "application is in error state," it should give a 500 error code, not 200 OK code.
 
 At this point, start abstracting away the engine.
 
@@ -11,6 +11,9 @@ The framework should do this:
 Hard-coded values should go in a global file.
 
 ESLint.
+
+Specify port number.
+Route to site.
 
 - Implement:
   public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
