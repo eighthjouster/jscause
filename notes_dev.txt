@@ -1,4 +1,6 @@
-Error reporting:  line numbers in required modules?
+Useful:
+git bundle create jscause-.bundle devel
+=====
 
 If reporting "runtime error" or "application is in error state," it should give a 500 error code, not 200 OK code.
 

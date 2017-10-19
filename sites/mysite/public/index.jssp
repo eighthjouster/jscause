@@ -1,4 +1,6 @@
-hoooo hooo
-
-hello
- var g; hooo
+require('./moduletest')()
+rt.print('<br />');
+rt.print(require('./moduletest')());
+  /js>
+<h1>COOOL</h1>
+<h2> <js rt.print('Yes2'); /js> </h2>

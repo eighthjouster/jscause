@@ -20,8 +20,12 @@ function extractErrorFromCompileObject(e)
 function extractErrorFromRuntimeObject(e)
 {
   const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
-  const lineNumber = (lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)';
-  return `${e.message} at line ${lineNumber}`;
+  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
+  const atInfo = (potentialFileNumber) ?
+    `at file ${fileName}, line ${potentialFileNumber}`
+    :
+    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
+  return `${e.message} ${atInfo}`;
 }
 
 
@@ -62,7 +66,7 @@ server.on('request', (req, res) => {
       res.end(printQueue());
     }
     else {
-      res.end('Application is in error state.');
+      res.end('Application is in an error state.');
     }
   });
 });
