@@ -46,9 +46,7 @@ server.on('request', (req, res) => {
   .on('end', () =>
   {
     const body = Buffer.concat(bodyChunks).toString();
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html');
+    let statusCode = 200;
 
     if (indexRun)
     {
@@ -62,10 +60,16 @@ server.on('request', (req, res) => {
         runTime.print('<br />Runtime error!<br />');
         console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
         console.log(e);
+
+        statusCode = 500;
       }
+
+      res.statusCode = statusCode;
+      res.setHeader('Content-Type', 'text/html');
       res.end(printQueue());
     }
     else {
+      res.statusCode = 500;
       res.end('Application is in an error state.');
     }
   });

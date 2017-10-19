@@ -2,9 +2,39 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-If reporting "runtime error" or "application is in error state," it should give a 500 error code, not 200 OK code.
+Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
+ - Don't waste too much time on this.  You can defer it to a future version.
+
+Redirects?
+
+Manipulate header?
+
+Cookies?
+
+Send JSON?
+
+Other files? (images, css).
+ - Static files?
+
+Read GET parameters?
+
+Read POST parameters?
+
+Read both GET and POST parameters on the same request?
+
+Uploads?
 
 At this point, start abstracting away the engine.
+
+Server-side rendering?
+
+Version 0.7 here!
+
+Reload on file change?
+
+Option to crash the server on fatal error?
+ - Crash it on immediate compile error.
+ - Reload otherwise?
 
 The framework should do this:
  - Enumerate the folders in sites/
