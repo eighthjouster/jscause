@@ -1,97 +1,21 @@
 'use strict';
 
-const http = require('http');
-const util = require('util');
-const fs = require('fs');
-const path = require('path');
-
-const hostname = '127.0.0.1';
-const port = 3000;
-
-let indexRun;
-
-function extractErrorFromCompileObject(e)
-{
-  const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
-  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
-  return `${e.message} at line ${lineNumber}`;
-}
-
-function extractErrorFromRuntimeObject(e)
-{
-  const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
-  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
-  const atInfo = (potentialFileNumber) ?
-    `at file ${fileName}, line ${potentialFileNumber}`
-    :
-    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
-  return `${e.message} ${atInfo}`;
-}
-
-
-const server = http.createServer();
-
-server.on('request', (req, res) => {
-  const { headers, method, url } = req;
-  let bodyChunks = [];
-  req.on('error', (err) =>
-  {
-    console.log('ERROR: Request related error.');
-    console.log(err);
-  })
-  .on('data', (chunk) =>
-  {
-    bodyChunks.push(chunk);
-  })
-  .on('end', () =>
-  {
-    const body = Buffer.concat(bodyChunks).toString();
-    let statusCode = 200;
-
-    if (indexRun)
-    {
-      printInit();
-      try
-      {
-        indexRun(runTime);
-      }
-      catch (e)
-      {
-        runTime.print('<br />Runtime error!<br />');
-        console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
-        console.log(e);
-
-        statusCode = 500;
-      }
-
-      res.statusCode = statusCode;
-      res.setHeader('Content-Type', 'text/html');
-      res.end(printQueue());
-    }
-    else {
-      res.statusCode = 500;
-      res.end('Application is in an error state.');
-    }
-  });
-});
-
-server.listen(port, hostname, () =>
-{
-  console.log(`Server 0.1.003 running at http://${hostname}:${port}/`);
-});
-  
 /* *************************************
    *
    * Setup
    *
    ************************************** */
+const fs = require('fs');
 
 let outputQueue;
+let appHeaders = {};
 const printInit = () => { outputQueue = []; };
 const printQueue = () => outputQueue.join('');
+const assignAppHeaders = (headers) => { appHeaders = Object.assign(appHeaders, headers); };
 
 const runTime = {
   print: (output = '') => outputQueue.push(output),
+  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [{[nameOrObject]: value}] : [nameOrObject] );  }
 };
 
 fs.stat('index.jssp', (err, stats) =>
@@ -225,3 +149,89 @@ fs.stat('index.jssp', (err, stats) =>
     });
   }
 });
+
+const http = require('http');
+const util = require('util');
+const path = require('path');
+
+const hostname = '127.0.0.1';
+const port = 3000;
+
+let indexRun;
+
+function extractErrorFromCompileObject(e)
+{
+  const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
+  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
+  return `${e.message} at line ${lineNumber}`;
+}
+
+function extractErrorFromRuntimeObject(e)
+{
+  const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
+  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
+  const atInfo = (potentialFileNumber) ?
+    `at file ${fileName}, line ${potentialFileNumber}`
+    :
+    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
+  return `${e.message} ${atInfo}`;
+}
+
+/* *************************************
+   *
+   * Server stuff
+   *
+   ************************************** */
+
+const server = http.createServer();
+
+server.on('request', (req, res) => {
+  const { headers, method, url } = req;
+  let bodyChunks = [];
+  req.on('error', (err) =>
+  {
+    console.log('ERROR: Request related error.');
+    console.log(err);
+  })
+  .on('data', (chunk) =>
+  {
+    bodyChunks.push(chunk);
+  })
+  .on('end', () =>
+  {
+    const body = Buffer.concat(bodyChunks).toString();
+    let statusCode = 200;
+
+    if (indexRun)
+    {
+      printInit();
+      try
+      {
+        indexRun(runTime);
+      }
+      catch (e)
+      {
+        runTime.print('<br />Runtime error!<br />');
+        console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
+        console.log(e);
+
+        statusCode = 500;
+      }
+
+      res.statusCode = statusCode;
+      res.setHeader('Content-Type', 'text/html');
+      Object.keys(appHeaders).forEach((headerName) => res.setHeader(headerName, appHeaders[headerName]));
+      res.end(printQueue());
+    }
+    else {
+      res.statusCode = 500;
+      res.end('Application is in an error state.');
+    }
+  });
+});
+
+server.listen(port, hostname, () =>
+{
+  console.log(`Server 0.1.003 running at http://${hostname}:${port}/`);
+});
+  

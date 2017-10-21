@@ -51,3 +51,4 @@ Or this:
 - If there are no tags, the whole file is considered Javascript.
 - If there are no tags, but there is a <html/> tag at the top of the file, the file is considered HTML.
 - If the first thing in a file is an opening tag it can be omitted.  Likewise, the last thing in a file is a closing file, it can be omitted.
+- rt.header() sets headers.  You can call them as many time as needed.

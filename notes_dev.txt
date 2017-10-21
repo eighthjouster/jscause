@@ -2,12 +2,14 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
- - Don't waste too much time on this.  You can defer it to a future version.
+Do we have access to nodeJS stuff? Like imports?
+ - That would be neat.
+
+Delete header entries?
+
+Clear all header entries?
 
 Redirects?
-
-Manipulate header?
 
 Cookies?
 
@@ -23,29 +25,39 @@ Read POST parameters?
 Read both GET and POST parameters on the same request?
 
 Uploads?
+ - Security?
 
 At this point, start abstracting away the engine.
 
+Server Id? (Multi-host).
+
 Server-side rendering?
+
+Specify port number.
+Route to site.
+
+Hard-coded values should go in a global file.
 
 Version 0.7 here!
 
 Reload on file change?
 
+Exposure of res and req, for advanced users.
+
 Option to crash the server on fatal error?
  - Crash it on immediate compile error.
  - Reload otherwise?
 
+ESLint.
+
+Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
+ - Don't waste too much time on this.  You can defer it to a future version.
+
+====
+
 The framework should do this:
  - Enumerate the folders in sites/
    - Each folder will represent a site.
-
-Hard-coded values should go in a global file.
-
-ESLint.
-
-Specify port number.
-Route to site.
 
 - Implement:
   public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.

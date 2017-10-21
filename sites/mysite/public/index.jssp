@@ -1,4 +1,4 @@
-rt.print('<br />');
+rt.header({'X-hello': 'Yes!', 'X-goodbye': 'Goodbye'});
 rt.print(require('./moduletest')());
   /js>
 <h1>COOOL</h1>
