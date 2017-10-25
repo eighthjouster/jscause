@@ -9,13 +9,32 @@ const fs = require('fs');
 
 let outputQueue;
 let appHeaders = {};
-const printInit = () => { outputQueue = []; };
-const printQueue = () => outputQueue.join('');
-const assignAppHeaders = (headers) => { appHeaders = Object.assign(appHeaders, headers); };
+let resObject;
+let waitForNextId = 1;
+const waitForQueue = {};
 
+const printInit = () => { outputQueue = []; };
+const registerResObject = (res) => { resObject = res; };
+const assignAppHeaders = (headers) => { appHeaders = Object.assign(appHeaders, headers); };
+const doneWith = (id) =>
+{
+  if (id)
+  {
+    delete waitForQueue[id];
+  }
+  if (Object.keys(waitForQueue).length === 0)
+  {
+    resObject.end(outputQueue.join(''));
+  }
+};
+const finishUpHeaders = () =>
+{
+  Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
+};
 const runTime = {
   print: (output = '') => outputQueue.push(output),
-  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [{[nameOrObject]: value}] : [nameOrObject] );  }
+  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [{[nameOrObject]: value}] : [nameOrObject] );  },
+  waitFor: (cb) => { const waitForId = waitForNextId++; waitForQueue[waitForId] = true; return () => { cb(); doneWith(waitForId); } },
 };
 
 fs.stat('index.jssp', (err, stats) =>
@@ -45,6 +64,10 @@ fs.stat('index.jssp', (err, stats) =>
           const CONTEXT_HTML = 0;
           const CONTEXT_JAVASCRIPT = 1;
 
+          // Matches '<js', '<JS', /js>' or '/JS>'
+          // Adds a prefixing space to distinguish from 
+          // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+          // (Otherwise, it would delete whatever character is right before.)
           let unprocessedData = data
                                   .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
                                   .replace(/([^\\])\<js/gi,'$1 <js')
@@ -64,10 +87,6 @@ fs.stat('index.jssp', (err, stats) =>
           do
           {
             if (processingContext === CONTEXT_HTML) {
-              // Matches the first '<js' or '<JS'.
-              // But not '\<js' or '\<JS'.
-              // Adds a prefixing space to distinguish from '\<js', for easy splitting.
-              // (Otherwise, it would delete whatever character is right before.)
               const [processBefore, processAfter] = unprocessedData
                                                      .split(/\s\<js([\s\S]*)/);
 
@@ -96,10 +115,6 @@ fs.stat('index.jssp', (err, stats) =>
             {
               // Assuming processingContext is CONTEXT_JAVASCRIPT
 
-              // Matches the first '/js>' or '/JS>'.
-              // But not '\/js>' or '\/JS>'.
-              // Adds a prefixing space to distinguish from 'js>', for easy splitting
-              // (Otherwise, it would delete whatever character is right before.)
               const [processBefore, processAfter] = unprocessedData
                                                       .split(/\s\/js\>([\s\S]*)/);
 
@@ -205,6 +220,7 @@ server.on('request', (req, res) => {
     if (indexRun)
     {
       printInit();
+      registerResObject(res);
       try
       {
         indexRun(runTime);
@@ -219,9 +235,10 @@ server.on('request', (req, res) => {
       }
 
       res.statusCode = statusCode;
-      res.setHeader('Content-Type', 'text/html');
-      Object.keys(appHeaders).forEach((headerName) => res.setHeader(headerName, appHeaders[headerName]));
-      res.end(printQueue());
+      assignAppHeaders({'Content-Type': 'text/html'});
+
+      finishUpHeaders();
+      doneWith();
     }
     else {
       res.statusCode = 500;

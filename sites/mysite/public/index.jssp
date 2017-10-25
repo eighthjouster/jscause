@@ -1,5 +1,21 @@
 rt.header({'X-hello': 'Yes!', 'X-goodbye': 'Goodbye'});
 rt.print(require('./moduletest')());
+
+setTimeout(rt.waitFor(() => {
+    rt.print('HELLO FROM TEMPLATE!');
+    console.log('HELLO FROM CONSOLE');
+}), 1000);
+
+setTimeout(rt.waitFor(() => {
+    rt.print('HELLO FROM TEMPLATE QUICK!');
+    console.log('HELLO FROM CONSOLE QUICK');
+}), 0);
+
+setTimeout(rt.waitFor(() => {
+    rt.print('HELLO FROM TEMPLATE 2!');
+    console.log('HELLO FROM CONSOLE 2');
+}), 500);
+
   /js>
 <h1>COOOL</h1>
 <h2> <js rt.print('Yes2'); /js> </h2>

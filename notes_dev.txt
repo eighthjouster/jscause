@@ -2,12 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Do we have access to nodeJS stuff? Like imports?
- - That would be neat.
+Hm.  You should isolate output queues and other request-related data.  Otherwise, every request will access the same thing.
 
-Delete header entries?
+Can you nest waitFor() callbacks?
 
-Clear all header entries?
+Set character encoding, so Firefox won't complain that there is no character encoding.
 
 Redirects?
 
@@ -39,6 +38,19 @@ Route to site.
 Hard-coded values should go in a global file.
 
 Version 0.7 here!
+
+Order by priority:
+
+Set response status code?
+
+Delete header entries?
+
+Clear all header entries?
+
+rt.waitFor():
+ - There should be a way to define timeouts, to indicate when the callbacks are taking too long.
+   - There should be a default somewhere, maybe 0 for "always wait."
+   - If it times out, either throw an error, or run a user's function.
 
 Reload on file change?
 
