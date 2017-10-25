@@ -7,34 +7,38 @@
    ************************************** */
 const fs = require('fs');
 
-let outputQueue;
-let appHeaders = {};
-let resObject;
-let waitForNextId = 1;
-const waitForQueue = {};
+const resContext = 
+{
+  outputQueue: undefined,
+  appHeaders: {},
+  resObject: undefined,
+  waitForNextId: 1,
+  waitForQueue: {}
+};
 
-const printInit = () => { outputQueue = []; };
-const registerResObject = (res) => { resObject = res; };
-const assignAppHeaders = (headers) => { appHeaders = Object.assign(appHeaders, headers); };
-const doneWith = (id) =>
+const printInit = (ctx) => { ctx.outputQueue = []; };
+const registerResObject = (ctx, res) => { ctx.resObject = res; };
+const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
+const doneWith = (ctx, id) =>
 {
   if (id)
   {
-    delete waitForQueue[id];
+    delete ctx.waitForQueue[id];
   }
-  if (Object.keys(waitForQueue).length === 0)
+  if (Object.keys(ctx.waitForQueue).length === 0)
   {
-    resObject.end(outputQueue.join(''));
+    ctx.resObject.end(ctx.outputQueue.join(''));
   }
 };
-const finishUpHeaders = () =>
+const finishUpHeaders = (ctx) =>
 {
-  Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
+  Object.keys(ctx.appHeaders).forEach((headerName) => ctx.resObject.setHeader(headerName, ctx.appHeaders[headerName]));
 };
 const runTime = {
-  print: (output = '') => outputQueue.push(output),
-  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [{[nameOrObject]: value}] : [nameOrObject] );  },
-  waitFor: (cb) => { const waitForId = waitForNextId++; waitForQueue[waitForId] = true; return () => { cb(); doneWith(waitForId); } },
+  rtContext: resContext,
+  print: (output = '') => runTime.rtContext.outputQueue.push(output),
+  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [runTime.rtContext, {[nameOrObject]: value}] : [].concat(runTime.rtContext, nameOrObject) );  },
+  waitFor: (cb) => { const waitForId = runTime.rtContext.waitForNextId++; runTime.rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(runTime.rtContext, waitForId); } },
 };
 
 fs.stat('index.jssp', (err, stats) =>
@@ -219,8 +223,8 @@ server.on('request', (req, res) => {
 
     if (indexRun)
     {
-      printInit();
-      registerResObject(res);
+      printInit(resContext);
+      registerResObject(resContext, res);
       try
       {
         indexRun(runTime);
@@ -235,10 +239,10 @@ server.on('request', (req, res) => {
       }
 
       res.statusCode = statusCode;
-      assignAppHeaders({'Content-Type': 'text/html'});
+      assignAppHeaders(resContext, {'Content-Type': 'text/html'});
 
-      finishUpHeaders();
-      doneWith();
+      finishUpHeaders(resContext);
+      doneWith(resContext);
     }
     else {
       res.statusCode = 500;
