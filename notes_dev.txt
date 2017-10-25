@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Hm.  You should isolate output queues and other request-related data.  Otherwise, every request will access the same thing.
-
 Can you nest waitFor() callbacks?
 
 Set character encoding, so Firefox won't complain that there is no character encoding.

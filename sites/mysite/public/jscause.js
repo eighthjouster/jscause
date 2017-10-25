@@ -7,15 +7,6 @@
    ************************************** */
 const fs = require('fs');
 
-const resContext = 
-{
-  outputQueue: undefined,
-  appHeaders: {},
-  resObject: undefined,
-  waitForNextId: 1,
-  waitForQueue: {}
-};
-
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
@@ -25,6 +16,7 @@ const doneWith = (ctx, id) =>
   {
     delete ctx.waitForQueue[id];
   }
+
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
     ctx.resObject.end(ctx.outputQueue.join(''));
@@ -34,11 +26,14 @@ const finishUpHeaders = (ctx) =>
 {
   Object.keys(ctx.appHeaders).forEach((headerName) => ctx.resObject.setHeader(headerName, ctx.appHeaders[headerName]));
 };
-const runTime = {
-  rtContext: resContext,
-  print: (output = '') => runTime.rtContext.outputQueue.push(output),
-  header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [runTime.rtContext, {[nameOrObject]: value}] : [].concat(runTime.rtContext, nameOrObject) );  },
-  waitFor: (cb) => { const waitForId = runTime.rtContext.waitForNextId++; runTime.rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(runTime.rtContext, waitForId); } },
+
+const createRunTime = (rtContext) =>
+{
+  return {
+    print: (output = '') => rtContext.outputQueue.push(output),
+    header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
+    waitFor: (cb) => { const waitForId = rtContext.waitForNextId++; rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(rtContext, waitForId); } },
+  };
 };
 
 fs.stat('index.jssp', (err, stats) =>
@@ -207,6 +202,7 @@ const server = http.createServer();
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
   let bodyChunks = [];
+
   req.on('error', (err) =>
   {
     console.log('ERROR: Request related error.');
@@ -220,6 +216,17 @@ server.on('request', (req, res) => {
   {
     const body = Buffer.concat(bodyChunks).toString();
     let statusCode = 200;
+
+    const resContext = 
+    {
+      outputQueue: undefined,
+      appHeaders: {},
+      resObject: undefined,
+      waitForNextId: 1,
+      waitForQueue: {}
+    };
+
+    const runTime = createRunTime(resContext);
 
     if (indexRun)
     {
