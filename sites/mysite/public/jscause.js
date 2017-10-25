@@ -246,7 +246,7 @@ server.on('request', (req, res) => {
       }
 
       res.statusCode = statusCode;
-      assignAppHeaders(resContext, {'Content-Type': 'text/html'});
+      assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
 
       finishUpHeaders(resContext);
       doneWith(resContext);

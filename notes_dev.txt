@@ -2,10 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Can you nest waitFor() callbacks?
-
-Set character encoding, so Firefox won't complain that there is no character encoding.
-
 Redirects?
 
 Cookies?
