@@ -6,6 +6,7 @@
    *
    ************************************** */
 const fs = require('fs');
+const urlUtils = require('url');
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
@@ -33,6 +34,7 @@ const createRunTime = (rtContext) =>
     print: (output = '') => rtContext.outputQueue.push(output),
     header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
     waitFor: (cb) => { const waitForId = rtContext.waitForNextId++; rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(rtContext, waitForId); } },
+    queryParams: rtContext.queryParams
   };
 };
 
@@ -223,7 +225,8 @@ server.on('request', (req, res) => {
       appHeaders: {},
       resObject: undefined,
       waitForNextId: 1,
-      waitForQueue: {}
+      waitForQueue: {},
+      queryParams: urlUtils.parse(req.url, true).query
     };
 
     const runTime = createRunTime(resContext);

@@ -3,6 +3,7 @@ rt.print(require('./moduletest')());
 
 setTimeout(rt.waitFor(() => {
     rt.print('¡CHÉVERE!!');
+    rt.print(rt.queryParams.r);
     console.log('HELLO FROM CONSOLE QUICK');
 }), 0);
 

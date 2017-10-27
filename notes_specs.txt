@@ -57,3 +57,4 @@ Or this:
   - Write it as: setTimeout(rt.waitFor(() => { rt.print('Hello, world!'); }), 1000);
   - If you don't do this, then the response will be sent to the client without waiting.
   - rt.waitFor()'s can be nested.
+- rt.queryParams is an object containing the GET query parameters.

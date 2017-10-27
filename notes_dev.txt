@@ -2,18 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Redirects?
+Read POST parameters?
 
 Cookies?
+ - Read/write?
+
+Redirects?
 
 Send JSON?
 
 Other files? (images, css).
  - Static files?
-
-Read GET parameters?
-
-Read POST parameters?
 
 Read both GET and POST parameters on the same request?
 
@@ -34,6 +33,8 @@ Hard-coded values should go in a global file.
 Version 0.7 here!
 
 Order by priority:
+
+Access to full url.
 
 Set response status code?
 
