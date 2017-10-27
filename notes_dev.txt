@@ -2,7 +2,18 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Read POST parameters?
+Uploads?
+ - Security?
+   - Consider this:
+request.on('data', function (data) {
+            body += data;
+
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.length > 1e6)
+                request.connection.destroy();
+        });
+Can you actually send something (res.end()) even if we haven't gotten an 'end' event?  So that you can let the visitor know.
 
 Cookies?
  - Read/write?
@@ -13,11 +24,6 @@ Send JSON?
 
 Other files? (images, css).
  - Static files?
-
-Read both GET and POST parameters on the same request?
-
-Uploads?
- - Security?
 
 At this point, start abstracting away the engine.
 
@@ -59,6 +65,8 @@ ESLint.
 
 Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
  - Don't waste too much time on this.  You can defer it to a future version.
+
+jssp syntax coloring? linting?
 
 ====
 

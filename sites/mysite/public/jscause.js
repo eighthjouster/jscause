@@ -7,6 +7,7 @@
    ************************************** */
 const fs = require('fs');
 const urlUtils = require('url');
+const queryStringUtils = require('querystring');
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
@@ -34,7 +35,8 @@ const createRunTime = (rtContext) =>
     print: (output = '') => rtContext.outputQueue.push(output),
     header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
     waitFor: (cb) => { const waitForId = rtContext.waitForNextId++; rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(rtContext, waitForId); } },
-    queryParams: rtContext.queryParams
+    getParams: rtContext.getParams,
+    postParams: rtContext.postParams
   };
 };
 
@@ -78,10 +80,10 @@ fs.stat('index.jssp', (err, stats) =>
 
           const processedDataArray = [];
 
-          const $firstOpeningTag = unprocessedData.indexOf(' <js');
-          const $firstClosingTag = unprocessedData.indexOf(' /js>');
+          const firstOpeningTag = unprocessedData.indexOf(' <js');
+          const firstClosingTag = unprocessedData.indexOf(' /js>');
 
-          let processingContext = (($firstOpeningTag === -1) && ($firstClosingTag === -1) || ($firstClosingTag < $firstOpeningTag) && ($firstClosingTag > -1)) ?
+          let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
                                    CONTEXT_JAVASCRIPT :
                                    CONTEXT_HTML;
 
@@ -213,10 +215,12 @@ server.on('request', (req, res) => {
   .on('data', (chunk) =>
   {
     bodyChunks.push(chunk);
+    //console.log(chunk, chunk.length);
   })
   .on('end', () =>
   {
     const body = Buffer.concat(bodyChunks).toString();
+
     let statusCode = 200;
 
     const resContext = 
@@ -226,7 +230,8 @@ server.on('request', (req, res) => {
       resObject: undefined,
       waitForNextId: 1,
       waitForQueue: {},
-      queryParams: urlUtils.parse(req.url, true).query
+      getParams: urlUtils.parse(req.url, true).query,
+      postParams: queryStringUtils.parse(body)
     };
 
     const runTime = createRunTime(resContext);

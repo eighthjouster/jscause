@@ -3,11 +3,15 @@ rt.print(require('./moduletest')());
 
 setTimeout(rt.waitFor(() => {
     rt.print('¡CHÉVERE!!');
-    rt.print(rt.queryParams.r);
+    rt.print(rt.getParams.r);
+    rt.print(rt.postParams.aa);
     console.log('HELLO FROM CONSOLE QUICK');
 }), 0);
 
 
-  /js>
+/js>
 <h1>COOOL</h1>
-<h2> <js rt.print('Yes2'); /js> </h2>
+<form method="post">
+    <input type="hidden" name="aa" value="bb" />
+    <input type="submit" name="submitIt" value="Submit it!" />
+</form>
