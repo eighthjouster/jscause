@@ -1,17 +1,8 @@
-rt.header({'X-hello': 'Yes!', 'X-goodbye': 'Goodbye'});
-rt.print(require('./moduletest')());
-
-setTimeout(rt.waitFor(() => {
-    rt.print('¡CHÉVERE!!');
-    rt.print(rt.getParams.r);
-    rt.print(rt.postParams.aa);
-    console.log('HELLO FROM CONSOLE QUICK');
-}), 0);
-
+  //rt.print(rt.uploads.aa);
 
 /js>
 <h1>COOOL</h1>
-<form method="post">
-    <input type="hidden" name="aa" value="bb" />
+<form method="post" enctype="multipart/form-data">
+    <input name="myFile" type="file" multiple />
     <input type="submit" name="submitIt" value="Submit it!" />
 </form>

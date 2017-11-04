@@ -2,7 +2,21 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+// TO-DO:  WHAT IF IT IS A POST, BUT NOT AN UPLOAD? //__RP
+
 Uploads?
+ - We'll use formidable.
+   - Can we extend this to the way we treat POST requests at the moment?
+
+Use cases:
+ - Regular forms (no uploads).
+ - Form uploads.
+ - JSON.
+ - Other?
+
+=====
+
+ - Multiple files at once?
  - Security?
    - Consider this:
 request.on('data', function (data) {
@@ -14,6 +28,8 @@ request.on('data', function (data) {
                 request.connection.destroy();
         });
 Can you actually send something (res.end()) even if we haven't gotten an 'end' event?  So that you can let the visitor know.
+Save to temp file that you will delete after the request ends.
+ - Can we use toString() on a chunk?
 
 Cookies?
  - Read/write?
@@ -35,6 +51,8 @@ Specify port number.
 Route to site.
 
 Hard-coded values should go in a global file.
+
+Make two versions:  Standalone and NPM-installable.
 
 Version 0.7 here!
 

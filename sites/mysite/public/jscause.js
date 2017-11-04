@@ -8,6 +8,7 @@
 const fs = require('fs');
 const urlUtils = require('url');
 const queryStringUtils = require('querystring');
+const formidable = require('./jscvendor/formidable');
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
@@ -39,6 +40,8 @@ const createRunTime = (rtContext) =>
     postParams: rtContext.postParams
   };
 };
+
+let indexRun;
 
 fs.stat('index.jssp', (err, stats) =>
 {
@@ -175,8 +178,6 @@ const path = require('path');
 const hostname = '127.0.0.1';
 const port = 3000;
 
-let indexRun;
-
 function extractErrorFromCompileObject(e)
 {
   const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
@@ -203,71 +204,106 @@ function extractErrorFromRuntimeObject(e)
 
 const server = http.createServer();
 
+const responder = (req, res, postContext) =>
+{
+  let postParams = '';
+  if (postContext.isUpload)
+  {
+    // WHAT DO DO WITH UPLOADING?
+  }
+  else
+  {
+    const body = Buffer.concat(bodyChunks).toString();
+    //console.log(body);//__RP
+    postParams =  queryStringUtils.parse(body)
+  }
+
+  let statusCode = 200;
+
+  const resContext = 
+  {
+    outputQueue: undefined,
+    appHeaders: {},
+    resObject: undefined,
+    waitForNextId: 1,
+    waitForQueue: {},
+    getParams: urlUtils.parse(req.url, true).query,
+    postParams
+  };
+
+  const runTime = createRunTime(resContext);
+
+  if (indexRun)
+  {
+    printInit(resContext);
+    registerResObject(resContext, res);
+    try
+    {
+      indexRun(runTime);
+    }
+    catch (e)
+    {
+      runTime.print('<br />Runtime error!<br />');
+      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
+      console.log(e);
+
+      statusCode = 500;
+    }
+
+    res.statusCode = statusCode;
+    assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
+
+    finishUpHeaders(resContext);
+    doneWith(resContext);
+  }
+  else {
+    res.statusCode = 500;
+    res.end('Application is in an error state.');
+  }
+};
+
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
-  let bodyChunks = [];
+
+  const fileUploader = ((req.method || '').toLowerCase() === 'post') ?
+    new formidable.IncomingForm()
+    :
+    null;
+
+  if (fileUploader)
+  {
+    fileUploader.parse(req);
+
+    fileUploader.on('end', () =>
+    {
+      const uploadContext = { isUpload: true };
+      responder(req, res, uploadContext);
+    });
+  }
+  else
+  {
+    let bodyChunks = [];
+    req.on('data', (chunk) =>
+    {
+      bodyChunks.push(chunk);
+      //console.log(chunk, chunk.length);
+    })
+    .on('end', () =>
+    {
+      const postContext = { budyChunks };
+      responder(req, res, postContext);
+    });
+  }
 
   req.on('error', (err) =>
   {
     console.log('ERROR: Request related error.');
     console.log(err);
   })
-  .on('data', (chunk) =>
-  {
-    bodyChunks.push(chunk);
-    //console.log(chunk, chunk.length);
-  })
-  .on('end', () =>
-  {
-    const body = Buffer.concat(bodyChunks).toString();
-
-    let statusCode = 200;
-
-    const resContext = 
-    {
-      outputQueue: undefined,
-      appHeaders: {},
-      resObject: undefined,
-      waitForNextId: 1,
-      waitForQueue: {},
-      getParams: urlUtils.parse(req.url, true).query,
-      postParams: queryStringUtils.parse(body)
-    };
-
-    const runTime = createRunTime(resContext);
-
-    if (indexRun)
-    {
-      printInit(resContext);
-      registerResObject(resContext, res);
-      try
-      {
-        indexRun(runTime);
-      }
-      catch (e)
-      {
-        runTime.print('<br />Runtime error!<br />');
-        console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
-        console.log(e);
-
-        statusCode = 500;
-      }
-
-      res.statusCode = statusCode;
-      assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
-
-      finishUpHeaders(resContext);
-      doneWith(resContext);
-    }
-    else {
-      res.statusCode = 500;
-      res.end('Application is in an error state.');
-    }
-  });
 });
 
 server.listen(port, hostname, () =>
 {
-  console.log(`Server 0.1.003 running at http://${hostname}:${port}/`);
+  console.log(`Server 0.1.010 running at http://${hostname}:${port}/`);
 });
   
