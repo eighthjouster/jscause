@@ -9,6 +9,7 @@ const fs = require('fs');
 const urlUtils = require('url');
 const queryStringUtils = require('querystring');
 const formidable = require('./jscvendor/formidable');
+const MULTIPART_FORMDATA_RE = /^multipart\/form-data/i;
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
@@ -264,8 +265,8 @@ const responder = (req, res, postContext) =>
 
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
-
-  const fileUploader = ((req.method || '').toLowerCase() === 'post') ?
+  const fileUploader = (((req.method || '').toLowerCase() === 'post') &&
+                        MULTIPART_FORMDATA_RE.test(req.headers['content-type'])) ?
     new formidable.IncomingForm()
     :
     null;
@@ -306,4 +307,3 @@ server.listen(port, hostname, () =>
 {
   console.log(`Server 0.1.010 running at http://${hostname}:${port}/`);
 });
-  
