@@ -2,7 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-// TO-DO:  WHAT IF IT IS A POST, BUT NOT AN UPLOAD? //__RP
+Continue with analyzing formType.
 
 Uploads?
  - We'll use formidable.

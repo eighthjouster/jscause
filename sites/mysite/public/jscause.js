@@ -9,7 +9,8 @@ const fs = require('fs');
 const urlUtils = require('url');
 const queryStringUtils = require('querystring');
 const formidable = require('./jscvendor/formidable');
-const MULTIPART_FORMDATA_RE = /^multipart\/form-data/i;
+const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
+const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const registerResObject = (ctx, res) => { ctx.resObject = res; };
@@ -205,10 +206,10 @@ function extractErrorFromRuntimeObject(e)
 
 const server = http.createServer();
 
-const responder = (req, res, postContext) =>
+const responder = (req, res, { formType, bodyChunks }) =>
 {
   let postParams = '';
-  if (postContext.isUpload)
+  if (formType === 'upload')
   {
     // WHAT DO DO WITH UPLOADING?
   }
@@ -265,20 +266,22 @@ const responder = (req, res, postContext) =>
 
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
-  const fileUploader = (((req.method || '').toLowerCase() === 'post') &&
-                        MULTIPART_FORMDATA_RE.test(req.headers['content-type'])) ?
+  const contentType = req.headers['content-type'];
+  const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
+  const isFormPost = (((req.method || '').toLowerCase() === 'post') &&
+                        (isUpload || FORMDATA_URLENCODED_RE.test(contentType))) ?
     new formidable.IncomingForm()
     :
     null;
 
-  if (fileUploader)
+  if (isFormPost)
   {
-    fileUploader.parse(req);
+    isFormPost.parse(req);
 
-    fileUploader.on('end', () =>
+    isFormPost.on('end', () =>
     {
-      const uploadContext = { isUpload: true };
-      responder(req, res, uploadContext);
+      const formContext = { formType: (isUpload) ? 'formWithUpload' : 'formData' };
+      responder(req, res, formContext);
     });
   }
   else
@@ -291,7 +294,7 @@ server.on('request', (req, res) => {
     })
     .on('end', () =>
     {
-      const postContext = { budyChunks };
+      const postContext = { formType: 'postData', bodyChunks };
       responder(req, res, postContext);
     });
   }

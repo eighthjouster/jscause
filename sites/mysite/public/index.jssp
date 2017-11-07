@@ -2,7 +2,9 @@
 
 /js>
 <h1>COOOL</h1>
-<form method="post" enctype="multipart/form-data">
-    <input name="myFile" type="file" multiple />
+<!-- form method="post" enctype="multipart/form-data" -->
+    <!-- input name="myFile" type="file" multiple -->
+<form method="post">
+    <input name="myFile" type="text" value="" />
     <input type="submit" name="submitIt" value="Submit it!" />
 </form>
