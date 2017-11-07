@@ -206,18 +206,22 @@ function extractErrorFromRuntimeObject(e)
 
 const server = http.createServer();
 
-const responder = (req, res, { formType, bodyChunks }) =>
+const responder = (req, res, { formType, bodyChunks, formData, formFiles }) =>
 {
   let postParams = '';
-  if (formType === 'upload')
+  if (formType === 'formWithUpload')
   {
     // WHAT DO DO WITH UPLOADING?
+  }
+  else if (formType === 'formData')
+  {
+    postParams = formData;
   }
   else
   {
     const body = Buffer.concat(bodyChunks).toString();
     //console.log(body);//__RP
-    postParams =  queryStringUtils.parse(body)
+    postParams =  queryStringUtils.parse(body);
   }
 
   let statusCode = 200;
@@ -268,19 +272,26 @@ server.on('request', (req, res) => {
   const { headers, method, url } = req;
   const contentType = req.headers['content-type'];
   const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-  const isFormPost = (((req.method || '').toLowerCase() === 'post') &&
+  const postedForm = (((req.method || '').toLowerCase() === 'post') &&
                         (isUpload || FORMDATA_URLENCODED_RE.test(contentType))) ?
     new formidable.IncomingForm()
     :
     null;
+  
+  const postedFormData = { params: {}, files: {} };
 
-  if (isFormPost)
+  if (postedForm)
   {
-    isFormPost.parse(req);
+    postedForm.parse(req);
 
-    isFormPost.on('end', () =>
+    postedForm.on('field', (name, value) =>
     {
-      const formContext = { formType: (isUpload) ? 'formWithUpload' : 'formData' };
+      postedFormData.params[name] = value;
+    });
+
+    postedForm.on('end', () =>
+    {
+      const formContext = { formType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
       responder(req, res, formContext);
     });
   }

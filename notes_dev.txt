@@ -4,6 +4,8 @@ git bundle create jscause-.bundle devel
 
 Continue with analyzing formType.
 
+Search for (implement): postedFormData.files
+
 Uploads?
  - We'll use formidable.
    - Can we extend this to the way we treat POST requests at the moment?
@@ -13,6 +15,11 @@ Use cases:
  - Form uploads.
  - JSON.
  - Other?
+
+Implement a safe print function (escaped.)
+
+Check that uploading json works.
+ - Maybe you'll need to implement a toJson function?
 
 =====
 

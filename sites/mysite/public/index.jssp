@@ -1,4 +1,5 @@
   //rt.print(rt.uploads.aa);
+  rt.print(rt.postParams['myFile']);
 
 /js>
 <h1>COOOL</h1>
