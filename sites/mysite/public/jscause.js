@@ -206,22 +206,22 @@ function extractErrorFromRuntimeObject(e)
 
 const server = http.createServer();
 
-const responder = (req, res, { formType, bodyChunks, formData, formFiles }) =>
+const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
 {
   let postParams = '';
-  if (formType === 'formWithUpload')
+  if (postType === 'formWithUpload')
   {
     // WHAT DO DO WITH UPLOADING?
   }
-  else if (formType === 'formData')
+  else if (postType === 'formData')
   {
     postParams = formData;
   }
   else
   {
-    const body = Buffer.concat(bodyChunks).toString();
-    //console.log(body);//__RP
-    postParams =  queryStringUtils.parse(body);
+    const requestBody = Buffer.concat(requestBody).toString();
+    //console.log(requestBody);//__RP
+    postParams =  queryStringUtils.parse(requestBody);
   }
 
   let statusCode = 200;
@@ -291,21 +291,20 @@ server.on('request', (req, res) => {
 
     postedForm.on('end', () =>
     {
-      const formContext = { formType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
+      const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
       responder(req, res, formContext);
     });
   }
   else
   {
-    let bodyChunks = [];
+    let requestBody = [];
     req.on('data', (chunk) =>
     {
-      bodyChunks.push(chunk);
-      //console.log(chunk, chunk.length);
+      requestBody.push(chunk);
     })
     .on('end', () =>
     {
-      const postContext = { formType: 'postData', bodyChunks };
+      const postContext = { postType: 'postData', requestBody };
       responder(req, res, postContext);
     });
   }

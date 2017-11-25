@@ -2,7 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Continue with analyzing formType.
+Continue with analyzing postType.
 
 Search for (implement): postedFormData.files
 
@@ -17,6 +17,7 @@ Use cases:
  - Other?
 
 Implement a safe print function (escaped.)
+ - I thought we had this already?
 
 Check that uploading json works.
  - Maybe you'll need to implement a toJson function?
