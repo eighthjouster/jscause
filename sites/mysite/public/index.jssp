@@ -1,11 +1,13 @@
   //rt.print(rt.uploads.aa);
-  rt.print(rt.postParams['myFile']);
+  rt.print(rt.postParams['submitIt']);
+  rt.print(rt.uploadedFiles['myFile']);
+  rt.print(rt.uploadedFiles['myFile'][1].name);
 
 /js>
 <h1>COOOL</h1>
-<!-- form method="post" enctype="multipart/form-data" -->
-    <!-- input name="myFile" type="file" multiple -->
-<form method="post">
-    <input name="myFile" type="text" value="" />
+<!-- form method="post" -->
+    <!-- input name="myFile" type="text" value="" /-->
+<form method="post" enctype="multipart/form-data">
+    <input name="myFile" type="file" multiple />
     <input type="submit" name="submitIt" value="Submit it!" />
 </form>

@@ -39,7 +39,8 @@ const createRunTime = (rtContext) =>
     header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
     waitFor: (cb) => { const waitForId = rtContext.waitForNextId++; rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(rtContext, waitForId); } },
     getParams: rtContext.getParams,
-    postParams: rtContext.postParams
+    postParams: rtContext.postParams,
+    uploadedFiles: rtContext.uploadedFiles
   };
 };
 
@@ -208,10 +209,12 @@ const server = http.createServer();
 
 const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
 {
-  let postParams = '';
+  let postParams;
+  let uploadedFiles = {};
   if (postType === 'formWithUpload')
   {
-    // WHAT DO DO WITH UPLOADING?
+    postParams = formData;
+    uploadedFiles = formFiles;
   }
   else if (postType === 'formData')
   {
@@ -219,9 +222,9 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
   }
   else
   {
-    const requestBody = Buffer.concat(requestBody).toString();
-    //console.log(requestBody);//__RP
-    postParams =  queryStringUtils.parse(requestBody);
+    const postBody = Buffer.concat(requestBody).toString();
+    //console.log(postBody);//__RP
+    postParams =  queryStringUtils.parse(postBody);
   }
 
   let statusCode = 200;
@@ -234,7 +237,8 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
     waitForNextId: 1,
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
-    postParams
+    postParams,
+    uploadedFiles
   };
 
   const runTime = createRunTime(resContext);
@@ -282,11 +286,59 @@ server.on('request', (req, res) => {
 
   if (postedForm)
   {
+    postedForm.keepExtensions = true;
     postedForm.parse(req);
+    postedForm.jsCauseData = {
+      fileNamesPending: {},
+      filesPending: {},
+      filesPartNextId: 1,
+      filesNextId: 1
+    };
+
+    postedForm.onPart = (part) => {
+      if (part.filename && part.mime)
+      {
+        const newFileFormName = `_${postedForm.jsCauseData.filesPartNextId}_${part.name}`;
+        postedForm.jsCauseData.filesPartNextId++;
+        postedForm.jsCauseData.fileNamesPending[newFileFormName] = part.filename || newFileFormName;
+      }
+
+      postedForm.handlePart(part);
+    };
 
     postedForm.on('field', (name, value) =>
     {
       postedFormData.params[name] = value;
+    });
+
+    postedForm.on('fileBegin', (name, file) =>
+    {
+      const newFileFormName = `_${postedForm.jsCauseData.filesNextId}_${name}`;
+      postedForm.jsCauseData.filesNextId++; // Catch up with filesPartNextId
+      const pendingFileName = postedForm.jsCauseData.fileNamesPending[newFileFormName];
+      if (pendingFileName)
+      {
+        file.name = pendingFileName;
+        postedForm.jsCauseData.filesPending[pendingFileName] = file;
+      }
+    });
+
+    postedForm.on('file', (name, file) =>
+    {
+      const finalFileName = file.name;
+
+      if (finalFileName)
+      {
+        if (postedForm.jsCauseData.filesPending[finalFileName])
+        {
+          postedFormData.files[name] = postedFormData.files[name] || [];
+          postedFormData.files[name].push(file);
+          console.log('FILE UPLOAD END!'); //__RP
+          console.log(finalFileName); //__RP
+        }
+        delete postedForm.jsCauseData.fileNamesPending[finalFileName];
+        delete postedForm.jsCauseData.filesPending[finalFileName];
+      }
     });
 
     postedForm.on('end', () =>

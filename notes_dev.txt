@@ -2,9 +2,19 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Continue with dealing with file uploads.
+ - Pass it on to the user app.
+   - Still dealing with:
+     - Temp upload directories (behind the scenes).
+     - User-designated upload directory.
+ - Think of security - e.g., file size.
+
 Continue with analyzing postType.
 
 Search for (implement): postedFormData.files
+
+If there is an upload error, will it clean uploaded files?
+If the server crashes, will it clean uploaded files?
 
 Uploads?
  - We'll use formidable.
@@ -14,6 +24,7 @@ Use cases:
  - Regular forms (no uploads).
  - Form uploads.
  - JSON.
+   - And security, esp. file size.
  - Other?
 
 Implement a safe print function (escaped.)
@@ -93,6 +104,8 @@ Compile everything? (not just wait for a runtime error to find out that a module
  - Don't waste too much time on this.  You can defer it to a future version.
 
 jssp syntax coloring? linting?
+
+Remove __RP comments.
 
 ====
 
