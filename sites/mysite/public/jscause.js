@@ -288,57 +288,28 @@ server.on('request', (req, res) => {
   {
     postedForm.keepExtensions = true;
     postedForm.parse(req);
-    postedForm.jsCauseData = {
-      fileNamesPending: {},
-      filesPending: {},
-      filesPartNextId: 1,
-      filesNextId: 1
-    };
-
-    postedForm.onPart = (part) => {
-      if (part.filename && part.mime)
-      {
-        const newFileFormName = `_${postedForm.jsCauseData.filesPartNextId}_${part.name}`;
-        postedForm.jsCauseData.filesPartNextId++;
-        postedForm.jsCauseData.fileNamesPending[newFileFormName] = part.filename || newFileFormName;
-      }
-
-      postedForm.handlePart(part);
-    };
 
     postedForm.on('field', (name, value) =>
     {
       postedFormData.params[name] = value;
     });
 
-    postedForm.on('fileBegin', (name, file) =>
-    {
-      const newFileFormName = `_${postedForm.jsCauseData.filesNextId}_${name}`;
-      postedForm.jsCauseData.filesNextId++; // Catch up with filesPartNextId
-      const pendingFileName = postedForm.jsCauseData.fileNamesPending[newFileFormName];
-      if (pendingFileName)
-      {
-        file.name = pendingFileName;
-        postedForm.jsCauseData.filesPending[pendingFileName] = file;
-      }
-    });
-
     postedForm.on('file', (name, file) =>
     {
-      const finalFileName = file.name;
-
-      if (finalFileName)
+      if (postedFormData.files[name])
       {
-        if (postedForm.jsCauseData.filesPending[finalFileName])
+        if (!Array.isArray(postedFormData.files[name]))
         {
-          postedFormData.files[name] = postedFormData.files[name] || [];
-          postedFormData.files[name].push(file);
-          console.log('FILE UPLOAD END!'); //__RP
-          console.log(finalFileName); //__RP
+          postedFormData.files[name] = [ postedFormData.files[name] ];
         }
-        delete postedForm.jsCauseData.fileNamesPending[finalFileName];
-        delete postedForm.jsCauseData.filesPending[finalFileName];
+        postedFormData.files[name].push(file);
       }
+      else
+      {
+        postedFormData.files[name] = file;
+      }
+      console.log('FILE UPLOAD END!'); //__RP
+      console.log(file.name); //__RP
     });
 
     postedForm.on('end', () =>
