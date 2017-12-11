@@ -2,25 +2,22 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-If more than one file comes from the same field: don't overwrite, make it an array.
- - Done, but test.
-
-Commit!
-
-Also, why didn't it work before! Go back in history and research (in a different, temporary branch.)
-
 Continue with dealing with file uploads.
  - Pass it on to the user app.
    - Still dealing with:
+     - Delete files after uploading if the user does not move them.
+       - Test or implement the user-end of things:
+         - Move file.
+         - Open/read file.
      - Temp upload directories (behind the scenes).
+       - The app should optionally specify the upload directory.
      - User-designated upload directory.
  - Think of security - e.g., file size.
-   - And address this: "Accepting uploader's file names allows them to more easily upload and execute attack tools."
-     - Specifically:  finalFileName and newFileFormName should be strictly checked.
 
 Continue with analyzing postType.
 
-Docs:  SECURITY:  Put in the docs that the filename should be sanitized before using to write to the file system (potential for attacks!).
+Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
+ - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).
 
 Search for (implement): postedFormData.files
 

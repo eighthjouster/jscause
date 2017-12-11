@@ -286,7 +286,7 @@ server.on('request', (req, res) => {
 
   if (postedForm)
   {
-    postedForm.keepExtensions = true;
+    postedForm.keepExtensions = false;
     postedForm.parse(req);
 
     postedForm.on('field', (name, value) =>
@@ -308,14 +308,37 @@ server.on('request', (req, res) => {
       {
         postedFormData.files[name] = file;
       }
-      console.log('FILE UPLOAD END!'); //__RP
-      console.log(file.name); //__RP
     });
 
     postedForm.on('end', () =>
     {
       const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
       responder(req, res, formContext);
+      
+      if (postedFormData.files)
+      {
+        Object.keys(postedFormData.files).forEach((name) =>
+        {
+          const fileInfo = postedFormData.files[name];
+          if (Array.isArray(fileInfo))
+          {
+            fileInfo.forEach((thisFile) => {
+              if (fs.existsSync(thisFile.path))
+              {
+                console.log('We will delete ' + thisFile.path);//__RP
+              }
+            });
+
+          }
+          else
+          {
+            if (fs.existsSync(fileInfo.path))
+            {
+              console.log('We will delete ' + fileInfo.path);//__RP
+            }
+          }
+        });
+      }
     });
   }
   else

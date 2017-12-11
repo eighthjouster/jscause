@@ -1,7 +1,9 @@
-  //rt.print(rt.uploads.aa);
-  rt.print(rt.postParams['submitIt']);
-  rt.print(rt.uploadedFiles['myFile']);
-  rt.print(rt.uploadedFiles['myFile'][1].name);
+  if (rt.postParams['submitIt'])
+  {
+    rt.print(rt.uploadedFiles['myFile'][0].name);
+    rt.print(rt.uploadedFiles['myFile'][1].name);
+    rt.print(rt.uploadedFiles['myFile2'].name);
+  }
 
 /js>
 <h1>COOOL</h1>
@@ -9,5 +11,6 @@
     <!-- input name="myFile" type="text" value="" /-->
 <form method="post" enctype="multipart/form-data">
     <input name="myFile" type="file" multiple />
+    <input name="myFile2" type="file" />
     <input type="submit" name="submitIt" value="Submit it!" />
 </form>
