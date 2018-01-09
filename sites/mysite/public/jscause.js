@@ -13,7 +13,6 @@ const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
-const registerResObject = (ctx, res) => { ctx.resObject = res; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
 const doneWith = (ctx, id) =>
 {
@@ -24,7 +23,48 @@ const doneWith = (ctx, id) =>
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
-    ctx.resObject.end(ctx.outputQueue.join(''));
+    const formFiles = ctx.uploadedFiles;
+    if (formFiles)
+    {
+      Object.keys(formFiles).forEach((name) =>
+      {
+        const fileInfo = formFiles[name];
+        if (Array.isArray(fileInfo))
+        {
+          fileInfo.forEach((thisFile) => {
+            if (fs.existsSync(thisFile.path))
+            {
+              console.log('We will delete ' + thisFile.path);//__RP
+            }
+          });
+
+        }
+        else
+        {
+          if (fs.existsSync(fileInfo.path))
+          {
+            console.log('We will delete ' + fileInfo.path);//__RP
+          }
+        }
+      });
+    }
+
+    if (ctx.runtimeException)
+    {
+      ctx.outputQueue = ['<br />Runtime error!<br />'];
+      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(ctx.runtimeException)}`);
+      console.log(ctx.runtimeException);
+    }
+
+    ctx.resObject.statusCode = ctx.statusCode;
+    if (ctx.compileTimeError)
+    {
+      ctx.resObject.end('Compile time error!');
+    }
+    else
+    {
+      ctx.resObject.end(ctx.outputQueue.join(''));
+    }
   }
 };
 const finishUpHeaders = (ctx) =>
@@ -37,7 +77,24 @@ const createRunTime = (rtContext) =>
   return {
     print: (output = '') => rtContext.outputQueue.push(output),
     header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
-    waitFor: (cb) => { const waitForId = rtContext.waitForNextId++; rtContext.waitForQueue[waitForId] = true; return () => { cb(); doneWith(rtContext, waitForId); } },
+    waitFor: (cb) =>
+    {
+      const waitForId = rtContext.waitForNextId++;
+      rtContext.waitForQueue[waitForId] = true;
+      return () =>
+      {
+        try
+        {
+          cb();
+        }
+        catch(e)
+        {
+          rtContext.runtimeException = e;
+        }
+
+        doneWith(rtContext, waitForId);
+      }
+    },
     getParams: rtContext.getParams,
     postParams: rtContext.postParams,
     uploadedFiles: rtContext.uploadedFiles
@@ -227,18 +284,19 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
     postParams =  queryStringUtils.parse(postBody);
   }
 
-  let statusCode = 200;
-
   const resContext = 
   {
     outputQueue: undefined,
     appHeaders: {},
-    resObject: undefined,
+    resObject: res,
     waitForNextId: 1,
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
     postParams,
-    uploadedFiles
+    uploadedFiles,
+    statusCode: 200,
+    compileTimeError: false,
+    runtimeException: undefined
   };
 
   const runTime = createRunTime(resContext);
@@ -246,30 +304,26 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
   if (indexRun)
   {
     printInit(resContext);
-    registerResObject(resContext, res);
     try
     {
       indexRun(runTime);
     }
     catch (e)
     {
-      runTime.print('<br />Runtime error!<br />');
-      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(e)}`);
-      console.log(e);
-
-      statusCode = 500;
+      resContext.runtimeException = e;
+      resContext.statusCode = 500;
     }
 
-    res.statusCode = statusCode;
     assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
 
     finishUpHeaders(resContext);
-    doneWith(resContext);
   }
   else {
-    res.statusCode = 500;
-    res.end('Application is in an error state.');
+    resContext.statusCode = 500;
+    resContext.compileTimeError = true;
   }
+  
+  doneWith(resContext);
 };
 
 server.on('request', (req, res) => {
@@ -314,31 +368,6 @@ server.on('request', (req, res) => {
     {
       const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
       responder(req, res, formContext);
-      
-      if (postedFormData.files)
-      {
-        Object.keys(postedFormData.files).forEach((name) =>
-        {
-          const fileInfo = postedFormData.files[name];
-          if (Array.isArray(fileInfo))
-          {
-            fileInfo.forEach((thisFile) => {
-              if (fs.existsSync(thisFile.path))
-              {
-                console.log('We will delete ' + thisFile.path);//__RP
-              }
-            });
-
-          }
-          else
-          {
-            if (fs.existsSync(fileInfo.path))
-            {
-              console.log('We will delete ' + fileInfo.path);//__RP
-            }
-          }
-        });
-      }
     });
   }
   else

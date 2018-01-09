@@ -1,9 +1,10 @@
-  if (rt.postParams['submitIt'])
-  {
-    rt.print(rt.uploadedFiles['myFile'][0].name);
-    rt.print(rt.uploadedFiles['myFile'][1].name);
-    rt.print(rt.uploadedFiles['myFile2'].name);
-  }
+
+if (rt.postParams['submitIt'])
+{
+  rt.print(rt.uploadedFiles['myFile'][0].name);
+  rt.print(rt.uploadedFiles['myFile'][1].name);
+  rt.print(rt.uploadedFiles['myFile2'].name);
+}
 
 /js>
 <h1>COOOL</h1>
