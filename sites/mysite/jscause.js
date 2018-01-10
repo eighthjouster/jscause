@@ -8,6 +8,7 @@
 const fs = require('fs');
 const urlUtils = require('url');
 const queryStringUtils = require('querystring');
+const crypto = require('crypto');
 const formidable = require('./jscvendor/formidable');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
@@ -24,6 +25,33 @@ const doDeleteFile = (thisFile) =>
       console.log(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
       console.log(`WARNING (CONT): On the file system as: ${thisFile.path}`);
       console.log(err);
+    }
+  });
+};
+
+const doMoveToUploadDir = (thisFile, { responder, req, res, formContext, pendingWork }) =>
+{
+  pendingWork.pendingRenaming++;
+  const oldFilePath = thisFile.path;
+  const newFilePath = './workbench/uploads/jscupload_' + crypto.randomBytes(16).toString('hex');
+  fs.rename(oldFilePath, newFilePath, (err) =>
+  {
+    pendingWork.pendingRenaming--;
+    if (err)
+    {
+      console.log(`ERROR: Could not rename unhandled uploaded file: ${thisFile.name}`);
+      console.log(`ERROR (CONT): Renaming from: ${oldFilePath}`);
+      console.log(`ERROR (CONT): Renaming to: ${newFilePath}`);
+      console.log(err);
+    }
+    else
+    {
+      thisFile.path = newFilePath;
+    }
+    
+    if (pendingWork.pendingRenaming <= 0)
+    {
+      responder(req, res, formContext);
     }
   });
 };
@@ -344,7 +372,7 @@ server.on('request', (req, res) => {
     :
     null;
   
-  const postedFormData = { params: {}, files: {} };
+  const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
   if (postedForm)
   {
@@ -374,8 +402,24 @@ server.on('request', (req, res) => {
 
     postedForm.on('end', () =>
     {
-      const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData: postedFormData.params, formFiles: postedFormData.files };
-      responder(req, res, formContext);
+      const { params: formData, files: formFiles, pendingWork } = postedFormData;
+      const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData, formFiles };
+
+      Object.keys(formFiles).forEach((fileKey) =>
+      {
+        const thisFile = formFiles[fileKey];
+        if (Array.isArray(thisFile))
+        {
+          thisFile.forEach((thisActualFile) =>
+          {
+            doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
+          });
+        }
+        else
+        {
+          doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
+        }
+      });
     });
   }
   else

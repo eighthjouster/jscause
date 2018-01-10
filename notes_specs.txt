@@ -58,3 +58,13 @@ Or this:
   - If you don't do this, then the response will be sent to the client without waiting.
   - rt.waitFor()'s can be nested.
 - rt.queryParams is an object containing the GET query parameters.
+- rt.postParams is an object containing the POST form parameters.
+- rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.
+  - Each object could be a file or an array of files (if the form element accepts multiple files.)
+  - The filename in the client is under the .name attribute.
+  - The whole path, including a temp name assigned by JSCause, is under the .path attribute.
+  - The developer is responsible to do something with the file during the execution of the script.  Once the script is done (and all the waitFor() callbacks completed), the files will be deleted from their temporary location.
+    - So, copy the file somewhere else if you plan to save it.  Do it asynchronously if possible (in combination with waitFor().)
+  - Examples:
+    - rt.uploadedFiles['myFile'].name
+    - rt.uploadedFiles['myFile'][0].name

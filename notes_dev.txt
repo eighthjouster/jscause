@@ -3,21 +3,16 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
- - Pass it on to the user app.
-   - Still dealing with:
-     +- Temp upload directories (behind the scenes).
-     +- Delete files after uploading if the user does not move them.
-       +- Test or implement the user-end of things:
-         +- Move file.
-         - Open/read file.
-       - The app should optionally specify the upload directory.
-     - User-designated upload directory.
+  - User-designated upload directory.
+    - The default should be placed in a variable instead of being hardcoded.
+    - The app should check that the upload directory works (exists, is writeable, etc.)
  - Think of security - e.g., file size.
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
 
 Continue with analyzing postType.
+ - JSON body?
 
 Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
  - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).

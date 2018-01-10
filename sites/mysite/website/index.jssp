@@ -1,6 +1,7 @@
 
 if (rt.postParams['submitIt'])
 {
+  console.log(rt.uploadedFiles['myFile'][0]);//__RP
   rt.print(rt.uploadedFiles['myFile'][0].name);
   rt.print(rt.uploadedFiles['myFile'][1].name);
   rt.print(rt.uploadedFiles['myFile2'].name);
