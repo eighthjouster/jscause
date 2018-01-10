@@ -14,6 +14,20 @@ const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
+
+const doDeleteFile = (thisFile) =>
+{
+  fs.unlink(thisFile.path, (err) =>
+  {
+    if (err)
+    {
+      console.log(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
+      console.log(`WARNING (CONT): On the file system as: ${thisFile.path}`);
+      console.log(err);
+    }
+  });
+};
+
 const doneWith = (ctx, id) =>
 {
   if (id)
@@ -32,19 +46,13 @@ const doneWith = (ctx, id) =>
         if (Array.isArray(fileInfo))
         {
           fileInfo.forEach((thisFile) => {
-            if (fs.existsSync(thisFile.path))
-            {
-              console.log('We will delete ' + thisFile.path);//__RP
-            }
+            doDeleteFile(thisFile);
           });
 
         }
         else
         {
-          if (fs.existsSync(fileInfo.path))
-          {
-            console.log('We will delete ' + fileInfo.path);//__RP
-          }
+          doDeleteFile(fileInfo);
         }
       });
     }

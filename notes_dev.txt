@@ -6,9 +6,8 @@ Continue with dealing with file uploads.
  - Pass it on to the user app.
    - Still dealing with:
      +- Delete files after uploading if the user does not move them.
-       +- Do the actual deletion (look for __RP's ).
-       - Test or implement the user-end of things:
-         - Move file.
+       +- Test or implement the user-end of things:
+         +- Move file.
          - Open/read file.
      - Temp upload directories (behind the scenes).
        - The app should optionally specify the upload directory.
