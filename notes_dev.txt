@@ -5,11 +5,11 @@ git bundle create jscause-.bundle devel
 Continue with dealing with file uploads.
  - Pass it on to the user app.
    - Still dealing with:
+     +- Temp upload directories (behind the scenes).
      +- Delete files after uploading if the user does not move them.
        +- Test or implement the user-end of things:
          +- Move file.
          - Open/read file.
-     - Temp upload directories (behind the scenes).
        - The app should optionally specify the upload directory.
      - User-designated upload directory.
  - Think of security - e.g., file size.
