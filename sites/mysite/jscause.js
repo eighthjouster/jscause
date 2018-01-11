@@ -22,6 +22,7 @@ const DEFAULT_PORT = 3000;
 const DEFAULT_UPLOAD_DIR = './workbench/uploads';
 
 const serverConfig = {
+  server: null,
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
   uploadDirectory: DEFAULT_UPLOAD_DIR
@@ -245,8 +246,10 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
 
 let indexRun;
 
-fs.stat('./website/index.jssp', (err, stats) =>
+const indexFile = './website/index.jssp';
+fs.stat(indexFile, (err, stats) =>
 {
+  let serverStarted = false;
   if (err)
   {
     console.log('ERROR: Cannot find index file');
@@ -254,227 +257,240 @@ fs.stat('./website/index.jssp', (err, stats) =>
   }
   else
   {
-    fs.readFile('./website/index.jssp', 'utf-8', (err, data) =>
+    let data = undefined;
+    let readSuccess = false;
+
+    if (stats.isDirectory())
     {
-      if (err)
+      console.log(`ERROR: Entry point is a directory: ${indexFile}`);
+    }
+    else
+    {
+      try
+      {
+        data = fs.readFileSync(indexFile, 'utf-8');
+        readSuccess = true;
+      }
+      catch(e)
       {
         console.log('ERROR: Cannot load index file.');
-        console.log(err);
+        console.log(e);
       }
-      else
+    }
+
+    if (readSuccess)
+    {
+      const Module = module.constructor;
+      Module._nodeModulePaths(path.dirname(''))
+      const compiledModule = new Module();
+      let indexExists = false;
+      try
       {
-        const Module = module.constructor;
-        Module._nodeModulePaths(path.dirname(''))
-        const compiledModule = new Module();
-        let indexExists = false;
-        try
+        const CONTEXT_HTML = 0;
+        const CONTEXT_JAVASCRIPT = 1;
+
+        // Matches '<js', '<JS', /js>' or '/JS>'
+        // Adds a prefixing space to distinguish from 
+        // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+        // (Otherwise, it would delete whatever character is right before.)
+        let unprocessedData = data
+                                .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
+                                .replace(/([^\\])\<js/gi,'$1 <js')
+                                .replace(/^\<js/i,' <js')
+                                .replace(/([^\\])\/js\>/gi, '$1 /js>')
+                                .replace(/^\/js\>/i, ' /js>');
+
+        const processedDataArray = [];
+
+        const firstOpeningTag = unprocessedData.indexOf(' <js');
+        const firstClosingTag = unprocessedData.indexOf(' /js>');
+
+        let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
+                                  CONTEXT_JAVASCRIPT :
+                                  CONTEXT_HTML;
+
+        do
         {
-          const CONTEXT_HTML = 0;
-          const CONTEXT_JAVASCRIPT = 1;
+          if (processingContext === CONTEXT_HTML) {
+            const [processBefore, processAfter] = unprocessedData
+                                                    .split(/\s\<js([\s\S]*)/);
 
-          // Matches '<js', '<JS', /js>' or '/JS>'
-          // Adds a prefixing space to distinguish from 
-          // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
-          // (Otherwise, it would delete whatever character is right before.)
-          let unprocessedData = data
-                                  .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
-                                  .replace(/([^\\])\<js/gi,'$1 <js')
-                                  .replace(/^\<js/i,' <js')
-                                  .replace(/([^\\])\/js\>/gi, '$1 /js>')
-                                  .replace(/^\/js\>/i, ' /js>');
+            unprocessedData = processAfter;
 
-          const processedDataArray = [];
-
-          const firstOpeningTag = unprocessedData.indexOf(' <js');
-          const firstClosingTag = unprocessedData.indexOf(' /js>');
-
-          let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-                                   CONTEXT_JAVASCRIPT :
-                                   CONTEXT_HTML;
-
-          do
-          {
-            if (processingContext === CONTEXT_HTML) {
-              const [processBefore, processAfter] = unprocessedData
-                                                     .split(/\s\<js([\s\S]*)/);
-
-              unprocessedData = processAfter;
-
-              const printedStuff = (processBefore) ?
-                                    processBefore
-                                      .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                                      .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-                                      .replace(/\\/g,'\\\\')
-                                      .replace(/\'/g,'\\\'')
-                                      .replace(/\n{2,}/g, '\n')
-                                      .replace(/\s{2,}/g, ' ')
-                                      .split(/\n/)
-                                      .join(' \\n \\\n') :
-                                    '';
-            
-              if (printedStuff)
-              {
-                processedDataArray.push(`rt.print('${printedStuff}');`);
-              }
-
-              processingContext = CONTEXT_JAVASCRIPT;
-            }
-            else
-            {
-              // Assuming processingContext is CONTEXT_JAVASCRIPT
-
-              const [processBefore, processAfter] = unprocessedData
-                                                      .split(/\s\/js\>([\s\S]*)/);
-
-              if (processBefore.match(/\<html\s*\//i))
-              {
-                console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
-              }
-
-              processedDataArray.push(processBefore);
-              
-              unprocessedData = processAfter;
-
-              processingContext = CONTEXT_HTML;
-            }
-          } while (unprocessedData);
+            const printedStuff = (processBefore) ?
+                                  processBefore
+                                    .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                                    .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+                                    .replace(/\\/g,'\\\\')
+                                    .replace(/\'/g,'\\\'')
+                                    .replace(/\n{2,}/g, '\n')
+                                    .replace(/\s{2,}/g, ' ')
+                                    .split(/\n/)
+                                    .join(' \\n \\\n') :
+                                  '';
           
-          const processedData = processedDataArray.join('');
+            if (printedStuff)
+            {
+              processedDataArray.push(`rt.print('${printedStuff}');`);
+            }
 
-          try
-          {
-            compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
-            indexExists = true;
-          }
-          catch (e)
-          {
-            console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
-            console.log(e);
-          }
-        }
-        catch (e)
-        {
-          console.log('ERROR: Parsing error, possibly internal.');
-          console.log(e);
-        }
-
-        if (indexExists)
-        {
-          indexRun = compiledModule.exports;
-
-          if (typeof(indexRun) !== 'function')
-          {
-            indexRun = undefined;
-            console.log('ERROR: Could not compile code.');
+            processingContext = CONTEXT_JAVASCRIPT;
           }
           else
           {
-            //__RP
+            // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+            const [processBefore, processAfter] = unprocessedData
+                                                    .split(/\s\/js\>([\s\S]*)/);
+
+            if (processBefore.match(/\<html\s*\//i))
+            {
+              console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+            }
+
+            processedDataArray.push(processBefore);
+            
+            unprocessedData = processAfter;
+
+            processingContext = CONTEXT_HTML;
           }
+        } while (unprocessedData);
+        
+        const processedData = processedDataArray.join('');
+
+        try
+        {
+          compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+          indexExists = true;
+        }
+        catch (e)
+        {
+          console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
+          console.log(e);
+        }
+      }
+      catch (e)
+      {
+        console.log('ERROR: Parsing error, possibly internal.');
+        console.log(e);
+      }
+
+      if (indexExists)
+      {
+        indexRun = compiledModule.exports;
+
+        if (typeof(indexRun) !== 'function')
+        {
+          indexRun = undefined;
+          console.log('ERROR: Could not compile code.');
         }
         else
         {
-          console.log('ERROR: Server not started.');
+          // All is well so far.
+          serverConfig.server = http.createServer();
+          startServer(serverConfig.server);
+          serverStarted = true;
         }
       }
-    });
+    }
+  }
+
+  if (!serverStarted)
+  {
+    console.log('ERROR: Server not started.');
   }
 });
 
-function startServer()
+function startServer(server)
 {
-  //__RP
-}
+  server.on('request', (req, res) => {
+    const { headers, method, url } = req;
+    const contentType = req.headers['content-type'];
+    const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
+    const postedForm = (((req.method || '').toLowerCase() === 'post') &&
+                          (isUpload || FORMDATA_URLENCODED_RE.test(contentType))) ?
+      new formidable.IncomingForm()
+      :
+      null;
+    
+    const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
-const server = http.createServer();
-
-server.on('request', (req, res) => {
-  const { headers, method, url } = req;
-  const contentType = req.headers['content-type'];
-  const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-  const postedForm = (((req.method || '').toLowerCase() === 'post') &&
-                        (isUpload || FORMDATA_URLENCODED_RE.test(contentType))) ?
-    new formidable.IncomingForm()
-    :
-    null;
-  
-  const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
-
-  if (postedForm)
-  {
-    postedForm.keepExtensions = false;
-    postedForm.parse(req);
-
-    postedForm.on('field', (name, value) =>
+    if (postedForm)
     {
-      postedFormData.params[name] = value;
-    });
+      postedForm.keepExtensions = false;
+      postedForm.parse(req);
 
-    postedForm.on('file', (name, file) =>
-    {
-      if (postedFormData.files[name])
+      postedForm.on('field', (name, value) =>
       {
-        if (!Array.isArray(postedFormData.files[name]))
+        postedFormData.params[name] = value;
+      });
+
+      postedForm.on('file', (name, file) =>
+      {
+        if (postedFormData.files[name])
         {
-          postedFormData.files[name] = [ postedFormData.files[name] ];
-        }
-        postedFormData.files[name].push(file);
-      }
-      else
-      {
-        postedFormData.files[name] = file;
-      }
-    });
-
-    postedForm.on('end', () =>
-    {
-      const { params: formData, files: formFiles, pendingWork } = postedFormData;
-      const formContext =
-      {
-        postType: (isUpload) ? 'formWithUpload' : 'formData',
-        formData,
-        formFiles
-      };
-
-      Object.keys(formFiles).forEach((fileKey) =>
-      {
-        const thisFile = formFiles[fileKey];
-        if (Array.isArray(thisFile))
-        {
-          thisFile.forEach((thisActualFile) =>
+          if (!Array.isArray(postedFormData.files[name]))
           {
-            doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
-          });
+            postedFormData.files[name] = [ postedFormData.files[name] ];
+          }
+          postedFormData.files[name].push(file);
         }
         else
         {
-          doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
+          postedFormData.files[name] = file;
         }
       });
-    });
-  }
-  else
-  {
-    let requestBody = [];
-    req.on('data', (chunk) =>
+
+      postedForm.on('end', () =>
+      {
+        const { params: formData, files: formFiles, pendingWork } = postedFormData;
+        const formContext =
+        {
+          postType: (isUpload) ? 'formWithUpload' : 'formData',
+          formData,
+          formFiles
+        };
+
+        Object.keys(formFiles).forEach((fileKey) =>
+        {
+          const thisFile = formFiles[fileKey];
+          if (Array.isArray(thisFile))
+          {
+            thisFile.forEach((thisActualFile) =>
+            {
+              doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
+            });
+          }
+          else
+          {
+            doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
+          }
+        });
+      });
+    }
+    else
     {
-      requestBody.push(chunk);
+      let requestBody = [];
+      req.on('data', (chunk) =>
+      {
+        requestBody.push(chunk);
+      })
+      .on('end', () =>
+      {
+        const postContext = { postType: 'postData', requestBody };
+        responder(req, res, postContext);
+      });
+    }
+
+    req.on('error', (err) =>
+    {
+      console.log('ERROR: Request related error.');
+      console.log(err);
     })
-    .on('end', () =>
-    {
-      const postContext = { postType: 'postData', requestBody };
-      responder(req, res, postContext);
-    });
-  }
+  });
 
-  req.on('error', (err) =>
+  server.listen(serverConfig.port, serverConfig.hostName, () =>
   {
-    console.log('ERROR: Request related error.');
-    console.log(err);
-  })
-});
-
-server.listen(serverConfig.port, serverConfig.hostName, () =>
-{
-  console.log(`Server 0.1.010 running at http://${serverConfig.hostName}:${serverConfig.port}/`);
-});
+    console.log(`Server 0.1.010 running at http://${serverConfig.hostName}:${serverConfig.port}/`);
+  });
+}

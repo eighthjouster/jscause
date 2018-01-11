@@ -3,42 +3,26 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
-  - User-designated upload directory.
-    - The app should check that the upload directory works (exists, is writeable, etc.)
- - Think of security - e.g., file size.
+  - The app should check that the upload directory works (exists, is writeable, etc.)
+  - Think of security - e.g., file size.
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
 
 Continue with analyzing postType.
  - JSON body?
-
-Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
- - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).
-
-Uploads?
- - We'll use formidable.
-   - Can we extend this to the way we treat POST requests at the moment?
-
-Config files:
- - Set upload directory (you can use setUploadDirectory().)
-
-Use cases:
- - Regular forms (no uploads).
- - Form uploads.
- - JSON.
-   - And security, esp. file size.
- - Other?
+ - Check that uploading json works.
+   - Maybe you'll need to implement a toJson function?
 
 Implement a safe print function (escaped.)
  - I thought we had this already?
 
-Check that uploading json works.
- - Maybe you'll need to implement a toJson function?
+Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
+ - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).
 
-=====
+Config files:
+ - Set upload directory (you can use setUploadDirectory().)
 
- - Multiple files at once?
  - Security?
    - Consider this:
 request.on('data', function (data) {
@@ -58,9 +42,7 @@ Cookies?
 
 Redirects?
 
-Send JSON?
-
-Other files? (images, css).
+Other files? (images, css, js).
  - Static files?
 
 At this point, start abstracting away the engine.
@@ -71,6 +53,9 @@ Server-side rendering?
 
 Specify port number.
 Route to site.
+
+Exposure of res and req, for advanced users.
+ - But only if a config value allows it.
 
 Hard-coded values should go in a global file.
 
@@ -94,8 +79,6 @@ rt.waitFor():
    - If it times out, either throw an error, or run a user's function.
 
 Reload on file change?
-
-Exposure of res and req, for advanced users.
 
 Option to crash the server on fatal error?
  - Crash it on immediate compile error.
@@ -144,3 +127,17 @@ Security.
  - How to avoid, or at least warn or give control to the site, of DDOS by uploading large files or having too many requests?
 
 Docs?
+
+===
+
+Use cases:
+ - Regular forms (no uploads).
+ - Form uploads.
+ - JSON.
+   - And security, esp. file size.
+ - Databases.
+ - Cookies.
+ - Redirects.
+ - Multi-sites.
+ - Server-side rendering (if not too complex.)
+ - Other?
