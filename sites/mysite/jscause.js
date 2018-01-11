@@ -23,6 +23,7 @@ const DEFAULT_UPLOAD_DIR = './workbench/uploads';
 
 const serverConfig = {
   server: null,
+  indexRun: null,
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
   uploadDirectory: DEFAULT_UPLOAD_DIR
@@ -219,12 +220,12 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
 
   const runTime = createRunTime(resContext);
 
-  if (indexRun)
+  if (serverConfig.indexRun)
   {
     printInit(resContext);
     try
     {
-      indexRun(runTime);
+      serverConfig.indexRun(runTime);
     }
     catch (e)
     {
@@ -243,163 +244,6 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
   
   doneWith(resContext);
 };
-
-let indexRun;
-
-const indexFile = './website/index.jssp';
-fs.stat(indexFile, (err, stats) =>
-{
-  let serverStarted = false;
-  if (err)
-  {
-    console.log('ERROR: Cannot find index file');
-    console.log(err);
-  }
-  else
-  {
-    let data = undefined;
-    let readSuccess = false;
-
-    if (stats.isDirectory())
-    {
-      console.log(`ERROR: Entry point is a directory: ${indexFile}`);
-    }
-    else
-    {
-      try
-      {
-        data = fs.readFileSync(indexFile, 'utf-8');
-        readSuccess = true;
-      }
-      catch(e)
-      {
-        console.log('ERROR: Cannot load index file.');
-        console.log(e);
-      }
-    }
-
-    if (readSuccess)
-    {
-      const Module = module.constructor;
-      Module._nodeModulePaths(path.dirname(''))
-      const compiledModule = new Module();
-      let indexExists = false;
-      try
-      {
-        const CONTEXT_HTML = 0;
-        const CONTEXT_JAVASCRIPT = 1;
-
-        // Matches '<js', '<JS', /js>' or '/JS>'
-        // Adds a prefixing space to distinguish from 
-        // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
-        // (Otherwise, it would delete whatever character is right before.)
-        let unprocessedData = data
-                                .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
-                                .replace(/([^\\])\<js/gi,'$1 <js')
-                                .replace(/^\<js/i,' <js')
-                                .replace(/([^\\])\/js\>/gi, '$1 /js>')
-                                .replace(/^\/js\>/i, ' /js>');
-
-        const processedDataArray = [];
-
-        const firstOpeningTag = unprocessedData.indexOf(' <js');
-        const firstClosingTag = unprocessedData.indexOf(' /js>');
-
-        let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-                                  CONTEXT_JAVASCRIPT :
-                                  CONTEXT_HTML;
-
-        do
-        {
-          if (processingContext === CONTEXT_HTML) {
-            const [processBefore, processAfter] = unprocessedData
-                                                    .split(/\s\<js([\s\S]*)/);
-
-            unprocessedData = processAfter;
-
-            const printedStuff = (processBefore) ?
-                                  processBefore
-                                    .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                                    .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-                                    .replace(/\\/g,'\\\\')
-                                    .replace(/\'/g,'\\\'')
-                                    .replace(/\n{2,}/g, '\n')
-                                    .replace(/\s{2,}/g, ' ')
-                                    .split(/\n/)
-                                    .join(' \\n \\\n') :
-                                  '';
-          
-            if (printedStuff)
-            {
-              processedDataArray.push(`rt.print('${printedStuff}');`);
-            }
-
-            processingContext = CONTEXT_JAVASCRIPT;
-          }
-          else
-          {
-            // Assuming processingContext is CONTEXT_JAVASCRIPT
-
-            const [processBefore, processAfter] = unprocessedData
-                                                    .split(/\s\/js\>([\s\S]*)/);
-
-            if (processBefore.match(/\<html\s*\//i))
-            {
-              console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
-            }
-
-            processedDataArray.push(processBefore);
-            
-            unprocessedData = processAfter;
-
-            processingContext = CONTEXT_HTML;
-          }
-        } while (unprocessedData);
-        
-        const processedData = processedDataArray.join('');
-
-        try
-        {
-          compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
-          indexExists = true;
-        }
-        catch (e)
-        {
-          console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
-          console.log(e);
-        }
-      }
-      catch (e)
-      {
-        console.log('ERROR: Parsing error, possibly internal.');
-        console.log(e);
-      }
-
-      if (indexExists)
-      {
-        indexRun = compiledModule.exports;
-
-        if (typeof(indexRun) !== 'function')
-        {
-          indexRun = undefined;
-          console.log('ERROR: Could not compile code.');
-        }
-        else
-        {
-          // All is well so far.
-          serverConfig.server = http.createServer();
-          startServer(serverConfig.server);
-          serverStarted = true;
-        }
-      }
-    }
-  }
-
-  if (!serverStarted)
-  {
-    console.log('ERROR: Server not started.');
-  }
-});
 
 function startServer(server)
 {
@@ -493,4 +337,172 @@ function startServer(server)
   {
     console.log(`Server 0.1.010 running at http://${serverConfig.hostName}:${serverConfig.port}/`);
   });
+}
+
+let stats;
+
+const indexFile = './website/index.jssp';
+
+let serverStarted = false;
+let readSuccess = false;
+let indexExists = false;
+
+const compileContext = 
+{
+  data: null,
+  compiledModule: null
+};
+  
+try
+{
+  stats = fs.statSync(indexFile);
+  readSuccess = true;
+}
+catch (e)
+{
+  console.log('ERROR: Cannot find index file');
+  console.log(e);
+}
+
+if (readSuccess)
+{
+  readSuccess = false;
+
+  if (stats.isDirectory())
+  {
+    console.log(`ERROR: Entry point is a directory: ${indexFile}`);
+  }
+  else
+  {
+    try
+    {
+      compileContext.data = fs.readFileSync(indexFile, 'utf-8');
+      readSuccess = true;
+    }
+    catch(e)
+    {
+      console.log('ERROR: Cannot load index file.');
+      console.log(e);
+    }
+  }
+}
+
+if (readSuccess)
+{
+  const Module = module.constructor;
+  Module._nodeModulePaths(path.dirname(''))
+  compileContext.compiledModule = new Module();
+  try
+  {
+    const CONTEXT_HTML = 0;
+    const CONTEXT_JAVASCRIPT = 1;
+
+    // Matches '<js', '<JS', /js>' or '/JS>'
+    // Adds a prefixing space to distinguish from 
+    // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+    // (Otherwise, it would delete whatever character is right before.)
+    let unprocessedData = compileContext.data
+                            .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
+                            .replace(/([^\\])\<js/gi,'$1 <js')
+                            .replace(/^\<js/i,' <js')
+                            .replace(/([^\\])\/js\>/gi, '$1 /js>')
+                            .replace(/^\/js\>/i, ' /js>');
+
+    const processedDataArray = [];
+
+    const firstOpeningTag = unprocessedData.indexOf(' <js');
+    const firstClosingTag = unprocessedData.indexOf(' /js>');
+
+    let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
+                              CONTEXT_JAVASCRIPT :
+                              CONTEXT_HTML;
+
+    do
+    {
+      if (processingContext === CONTEXT_HTML) {
+        const [processBefore, processAfter] = unprocessedData
+                                                .split(/\s\<js([\s\S]*)/);
+
+        unprocessedData = processAfter;
+
+        const printedStuff = (processBefore) ?
+                              processBefore
+                                .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                                .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+                                .replace(/\\/g,'\\\\')
+                                .replace(/\'/g,'\\\'')
+                                .replace(/\n{2,}/g, '\n')
+                                .replace(/\s{2,}/g, ' ')
+                                .split(/\n/)
+                                .join(' \\n \\\n') :
+                              '';
+      
+        if (printedStuff)
+        {
+          processedDataArray.push(`rt.print('${printedStuff}');`);
+        }
+
+        processingContext = CONTEXT_JAVASCRIPT;
+      }
+      else
+      {
+        // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+        const [processBefore, processAfter] = unprocessedData
+                                                .split(/\s\/js\>([\s\S]*)/);
+
+        if (processBefore.match(/\<html\s*\//i))
+        {
+          console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+        }
+
+        processedDataArray.push(processBefore);
+        
+        unprocessedData = processAfter;
+
+        processingContext = CONTEXT_HTML;
+      }
+    } while (unprocessedData);
+    
+    const processedData = processedDataArray.join('');
+
+    try
+    {
+      compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+      indexExists = true;
+    }
+    catch (e)
+    {
+      console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
+      console.log(e);
+    }
+  }
+  catch (e)
+  {
+    console.log('ERROR: Parsing error, possibly internal.');
+    console.log(e);
+  }
+}
+
+if (indexExists)
+{
+  serverConfig.indexRun = compileContext.compiledModule.exports;
+
+  if (typeof(serverConfig.indexRun) !== 'function')
+  {
+    serverConfig.indexRun = undefined;
+    console.log('ERROR: Could not compile code.');
+  }
+  else
+  {
+    // All is well so far.
+    serverConfig.server = http.createServer();
+    startServer(serverConfig.server);
+    serverStarted = true;
+  }
+}
+
+if (!serverStarted)
+{
+  console.log('ERROR: Server not started.');
 }

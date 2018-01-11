@@ -59,6 +59,8 @@ Exposure of res and req, for advanced users.
 
 Hard-coded values should go in a global file.
 
+What is 'this' in our environment context?  Find out, document if necessary.
+
 Make two versions:  Standalone and NPM-installable.
 
 Version 0.7 here!
