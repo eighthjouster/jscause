@@ -10,11 +10,30 @@ const urlUtils = require('url');
 const queryStringUtils = require('querystring');
 const crypto = require('crypto');
 const formidable = require('./jscvendor/formidable');
+const http = require('http');
+const util = require('util');
+const path = require('path');
+
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
+const DEFAULT_HOSTNAME = 'localhost';
+const DEFAULT_PORT = 3000;
+const DEFAULT_UPLOAD_DIR = './workbench/uploads';
+
+const serverConfig = {
+  hostName: DEFAULT_HOSTNAME,
+  port: DEFAULT_PORT,
+  uploadDirectory: DEFAULT_UPLOAD_DIR
+};
+
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
+
+const setUploadDirectory = (dirName) =>
+{
+  serverConfig.uploadDirectory = dirName.replace(/\/?$/,'');
+};
 
 const doDeleteFile = (thisFile) =>
 {
@@ -33,7 +52,8 @@ const doMoveToUploadDir = (thisFile, { responder, req, res, formContext, pending
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
-  const newFilePath = './workbench/uploads/jscupload_' + crypto.randomBytes(16).toString('hex');
+  const newFilePath = `${serverConfig.uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
+
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
     pendingWork.pendingRenaming--;
@@ -135,6 +155,92 @@ const createRunTime = (rtContext) =>
     postParams: rtContext.postParams,
     uploadedFiles: rtContext.uploadedFiles
   };
+};
+
+function extractErrorFromCompileObject(e)
+{
+  const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
+  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
+  return `${e.message} at line ${lineNumber}`;
+}
+
+function extractErrorFromRuntimeObject(e)
+{
+  const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
+  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
+  const atInfo = (potentialFileNumber) ?
+    `at file ${fileName}, line ${potentialFileNumber}`
+    :
+    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
+  return `${e.message} ${atInfo}`;
+}
+
+/* *************************************
+   *
+   * Server stuff
+   *
+   ************************************** */
+
+const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
+{
+  let postParams;
+  let uploadedFiles = {};
+  if (postType === 'formWithUpload')
+  {
+    postParams = formData;
+    uploadedFiles = formFiles;
+  }
+  else if (postType === 'formData')
+  {
+    postParams = formData;
+  }
+  else
+  {
+    const postBody = Buffer.concat(requestBody).toString();
+    //console.log(postBody);//__RP
+    postParams =  queryStringUtils.parse(postBody);
+  }
+
+  const resContext =
+  {
+    outputQueue: undefined,
+    appHeaders: {},
+    resObject: res,
+    waitForNextId: 1,
+    waitForQueue: {},
+    getParams: urlUtils.parse(req.url, true).query,
+    postParams,
+    uploadedFiles,
+    statusCode: 200,
+    compileTimeError: false,
+    runtimeException: undefined
+  };
+
+  const runTime = createRunTime(resContext);
+
+  if (indexRun)
+  {
+    printInit(resContext);
+    try
+    {
+      indexRun(runTime);
+    }
+    catch (e)
+    {
+      resContext.runtimeException = e;
+      resContext.statusCode = 500;
+    }
+
+    assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
+
+    finishUpHeaders(resContext);
+  }
+  else {
+    resContext.statusCode = 500;
+    resContext.compileTimeError = true;
+  }
+  
+  doneWith(resContext);
 };
 
 let indexRun;
@@ -261,106 +367,26 @@ fs.stat('./website/index.jssp', (err, stats) =>
             indexRun = undefined;
             console.log('ERROR: Could not compile code.');
           }
+          else
+          {
+            //__RP
+          }
+        }
+        else
+        {
+          console.log('ERROR: Server not started.');
         }
       }
     });
   }
 });
 
-const http = require('http');
-const util = require('util');
-const path = require('path');
-
-const hostname = '127.0.0.1';
-const port = 3000;
-
-function extractErrorFromCompileObject(e)
+function startServer()
 {
-  const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
-  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
-  return `${e.message} at line ${lineNumber}`;
+  //__RP
 }
-
-function extractErrorFromRuntimeObject(e)
-{
-  const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
-  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
-  const atInfo = (potentialFileNumber) ?
-    `at file ${fileName}, line ${potentialFileNumber}`
-    :
-    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
-  return `${e.message} ${atInfo}`;
-}
-
-/* *************************************
-   *
-   * Server stuff
-   *
-   ************************************** */
 
 const server = http.createServer();
-
-const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
-{
-  let postParams;
-  let uploadedFiles = {};
-  if (postType === 'formWithUpload')
-  {
-    postParams = formData;
-    uploadedFiles = formFiles;
-  }
-  else if (postType === 'formData')
-  {
-    postParams = formData;
-  }
-  else
-  {
-    const postBody = Buffer.concat(requestBody).toString();
-    //console.log(postBody);//__RP
-    postParams =  queryStringUtils.parse(postBody);
-  }
-
-  const resContext = 
-  {
-    outputQueue: undefined,
-    appHeaders: {},
-    resObject: res,
-    waitForNextId: 1,
-    waitForQueue: {},
-    getParams: urlUtils.parse(req.url, true).query,
-    postParams,
-    uploadedFiles,
-    statusCode: 200,
-    compileTimeError: false,
-    runtimeException: undefined
-  };
-
-  const runTime = createRunTime(resContext);
-
-  if (indexRun)
-  {
-    printInit(resContext);
-    try
-    {
-      indexRun(runTime);
-    }
-    catch (e)
-    {
-      resContext.runtimeException = e;
-      resContext.statusCode = 500;
-    }
-
-    assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
-
-    finishUpHeaders(resContext);
-  }
-  else {
-    resContext.statusCode = 500;
-    resContext.compileTimeError = true;
-  }
-  
-  doneWith(resContext);
-};
 
 server.on('request', (req, res) => {
   const { headers, method, url } = req;
@@ -403,7 +429,12 @@ server.on('request', (req, res) => {
     postedForm.on('end', () =>
     {
       const { params: formData, files: formFiles, pendingWork } = postedFormData;
-      const formContext = { postType: (isUpload) ? 'formWithUpload' : 'formData', formData, formFiles };
+      const formContext =
+      {
+        postType: (isUpload) ? 'formWithUpload' : 'formData',
+        formData,
+        formFiles
+      };
 
       Object.keys(formFiles).forEach((fileKey) =>
       {
@@ -443,7 +474,7 @@ server.on('request', (req, res) => {
   })
 });
 
-server.listen(port, hostname, () =>
+server.listen(serverConfig.port, serverConfig.hostName, () =>
 {
-  console.log(`Server 0.1.010 running at http://${hostname}:${port}/`);
+  console.log(`Server 0.1.010 running at http://${serverConfig.hostName}:${serverConfig.port}/`);
 });
