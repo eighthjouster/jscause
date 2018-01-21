@@ -69,3 +69,4 @@ Or this:
     - rt.uploadedFiles['myFile'].name
     - rt.uploadedFiles['myFile'][0].name
   - If the canUpload server configuration value is set to false, any attempts to upload anything will immediately close the connection.  The application will try to send a 403 forbidden error, but this is not guaranteed.
+    - Same thing with max file size.  If this is not desired, is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)

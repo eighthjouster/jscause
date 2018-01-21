@@ -110,6 +110,24 @@ const doMoveToUploadDir = (thisFile, { responder, req, res, formContext, pending
   });
 };
 
+const deleteUnhandledFiles = (unhandledFiles) => {
+  Object.keys(unhandledFiles).forEach((name) =>
+  {
+    const fileInfo = unhandledFiles[name];
+    if (Array.isArray(fileInfo))
+    {
+      fileInfo.forEach((thisFile) => {
+        doDeleteFile(thisFile);
+      });
+
+    }
+    else
+    {
+      doDeleteFile(fileInfo);
+    }
+  });
+};
+
 const doneWith = (ctx, id) =>
 {
   if (id)
@@ -122,21 +140,7 @@ const doneWith = (ctx, id) =>
     const formFiles = ctx.uploadedFiles;
     if (formFiles)
     {
-      Object.keys(formFiles).forEach((name) =>
-      {
-        const fileInfo = formFiles[name];
-        if (Array.isArray(fileInfo))
-        {
-          fileInfo.forEach((thisFile) => {
-            doDeleteFile(thisFile);
-          });
-
-        }
-        else
-        {
-          doDeleteFile(fileInfo);
-        }
-      });
+      deleteUnhandledFiles(formFiles);
     }
 
     if (ctx.runtimeException)

@@ -3,14 +3,9 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
-  - Think of security - e.g., payload size.
    - Max payload size:
-     - Give the app a chance to handle this.
-       - On it, but more work on robustness must be done.
-        - If an interruption occurs, do not leave uploaded traces from:
-          - The application upload directory.
-          - Formidable's (temp?) upload directory.
-   - Max non-form (JSON?) upload size (check for the sum of both above?  Or if uploads are forbidden, then just the field size)
+     - Max non-form (JSON?) upload size (check for the sum of both above?  Or if uploads are forbidden, then just the field size)
+       - Happening already?
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
@@ -75,7 +70,13 @@ Make two versions:  Standalone and NPM-installable.
 
 Version 0.7 here!
 
+==========================
+
 Order by priority:
+
+Better handling of max file size exceeded and uploads forbidden.
+
+If the max file size is reached, the partial uploaded file remains in the system's temp directory.  Deal with this (I tried, I really tried, but just gave up after some time.)
 
 Custom HTTP error pages - 404, 500, 403, etc.
 
