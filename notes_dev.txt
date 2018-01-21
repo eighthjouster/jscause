@@ -3,8 +3,9 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
-  - If canUpload is false and something is tried to be uploaded, reject it with a 403 forbidden.
   - Think of security - e.g., file size.
+    - A config value to specify max file size.
+      - Then, handle this.  413 Payload too large (and if the size is known beforehand, close the connection, just like it's handled with canUpload = false)
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
@@ -57,6 +58,10 @@ Route to site.
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.
 
+Log stdout and stderr to a configurable file.
+ - Don't forget to check for directory existence and writeability.
+   - There should be a default one.
+
 Hard-coded values should go in a global file.
 
 What is 'this' in our environment context?  Find out, document if necessary.
@@ -66,6 +71,8 @@ Make two versions:  Standalone and NPM-installable.
 Version 0.7 here!
 
 Order by priority:
+
+Custom HTTP error pages - 404, 500, 403, etc.
 
 Access to full url.
 

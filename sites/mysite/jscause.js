@@ -276,21 +276,32 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
   doneWith(resContext);
 };
 
-function startServer(server)
+function startServer(serverConfig)
 {
+  const { server, canUpload, hostName, port } = serverConfig;
+
   server.on('request', (req, res) => {
     const { headers, method, url } = req;
     const contentType = req.headers['content-type'];
     const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-    const postedForm = (((req.method || '').toLowerCase() === 'post') &&
-                          (isUpload || FORMDATA_URLENCODED_RE.test(contentType))) ?
+    const incomingForm = (((req.method || '').toLowerCase() === 'post') &&
+                          (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
+
+    const postedForm = (incomingForm && canUpload) ?
       new formidable.IncomingForm()
       :
       null;
     
     const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
-    if (postedForm)
+    if (incomingForm && !canUpload)
+    {
+      console.log('ERROR: Uploading is forbidden.');
+      res.statusCode = 403;
+      res.setHeader('Connection', 'close');
+      res.end('Forbidden!');
+    }
+    else if (postedForm)
     {
       postedForm.keepExtensions = false;
       postedForm.parse(req);
@@ -364,9 +375,9 @@ function startServer(server)
     })
   });
 
-  server.listen(serverConfig.port, serverConfig.hostName, () =>
+  server.listen(port, hostName, () =>
   {
-    console.log(`Server 0.1.010 running at http://${serverConfig.hostName}:${serverConfig.port}/`);
+    console.log(`Server 0.1.010 running at http://${hostName}:${port}/`);
   });
 }
 
@@ -528,7 +539,7 @@ if (indexExists)
   {
     // All is well so far.
     serverConfig.server = http.createServer();
-    startServer(serverConfig.server);
+    startServer(serverConfig);
     serverStarted = true;
   }
 }

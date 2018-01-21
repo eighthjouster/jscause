@@ -68,3 +68,4 @@ Or this:
   - Examples:
     - rt.uploadedFiles['myFile'].name
     - rt.uploadedFiles['myFile'][0].name
+  - If the canUpload server configuration value is set to false, any attempts to upload anything will immediately close the connection.  The application will try to send a 403 forbidden error, but this is not guaranteed.
