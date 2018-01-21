@@ -153,7 +153,7 @@ const doneWith = (ctx, id) =>
     }
     else
     {
-      ctx.resObject.end(ctx.outputQueue.join(''));
+      ctx.resObject.end((ctx.outputQueue || []).join(''));
     }
   }
 };
@@ -217,11 +217,6 @@ function extractErrorFromRuntimeObject(e)
 
 const responder = (req, res, { postType, requestBody, formData, formFiles, maxSizeExceeded }) =>
 {
-if (maxSizeExceeded) {
-  console.log('I AM DONE!!!');
-  return;
-}
-
   let postParams;
   let uploadedFiles = {};
   if (postType === 'formWithUpload')
@@ -257,26 +252,29 @@ if (maxSizeExceeded) {
 
   const runTime = createRunTime(resContext);
 
-  if (serverConfig.indexRun)
+  if (!maxSizeExceeded)
   {
-    printInit(resContext);
-    try
+    if (serverConfig.indexRun)
     {
-      serverConfig.indexRun(runTime);
+      printInit(resContext);
+      try
+      {
+        serverConfig.indexRun(runTime);
+      }
+      catch (e)
+      {
+        resContext.runtimeException = e;
+        resContext.statusCode = 500;
+      }
+
+      assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
+
+      finishUpHeaders(resContext);
     }
-    catch (e)
-    {
-      resContext.runtimeException = e;
+    else {
       resContext.statusCode = 500;
+      resContext.compileTimeError = true;
     }
-
-    assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
-
-    finishUpHeaders(resContext);
-  }
-  else {
-    resContext.statusCode = 500;
-    resContext.compileTimeError = true;
   }
   
   doneWith(resContext);

@@ -7,6 +7,9 @@ Continue with dealing with file uploads.
    - Max payload size:
      - Give the app a chance to handle this.
        - On it, but more work on robustness must be done.
+        - If an interruption occurs, do not leave uploaded traces from:
+          - The application upload directory.
+          - Formidable's (temp?) upload directory.
    - Max non-form (JSON?) upload size (check for the sum of both above?  Or if uploads are forbidden, then just the field size)
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
