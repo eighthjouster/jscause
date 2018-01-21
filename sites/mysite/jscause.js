@@ -26,15 +26,46 @@ const serverConfig = {
   indexRun: null,
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
-  uploadDirectory: DEFAULT_UPLOAD_DIR
+  uploadDirectory: null,
+  canUpload: true
 };
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
 
-const setUploadDirectory = (dirName) =>
+const setUploadDirectory = (dirName, serverConfig) =>
 {
-  serverConfig.uploadDirectory = dirName.replace(/\/?$/,'');
+  let setupSuccess = false;
+  if (!serverConfig || !serverConfig.canUpload)
+  {
+    setupSuccess = true;
+  }
+  else
+  {
+    if (fs.existsSync(dirName))
+    {
+      try
+      {
+        fs.accessSync(dirName, fs.constants.W_OK);
+        setupSuccess = true;
+      }
+      catch (e)
+      {
+        console.log(`ERROR: Upload directory ${dirName} is not writeable`);
+      }
+    }
+    else
+    {
+      console.log(`ERROR: Upload directory ${dirName} not found`);
+    }
+
+    if (setupSuccess)
+    {
+      serverConfig.uploadDirectory = dirName.replace(/\/?$/,'');
+    }
+  }
+
+  return setupSuccess;
 };
 
 const doDeleteFile = (thisFile) =>
@@ -493,7 +524,7 @@ if (indexExists)
     serverConfig.indexRun = undefined;
     console.log('ERROR: Could not compile code.');
   }
-  else
+  else if (setUploadDirectory(serverConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, serverConfig))
   {
     // All is well so far.
     serverConfig.server = http.createServer();

@@ -3,7 +3,7 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
-  - The app should check that the upload directory works (exists, is writeable, etc.)
+  - If canUpload is false and something is tried to be uploaded, reject it with a 403 forbidden.
   - Think of security - e.g., file size.
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
