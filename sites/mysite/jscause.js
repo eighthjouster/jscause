@@ -27,7 +27,8 @@ const serverConfig = {
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
   uploadDirectory: null,
-  canUpload: true
+  canUpload: true,
+  maxPayloadSizeBytes: 3// * 1024, // 3 KB //__RP
 };
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
@@ -214,8 +215,13 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
+const responder = (req, res, { postType, requestBody, formData, formFiles, maxSizeExceeded }) =>
 {
+if (maxSizeExceeded) {
+  console.log('I AM DONE!!!');
+  return;
+}
+
   let postParams;
   let uploadedFiles = {};
   if (postType === 'formWithUpload')
@@ -278,7 +284,7 @@ const responder = (req, res, { postType, requestBody, formData, formFiles }) =>
 
 function startServer(serverConfig)
 {
-  const { server, canUpload, hostName, port } = serverConfig;
+  const { server, canUpload, hostName, port, maxPayloadSizeBytes } = serverConfig;
 
   server.on('request', (req, res) => {
     const { headers, method, url } = req;
@@ -291,6 +297,8 @@ function startServer(serverConfig)
       new formidable.IncomingForm()
       :
       null;
+
+    let maxSizeExceeded = false;
     
     const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
@@ -304,6 +312,7 @@ function startServer(serverConfig)
     else if (postedForm)
     {
       postedForm.keepExtensions = false;
+
       postedForm.parse(req);
 
       postedForm.on('field', (name, value) =>
@@ -327,6 +336,17 @@ function startServer(serverConfig)
         }
       });
 
+      postedForm.on('progress', function(bytesReceived, bytesExpected) {
+        if (bytesReceived >= maxPayloadSizeBytes)
+        {
+          console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+          maxSizeExceeded = true;
+          res.statusCode = 413;
+          res.setHeader('Connection', 'close');
+          res.end('Request size exceeded!');
+        }
+      });
+
       postedForm.on('end', () =>
       {
         const { params: formData, files: formFiles, pendingWork } = postedFormData;
@@ -334,7 +354,8 @@ function startServer(serverConfig)
         {
           postType: (isUpload) ? 'formWithUpload' : 'formData',
           formData,
-          formFiles
+          formFiles,
+          maxSizeExceeded
         };
 
         Object.keys(formFiles).forEach((fileKey) =>

@@ -3,9 +3,11 @@ git bundle create jscause-.bundle devel
 =====
 
 Continue with dealing with file uploads.
-  - Think of security - e.g., file size.
-    - A config value to specify max file size.
-      - Then, handle this.  413 Payload too large (and if the size is known beforehand, close the connection, just like it's handled with canUpload = false)
+  - Think of security - e.g., payload size.
+   - Max payload size:
+     - Give the app a chance to handle this.
+       - On it, but more work on robustness must be done.
+   - Max non-form (JSON?) upload size (check for the sum of both above?  Or if uploads are forbidden, then just the field size)
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
