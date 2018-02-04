@@ -12,4 +12,19 @@ if (rt.postParams['submitIt'])
     <input name="myFile" type="file" multiple />
     <input name="myFile2" type="file" />
     <input type="submit" name="submitIt" value="Submit it!" />
+    <a href="#" id="whatevs" onclick="sendBody">Send JSON body</a>
 </form>
+<script>
+  whatevs.onclick = function() {
+      var sb = new XMLHttpRequest();
+      sb.open('POST', 'http://localhost:3000');
+      sb.send(JSON.stringify({a:'dfadsfadsfd adfad\
+      adfadsfadsfasdfadsfadsfadf\
+      adfadsfadsfasdfadsfadsfadf\
+      adfadsfadsfasdfadsfadsfadf\
+      adfadsfadsfasdfadsfadsfadf\
+      adfadsfadsfasdfadsfadsfadf\
+      adfadsfadsfasdfadsfadsfadf\
+      '}));
+  };
+</script>

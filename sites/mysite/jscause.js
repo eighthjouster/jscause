@@ -28,7 +28,7 @@ const serverConfig = {
   port: DEFAULT_PORT,
   uploadDirectory: null,
   canUpload: true,
-  maxPayloadSizeBytes: 3// * 1024, // 3 KB //__RP
+  maxPayloadSizeBytes: 3 * 1024, // 3 KB
 };
 
 const printInit = (ctx) => { ctx.outputQueue = []; };
@@ -219,7 +219,7 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res, { postType, requestBody, formData, formFiles, maxSizeExceeded }) =>
+const responder = (req, res, { postType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
 {
   let postParams;
   let uploadedFiles = {};
@@ -235,7 +235,6 @@ const responder = (req, res, { postType, requestBody, formData, formFiles, maxSi
   else
   {
     const postBody = Buffer.concat(requestBody).toString();
-    //console.log(postBody);//__RP
     postParams =  queryStringUtils.parse(postBody);
   }
 
@@ -256,7 +255,7 @@ const responder = (req, res, { postType, requestBody, formData, formFiles, maxSi
 
   const runTime = createRunTime(resContext);
 
-  if (!maxSizeExceeded)
+  if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
     if (serverConfig.indexRun)
     {
@@ -290,7 +289,8 @@ function startServer(serverConfig)
 
   server.on('request', (req, res) => {
     const { headers, method, url } = req;
-    const contentType = req.headers['content-type'];
+    const contentType = headers['content-type'];
+    const contentLength = parseInt(headers['content-length'] || 0, 10);
     const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
     const incomingForm = (((req.method || '').toLowerCase() === 'post') &&
                           (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
@@ -301,11 +301,21 @@ function startServer(serverConfig)
       null;
 
     let maxSizeExceeded = false;
+    let forbiddenUploadAttempted = false;
     
     const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
-    if (incomingForm && !canUpload)
+    if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
+      console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+      maxSizeExceeded = true;
+      res.statusCode = 413;
+      res.setHeader('Connection', 'close');
+      res.end('Request size exceeded!');
+    }
+    else if (incomingForm && !canUpload)
+    {
+      forbiddenUploadAttempted = true;
       console.log('ERROR: Uploading is forbidden.');
       res.statusCode = 403;
       res.setHeader('Connection', 'close');
@@ -338,8 +348,9 @@ function startServer(serverConfig)
         }
       });
 
-      postedForm.on('progress', function(bytesReceived, bytesExpected) {
-        if (bytesReceived >= maxPayloadSizeBytes)
+      postedForm.on('progress', function(bytesReceived, bytesExpected)
+      {
+        if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
           maxSizeExceeded = true;
@@ -357,7 +368,8 @@ function startServer(serverConfig)
           postType: (isUpload) ? 'formWithUpload' : 'formData',
           formData,
           formFiles,
-          maxSizeExceeded
+          maxSizeExceeded,
+          forbiddenUploadAttempted
         };
 
         Object.keys(formFiles).forEach((fileKey) =>
@@ -380,13 +392,39 @@ function startServer(serverConfig)
     else
     {
       let requestBody = [];
+      let bodyLength = 0;
       req.on('data', (chunk) =>
       {
-        requestBody.push(chunk);
+        if (canUpload)
+        {
+          const futureBodyLength = bodyLength + chunk.length;
+
+          if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
+          {
+            console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+            maxSizeExceeded = true;
+            res.statusCode = 413;
+            res.setHeader('Connection', 'close');
+            res.end('Request size exceeded!');
+          }
+          else
+          {
+            bodyLength += chunk.length;
+            requestBody.push(chunk);
+          }
+        }
+        else
+        {
+          forbiddenUploadAttempted = true;
+          console.log('ERROR: Uploading is forbidden.');
+          res.statusCode = 403;
+          res.setHeader('Connection', 'close');
+          res.end('Forbidden!');
+        }
       })
       .on('end', () =>
       {
-        const postContext = { postType: 'postData', requestBody };
+        const postContext = { postType: 'postData', requestBody, maxSizeExceeded, forbiddenUploadAttempted };
         responder(req, res, postContext);
       });
     }
@@ -484,7 +522,8 @@ if (readSuccess)
 
     do
     {
-      if (processingContext === CONTEXT_HTML) {
+      if (processingContext === CONTEXT_HTML)
+      {
         const [processBefore, processAfter] = unprocessedData
                                                 .split(/\s\<js([\s\S]*)/);
 
@@ -562,6 +601,12 @@ if (indexExists)
   {
     // All is well so far.
     serverConfig.server = http.createServer();
+
+    if ((serverConfig.maxPayloadSizeBytes || 0) < 0)
+    {
+      serverConfig.canUpload = false;
+    }
+    
     startServer(serverConfig);
     serverStarted = true;
   }

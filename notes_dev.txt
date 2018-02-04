@@ -2,10 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Continue with dealing with file uploads.
-   - Max payload size:
-     - Max non-form (JSON?) upload size (check for the sum of both above?  Or if uploads are forbidden, then just the field size)
-       - Happening already?
+The true block after:
+if (contentLength && (contentLength >= maxPayloadSizeBytes)) {...}
+is a duplicate of some code below.
+  - Can you make it a function?
+  - Same thing with uploads forbidden handling.
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
@@ -14,6 +15,7 @@ Continue with analyzing postType.
  - JSON body?
  - Check that uploading json works.
    - Maybe you'll need to implement a toJson function?
+     - And never trust user input!
 
 Implement a safe print function (escaped.)
  - I thought we had this already?
@@ -69,7 +71,11 @@ What is 'this' in our environment context?  Find out, document if necessary.
 Make two versions:  Standalone and NPM-installable.
 
 Version 0.7 here!
+ - Upload to https://github.com/eighthjouster/jscause
 
+ - Create a couple of sites with it.
+ - Announce.
+ 
 ==========================
 
 Order by priority:
