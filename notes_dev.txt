@@ -2,20 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-The true block after:
-if (contentLength && (contentLength >= maxPayloadSizeBytes)) {...}
-is a duplicate of some code below.
-  - Can you make it a function?
-  - Same thing with uploads forbidden handling.
+Continue with analyzing postType.
+- Maybe you'll need to implement a toJson function?
+  - I mean, see if the guest application can access the uploaded json as an object.
+  - If the json is malformed, let the application know and let it handle it (and discard the whole thing.)
+  - And never trust user input!
+    - Also, put this on the manual.
 
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
-
-Continue with analyzing postType.
- - JSON body?
- - Check that uploading json works.
-   - Maybe you'll need to implement a toJson function?
-     - And never trust user input!
 
 Implement a safe print function (escaped.)
  - I thought we had this already?
@@ -25,20 +20,6 @@ Docs:  SECURITY:  Put in the docs that the filename should be sanitized before u
 
 Config files:
  - Set upload directory (you can use setUploadDirectory().)
-
- - Security?
-   - Consider this:
-request.on('data', function (data) {
-            body += data;
-
-            // Too much POST data, kill the connection!
-            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
-            if (body.length > 1e6)
-                request.connection.destroy();
-        });
-Can you actually send something (res.end()) even if we haven't gotten an 'end' event?  So that you can let the visitor know.
-Save to temp file that you will delete after the request ends.
- - Can we use toString() on a chunk?
 
 Cookies?
  - Read/write?
@@ -79,6 +60,8 @@ Version 0.7 here!
 ==========================
 
 Order by priority:
+
+Plugins.  Something as easy as dropping as a folder in a /plugins folder.
 
 Better handling of max file size exceeded and uploads forbidden.
 

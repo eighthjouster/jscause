@@ -283,6 +283,22 @@ const responder = (req, res, { postType, requestBody, formData, formFiles, maxSi
   doneWith(resContext);
 };
 
+function sendPayLoadExceeded(res, maxPayloadSizeBytes)
+{
+  console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+  res.statusCode = 413;
+  res.setHeader('Connection', 'close');
+  res.end('Request size exceeded!');
+}
+
+function sendUploadIsForbidden(res)
+{
+  console.log('ERROR: Uploading is forbidden.');
+  res.statusCode = 403;
+  res.setHeader('Connection', 'close');
+  res.end('Forbidden!');
+}
+
 function startServer(serverConfig)
 {
   const { server, canUpload, hostName, port, maxPayloadSizeBytes } = serverConfig;
@@ -307,19 +323,13 @@ function startServer(serverConfig)
 
     if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
-      console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
       maxSizeExceeded = true;
-      res.statusCode = 413;
-      res.setHeader('Connection', 'close');
-      res.end('Request size exceeded!');
+      sendPayLoadExceeded(res, maxPayloadSizeBytes);
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      console.log('ERROR: Uploading is forbidden.');
-      res.statusCode = 403;
-      res.setHeader('Connection', 'close');
-      res.end('Forbidden!');
+      sendUploadIsForbidden(res);
     }
     else if (postedForm)
     {
@@ -352,11 +362,8 @@ function startServer(serverConfig)
       {
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
-          console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
           maxSizeExceeded = true;
-          res.statusCode = 413;
-          res.setHeader('Connection', 'close');
-          res.end('Request size exceeded!');
+          sendPayLoadExceeded(res, maxPayloadSizeBytes);
         }
       });
 
@@ -401,11 +408,8 @@ function startServer(serverConfig)
 
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
           {
-            console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
             maxSizeExceeded = true;
-            res.statusCode = 413;
-            res.setHeader('Connection', 'close');
-            res.end('Request size exceeded!');
+            sendPayLoadExceeded(res, maxPayloadSizeBytes);
           }
           else
           {
@@ -416,10 +420,7 @@ function startServer(serverConfig)
         else
         {
           forbiddenUploadAttempted = true;
-          console.log('ERROR: Uploading is forbidden.');
-          res.statusCode = 403;
-          res.setHeader('Connection', 'close');
-          res.end('Forbidden!');
+          sendUploadIsForbidden(res);
         }
       })
       .on('end', () =>
