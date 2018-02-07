@@ -7,7 +7,6 @@
    ************************************** */
 const fs = require('fs');
 const urlUtils = require('url');
-const queryStringUtils = require('querystring');
 const crypto = require('crypto');
 const formidable = require('./jscvendor/formidable');
 const http = require('http');
@@ -191,7 +190,10 @@ const createRunTime = (rtContext) =>
     },
     getParams: rtContext.getParams,
     postParams: rtContext.postParams,
-    uploadedFiles: rtContext.uploadedFiles
+    contentType: rtContext.contentType,
+    postType: rtContext.postType,
+    uploadedFiles: rtContext.uploadedFiles,
+    additional: rtContext.additional
   };
 };
 
@@ -219,10 +221,12 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res, { postType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
+const responder = (req, res, { postType, contentType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
 {
   let postParams;
   let uploadedFiles = {};
+  const additional = {};
+
   if (postType === 'formWithUpload')
   {
     postParams = formData;
@@ -232,10 +236,29 @@ const responder = (req, res, { postType, requestBody, formData, formFiles, maxSi
   {
     postParams = formData;
   }
-  else
+  else if (postType === 'jsonData')
   {
     const postBody = Buffer.concat(requestBody).toString();
-    postParams =  queryStringUtils.parse(postBody);
+    let parseSuccess = true;
+    try {
+      postParams = JSON.parse(postBody);
+    }
+    catch(e)
+    {
+      parseSuccess = false;
+      additional.jsonParseError = true;
+    }
+
+    if (!parseSuccess)
+    {
+      postParams = {};
+    }
+  }
+  else
+  {
+    // Assumed postData (text/plain).  Pass it raw.
+    const postBody = Buffer.concat(requestBody);
+    postParams = { data: postBody };
   }
 
   const resContext =
@@ -247,7 +270,10 @@ const responder = (req, res, { postType, requestBody, formData, formFiles, maxSi
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
     postParams,
+    postType,
+    contentType,
     uploadedFiles,
+    additional,
     statusCode: 200,
     compileTimeError: false,
     runtimeException: undefined
@@ -370,9 +396,12 @@ function startServer(serverConfig)
       postedForm.on('end', () =>
       {
         const { params: formData, files: formFiles, pendingWork } = postedFormData;
+        const postType = (isUpload) ? 'formWithUpload' : 'formData';
+
         const formContext =
         {
-          postType: (isUpload) ? 'formWithUpload' : 'formData',
+          postType,
+          contentType: postType,
           formData,
           formFiles,
           maxSizeExceeded,
@@ -425,7 +454,21 @@ function startServer(serverConfig)
       })
       .on('end', () =>
       {
-        const postContext = { postType: 'postData', requestBody, maxSizeExceeded, forbiddenUploadAttempted };
+        let contentType = ((req.headers || {})['content-type'] || '').toLowerCase() || '';
+        let postType;
+
+        if (contentType === 'application/json')
+        {
+          postType = 'jsonData';
+          contentType = postType;
+        }
+        else
+        {
+          postType = 'postData';
+          // contentType will remain the same as the value of the content-type header.
+        }
+
+        const postContext = { postType, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
         responder(req, res, postContext);
       });
     }

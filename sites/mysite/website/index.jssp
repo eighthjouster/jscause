@@ -4,11 +4,20 @@ if (rt.postParams['submitIt'])
   rt.print(rt.uploadedFiles['myFile'].name);
 }
 
+if (rt.additional.jsonParseError)
+{
+    console.log('ERROR PARSING!');
+}
+console.log(rt.postType);
+console.log(rt.contentType);
+console.log(rt.postParams);
+console.log(rt.postParams.a);
+
 /js>
 <h1>COOOL</h1>
-<!-- form method="post" -->
-    <!-- input name="myFile" type="text" value="" /-->
-<form method="post" enctype="multipart/form-data">
+<form method="post">
+    <input name="myFile" type="text" value="">
+<!--form method="post" enctype="multipart/form-data"-->
     <input name="myFile" type="file" multiple />
     <input name="myFile2" type="file" />
     <input type="submit" name="submitIt" value="Submit it!" />
@@ -18,13 +27,7 @@ if (rt.postParams['submitIt'])
   whatevs.onclick = function() {
       var sb = new XMLHttpRequest();
       sb.open('POST', 'http://localhost:3000');
-      sb.send(JSON.stringify({a:'dfadsfadsfd adfad\
-      adfadsfadsfasdfadsfadsfadf\
-      adfadsfadsfasdfadsfadsfadf\
-      adfadsfadsfasdfadsfadsfadf\
-      adfadsfadsfasdfadsfadsfadf\
-      adfadsfadsfasdfadsfadsfadf\
-      adfadsfadsfasdfadsfadsfadf\
-      '}));
+      sb.setRequestHeader('Content-Type', 'application/json');
+      sb.send(JSON.stringify({a:'dfadsfadsfd'}));
   };
 </script>
