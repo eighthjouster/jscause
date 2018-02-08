@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Huh, a regular form is not being submitted (browser keeps waiting for a response.)  Fix this.
-
 Are both .on('end') called on the same form post with upload?  Only the formidable one should be called (and whatever other on() events are there.)  Investigate.
 
 If you comment out a javscript line in the app's code, it will comment out the rest of the script (because it's all in one line.)  Fix.
@@ -16,6 +14,7 @@ Get rid of __RP
 There should be for the app to know if the request is a post or get.
  - What about put/delete/patch?  I mean, we won't address these, so, should they be ignored?
    - Mayeb return a 401 or something.
+ - postData and postType should not have anything if it's a get.
 
 - And never trust user input!
   - Also, put this on the manual.
@@ -72,6 +71,9 @@ Version 0.7 here!
 ==========================
 
 Order by priority:
+
+Uploading files:  When an upload form is submitted with no files specified, the framework still processes such files.  That is, a temp file is created, with size 0, I'm guessing.  And no filenames.
+  - Any way to avoid the creation of an unnecessary file?
 
 Plugins.  Something as easy as dropping as a folder in a /plugins folder.
 

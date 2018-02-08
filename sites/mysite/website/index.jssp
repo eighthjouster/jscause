@@ -1,7 +1,8 @@
 
 if (rt.postParams['submitIt'])
 {
-  rt.print(rt.uploadedFiles['myFile'].name);
+  /*rt.print(rt.uploadedFiles['myFile'].name);*/
+  rt.print(rt.postParams['myText']);
 }
 
 if (rt.additional.jsonParseError)
@@ -15,9 +16,9 @@ console.log(rt.postParams.a);
 
 /js>
 <h1>COOOL</h1>
-<form method="post">
-    <input name="myFile" type="text" value="">
-<!--form method="post" enctype="multipart/form-data"-->
+<!--form method="post"-->
+    <input name="myText" type="text" value="">
+<form method="post" enctype="multipart/form-data">
     <input name="myFile" type="file" multiple />
     <input name="myFile2" type="file" />
     <input type="submit" name="submitIt" value="Submit it!" />

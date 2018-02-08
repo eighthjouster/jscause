@@ -408,21 +408,28 @@ function startServer(serverConfig)
           forbiddenUploadAttempted
         };
 
-        Object.keys(formFiles).forEach((fileKey) =>
+        if (isUpload)
         {
-          const thisFile = formFiles[fileKey];
-          if (Array.isArray(thisFile))
+          Object.keys(formFiles).forEach((fileKey) =>
           {
-            thisFile.forEach((thisActualFile) =>
+            const thisFile = formFiles[fileKey];
+            if (Array.isArray(thisFile))
             {
-              doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
-            });
-          }
-          else
-          {
-            doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
-          }
-        });
+              thisFile.forEach((thisActualFile) =>
+              {
+                doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
+              });
+            }
+            else
+            {
+              doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
+            }
+          });
+        }
+        else
+        {
+          responder(req, res, formContext);
+        }
       });
     }
     else
