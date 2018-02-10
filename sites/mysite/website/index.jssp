@@ -1,18 +1,4 @@
 
-if (rt.postParams['submitIt'])
-{
-  /*rt.print(rt.uploadedFiles['myFile'].name);*/
-  rt.print(rt.postParams['myText']);
-}
-
-if (rt.additional.jsonParseError)
-{
-    console.log('ERROR PARSING!');
-}
-console.log(rt.postType);
-console.log(rt.contentType);
-console.log(rt.postParams);
-console.log(rt.postParams.a);
 
 /js>
 <h1>COOOL</h1>
@@ -25,10 +11,9 @@ console.log(rt.postParams.a);
     <a href="#" id="whatevs" onclick="sendBody">Send JSON body</a>
 </form>
 <script>
-  whatevs.onclick = function() {
-      var sb = new XMLHttpRequest();
-      sb.open('POST', 'http://localhost:3000');
-      sb.setRequestHeader('Content-Type', 'application/json');
-      sb.send(JSON.stringify({a:'dfadsfadsfd'}));
-  };
+   {
+    console.log('hello');
+    //console.log('you good?');
+    console.log('goodbye');
+  }
 </script>

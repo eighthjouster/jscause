@@ -2,16 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Are both .on('end') called on the same form post with upload?  Only the formidable one should be called (and whatever other on() events are there.)  Investigate.
-
-If you comment out a javscript line in the app's code, it will comment out the rest of the script (because it's all in one line.)  Fix.
-
 Test when json post is malformed.
  - Follow the specs.
 
 Get rid of __RP
 
-There should be for the app to know if the request is a post or get.
+There should be a way for the app to know if the request is a post or get.
  - What about put/delete/patch?  I mean, we won't address these, so, should they be ignored?
    - Mayeb return a 401 or something.
  - postData and postType should not have anything if it's a get.
@@ -19,12 +15,13 @@ There should be for the app to know if the request is a post or get.
 - And never trust user input!
   - Also, put this on the manual.
 
+At this point, back up!
+
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
 
 Implement a safe print function (escaped.)
  - I thought we had this already?
-
 
 Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
  - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).

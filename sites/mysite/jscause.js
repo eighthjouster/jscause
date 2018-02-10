@@ -586,8 +586,8 @@ if (readSuccess)
                                 .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
                                 .replace(/\\/g,'\\\\')
                                 .replace(/\'/g,'\\\'')
-                                .replace(/\n{2,}/g, '\n')
-                                .replace(/\s{2,}/g, ' ')
+                                .replace(/[^\S\n]{2,}/g, ' ')
+                                .replace(/^\s*|\n\s*/g, '\n')
                                 .split(/\n/)
                                 .join(' \\n \\\n') :
                               '';
