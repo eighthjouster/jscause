@@ -2,10 +2,13 @@ if (rt.additional.jsonParseError)
 {
     console.log('ERROR PARSING!');
 }
+console.log(rt); //__RP
+if (rt.postParams.data)
+    console.log(rt.postParams.data.toString().length);
 
 /js>
 <h1>COOOL</h1>
-<form method="post">
+<!--form method="post"-->
     <input name="myFile" type="text" value="">
 <form method="post" enctype="multipart/form-data">
     <input name="myFile" type="file" multiple />
@@ -17,7 +20,7 @@ if (rt.additional.jsonParseError)
   whatevs.onclick = function() {
       var sb = new XMLHttpRequest();
       sb.open('POST', 'http://localhost:3000');
-      sb.setRequestHeader('Content-Type', 'application/json');
-      sb.send(JSON.stringify({a:'dfadsfadsfd'}));
+      sb.setRequestHeader('Content-Type', 'text/html');
+      sb.send('aaaaaaa:}');
   };
 </script>

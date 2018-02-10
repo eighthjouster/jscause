@@ -191,7 +191,7 @@ const createRunTime = (rtContext) =>
     getParams: rtContext.getParams,
     postParams: rtContext.postParams,
     contentType: rtContext.contentType,
-    postType: rtContext.postType,
+    requestMethod: rtContext.requestMethod,
     uploadedFiles: rtContext.uploadedFiles,
     additional: rtContext.additional
   };
@@ -221,22 +221,22 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res, { postType, contentType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
+const responder = (req, res, { requestMethod, contentType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
 {
   let postParams;
   let uploadedFiles = {};
   const additional = {};
 
-  if (postType === 'formWithUpload')
+  if (contentType === 'formDataWithUpload')
   {
     postParams = formData;
     uploadedFiles = formFiles;
   }
-  else if (postType === 'formData')
+  else if (contentType === 'formData')
   {
     postParams = formData;
   }
-  else if (postType === 'jsonData')
+  else if (contentType === 'jsonData')
   {
     const postBody = Buffer.concat(requestBody).toString();
     let parseSuccess = true;
@@ -270,7 +270,7 @@ const responder = (req, res, { postType, contentType, requestBody, formData, for
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
     postParams,
-    postType,
+    requestMethod,
     contentType,
     uploadedFiles,
     additional,
@@ -336,11 +336,20 @@ function startServer(serverConfig)
   const { server, canUpload, hostName, port, maxPayloadSizeBytes } = serverConfig;
 
   server.on('request', (req, res) => {
-    const { headers, method, url } = req;
-    const contentType = headers['content-type'];
+    const { headers = {}, method, url } = req;
+    const requestMethod = (method || '').toLowerCase();
+
+    if ((requestMethod !== 'get') && (requestMethod !== 'post'))
+    {
+      res.statusCode = 405;
+      res.end('Not allowed!');
+      return;
+    }
+
+    let contentType = (headers['content-type'] || '').toLowerCase();
     const contentLength = parseInt(headers['content-length'] || 0, 10);
     const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-    const incomingForm = (((req.method || '').toLowerCase() === 'post') &&
+    const incomingForm = ((requestMethod === 'post') &&
                           (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
 
     const postedForm = (incomingForm && canUpload) ?
@@ -402,11 +411,11 @@ function startServer(serverConfig)
       postedForm.on('end', () =>
       {
         const { params: formData, files: formFiles, pendingWork } = postedFormData;
-        const postType = (isUpload) ? 'formWithUpload' : 'formData';
+        const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
 
         const formContext =
         {
-          postType,
+          requestMethod,
           contentType: postType,
           formData,
           formFiles,
@@ -467,21 +476,12 @@ function startServer(serverConfig)
       })
       .on('end', () =>
       {
-        let contentType = ((req.headers || {})['content-type'] || '').toLowerCase() || '';
-        let postType;
-
         if (contentType === 'application/json')
         {
-          postType = 'jsonData';
-          contentType = postType;
-        }
-        else
-        {
-          postType = 'postData';
-          // contentType will remain the same as the value of the content-type header.
+          contentType = 'jsonData';
         }
 
-        const postContext = { postType, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
         responder(req, res, postContext);
       });
     }

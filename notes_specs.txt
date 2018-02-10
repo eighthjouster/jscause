@@ -73,4 +73,9 @@ Or this:
   - A maxPayloadSizeBytes server config value of 0 indicated unlimited upload size.  Fewer than 0 is as if canUpload is false.
   - When POSTing, if the content-type header is set to application/json, the app will do its best to parse it.  If it fails, rt.additional.jsonParseError will be true.  If it succeeds, the json object will be available as rt.postParams.
   - If when POSTing the content-type header is set to anything other than application/json o form encoded, the payload will be available as rt.postParams.data.  If the user is sure it will be a string, they should do rt.postParams.data.toString() before processing.
-  - postType and contentType are generally the same, unless postType has 'postData', in which contentType will have whatever the content-type header is set to.
+  - contentType can be whatever the content-type header is set to, except for:
+    - Form content: it will be formData.
+    - Form content with file upload: it will be formDataWithUpload.
+    - JSON: it will be jsonData.
+ - We also have: rt.requestMethod ('get' or 'post').  PUT and DELETE are not supported and will return a 405 (method not allowed.)
+- Never trust user input!

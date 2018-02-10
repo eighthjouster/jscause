@@ -2,16 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-There should be a way for the app to know if the request is a post or get.
- - What about put/delete/patch?  I mean, we won't address these, so, should they be ignored?
-   - Mayeb return a 401 or something.
- - postData and postType should not have anything if it's a get.
-
-- And never trust user input!
-  - Also, put this on the manual.
-
-At this point, back up!
-
 Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
  - And runTime, and resObject, maybe.
 
