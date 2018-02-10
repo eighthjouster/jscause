@@ -2,11 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Test when json post is malformed.
- - Follow the specs.
-
-Get rid of __RP
-
 There should be a way for the app to know if the request is a post or get.
  - What about put/delete/patch?  I mean, we won't address these, so, should they be ignored?
    - Mayeb return a 401 or something.

@@ -1,9 +1,12 @@
-
+if (rt.additional.jsonParseError)
+{
+    console.log('ERROR PARSING!');
+}
 
 /js>
 <h1>COOOL</h1>
-<!--form method="post"-->
-    <input name="myText" type="text" value="">
+<form method="post">
+    <input name="myFile" type="text" value="">
 <form method="post" enctype="multipart/form-data">
     <input name="myFile" type="file" multiple />
     <input name="myFile2" type="file" />
@@ -11,9 +14,10 @@
     <a href="#" id="whatevs" onclick="sendBody">Send JSON body</a>
 </form>
 <script>
-   {
-    console.log('hello');
-    //console.log('you good?');
-    console.log('goodbye');
-  }
+  whatevs.onclick = function() {
+      var sb = new XMLHttpRequest();
+      sb.open('POST', 'http://localhost:3000');
+      sb.setRequestHeader('Content-Type', 'application/json');
+      sb.send(JSON.stringify({a:'dfadsfadsfd'}));
+  };
 </script>

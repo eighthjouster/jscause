@@ -246,12 +246,12 @@ const responder = (req, res, { postType, contentType, requestBody, formData, for
     catch(e)
     {
       parseSuccess = false;
-      additional.jsonParseError = true;
     }
 
     if (!parseSuccess)
     {
       postParams = {};
+      additional.jsonParseError = true;
     }
   }
   else
@@ -278,6 +278,12 @@ const responder = (req, res, { postType, contentType, requestBody, formData, for
     compileTimeError: false,
     runtimeException: undefined
   };
+
+
+  if (additional.jsonParseError)
+  {
+    resContext.statusCode = 400;
+  }
 
   const runTime = createRunTime(resContext);
 
