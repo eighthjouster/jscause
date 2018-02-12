@@ -1,3 +1,5 @@
+rt.print('<b>Whoa</b>');
+
 if (rt.additional.jsonParseError)
 {
     console.log('ERROR PARSING!');

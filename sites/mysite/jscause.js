@@ -142,34 +142,47 @@ const doneWith = (ctx, id) =>
       deleteUnhandledFiles(formFiles);
     }
 
-    if (ctx.runtimeException)
+    const { runtimeException } = ctx;
+    if (runtimeException)
     {
       ctx.outputQueue = ['<br />Runtime error!<br />'];
-      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(ctx.runtimeException)}`);
-      console.log(ctx.runtimeException);
+      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
+      console.log(runtimeException);
     }
 
-    ctx.resObject.statusCode = ctx.statusCode;
+    const { resObject, statusCode } = ctx;
+    resObject.statusCode = statusCode;
     if (ctx.compileTimeError)
     {
-      ctx.resObject.end('Compile time error!');
+      resObject.end('Compile time error!');
     }
     else
     {
-      ctx.resObject.end((ctx.outputQueue || []).join(''));
+      resObject.end((ctx.outputQueue || []).join(''));
     }
   }
 };
 const finishUpHeaders = (ctx) =>
 {
-  Object.keys(ctx.appHeaders).forEach((headerName) => ctx.resObject.setHeader(headerName, ctx.appHeaders[headerName]));
+  const { appHeaders, resObject } = ctx;
+  Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
 };
 
 const createRunTime = (rtContext) =>
 {
+  const { getParams, postParams, contentType,
+          requestMethod, uploadedFiles, additional } = rtContext;
+
   return {
     print: (output = '') => rtContext.outputQueue.push(output),
-    header: (nameOrObject, value) => { assignAppHeaders.apply(this, (typeof(nameOrObject) === 'string') ?  [rtContext, {[nameOrObject]: value}] : [].concat(rtContext, nameOrObject) );  },
+    header: (nameOrObject, value) =>
+    {
+      assignAppHeaders.apply(this,
+        (typeof(nameOrObject) === 'string') ?
+          [rtContext, {[nameOrObject]: value}] :
+          [].concat(rtContext, nameOrObject)
+      );
+    },
     waitFor: (cb) =>
     {
       const waitForId = rtContext.waitForNextId++;
@@ -188,12 +201,12 @@ const createRunTime = (rtContext) =>
         doneWith(rtContext, waitForId);
       }
     },
-    getParams: rtContext.getParams,
-    postParams: rtContext.postParams,
-    contentType: rtContext.contentType,
-    requestMethod: rtContext.requestMethod,
-    uploadedFiles: rtContext.uploadedFiles,
-    additional: rtContext.additional
+    getParams,
+    postParams,
+    contentType,
+    requestMethod,
+    uploadedFiles,
+    additional
   };
 };
 
@@ -221,7 +234,11 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res, { requestMethod, contentType, requestBody, formData, formFiles, maxSizeExceeded, forbiddenUploadAttempted }) =>
+const responder = (req, res,
+                    { requestMethod, contentType, requestBody,
+                      formData, formFiles, maxSizeExceeded,
+                      forbiddenUploadAttempted
+                    }) =>
 {
   let postParams;
   let uploadedFiles = {};
@@ -286,15 +303,16 @@ const responder = (req, res, { requestMethod, contentType, requestBody, formData
   }
 
   const runTime = createRunTime(resContext);
+  const { indexRun } = serverConfig;
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
-    if (serverConfig.indexRun)
+    if (indexRun)
     {
       printInit(resContext);
       try
       {
-        serverConfig.indexRun(runTime);
+        indexRun(runTime);
       }
       catch (e)
       {

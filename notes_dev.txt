@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Can we destructure a bit? I feel like we have ctx.this and ctx.that scattered around.
- - And runTime, and resObject, maybe.
-
 Implement a safe print function (escaped.)
  - I thought we had this already?
 
@@ -23,6 +20,7 @@ Other files? (images, css, js).
  - Static files?
 
 At this point, start abstracting away the engine.
+ - Make it one file using gulp or something, for prod.
 
 Server Id? (Multi-host).
 
