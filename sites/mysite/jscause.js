@@ -12,7 +12,7 @@ const formidable = require('./jscvendor/formidable');
 const http = require('http');
 const util = require('util');
 const path = require('path');
-
+const sanitizeFilename = require('./jscvendor/sanitize-filename');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
@@ -30,8 +30,21 @@ const serverConfig = {
   maxPayloadSizeBytes: 3 * 1024, // 3 KB
 };
 
+const symbolsToSanitize =
+{
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
+
 const printInit = (ctx) => { ctx.outputQueue = []; };
 const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
+const sanitizeForHTMLOutput = (inputText) => String(inputText).replace(/[&<>"'`=\/]/g, (s) => symbolsToSanitize[s]);
 
 const setUploadDirectory = (dirName, serverConfig) =>
 {
@@ -175,6 +188,7 @@ const createRunTime = (rtContext) =>
 
   return {
     print: (output = '') => rtContext.outputQueue.push(output),
+    printSafely: (output = '') => rtContext.outputQueue.push(sanitizeForHTMLOutput(output)),
     header: (nameOrObject, value) =>
     {
       assignAppHeaders.apply(this,
@@ -403,6 +417,8 @@ function startServer(serverConfig)
 
       postedForm.on('file', (name, file) =>
       {
+        console.log(file.name);//__RP
+        console.log(sanitizeFilename(file.name));//__RP
         if (postedFormData.files[name])
         {
           if (!Array.isArray(postedFormData.files[name]))

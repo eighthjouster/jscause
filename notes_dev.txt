@@ -2,8 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Implement a safe print function (escaped.)
- - I thought we had this already?
+Started the work.
+ - Before continuing, see if you can test it with "invalid" filenames.
+ - Also, remember to replace invalid characters with '_'.
 
 Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
  - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).
@@ -29,6 +30,9 @@ Server-side rendering?
 Specify port number.
 Route to site.
 
+Databases.
+ - Basic.
+
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.
 
@@ -40,10 +44,15 @@ Hard-coded values should go in a global file.
 
 What is 'this' in our environment context?  Find out, document if necessary.
 
+Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
+
 Make two versions:  Standalone and NPM-installable.
 
 Version 0.7 here!
  - Upload to https://github.com/eighthjouster/jscause
+ - Thanks to:
+   - Formidable.
+   - https://github.com/parshap/node-sanitize-filename
 
  - Create a couple of sites with it.
  - Announce.
@@ -51,6 +60,8 @@ Version 0.7 here!
 ==========================
 
 Order by priority:
+
+Databases, advanced features.
 
 Uploading files:  When an upload form is submitted with no files specified, the framework still processes such files.  That is, a temp file is created, with size 0, I'm guessing.  And no filenames.
   - Any way to avoid the creation of an unnecessary file?

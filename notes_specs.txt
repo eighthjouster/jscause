@@ -79,3 +79,4 @@ Or this:
     - JSON: it will be jsonData.
  - We also have: rt.requestMethod ('get' or 'post').  PUT and DELETE are not supported and will return a 405 (method not allowed.)
 - Never trust user input!
+- printSafely will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.
