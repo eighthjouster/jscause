@@ -417,8 +417,9 @@ function startServer(serverConfig)
 
       postedForm.on('file', (name, file) =>
       {
-        console.log(file.name);//__RP
-        console.log(sanitizeFilename(file.name));//__RP
+        file.unsafeName = file.name;
+        file.name = sanitizeFilename(file.name, { replacement: '_' }).replace(';', '_');
+
         if (postedFormData.files[name])
         {
           if (!Array.isArray(postedFormData.files[name]))

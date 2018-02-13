@@ -2,13 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Started the work.
- - Before continuing, see if you can test it with "invalid" filenames.
- - Also, remember to replace invalid characters with '_'.
-
-Docs:  SECURITY:  Put in the docs that the filename should be sanitized before used to write to the file system (potential for attacks!).
- - Offer to sanitize for you (like, safeFileName, or perhaps safeFileName should be just fileName, then you provide unsafeFileName).
-
 Config files:
  - Set upload directory (you can use setUploadDirectory().)
 
