@@ -535,6 +535,8 @@ function startServer(serverConfig)
 }
 
 let stats;
+let readConfigFile;
+let readConfigJSON;
 
 const indexFile = './website/index.jssp';
 
@@ -547,16 +549,55 @@ const compileContext =
   data: null,
   compiledModule: null
 };
-  
+
 try
 {
-  stats = fs.statSync(indexFile);
+  stats = fs.statSync('jscause.conf');
   readSuccess = true;
 }
 catch (e)
 {
-  console.log('ERROR: Cannot find index file');
+  console.log('ERROR: Cannot find jscause.conf file');
   console.log(e);
+}
+
+if (readSuccess)
+{
+  readSuccess = false;
+
+  if (stats.isDirectory())
+  {
+    console.log(`ERROR: jscause.conf is a directory.`);
+  }
+  else
+  {
+    try
+    {
+      readConfigFile = fs.readFileSync('jscause.conf', 'utf-8');
+      readSuccess = true;
+    }
+    catch(e)
+    {
+      console.log('ERROR: Cannot load jsconf.conf file.');
+      console.log(e);
+    }
+  }
+}
+  
+if (readSuccess)
+{
+  readSuccess = false;
+
+  try
+  {
+    stats = fs.statSync(indexFile);
+    readSuccess = true;
+  }
+  catch (e)
+  {
+    console.log('ERROR: Cannot find index file');
+    console.log(e);
+  }
 }
 
 if (readSuccess)
@@ -580,6 +621,41 @@ if (readSuccess)
       console.log(e);
     }
   }
+}
+
+if (readSuccess)
+{
+  readSuccess = false;
+  
+  try
+  {
+    readConfigJSON = JSON.parse(readConfigFile);
+    readSuccess = true;
+  }
+  catch(e)
+  {
+    console.log('ERROR: Invalid jscause.conf file format.');
+    console.log(`ERROR: ${e.message}`);
+    const positionExtract = e.message.match(/.+at position (\d+).*$/i);
+    if (positionExtract)
+    {
+      const errorPosition = positionExtract[1];
+      if (errorPosition)
+      {
+        const excerpt = (readConfigFile || '').substr(errorPosition - 20, 40).split(/\n/);
+        console.log('ERROR: Error is around the following section of the file:');
+        console.log(`ERROR: ${excerpt.join('')}`);
+      }
+    }
+  }
+}
+
+if (readSuccess)
+{
+  readSuccess = false;
+  
+  console.log(readConfigJSON);//__RP
+  console.log('We still need to check if the contents of jscause.conf is valid.');//__RP
 }
 
 if (readSuccess)

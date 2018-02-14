@@ -2,8 +2,18 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Still parsing jscause.conf:
+ - Absolutely every attribute must be valid.
+ - Allow comments: // and /**/
+
+Remember to document jscause.conf
+- Comments: // and /**/ are allowed.
+  - Yes, we know comments are not valid json.  But eh.
+
 Config files:
  - Set upload directory (you can use setUploadDirectory().)
+
+No hardcoding?
 
 Cookies?
  - Read/write?
