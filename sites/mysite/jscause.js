@@ -626,7 +626,17 @@ if (readSuccess)
 if (readSuccess)
 {
   readSuccess = false;
-  
+
+  // Let's remove comments.  Both // and /**/
+  readConfigFile = readConfigFile
+     .replace(/\/\/.*\*\//g, '//*\/') // Leave '*/' alone if they're preceeded by '//', in case they're a legitimate closing */
+     .replace(/\/\/.*\/\*/g, '//') // Strip '/*' if they're preceeded by '//'
+     .replace(/\/\*[^\*]*\*\//g, '') // Strip /* */
+     .replace(/\/\/[^\n]*/g, '') // Strip //
+     .replace(/\n\s*/g, '\n') // Strip leading white space at the beginning of line.
+     .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
+     
+  console.log(readConfigFile);//__RP
   try
   {
     readConfigJSON = JSON.parse(readConfigFile);

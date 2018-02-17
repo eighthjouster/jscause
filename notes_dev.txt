@@ -2,9 +2,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Done dealing with commenting, but it needs more testing.  Esp. when it comes to nesting // and /**/
+
 Still parsing jscause.conf:
- - Absolutely every attribute must be valid.
  - Allow comments: // and /**/
+  - We need to parse /**/ first, but ONLY if the line doesn't start with // first.
+   - And put in specs.
+ - Absolutely every attribute must be valid.
+   - Put in specs.
+ - Initial brackets should be optional.
+  - Put in specs.
 
 Remember to document jscause.conf
 - Comments: // and /**/ are allowed.
@@ -22,6 +29,9 @@ Redirects?
 
 Other files? (images, css, js).
  - Static files?
+
+Are we vulnerable to this?
+https://hackerone.com/reports/310439
 
 At this point, start abstracting away the engine.
  - Make it one file using gulp or something, for prod.
