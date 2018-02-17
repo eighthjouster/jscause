@@ -81,3 +81,4 @@ Or this:
 - Never trust user input!
 - printSafely will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.
 - When handling uploaded files, users can use file.name directly as it has been sanitized.  If for some reason they want to access the original filename, they can do so through file.unsafeName.
+- jscause.conf is almost a valid JSON object.  Almost, because it allows // comments, for documentation.

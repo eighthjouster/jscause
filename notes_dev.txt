@@ -2,12 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Done dealing with commenting, but it needs more testing.  Esp. when it comes to nesting // and /**/
-
 Still parsing jscause.conf:
- - Allow comments: // and /**/
-  - We need to parse /**/ first, but ONLY if the line doesn't start with // first.
-   - And put in specs.
  - Absolutely every attribute must be valid.
    - Put in specs.
  - Initial brackets should be optional.
