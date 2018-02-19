@@ -631,10 +631,9 @@ if (readSuccess)
      .replace(/\n\s*/g, '\n') // Strip leading white space at the beginning of line.
      .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
      
-  console.log(readConfigFile);//__RP
   try
   {
-    readConfigJSON = JSON.parse(readConfigFile);
+    readConfigJSON = JSON.parse(readConfigFile) || {};
     readSuccess = true;
   }
   catch(e)
@@ -657,10 +656,84 @@ if (readSuccess)
 
 if (readSuccess)
 {
+  // JSON gets rid of duplicate keys.  However, let's tell the user if the original
+  // file had duplicate first-level keys, in case it was a mistake.
+  // This is done after the parsing took place because at this point we know
+  // that the source file is legal JSON (except for the potential duplicae keys),
+  // and thus the code can be easy to parse.
   readSuccess = false;
+
+  // Get rid of initial surrounding brackets and any empty lines.
+  const allConfigKeys = [];
+  const listOfKeysSrc = readConfigFile
+                          .replace(/^\s*\{/, '')
+                          .replace(/\}\s*$/, '')
+                          .split('\n')
+                          .filter((line) => !!line);
   
-  console.log(readConfigJSON);//__RP
-  console.log('We still need to check if the contents of jscause.conf is valid.');//__RP
+  let allKeysProcessed = true;
+  for (let i = 0; i < listOfKeysSrc.length; i++)
+  {
+    const line = listOfKeysSrc[i];
+    // Extract valid key or yield an empty string.
+    const mainKey = ((line.match(/^([\"\'\w]+)\:/) || [])[1] || '')
+                      .replace(/[\"\'"]/g, '');
+    
+    if (mainKey)
+    {
+      if (allConfigKeys.indexOf(mainKey) === -1)
+      {
+        allConfigKeys.push(mainKey);
+      }
+      else
+      {
+        console.log(`ERROR: Duplicate jscause.conf key ${mainKey}.`);
+        allKeysProcessed = false;
+        break;
+      }
+    }
+    else
+    {
+      console.log(`ERROR: Invalid jscause.conf key ${mainKey}.  All key identifiers must be alphanumeric.`);
+      allKeysProcessed = false;
+      break;
+    }
+  }
+
+  readSuccess = allKeysProcessed;
+}
+
+if (readSuccess)
+{
+  readSuccess = false;
+
+  const configKeys = Object.keys(readConfigJSON);
+  const configKeysLength = configKeys.length;
+  let soFarSoGood = true;
+
+  for (let i = 0; i < configKeysLength; i++)
+  {
+    const configKey = configKeys[i];
+    const configValue = readConfigJSON[configKey];
+
+    switch(configKey) {
+      default:
+        console.log(`ERROR: ${configKey} is not a valid configuration key.`);
+        soFarSoGood = false;
+    }
+
+    if (!soFarSoGood)
+    {
+      break;
+    }
+  }
+
+  if (!soFarSoGood)
+  {
+    console.log('ERROR: Check that all the keys and values in jscause.conf are valid.');
+  }
+
+  // readSuccess = true;
 }
 
 if (readSuccess)

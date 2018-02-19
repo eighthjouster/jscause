@@ -2,6 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Detecting duplicates.
+Almost there, but the algorithm counts second-level keynames as first-level.  If they share the same name as first-levels, they will be considered duplicate.  Fix this.
+ 
 Still parsing jscause.conf:
  - Absolutely every attribute must be valid.
    - Put in specs.
