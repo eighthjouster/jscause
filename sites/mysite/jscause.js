@@ -663,14 +663,20 @@ if (readSuccess)
   // and thus the code can be easy to parse.
   readSuccess = false;
 
-  // Get rid of initial surrounding brackets and any empty lines.
+  // Get rid of initial surrounding brackets.
   const allConfigKeys = [];
-  const listOfKeysSrc = readConfigFile
-                          .replace(/^\s*\{/, '')
-                          .replace(/\}\s*$/, '')
-                          .split('\n')
-                          .filter((line) => !!line);
-  
+  let strippedConfigFile = readConfigFile
+                        .replace(/^\s*\{\s*?\n?/, '')
+                        .replace(/\n?\s*?\}\s*$/, '');
+
+  // Get rid of empty lines.
+  const listOfKeysSrc = strippedConfigFile
+                    .split(/\s*\n\s*/)
+                    .filter((line) => !!line);
+
+  console.log(strippedConfigFile);//__RP
+
+
   let allKeysProcessed = true;
   for (let i = 0; i < listOfKeysSrc.length; i++)
   {
@@ -694,7 +700,7 @@ if (readSuccess)
     }
     else
     {
-      console.log(`ERROR: Invalid jscause.conf key ${mainKey}.  All key identifiers must be alphanumeric.`);
+      console.log(`ERROR: Invalid jscause.conf key in line ${line}.  All key identifiers must be alphanumeric.`);
       allKeysProcessed = false;
       break;
     }
@@ -705,6 +711,8 @@ if (readSuccess)
 
 if (readSuccess)
 {
+  console.log('******** ALL GOOD! *********'); //__RP
+
   readSuccess = false;
 
   const configKeys = Object.keys(readConfigJSON);

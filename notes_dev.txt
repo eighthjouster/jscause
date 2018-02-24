@@ -4,6 +4,11 @@ git bundle create jscause-.bundle devel
 
 Detecting duplicates.
 Almost there, but the algorithm counts second-level keynames as first-level.  If they share the same name as first-levels, they will be considered duplicate.  Fix this.
+ - Fixed.  But you must test heavily:
+   - Nested {}, nested [], '{}' and '[]' within strings, etc.
+   - If all test pass and you didn't need to use the commented-out code, delete the commented-out code:
+     // const bracketStripper = /\[[^\[\]]*\]/g;
+ - Put in specs: First-level duplicates will be detected.
  
 Still parsing jscause.conf:
  - Absolutely every attribute must be valid.
