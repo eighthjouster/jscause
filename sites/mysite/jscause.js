@@ -696,11 +696,66 @@ if (true) // FOR NOW.
         console.log('processingContext - before');//__RP
         console.log(processingContext);//__RP
         
-        if (processingContext === 'expectcloserorbeforekey')
+        if (processingContext === 'literalvalue')
+        {
+          if ((currentChar === ']') ||
+              (currentChar === '}'))
+          {
+            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
+            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
+            if (lastPushed === ']')
+            {
+              if (secondToLastPushed === ']')
+              {
+                console.log('wow1');//__RP
+                processingContext = 'expectarraycloserorcommabeforevalue';
+              }
+              else
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+            }
+            else if (lastPushed === '}')
+            {
+              if (secondToLastPushed === ']')
+              {
+                processingContext = 'expectcloserorcommabeforevalue';
+              }
+              else
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+            }
+          }
+        }
+        else if (processingContext === 'expectcloserorbeforevalue')
+        {
+          if ((currentChar === ']') || (currentChar === '}'))
+          {
+            processingContext = 'expectcloserorcommabeforevalue';
+          }
+          else
+          {
+            processingContext = 'beforevalue';
+          }
+        }
+        else if (processingContext === 'expectarraycloserorbeforevalue')
+        {
+          if (currentChar === ']')
+          {
+                console.log('wow2');//__RP
+            processingContext = 'expectarraycloserorcommabeforevalue';
+          }
+          else
+          {
+            processingContext = 'beforevalue';
+          }
+        }
+        else if (processingContext === 'expectcloserorbeforekey')
         {
           if ((currentChar === '}') || (currentChar === ']')) 
           {
-            processingContext = 'expectcommaorcloserbeforekey';
+            processingContext = 'expectcloserorcommabeforekey';
           }
           else
           {
@@ -753,17 +808,17 @@ if (true) // FOR NOW.
           }
           else if (currentChar === '[')
           {
-
+            levelQueue.push(']');
           }
           else if (currentChar === '"')
           {
-            processingContext = 'value';
+            processingContext = 'stringvalue';
           }
           else {
-            processingContext = 'barevalue';
+            processingContext = 'literalvalue';
           }
         }
-        else if (processingContext === 'value')
+        else if (processingContext === 'stringvalue')
         {
           if (currentChar === '\\')
           {
@@ -771,14 +826,54 @@ if (true) // FOR NOW.
           }
           else if (currentChar === '"')
           {
-            processingContext = 'expectcommaorcloserbeforekey';
+            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
+            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
+            if (lastPushed === ']')
+            {
+              if (secondToLastPushed === ']')
+              {
+                console.log('wow3');//__RP
+                processingContext = 'expectarraycloserorcommabeforevalue';
+              }
+              else
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+            }
+            else if (lastPushed === '}')
+            {
+              if (secondToLastPushed === ']')
+              {
+                processingContext = 'expectcloserorcommabeforevalue';
+              }
+              else
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+            }
           }
         }
-        else if (processingContext === 'barevalue')
+        else if (processingContext === 'literalvalue')
         {
           if (currentChar === ',')
           {
-            processingContext = 'expectcloserorbeforekey';
+            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
+            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
+            if (lastPushed === ']')
+            {
+              if (secondToLastPushed === ']')
+              {
+                processingContext = 'expectarraycloserorbeforevalue';
+              }
+              else
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+            }
+            else if (lastPushed === '}')
+            {
+              processingContext = 'expectcloserorbeforekey';
+            }
           }
           else if (!currentChar.match(/\w/))
           {
@@ -786,7 +881,7 @@ if (true) // FOR NOW.
             parseError = true;
           }
         }
-        else if (processingContext === 'expectcommaorcloserbeforekey')
+        else if (processingContext === 'expectcloserorcommabeforevalue')
         {
           if ((currentChar === ']') || (currentChar === '}'))
           {
@@ -797,8 +892,82 @@ if (true) // FOR NOW.
             }
             else
             {
+              console.log('POPPING!!1');//__RP
               const poppedChar = levelQueue.pop();
-              if (currentChar !== poppedChar)
+              if (currentChar === poppedChar)
+              {
+                processingContext = 'expectcloserorcommabeforevalue'; // Necessary? // __RP
+              }
+              else
+              {
+                console.log(`------ We were expecting ${poppedChar}.`);
+                parseError = true;
+              }
+            }
+          }
+          else if (currentChar === ',')
+          {
+            processingContext = 'expectcloserorbeforevalue';//__RP IMPLEMENT!!!
+          }
+          else
+          {
+            console.log('------ We were expecting a comma.');
+            parseError = true;
+          }
+        }
+        else if (processingContext === 'expectarraycloserorcommabeforevalue')
+        {
+          if (currentChar === ']')
+          {
+            if (levelQueue.length < 1)
+            {
+              console.log(`------ Unexpected ${currentChar}.`);
+              parseError = true;
+            }
+            else
+            {
+              // This block can be abstracted away. //__RP
+              console.log('POPPING!!2');//__RP
+              const poppedChar = levelQueue.pop();
+              if (currentChar === poppedChar)
+              {
+                processingContext = 'expectcloserorcommabeforevalue';
+              }
+              else
+              {
+                console.log(`------ We were expecting ${poppedChar}.`);
+                parseError = true;
+              }
+            }
+          }
+          else if (currentChar === ',')
+          {
+            processingContext = 'expectarraycloserorbeforevalue';
+          }
+          else
+          {
+            console.log('------ We were expecting a comma.');
+            parseError = true;
+          }
+        }
+        else if (processingContext === 'expectcloserorcommabeforekey')
+        {
+          if ((currentChar === ']') || (currentChar === '}'))
+          {
+            if (levelQueue.length < 1)
+            {
+              console.log(`------ Unexpected ${currentChar}.`);
+              parseError = true;
+            }
+            else
+            {
+              console.log('POPPING!!3');//__RP
+              const poppedChar = levelQueue.pop();
+              if (currentChar === poppedChar)
+              {
+                processingContext = 'expectcloserorcommabeforekey';
+              }
+              else
               {
                 console.log(`------ We were expecting ${poppedChar}.`);
                 parseError = true;
@@ -831,12 +1000,14 @@ if (true) // FOR NOW.
 
   if ((levelQueue.length !== 0) ||
       ((processingContext !== 'expectcloserorbeforekey') &&
-       (processingContext !== 'expectcommaorcloserbeforekey') &&
-       (processingContext !== 'barevalue') &&
+       (processingContext !== 'expectcloserorcommabeforekey') &&
+       (processingContext !== 'stringvalue') &&
+       (processingContext !== 'literalvalue') &&
        (processingContext !== 'beforekey')))
   {
     // In theory, we should never get here because the file has already been JSON.parsed.
     console.log('------ unexpected end of file.');
+    console.log(levelQueue);//__RP
     parseError = true;
   }
   

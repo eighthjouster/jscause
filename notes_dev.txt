@@ -2,6 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+What about {} used as array values, and as sub-object?
+
+What if secondToLastPushed is undefined?
+
 - Alright... time to treat arrays.
 
 Detecting duplicates.
