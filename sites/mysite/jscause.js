@@ -654,7 +654,8 @@ if (readSuccess)
   }
 }
 
-if (readSuccess)
+if (true) // FOR NOW.
+//if (readSuccess)
 {
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
@@ -669,42 +670,206 @@ if (readSuccess)
                         .replace(/^\s*\{\s*?\n?/, '')
                         .replace(/\n?\s*?\}\s*$/, '');
 
-  // Get rid of empty lines.
-  const listOfKeysSrc = strippedConfigFile
-                    .split(/\s*\n\s*/)
-                    .filter((line) => !!line);
-
-  console.log(strippedConfigFile);//__RP
-
-
-  let allKeysProcessed = true;
-  for (let i = 0; i < listOfKeysSrc.length; i++)
+  let processingConfigFile = strippedConfigFile;
+  let currentPos = 0;
+  let processingContext = 'beforekey';
+  let levelQueue = [];
+  let skipNext = false;
+  let parseError = false;
+  while (!parseError && (currentPos < processingConfigFile.length))
   {
-    const line = listOfKeysSrc[i];
-    // Extract valid key or yield an empty string.
-    const mainKey = ((line.match(/^([\"\'\w]+)\:/) || [])[1] || '')
-                      .replace(/[\"\'"]/g, '');
-    
-    if (mainKey)
+    const currentChar = processingConfigFile.substr(currentPos, 1);
+    if (currentChar === '*') // FOR DEBUGGING PURPOSES ONLY //__RP
     {
-      if (allConfigKeys.indexOf(mainKey) === -1)
-      {
-        allConfigKeys.push(mainKey);
-      }
-      else
-      {
-        console.log(`ERROR: Duplicate jscause.conf key ${mainKey}.`);
-        allKeysProcessed = false;
-        break;
-      }
+      break;
+    }
+    console.log(currentChar);//__RP
+
+    if (skipNext)
+    {
+      skipNext = false;
     }
     else
     {
-      console.log(`ERROR: Invalid jscause.conf key in line ${line}.  All key identifiers must be alphanumeric.`);
-      allKeysProcessed = false;
-      break;
+      if (!currentChar.match(/[\n\s]/))
+      {
+        console.log('processingContext - before');//__RP
+        console.log(processingContext);//__RP
+        
+        if (processingContext === 'expectcloserorbeforekey')
+        {
+          if ((currentChar === '}') || (currentChar === ']')) 
+          {
+            processingContext = 'expectcommaorcloserbeforekey';
+          }
+          else
+          {
+            processingContext = 'beforekey';
+          }
+        }
+        // No else here.
+
+        if (processingContext === 'beforekey')
+        {
+          if (currentChar === '"')
+          {
+            processingContext = 'inkey';
+          }
+          else
+          {
+            console.log('------ expected quote.');
+            parseError = true;
+          }
+        }
+        else if (processingContext === 'inkey')
+        {
+          if (currentChar === '\\')
+          {
+            skipNext = true;
+          }
+          else if (currentChar === '"')
+          {
+            processingContext = 'expectcolon';
+          }
+        }
+        else if (processingContext === 'expectcolon')
+        {
+          if (currentChar === ':')
+          {
+            processingContext = 'beforevalue';
+          }
+          else
+          {
+            console.log('------ expected colon.');
+            parseError = true;
+          }
+        }
+        else if (processingContext === 'beforevalue')
+        {
+          if (currentChar === '{')
+          {
+            processingContext = 'beforekey';
+            levelQueue.push('}');
+          }
+          else if (currentChar === '[')
+          {
+
+          }
+          else if (currentChar === '"')
+          {
+            processingContext = 'value';
+          }
+          else {
+            processingContext = 'barevalue';
+          }
+        }
+        else if (processingContext === 'value')
+        {
+          if (currentChar === '\\')
+          {
+            skipNext = true;
+          }
+          else if (currentChar === '"')
+          {
+            processingContext = 'expectcommaorcloserbeforekey';
+          }
+        }
+        else if (processingContext === 'barevalue')
+        {
+          if (currentChar === ',')
+          {
+            processingContext = 'expectcloserorbeforekey';
+          }
+          else if (!currentChar.match(/\w/))
+          {
+            console.log('------ Invalid value.');
+            parseError = true;
+          }
+        }
+        else if (processingContext === 'expectcommaorcloserbeforekey')
+        {
+          if ((currentChar === ']') || (currentChar === '}'))
+          {
+            if (levelQueue.length < 1)
+            {
+              console.log(`------ Unexpected ${currentChar}.`);
+              parseError = true;
+            }
+            else
+            {
+              const poppedChar = levelQueue.pop();
+              if (currentChar !== poppedChar)
+              {
+                console.log(`------ We were expecting ${poppedChar}.`);
+                parseError = true;
+              }
+            }
+          }
+          else if (currentChar === ',')
+          {
+            processingContext = 'expectcloserorbeforekey';
+          }
+          else
+          {
+            console.log('------ We were expecting a comma.');
+            parseError = true;
+          }
+        }
+        else
+        {
+          console.log('------ weird. cant recognize this context.');
+          parseError = true;
+        }
+      }
     }
+
+    console.log('processingContext - after');//__RP
+    console.log(processingContext);//__RP
+
+    currentPos++;
   }
+
+  if ((levelQueue.length !== 0) ||
+      ((processingContext !== 'expectcloserorbeforekey') &&
+       (processingContext !== 'expectcommaorcloserbeforekey') &&
+       (processingContext !== 'barevalue') &&
+       (processingContext !== 'beforekey')))
+  {
+    // In theory, we should never get here because the file has already been JSON.parsed.
+    console.log('------ unexpected end of file.');
+    parseError = true;
+  }
+  
+
+
+  let allKeysProcessed = true;
+  // for (let i = 0; i < listOfKeysSrc.length; i++)
+  // {
+  //   const line = listOfKeysSrc[i];
+  //   // Extract valid key or yield an empty string.
+  //   const mainKey = ((line.match(/^([\"\'\w]+)\:/) || [])[1] || '')
+  //                     .replace(/[\"\'"]/g, '');
+    
+  //   if (mainKey)
+  //   {
+  //     if (allConfigKeys.indexOf(mainKey) === -1)
+  //     {
+  //       allConfigKeys.push(mainKey);
+  //     }
+  //     else
+  //     {
+  //       console.log(`ERROR: Duplicate jscause.conf key ${mainKey}.`);
+  //       allKeysProcessed = false;
+  //       break;
+  //     }
+  //   }
+  //   else
+  //   {
+  //     console.log(`ERROR: Invalid jscause.conf key in line ${line}.  All key identifiers must be alphanumeric.`);
+  //     allKeysProcessed = false;
+  //     break;
+  //   }
+  // }
 
   readSuccess = allKeysProcessed;
 }
@@ -724,7 +889,8 @@ if (readSuccess)
     const configKey = configKeys[i];
     const configValue = readConfigJSON[configKey];
 
-    switch(configKey) {
+    switch(configKey)
+    {
       default:
         console.log(`ERROR: ${configKey} is not a valid configuration key.`);
         soFarSoGood = false;
