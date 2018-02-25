@@ -672,18 +672,19 @@ if (true) // FOR NOW.
 
   let processingConfigFile = strippedConfigFile;
   let currentPos = 0;
-  let processingContext = 'beforekey';
-  let levelQueue = [];
+  let processingContext = 'keys';
+  let processingState = 'expectkey';
+  let valueTypeQueue = [];
   let skipNext = false;
   let parseError = false;
+  let currentChar;
   while (!parseError && (currentPos < processingConfigFile.length))
   {
-    const currentChar = processingConfigFile.substr(currentPos, 1);
+    currentChar = processingConfigFile.substr(currentPos, 1);
     if (currentChar === '*') // FOR DEBUGGING PURPOSES ONLY //__RP
     {
       break;
     }
-    console.log(currentChar);//__RP
 
     if (skipNext)
     {
@@ -691,364 +692,165 @@ if (true) // FOR NOW.
     }
     else
     {
-      if (!currentChar.match(/[\n\s]/))
+      if (!currentChar.match(/[\n\s]/) || (processingState === 'gettingkey') || (processingState === 'gettingvalue'))
       {
-        console.log('processingContext - before');//__RP
+        console.log('Pass - begin');//__RP
         console.log(processingContext);//__RP
+        console.log(processingState);//__RP
+        console.log(currentChar);//__RP
         
-        if (processingContext === 'literalvalue')
+        if (processingContext === 'keys')
         {
-          if ((currentChar === ']') ||
-              (currentChar === '}'))
+          if (processingState === 'expectkey')
           {
-            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
-            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
-            if (lastPushed === ']')
+            if (currentChar === '"')
             {
-              if (secondToLastPushed === ']')
-              {
-                console.log('wow1');//__RP
-                processingContext = 'expectarraycloserorcommabeforevalue';
-              }
-              else
-              {
-                processingContext = 'expectcloserorcommabeforekey';
-              }
+              processingState = 'gettingkey';
             }
-            else if (lastPushed === '}')
+            else
             {
-              if (secondToLastPushed === ']')
-              {
-                processingContext = 'expectcloserorcommabeforevalue';
-              }
-              else
-              {
-                processingContext = 'expectcloserorcommabeforekey';
-              }
+              console.log('------ expected quote.');
+              parseError = true;
             }
           }
-        }
-        else if (processingContext === 'expectcloserorbeforevalue')
-        {
-          if ((currentChar === ']') || (currentChar === '}'))
+          else if (processingState === 'gettingkey')
           {
-            processingContext = 'expectcloserorcommabeforevalue';
+            if (currentChar === '\\')
+            {
+              skipNext = true;
+            }
+            else if (currentChar === '"')
+            {
+              processingState = 'expectcolon';
+            }
+          }
+          else if (processingState === 'expectcolon')
+          {
+            if (currentChar === ':')
+            {
+              processingContext = 'values';
+              processingState = 'expectvalue';
+            }
+            else
+            {
+              console.log('------ expected colon.');
+              parseError = true;
+            }
           }
           else
           {
-            processingContext = 'beforevalue';
+            console.log('------ weird.  Invalid state.');
+            parseError = true;
           }
         }
-        else if (processingContext === 'expectarraycloserorbeforevalue')
+        else if (processingContext === 'values')
         {
-          if (currentChar === ']')
+          if (processingState === 'expectvalue')
           {
-                console.log('wow2');//__RP
-            processingContext = 'expectarraycloserorcommabeforevalue';
+            if (currentChar === '"')
+            {
+              processingState = 'gettingstring';
+            }
+            else if (currentChar === '[')
+            {
+              valueTypeQueue.push(']');
+            }
+            else if (currentChar === '{')
+            {
+              valueTypeQueue.push('}');
+              processingContext = 'keys';
+              processingState = 'expectkey';
+            }
+            else
+            {
+              processingState = 'gettingliteral';
+            }
           }
-          else
+          else if (processingState === 'gettingstring')
           {
-            processingContext = 'beforevalue';
+            if (currentChar === '\\')
+            {
+              skipNext = true;
+            }
+            else if (currentChar === '"')
+            {
+              processingState = 'donegettingvalue';
+            }
           }
-        }
-        else if (processingContext === 'expectcloserorbeforekey')
-        {
-          if ((currentChar === '}') || (currentChar === ']')) 
+          else if ((processingState === 'gettingliteral') || (processingState === 'donegettingvalue'))
           {
-            processingContext = 'expectcloserorcommabeforekey';
-          }
-          else
-          {
-            processingContext = 'beforekey';
-          }
-        }
-        // No else here.
+            if (currentChar === ']')
+            {
+              console.log('popping]');//__RP
+              const poppedType = valueTypeQueue.pop();
+              if (currentChar === poppedType)
+              {
+                processingState = 'donegettingvalue';
 
-        if (processingContext === 'beforekey')
-        {
-          if (currentChar === '"')
-          {
-            processingContext = 'inkey';
-          }
-          else
-          {
-            console.log('------ expected quote.');
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'inkey')
-        {
-          if (currentChar === '\\')
-          {
-            skipNext = true;
-          }
-          else if (currentChar === '"')
-          {
-            processingContext = 'expectcolon';
-          }
-        }
-        else if (processingContext === 'expectcolon')
-        {
-          if (currentChar === ':')
-          {
-            processingContext = 'beforevalue';
-          }
-          else
-          {
-            console.log('------ expected colon.');
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'beforevalue')
-        {
-          if (currentChar === '{')
-          {
-            processingContext = 'beforekey';
-            levelQueue.push('}');
-          }
-          else if (currentChar === '[')
-          {
-            levelQueue.push(']');
-          }
-          else if (currentChar === '"')
-          {
-            processingContext = 'stringvalue';
-          }
-          else {
-            processingContext = 'literalvalue';
-          }
-        }
-        else if (processingContext === 'stringvalue')
-        {
-          if (currentChar === '\\')
-          {
-            skipNext = true;
-          }
-          else if (currentChar === '"')
-          {
-            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
-            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
-            if (lastPushed === ']')
-            {
-              if (secondToLastPushed === ']')
-              {
-                console.log('wow3');//__RP
-                processingContext = 'expectarraycloserorcommabeforevalue';
               }
               else
               {
-                processingContext = 'expectcloserorcommabeforekey';
+                console.log(`------- Expected ${poppedType}`);
               }
             }
-            else if (lastPushed === '}')
+            else if (currentChar === '}')
             {
-              if (secondToLastPushed === ']')
+              console.log('popping}');//__RP
+              const poppedType = valueTypeQueue.pop();
+              if (currentChar === poppedType)
               {
-                processingContext = 'expectcloserorcommabeforevalue';
+                processingState = 'donegettingvalue';
+
               }
               else
               {
-                processingContext = 'expectcloserorcommabeforekey';
+                console.log(`------- Expected ${poppedType}`);
               }
             }
-          }
-        }
-        else if (processingContext === 'literalvalue')
-        {
-          if (currentChar === ',')
-          {
-            const lastPushed = (levelQueue.length > 0) && levelQueue[levelQueue.length - 1];
-            const secondToLastPushed = (levelQueue.length > 1) && levelQueue[levelQueue.length - 2];
-            if (lastPushed === ']')
+            else if (currentChar === ',')
             {
-              if (secondToLastPushed === ']')
-              {
-                processingContext = 'expectarraycloserorbeforevalue';
-              }
-              else
-              {
-                processingContext = 'expectcloserorcommabeforekey';
-              }
+              processingContext = 'keys';
+              processingState = 'expectkey';
             }
-            else if (lastPushed === '}')
-            {
-              processingContext = 'expectcloserorbeforekey';
-            }
-          }
-          else if (!currentChar.match(/\w/))
-          {
-            console.log('------ Invalid value.');
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'expectcloserorcommabeforevalue')
-        {
-          if ((currentChar === ']') || (currentChar === '}'))
-          {
-            if (levelQueue.length < 1)
-            {
-              console.log(`------ Unexpected ${currentChar}.`);
-              parseError = true;
-            }
-            else
-            {
-              console.log('POPPING!!1');//__RP
-              const poppedChar = levelQueue.pop();
-              if (currentChar === poppedChar)
-              {
-                processingContext = 'expectcloserorcommabeforevalue'; // Necessary? // __RP
-              }
-              else
-              {
-                console.log(`------ We were expecting ${poppedChar}.`);
-                parseError = true;
-              }
-            }
-          }
-          else if (currentChar === ',')
-          {
-            processingContext = 'expectcloserorbeforevalue';//__RP IMPLEMENT!!!
-          }
-          else
-          {
-            console.log('------ We were expecting a comma.');
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'expectarraycloserorcommabeforevalue')
-        {
-          if (currentChar === ']')
-          {
-            if (levelQueue.length < 1)
-            {
-              console.log(`------ Unexpected ${currentChar}.`);
-              parseError = true;
-            }
-            else
-            {
-              // This block can be abstracted away. //__RP
-              console.log('POPPING!!2');//__RP
-              const poppedChar = levelQueue.pop();
-              if (currentChar === poppedChar)
-              {
-                processingContext = 'expectcloserorcommabeforevalue';
-              }
-              else
-              {
-                console.log(`------ We were expecting ${poppedChar}.`);
-                parseError = true;
-              }
-            }
-          }
-          else if (currentChar === ',')
-          {
-            processingContext = 'expectarraycloserorbeforevalue';
-          }
-          else
-          {
-            console.log('------ We were expecting a comma.');
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'expectcloserorcommabeforekey')
-        {
-          if ((currentChar === ']') || (currentChar === '}'))
-          {
-            if (levelQueue.length < 1)
-            {
-              console.log(`------ Unexpected ${currentChar}.`);
-              parseError = true;
-            }
-            else
-            {
-              console.log('POPPING!!3');//__RP
-              const poppedChar = levelQueue.pop();
-              if (currentChar === poppedChar)
-              {
-                processingContext = 'expectcloserorcommabeforekey';
-              }
-              else
-              {
-                console.log(`------ We were expecting ${poppedChar}.`);
-                parseError = true;
-              }
-            }
-          }
-          else if (currentChar === ',')
-          {
-            processingContext = 'expectcloserorbeforekey';
-          }
-          else
-          {
-            console.log('------ We were expecting a comma.');
-            parseError = true;
           }
         }
         else
         {
-          console.log('------ weird. cant recognize this context.');
+          console.log('------ weird.  Invalid context.');
           parseError = true;
         }
       }
     }
 
-    console.log('processingContext - after');//__RP
+    console.log('Pass - end');//__RP
     console.log(processingContext);//__RP
+    console.log(processingState);//__RP
 
     currentPos++;
   }
 
-  if ((levelQueue.length !== 0) ||
-      ((processingContext !== 'expectcloserorbeforekey') &&
-       (processingContext !== 'expectcloserorcommabeforekey') &&
-       (processingContext !== 'stringvalue') &&
-       (processingContext !== 'literalvalue') &&
-       (processingContext !== 'beforekey')))
+  if (valueTypeQueue.length !== 0)
   {
     // In theory, we should never get here because the file has already been JSON.parsed.
     console.log('------ unexpected end of file.');
-    console.log(levelQueue);//__RP
+    console.log(valueTypeQueue);//__RP
     parseError = true;
   }
   
+  if (parseError)
+  {
+    console.log('******** OH NO! *********'); //__RP
+  }
+  else
+  {
+    console.log('******** ALL GOOD! *********'); //__RP
+  }
 
-
-  let allKeysProcessed = true;
-  // for (let i = 0; i < listOfKeysSrc.length; i++)
-  // {
-  //   const line = listOfKeysSrc[i];
-  //   // Extract valid key or yield an empty string.
-  //   const mainKey = ((line.match(/^([\"\'\w]+)\:/) || [])[1] || '')
-  //                     .replace(/[\"\'"]/g, '');
-    
-  //   if (mainKey)
-  //   {
-  //     if (allConfigKeys.indexOf(mainKey) === -1)
-  //     {
-  //       allConfigKeys.push(mainKey);
-  //     }
-  //     else
-  //     {
-  //       console.log(`ERROR: Duplicate jscause.conf key ${mainKey}.`);
-  //       allKeysProcessed = false;
-  //       break;
-  //     }
-  //   }
-  //   else
-  //   {
-  //     console.log(`ERROR: Invalid jscause.conf key in line ${line}.  All key identifiers must be alphanumeric.`);
-  //     allKeysProcessed = false;
-  //     break;
-  //   }
-  // }
-
-  readSuccess = allKeysProcessed;
+  readSuccess = !parseError;
 }
 
 if (readSuccess)
 {
-  console.log('******** ALL GOOD! *********'); //__RP
-
   readSuccess = false;
 
   const configKeys = Object.keys(readConfigJSON);
