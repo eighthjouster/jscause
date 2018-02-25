@@ -707,7 +707,21 @@ if (true) // FOR NOW.
             {
               processingState = 'gettingkey';
             }
-            else
+            else if (currentChar === '}')
+            {
+              const poppedType = valueTypeQueue.pop();
+              if (currentChar === poppedType)
+              {
+                processingContext = 'values';
+                processingState = 'donegettingvalue';
+              }
+              else
+              {
+                console.log(`------- Expected ${poppedType}`);
+                parseError = true;
+              }
+            }
+            else if (currentChar !== ',')
             {
               console.log('------ expected quote.');
               parseError = true;
@@ -761,7 +775,20 @@ if (true) // FOR NOW.
               processingContext = 'keys';
               processingState = 'expectkey';
             }
-            else
+            else if (currentChar === ']')
+            {
+              const poppedType = valueTypeQueue.pop();
+              if (currentChar === poppedType)
+              {
+                processingState = 'donegettingvalue';
+              }
+              else
+              {
+                console.log(`------- Expected ${poppedType}`);
+                parseError = true;
+              }
+            }
+            else if (currentChar !== ',')
             {
               processingState = 'gettingliteral';
             }
@@ -786,11 +813,11 @@ if (true) // FOR NOW.
               if (currentChar === poppedType)
               {
                 processingState = 'donegettingvalue';
-
               }
               else
               {
                 console.log(`------- Expected ${poppedType}`);
+                parseError = true;
               }
             }
             else if (currentChar === '}')
@@ -800,17 +827,29 @@ if (true) // FOR NOW.
               if (currentChar === poppedType)
               {
                 processingState = 'donegettingvalue';
-
               }
               else
               {
                 console.log(`------- Expected ${poppedType}`);
+                parseError = true;
               }
             }
             else if (currentChar === ',')
             {
-              processingContext = 'keys';
-              processingState = 'expectkey';
+              if ((valueTypeQueue.length > 0) && valueTypeQueue[valueTypeQueue.length - 1] === ']')
+              {
+                processingState = 'expectvalue';
+              }
+              else
+              {
+                processingContext = 'keys';
+                processingState = 'expectkey';
+              }
+            }
+            else if (processingState === 'donegettingvalue')
+            {
+              console.log(`------- Unexpected ${currentChar}`);
+              parseError = true;
             }
           }
         }

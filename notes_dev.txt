@@ -2,11 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-What about {} used as array values, and as sub-object?
-
-What if secondToLastPushed is undefined?
-
-- Alright... time to treat arrays.
+Done, but test - look for weird edge cases. Empty values, extra commas, etc.
 
 Detecting duplicates.
   New approach.  Character by character.
