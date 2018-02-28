@@ -338,7 +338,8 @@ const responder = (req, res,
 
       finishUpHeaders(resContext);
     }
-    else {
+    else
+    {
       resContext.statusCode = 500;
       resContext.compileTimeError = true;
     }
@@ -681,10 +682,12 @@ if (true) // FOR NOW.
   while (!parseError && (currentPos < processingConfigFile.length))
   {
     currentChar = processingConfigFile.substr(currentPos, 1);
-    if (currentChar === '*') // FOR DEBUGGING PURPOSES ONLY //__RP
-    {
-      break;
-    }
+    
+    // Good for debugging.
+    //if (currentChar === '*')
+    //{
+    //  break;
+    //}
 
     if (skipNext)
     {
@@ -694,10 +697,11 @@ if (true) // FOR NOW.
     {
       if (!currentChar.match(/[\n\s]/) || (processingState === 'gettingkey') || (processingState === 'gettingvalue'))
       {
-        console.log('Pass - begin');//__RP
-        console.log(processingContext);//__RP
-        console.log(processingState);//__RP
-        console.log(currentChar);//__RP
+        // Good for debugging.
+        //console.log('Pass - begin');
+        //console.log(processingContext);
+        //console.log(processingState);
+        //console.log(currentChar);
         
         if (processingContext === 'keys')
         {
@@ -710,14 +714,22 @@ if (true) // FOR NOW.
             else if (currentChar === '}')
             {
               const poppedType = valueTypeQueue.pop();
-              if (currentChar === poppedType)
+              if (poppedType)
               {
-                processingContext = 'values';
-                processingState = 'donegettingvalue';
+                if (currentChar === poppedType)
+                {
+                  processingContext = 'values';
+                  processingState = 'donegettingvalue';
+                }
+                else
+                {
+                  console.log(`------- Expected ${poppedType}`);
+                  parseError = true;
+                }
               }
               else
               {
-                console.log(`------- Expected ${poppedType}`);
+                console.log(`------- Unexpected ${currentChar}`);
                 parseError = true;
               }
             }
@@ -778,13 +790,21 @@ if (true) // FOR NOW.
             else if (currentChar === ']')
             {
               const poppedType = valueTypeQueue.pop();
-              if (currentChar === poppedType)
+              if (poppedType)
               {
-                processingState = 'donegettingvalue';
+                if (currentChar === poppedType)
+                {
+                  processingState = 'donegettingvalue';
+                }
+                else
+                {
+                  console.log(`------- Expected ${poppedType}`);
+                  parseError = true;
+                }
               }
               else
               {
-                console.log(`------- Expected ${poppedType}`);
+                console.log(`------- Unexpected ${currentChar}`);
                 parseError = true;
               }
             }
@@ -808,29 +828,43 @@ if (true) // FOR NOW.
           {
             if (currentChar === ']')
             {
-              console.log('popping]');//__RP
               const poppedType = valueTypeQueue.pop();
-              if (currentChar === poppedType)
+              if (poppedType)
               {
-                processingState = 'donegettingvalue';
+                if (currentChar === poppedType)
+                {
+                  processingState = 'donegettingvalue';
+                }
+                else
+                {
+                  console.log(`------- Expected ${poppedType}`);
+                  parseError = true;
+                }
               }
               else
               {
-                console.log(`------- Expected ${poppedType}`);
+                console.log(`------- Unexpected ${currentChar}`);
                 parseError = true;
               }
             }
             else if (currentChar === '}')
             {
-              console.log('popping}');//__RP
               const poppedType = valueTypeQueue.pop();
-              if (currentChar === poppedType)
+              if (poppedType)
               {
-                processingState = 'donegettingvalue';
+                if (currentChar === poppedType)
+                {
+                  processingState = 'donegettingvalue';
+                }
+                else
+                {
+                  console.log(`------- Expected ${poppedType}`);
+                  parseError = true;
+                }
               }
               else
               {
-                console.log(`------- Expected ${poppedType}`);
+                console.log(`------- Unexpected ${currentChar}`);
                 parseError = true;
               }
             }
@@ -845,6 +879,11 @@ if (true) // FOR NOW.
                 processingContext = 'keys';
                 processingState = 'expectkey';
               }
+            }
+            else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
+            {
+              console.log('------- "," expected');
+              parseError = true;
             }
             else if (processingState === 'donegettingvalue')
             {
@@ -861,28 +900,21 @@ if (true) // FOR NOW.
       }
     }
 
-    console.log('Pass - end');//__RP
-    console.log(processingContext);//__RP
-    console.log(processingState);//__RP
+    // Good for debugging.
+    //console.log('Pass - end');
+    //console.log(processingContext);
+    //console.log(processingState);
 
     currentPos++;
   }
 
-  if (valueTypeQueue.length !== 0)
+  if (!parseError && (valueTypeQueue.length !== 0))
   {
     // In theory, we should never get here because the file has already been JSON.parsed.
+    const lastBracket = valueTypeQueue.pop();
     console.log('------ unexpected end of file.');
-    console.log(valueTypeQueue);//__RP
+    console.log(`------ ${lastBracket} was never found.`);
     parseError = true;
-  }
-  
-  if (parseError)
-  {
-    console.log('******** OH NO! *********'); //__RP
-  }
-  else
-  {
-    console.log('******** ALL GOOD! *********'); //__RP
   }
 
   readSuccess = !parseError;

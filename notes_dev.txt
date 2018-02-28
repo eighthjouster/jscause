@@ -2,7 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Done, but test - look for weird edge cases. Empty values, extra commas, etc.
+Done with json checking, but:
+ - Convert those error console.log()s into error status strings that could be used at the end of the algorithm for reporting.
+ - Extract and report all the first-level keys.
+ - You should set the current conf file aside (in the dev folder, for instance), in case you need to test this algorithm out again.
 
 Detecting duplicates.
   New approach.  Character by character.
