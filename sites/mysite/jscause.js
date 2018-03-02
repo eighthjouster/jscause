@@ -655,8 +655,7 @@ if (readSuccess)
   }
 }
 
-if (true) // FOR NOW.
-//if (readSuccess)
+if (readSuccess)
 {
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
@@ -665,29 +664,53 @@ if (true) // FOR NOW.
   // and thus the code can be easy to parse.
   readSuccess = false;
 
-  // Get rid of initial surrounding brackets.
-  const allConfigKeys = [];
-  let strippedConfigFile = readConfigFile
-                        .replace(/^\s*\{\s*?\n?/, '')
-                        .replace(/\n?\s*?\}\s*$/, '');
-
-  let processingConfigFile = strippedConfigFile;
+  let processingConfigFile;
+  let parseErrorDescription;
   let currentPos = 0;
   let processingContext = 'keys';
   let processingState = 'expectkey';
   let valueTypeQueue = [];
   let skipNext = false;
-  let parseError = false;
   let currentChar;
+  let parseError = false;
+
+  // Get rid of initial surrounding brackets.
+  // But first, let's find out if said initial surrounding (if any) brackets match.
+  const allConfigKeys = [];
+  const firstCharMatch = readConfigFile.match(/^\s*(.{1})/);
+  
+  // Good for debugging.
+  //const lastCharMatch = readConfigFile.match(/(.{1})\**?\s*$/);
+  const lastCharMatch = readConfigFile.match(/(.{1})\s*$/);
+
+  if (firstCharMatch && lastCharMatch)
+  {
+    if (firstCharMatch[1] === '{')
+    {
+      if (lastCharMatch[1] !== '}')
+      {
+        parseErrorDescription = `Unexpected ending ${lastCharMatch[1]}.`;
+        parseError = true;
+      }
+    }
+  }
+
+  if (!parseError)
+  {
+    processingConfigFile = readConfigFile
+                          .replace(/^\s*\{\s*?\n?/, '')
+                          .replace(/\n?\s*?\}\s*$/, '');
+  }
+
   while (!parseError && (currentPos < processingConfigFile.length))
   {
     currentChar = processingConfigFile.substr(currentPos, 1);
     
     // Good for debugging.
-    //if (currentChar === '*')
-    //{
-    //  break;
-    //}
+    if (currentChar === '*')
+    {
+      break;
+    }
 
     if (skipNext)
     {
@@ -723,19 +746,19 @@ if (true) // FOR NOW.
                 }
                 else
                 {
-                  console.log(`------- Expected ${poppedType}`);
+                  parseErrorDescription = `Expected ${poppedType}.`;
                   parseError = true;
                 }
               }
               else
               {
-                console.log(`------- Unexpected ${currentChar}`);
+                parseErrorDescription = `Unexpected ${currentChar}.`;
                 parseError = true;
               }
             }
             else if (currentChar !== ',')
             {
-              console.log('------ expected quote.');
+              parseErrorDescription = 'Expected quote.';
               parseError = true;
             }
           }
@@ -759,13 +782,13 @@ if (true) // FOR NOW.
             }
             else
             {
-              console.log('------ expected colon.');
+              parseErrorDescription = 'Expected colon.';
               parseError = true;
             }
           }
           else
           {
-            console.log('------ weird.  Invalid state.');
+            parseErrorDescription = 'Unexpected error.';
             parseError = true;
           }
         }
@@ -798,13 +821,13 @@ if (true) // FOR NOW.
                 }
                 else
                 {
-                  console.log(`------- Expected ${poppedType}`);
+                  parseErrorDescription = `Expected ${poppedType}.`;
                   parseError = true;
                 }
               }
               else
               {
-                console.log(`------- Unexpected ${currentChar}`);
+                parseErrorDescription = `Unexpected ${currentChar}.`;
                 parseError = true;
               }
             }
@@ -837,13 +860,13 @@ if (true) // FOR NOW.
                 }
                 else
                 {
-                  console.log(`------- Expected ${poppedType}`);
+                  parseErrorDescription = `Expected ${poppedType}.`;
                   parseError = true;
                 }
               }
               else
               {
-                console.log(`------- Unexpected ${currentChar}`);
+                parseErrorDescription = `Unexpected ${currentChar}.`;
                 parseError = true;
               }
             }
@@ -858,13 +881,13 @@ if (true) // FOR NOW.
                 }
                 else
                 {
-                  console.log(`------- Expected ${poppedType}`);
+                  parseErrorDescription = `Expected ${poppedType}.`;
                   parseError = true;
                 }
               }
               else
               {
-                console.log(`------- Unexpected ${currentChar}`);
+                parseErrorDescription = `Unexpected ${currentChar}.`;
                 parseError = true;
               }
             }
@@ -882,19 +905,19 @@ if (true) // FOR NOW.
             }
             else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
             {
-              console.log('------- "," expected');
+              parseErrorDescription = '"," expected.';
               parseError = true;
             }
             else if (processingState === 'donegettingvalue')
             {
-              console.log(`------- Unexpected ${currentChar}`);
+              parseErrorDescription = `Unexpected ${currentChar}.`;
               parseError = true;
             }
           }
         }
         else
         {
-          console.log('------ weird.  Invalid context.');
+          parseErrorDescription = 'Unexpected error.';
           parseError = true;
         }
       }
@@ -912,9 +935,14 @@ if (true) // FOR NOW.
   {
     // In theory, we should never get here because the file has already been JSON.parsed.
     const lastBracket = valueTypeQueue.pop();
-    console.log('------ unexpected end of file.');
-    console.log(`------ ${lastBracket} was never found.`);
+    parseErrorDescription = `Unexpected end of file. ${lastBracket} was never found.`;
     parseError = true;
+  }
+
+  if (parseError)
+  {
+    console.log('ERROR: Error parsing jscause.conf');
+    console.log(`ERROR: ${parseErrorDescription}`);
   }
 
   readSuccess = !parseError;

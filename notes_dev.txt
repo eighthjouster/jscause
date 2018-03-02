@@ -2,8 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Done with json checking, but:
- - Convert those error console.log()s into error status strings that could be used at the end of the algorithm for reporting.
+Done with json checking. Now:
  - Extract and report all the first-level keys.
  - You should set the current conf file aside (in the dev folder, for instance), in case you need to test this algorithm out again.
 
