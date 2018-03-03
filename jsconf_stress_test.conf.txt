@@ -1,0 +1,47 @@
+// This file will help with testing any changes to the jscause.conf parsing algorithm.
+{
+  "":11,
+  "d":2,
+  "a":1,"b":"2",
+  "a":["",{"a":1}],
+  //"":["",{"":"",a}] // Deliberate error.
+  "c":[{},{},{"c":[]}],
+  "c":{},
+  "a":{"b":["3",2]},
+  "a":{"b":[3]},
+  "a":{"b":1,"c":[["2"], 3]},
+  "a":["1","2"],
+  "a":[1,"2"],
+  "a":["1",2],
+  "a":[1,2],
+  "a":[1],
+  "a":["1"],
+  "a":"1","b":"2",
+  "a":1,"b":"2",
+  "a":"1","b":2,
+  "a":1,"b":2,
+  "a":1,
+  "a":"1",
+  "a":1,"b":2,
+  //"a": "1",b:2,  // Deliberate error.
+  "a": {"d":[[4],[5]]},
+  "a": {"b":["2"],"d":[[4],[5]]},
+  "a": [{"b":"2"},{"b":"2"}, "2", 3],
+  "hostName": {    "port": "33","e":"i"
+  },
+  "uploadDirectory": "default",
+  "uploadDirectory2": {
+    "ye{s": "asfs}",
+    "uploadDirectory": "false",
+    "a":
+    
+{
+      "port": "hello"
+    }
+  },
+  //lalallalalalala
+
+  "uploadDirectory3": "default9",
+  "canUpload": true,
+  "maxPayloadSizeBytes": 3072
+}

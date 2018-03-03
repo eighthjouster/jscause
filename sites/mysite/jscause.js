@@ -673,6 +673,8 @@ if (readSuccess)
   let skipNext = false;
   let currentChar;
   let parseError = false;
+  let keyChars = [];
+  let firstLevelKeys = [];
 
   // Get rid of initial surrounding brackets.
   // But first, let's find out if said initial surrounding (if any) brackets match.
@@ -732,6 +734,7 @@ if (readSuccess)
           {
             if (currentChar === '"')
             {
+              keyChars = [];
               processingState = 'gettingkey';
             }
             else if (currentChar === '}')
@@ -771,6 +774,24 @@ if (readSuccess)
             else if (currentChar === '"')
             {
               processingState = 'expectcolon';
+
+              if (valueTypeQueue.length === 0)
+              {
+                const keyName = keyChars.join('').toLowerCase();
+                const keyNameLowerCase = keyName.toLowerCase();
+                if (firstLevelKeys.indexOf(keyNameLowerCase) === -1)
+                {
+                  firstLevelKeys.push(keyNameLowerCase);
+                }
+                else
+                {
+                  parseErrorDescription = `Duplicate key: ${keyName}`;
+                  parseError = true;
+                }
+              }
+            }
+            else {
+              keyChars.push(currentChar);
             }
           }
           else if (processingState === 'expectcolon')
@@ -958,13 +979,16 @@ if (readSuccess)
 
   for (let i = 0; i < configKeysLength; i++)
   {
-    const configKey = configKeys[i];
+    const configKey = (configKeys[i] || '');
+    const configKeyLowerCase = (configKeys[i] || '').toLowerCase();
     const configValue = readConfigJSON[configKey];
 
-    switch(configKey)
+    switch(configKeyLowerCase)
     {
       default:
-        console.log(`ERROR: ${configKey} is not a valid configuration key.`);
+        const emptyValueReport = (configKey) ? '': ' (empty value)';
+        const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
+        console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
         soFarSoGood = false;
     }
 
