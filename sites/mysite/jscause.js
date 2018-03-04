@@ -981,7 +981,10 @@ if (readSuccess)
   const allAllowedKeys =
   [
     'hostname',
-    'port'
+    'port',
+    'uploaddirectory',
+    'canupload',
+    'maxpayloadsizebytes'
   ];
 
   let processedConfigJSON = {};
@@ -1035,7 +1038,7 @@ if (readSuccess)
     configValue = processedConfigJSON.port;
     if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
     {
-      let portNumber = parseFloat(configValue, 10);
+      const portNumber = parseFloat(configValue, 10);
       if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
       {
         serverConfig.port = portNumber;
@@ -1052,11 +1055,70 @@ if (readSuccess)
       soFarSoGood = false;
     }
   }
-/*
-  canUpload: true,
-  maxPayloadSizeBytes: 3 * 1024, // 3 KB
-  uploadDirectory: null,
-*/
+
+  // canupload
+  if (soFarSoGood)
+  {
+    configValue = processedConfigJSON.canupload;
+    if (typeof(configValue) === 'boolean')
+    {
+      serverConfig.canupload = configValue;
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  Invalid canupload.  Boolean expected.');
+      soFarSoGood = false;
+    }
+  }
+
+  // maxpayloadsizebytes
+  if (soFarSoGood)
+  {
+    configValue = processedConfigJSON.maxpayloadsizebytes;
+    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    {
+      const uploadSize = parseFloat(configValue, 10);
+      if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+      {
+        serverConfig.maxPayloadSizeBytes = uploadSize;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  maxpayloadsizebytes cannot be empty.');
+      soFarSoGood = false;
+    }
+  }
+
+  // uploaddirectory
+  if (soFarSoGood)
+  {
+    configValue = processedConfigJSON.uploaddirectory;
+    if (typeof(configValue) === 'string')
+    {
+      const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+      if (dirName)
+      {
+        serverConfig.uploadDirectory = dirName;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  Invalid uploaddirectory.  String value expected.');
+      soFarSoGood = false;
+    }
+  }
+
   if (invalidKeysFound)
   {
     console.log('ERROR: Check that all the keys and values in jscause.conf are valid.');
