@@ -5,6 +5,7 @@
    * Setup
    *
    ************************************** */
+const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 const fs = require('fs');
 const urlUtils = require('url');
 const crypto = require('crypto');
@@ -531,7 +532,15 @@ function startServer(serverConfig)
 
   server.listen(port, hostName, () =>
   {
-    console.log(`Server 0.1.010 running at http://${hostName}:${port}/`);
+    console.log(`JSCause Server version ${JSCAUSE_APPLICATION_VERSION} running at http://${hostName}:${port}/`);
+  });
+
+  server.on('error', (e) =>
+  {
+    console.log('ERROR: Could not start listening on hostname and port specified.')
+    console.log('ERROR: Error returned by the server follows.')
+    console.log(`ERROR: ${e.message}`);
+    console.log('ERROR: Server not started.');
   });
 }
 
@@ -1012,110 +1021,125 @@ if (readSuccess)
   // hostname
   if (soFarSoGood)
   {
-    configValue = processedConfigJSON.hostname;
-    if (typeof(configValue) === 'string')
+    if (typeof(configValue) !== 'undefined')
     {
-      if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+      configValue = processedConfigJSON.hostname;
+      if (typeof(configValue) === 'string')
       {
-        serverConfig.hostName = configValue;
+        if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+        {
+          serverConfig.hostName = configValue;
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  hostname cannot be empty.');
+          soFarSoGood = false;
+        }
       }
       else
       {
-        console.log('ERROR: Configuration:  hostname cannot be empty.');
+        console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
         soFarSoGood = false;
       }
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
-      soFarSoGood = false;
     }
   }
 
   // port
   if (soFarSoGood)
   {
-    configValue = processedConfigJSON.port;
-    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    if (typeof(configValue) !== 'undefined')
     {
-      const portNumber = parseFloat(configValue, 10);
-      if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+      configValue = processedConfigJSON.port;
+      if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
       {
-        serverConfig.port = portNumber;
+        const portNumber = parseFloat(configValue, 10);
+        if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+        {
+          serverConfig.port = portNumber;
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+          soFarSoGood = false;
+        }
       }
       else
       {
-        console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+        console.log('ERROR: Configuration:  port cannot be empty.');
         soFarSoGood = false;
       }
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  port cannot be empty.');
-      soFarSoGood = false;
     }
   }
 
   // canupload
   if (soFarSoGood)
   {
-    configValue = processedConfigJSON.canupload;
-    if (typeof(configValue) === 'boolean')
+    if (typeof(configValue) !== 'undefined')
     {
-      serverConfig.canupload = configValue;
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  Invalid canupload.  Boolean expected.');
-      soFarSoGood = false;
+      configValue = processedConfigJSON.canupload;
+      if (typeof(configValue) === 'boolean')
+      {
+        serverConfig.canupload = configValue;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  Invalid canupload.  Boolean expected.');
+        soFarSoGood = false;
+      }
     }
   }
 
   // maxpayloadsizebytes
   if (soFarSoGood)
   {
-    configValue = processedConfigJSON.maxpayloadsizebytes;
-    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    if (typeof(configValue) !== 'undefined')
     {
-      const uploadSize = parseFloat(configValue, 10);
-      if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+      configValue = processedConfigJSON.maxpayloadsizebytes;
+      if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
       {
-        serverConfig.maxPayloadSizeBytes = uploadSize;
+        const uploadSize = parseFloat(configValue, 10);
+        if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+        {
+          serverConfig.maxPayloadSizeBytes = uploadSize;
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+          soFarSoGood = false;
+        }
       }
       else
       {
-        console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+        console.log('ERROR: Configuration:  maxpayloadsizebytes cannot be empty.');
         soFarSoGood = false;
       }
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  maxpayloadsizebytes cannot be empty.');
-      soFarSoGood = false;
     }
   }
 
   // uploaddirectory
   if (soFarSoGood)
   {
-    configValue = processedConfigJSON.uploaddirectory;
-    if (typeof(configValue) === 'string')
+    if (typeof(configValue) !== 'undefined')
     {
-      const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
-      if (dirName)
+      configValue = processedConfigJSON.uploaddirectory;
+      if (typeof(configValue) === 'string')
       {
-        serverConfig.uploadDirectory = dirName;
+        const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+        if (dirName)
+        {
+          serverConfig.uploadDirectory = dirName;
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
+          soFarSoGood = false;
+        }
       }
       else
       {
-        console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
+        console.log('ERROR: Configuration:  Invalid uploaddirectory.  String value expected.');
         soFarSoGood = false;
       }
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  Invalid uploaddirectory.  String value expected.');
-      soFarSoGood = false;
     }
   }
 

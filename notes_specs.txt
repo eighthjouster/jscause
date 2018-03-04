@@ -86,4 +86,4 @@ Or this:
 - First-level keys in jscause.conf are case-insensitive.
 - jscause.conf:  Global enclosing curly brackets are optional.
 - Comments in jscause.conf: // are allowed.  Yes, we know comments are not valid json.  But they are allowed for documentation.
-- All attributes declared in jscause.conf must be valid (known), or else the server will NOT start.
+- All attributes declared in jscause.conf must be valid (known), or else the server will NOT start.  If any attribute is omitted, defaults will apply.
