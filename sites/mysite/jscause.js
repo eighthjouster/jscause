@@ -975,74 +975,89 @@ if (readSuccess)
 
   const configKeys = Object.keys(readConfigJSON);
   const configKeysLength = configKeys.length;
+  let invalidKeysFound = false;
   let soFarSoGood = true;
+  
+  const allAllowedKeys =
+  [
+    'hostname',
+    'port'
+  ];
+
+  let processedConfigJSON = {};
 
   for (let i = 0; i < configKeysLength; i++)
   {
-    const configKey = (configKeys[i] || '');
-    const configKeyLowerCase = (configKeys[i] || '').toLowerCase();
-    const configValue = readConfigJSON[configKey];
-
-    switch(configKeyLowerCase)
+    const configKey = configKeys[i] || '';
+    const configKeyLowerCase = configKey.toLowerCase();
+    if (allAllowedKeys.indexOf(configKeyLowerCase) === -1)
     {
-      case 'hostname':
-        if (typeof(configValue) === 'string')
-        {
-          if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-          {
-            serverConfig.hostName = configValue;
-          }
-          else
-          {
-            console.log('ERROR: Configuration:  hostname cannot be empty.');
-            soFarSoGood = false;
-          }
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
-          soFarSoGood = false;
-        }
-        break;
-      
-      case 'port':
-        if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-        {
-          let portNumber = parseFloat(configValue, 10);
-          if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
-          {
-            serverConfig.port = portNumber;
-          }
-          else
-          {
-            console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
-            soFarSoGood = false;
-          }
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  port cannot be empty.');
-          soFarSoGood = false;
-        }
-        break;
-/*
-  uploadDirectory: null,
-  canUpload: true,
-  maxPayloadSizeBytes: 3 * 1024, // 3 KB
-*/      default:
-        const emptyValueReport = (configKey) ? '': ' (empty value)';
-        const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-        console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
-        soFarSoGood = false;
+      const emptyValueReport = (configKey) ? '': ' (empty value)';
+      const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
+      console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
+      invalidKeysFound = true;
+      soFarSoGood = false;
     }
-
-    if (!soFarSoGood)
+    else
     {
-      break;
+      processedConfigJSON[configKeyLowerCase] = readConfigJSON[configKey];
+    }
+  }
+  
+  let configValue;
+
+  // hostname
+  if (soFarSoGood)
+  {
+    configValue = processedConfigJSON.hostname;
+    if (typeof(configValue) === 'string')
+    {
+      if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+      {
+        serverConfig.hostName = configValue;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  hostname cannot be empty.');
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
+      soFarSoGood = false;
     }
   }
 
-  if (!soFarSoGood)
+  // port
+  if (soFarSoGood)
+  {
+    configValue = processedConfigJSON.port;
+    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    {
+      let portNumber = parseFloat(configValue, 10);
+      if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+      {
+        serverConfig.port = portNumber;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  port cannot be empty.');
+      soFarSoGood = false;
+    }
+  }
+/*
+  canUpload: true,
+  maxPayloadSizeBytes: 3 * 1024, // 3 KB
+  uploadDirectory: null,
+*/
+  if (invalidKeysFound)
   {
     console.log('ERROR: Check that all the keys and values in jscause.conf are valid.');
   }
