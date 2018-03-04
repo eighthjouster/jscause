@@ -83,4 +83,6 @@ Or this:
 - When handling uploaded files, users can use file.name directly as it has been sanitized.  If for some reason they want to access the original filename, they can do so through file.unsafeName.
 - jscause.conf is almost a valid JSON object.  Almost, because it allows // comments, for documentation.
 - Duplicate first-level keys in jscause.conf will cause an error.  Duplicate keys in values will be ignored, with the last value listed being the one used (just like it's done in Javascript).
-- Keys in jscause.conf are case-insensitive.
+- First-level keys in jscause.conf are case-insensitive.
+- jscause.conf:  Global enclosing curly brackets are optional.
+- Comments in jscause.conf: // are allowed.  Yes, we know comments are not valid json.  But they are allowed for documentation.

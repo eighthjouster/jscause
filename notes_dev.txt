@@ -2,26 +2,14 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Done with json checking. Now:
- - Extract and report all the first-level keys.
- - You should set the current conf file aside (in the dev folder, for instance), in case you need to test this algorithm out again.
-
-Detecting duplicates.
-  New approach.  Character by character.
-  Those console.log('------ ')?  Just say "invalid json format." or something and call it a day.
- 
 Still parsing jscause.conf:
  - Absolutely every attribute must be valid.
    - Put in specs.
- - Initial brackets should be optional.
-  - Put in specs.
-
-Remember to document jscause.conf
-- Comments: // and /**/ are allowed.
-  - Yes, we know comments are not valid json.  But eh.
 
 Config files:
  - Set upload directory (you can use setUploadDirectory().)
+
+A default config file stowed away, and a app-specific config file for overrides.
 
 No hardcoding?
 

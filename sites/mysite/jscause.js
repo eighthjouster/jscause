@@ -985,7 +985,51 @@ if (readSuccess)
 
     switch(configKeyLowerCase)
     {
-      default:
+      case 'hostname':
+        if (typeof(configValue) === 'string')
+        {
+          if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+          {
+            serverConfig.hostName = configValue;
+          }
+          else
+          {
+            console.log('ERROR: Configuration:  hostname cannot be empty.');
+            soFarSoGood = false;
+          }
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
+          soFarSoGood = false;
+        }
+        break;
+      
+      case 'port':
+        if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+        {
+          let portNumber = parseFloat(configValue, 10);
+          if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+          {
+            serverConfig.port = portNumber;
+          }
+          else
+          {
+            console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+            soFarSoGood = false;
+          }
+        }
+        else
+        {
+          console.log('ERROR: Configuration:  port cannot be empty.');
+          soFarSoGood = false;
+        }
+        break;
+/*
+  uploadDirectory: null,
+  canUpload: true,
+  maxPayloadSizeBytes: 3 * 1024, // 3 KB
+*/      default:
         const emptyValueReport = (configKey) ? '': ' (empty value)';
         const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
         console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
@@ -1003,7 +1047,7 @@ if (readSuccess)
     console.log('ERROR: Check that all the keys and values in jscause.conf are valid.');
   }
 
-  // readSuccess = true;
+  readSuccess = soFarSoGood;
 }
 
 if (readSuccess)
