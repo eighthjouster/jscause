@@ -2,12 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Still parsing jscause.conf:
- - Absolutely every attribute must be valid.
-   - Put in specs.
+Get jscause.js outside of mysite.
+ - Config file should specify the mysite folder.
 
-Config files:
- - Set upload directory (you can use setUploadDirectory().)
+Still on it.  Must parse a new "Sites" json file.
+
+Option to use general upload directory and per-site upload directory.
 
 A default config file stowed away, and a app-specific config file for overrides.
 
@@ -31,7 +31,6 @@ Server Id? (Multi-host).
 
 Server-side rendering?
 
-Specify port number.
 Route to site.
 
 Databases.
@@ -52,7 +51,7 @@ Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
 
 Make two versions:  Standalone and NPM-installable.
 
-Version 0.7 here!
+Version 0.7b here!
  - Upload to https://github.com/eighthjouster/jscause
  - Thanks to:
    - Formidable.
