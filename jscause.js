@@ -932,17 +932,37 @@ const readConfigurationFile = (name, path = './') => {
       }
       catch(e)
       {
-        console.log('ERROR: Cannot load jscause.conf file.');
+        console.log(`ERROR: Cannot load ${name} file.`);
         console.log(e);
       }
     }
   }
 
-  if (!readSuccess) {
+  if (!readSuccess)
+  {
     readConfigFile = undefined;
   }
 
   return readConfigFile;
+};
+
+const readAndProcessJSONFile = (jsonFileName, jsonFilePath) => {
+  let readConfigJSON;
+  let finalConfigJSON;
+
+  let readConfigFile = readConfigurationFile(jsonFileName, jsonFilePath);
+
+  if (readConfigFile)
+  {
+    readConfigFile = prepareConfigFileForParsing(readConfigFile);
+    readConfigJSON = validateJSONFile(readConfigFile, jsonFileName);
+    if (readConfigJSON && configFileFreeOfDuplicates(readConfigFile, jsonFileName))
+    {
+      finalConfigJSON = readConfigJSON;
+    }
+  }
+
+  return finalConfigJSON;
 };
 
 let stats;
@@ -962,30 +982,22 @@ const compileContext =
   compiledModule: null
 };
 
-let jsonFileName = 'site_configuration.json';
-let jsonFilePath = './sites/mysite';
-//let jsonFileName = 'jscause.json'; //__RP
-//let jsonFilePath = '';
+let jsonFileName;
+let jsonFilePath;
+/* ***************************************************
+ *
+ * Reading and processing the site configuration file
+ *
+ *****************************************************/
+jsonFileName = 'site_configuration.json';
+jsonFilePath = './sites/mysite';
+//jsonFileName = 'jscause.conf'; //__RP
+//jsonFilePath = '';
 
-readConfigFile = readConfigurationFile(jsonFileName, jsonFilePath);
+readConfigJSON = readAndProcessJSONFile(jsonFileName, jsonFilePath);
 
-if (readConfigFile)
+if (readConfigJSON)
 {
-  readConfigFile = prepareConfigFileForParsing(readConfigFile);
-  readConfigJSON = validateJSONFile(readConfigFile, jsonFileName);
-
-  readSuccess = (typeof(readConfigJSON) !== undefined);
-}
-
-if (readSuccess)
-{
-  readSuccess = configFileFreeOfDuplicates(readConfigFile, jsonFileName);
-}
-
-if (readSuccess)
-{
-  readSuccess = false;
-
   const configKeys = Object.keys(readConfigJSON);
   const configKeysLength = configKeys.length;
   let invalidKeysFound = false;
