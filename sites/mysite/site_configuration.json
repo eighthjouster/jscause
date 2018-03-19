@@ -1,7 +1,7 @@
 {
-//  "hostName": "localhost",
-//  "port": 1,
+  "hostName": "localhost",
+  "port": 3000,
   "uploadDirectory": "/Users/rafael/Desktop/",
   "canUpload": true,
-  "maxPayloadSizeBytes": 3072
+  "maxPayloadSizeBytes": 3072 // 3 KB.
 }

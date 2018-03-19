@@ -2,11 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Get jscause.js outside of mysite.
- - Config file should specify the mysite folder.
+Implement the new jscause.conf:
+ - Move port out of site_configuration.json
 
-Still on it.  Must parse a new "Sites" json file.
- - And address the //__RP
+ No more site_configuration.json path hardcoding at this point.
 
 Option to use general upload directory and per-site upload directory.
 
@@ -31,6 +30,8 @@ At this point, start abstracting away the engine.
 Server Id? (Multi-host).
 
 Server-side rendering?
+
+Server logging?
 
 Route to site.
 

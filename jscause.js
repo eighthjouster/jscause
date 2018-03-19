@@ -196,7 +196,8 @@ const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
                 }
               }
             }
-            else {
+            else
+            {
               keyChars.push(currentChar);
             }
           }
@@ -965,6 +966,42 @@ const readAndProcessJSONFile = (jsonFileName, jsonFilePath) => {
   return finalConfigJSON;
 };
 
+const prepareConfiguration = (configJSON, allowedKeys, fileName) => {
+  const configKeys = Object.keys(configJSON);
+  const configKeysLength = configKeys.length;
+  const processedConfigJSON = {};
+  let finalProcessedConfigJSON;
+  let invalidKeysFound = false;
+
+  for (let i = 0; i < configKeysLength; i++)
+  {
+    const configKey = configKeys[i] || '';
+    const configKeyLowerCase = configKey.toLowerCase();
+    if (allowedKeys.indexOf(configKeyLowerCase) === -1)
+    {
+      const emptyValueReport = (configKey) ? '': ' (empty value)';
+      const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
+      console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
+      invalidKeysFound = true;
+    }
+    else
+    {
+      processedConfigJSON[configKeyLowerCase] = configJSON[configKey];
+    }
+  }
+
+  if (invalidKeysFound)
+  {
+    console.log(`ERROR: Check that all the keys and values in ${fileName} are valid.`);
+  }
+  else
+  {
+    finalProcessedConfigJSON = processedConfigJSON;
+  }
+
+  return finalProcessedConfigJSON;
+};
+
 let stats;
 let readConfigFile;
 
@@ -996,6 +1033,7 @@ const globalConfigJSON = readAndProcessJSONFile(jsonFileName);
 if (globalConfigJSON)
 {
   console.log('NOT BAD!');//__RP
+  console.log(globalConfigJSON);
 }
 
 /* ***************************************************
@@ -1010,11 +1048,6 @@ const siteConfigJSON = readAndProcessJSONFile(jsonFileName, jsonFilePath);
 
 if (siteConfigJSON)
 {
-  const configKeys = Object.keys(siteConfigJSON);
-  const configKeysLength = configKeys.length;
-  let invalidKeysFound = false;
-  let soFarSoGood = true;
-  
   const allAllowedKeys =
   [
     'hostname',
@@ -1024,156 +1057,170 @@ if (siteConfigJSON)
     'maxpayloadsizebytes'
   ];
 
-  let processedConfigJSON = {};
+  const requiredKeysNotFound = [];
 
-  for (let i = 0; i < configKeysLength; i++)
+  let soFarSoGood = true;
+  
+  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, jsonFileName);
+  let configValue;
+  let configKeyName;
+
+  // hostname
+  if (processedConfigJSON)
   {
-    const configKey = configKeys[i] || '';
-    const configKeyLowerCase = configKey.toLowerCase();
-    if (allAllowedKeys.indexOf(configKeyLowerCase) === -1)
+    configKeyName = 'hostname';
+    configValue = processedConfigJSON[configKeyName];
+
+    if (typeof(configValue) === 'string')
     {
-      const emptyValueReport = (configKey) ? '': ' (empty value)';
-      const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-      console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
-      invalidKeysFound = true;
-      soFarSoGood = false;
+      if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+      {
+        serverConfig.hostName = configValue;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  hostname cannot be empty.');
+        soFarSoGood = false;
+      }
     }
     else
     {
-      processedConfigJSON[configKeyLowerCase] = siteConfigJSON[configKey];
-    }
-  }
-  
-  let configValue;
-
-  // hostname
-  if (soFarSoGood)
-  {
-    if (typeof(configValue) !== 'undefined')
-    {
-      configValue = processedConfigJSON.hostname;
-      if (typeof(configValue) === 'string')
+      if (typeof(configValue) === 'undefined')
       {
-        if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-        {
-          serverConfig.hostName = configValue;
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  hostname cannot be empty.');
-          soFarSoGood = false;
-        }
+        requiredKeysNotFound.push(configKeyName);
       }
       else
       {
         console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
+      }
+      soFarSoGood = false;
+    }
+
+    configKeyName = 'port';
+    configValue = processedConfigJSON[configKeyName];
+
+    if ((typeof(configValue) !== 'undefined') && ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, '')))
+    {
+      const portNumber = parseFloat(configValue, 10);
+      if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+      {
+        serverConfig.port = portNumber;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
         soFarSoGood = false;
       }
     }
-  }
-
-  // port
-  if (soFarSoGood)
-  {
-    if (typeof(configValue) !== 'undefined')
+    else
     {
-      configValue = processedConfigJSON.port;
-      if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+      if (typeof(configValue) === 'undefined')
       {
-        const portNumber = parseFloat(configValue, 10);
-        if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
-        {
-          serverConfig.port = portNumber;
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
-          soFarSoGood = false;
-        }
+        requiredKeysNotFound.push(configKeyName);
       }
       else
       {
         console.log('ERROR: Configuration:  port cannot be empty.');
-        soFarSoGood = false;
       }
+      soFarSoGood = false;
     }
-  }
 
-  // canupload
-  if (soFarSoGood)
-  {
-    if (typeof(configValue) !== 'undefined')
+    configKeyName = 'canupload';
+    configValue = processedConfigJSON[configKeyName];
+
+    if (typeof(configValue) === 'boolean')
     {
-      configValue = processedConfigJSON.canupload;
-      if (typeof(configValue) === 'boolean')
+      serverConfig.canupload = configValue;
+    }
+    else
+    {
+      if (typeof(configValue) === 'undefined')
       {
-        serverConfig.canupload = configValue;
+        requiredKeysNotFound.push(configKeyName);
       }
       else
       {
         console.log('ERROR: Configuration:  Invalid canupload.  Boolean expected.');
+      }
+      soFarSoGood = false;
+    }
+
+    configKeyName = 'maxpayloadsizebytes';
+    configValue = processedConfigJSON[configKeyName];
+
+    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    {
+      const uploadSize = parseFloat(configValue, 10);
+      if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+      {
+        serverConfig.maxPayloadSizeBytes = uploadSize;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
         soFarSoGood = false;
       }
     }
-  }
-
-  // maxpayloadsizebytes
-  if (soFarSoGood)
-  {
-    if (typeof(configValue) !== 'undefined')
+    else
     {
-      configValue = processedConfigJSON.maxpayloadsizebytes;
-      if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+      if (typeof(configValue) === 'undefined')
       {
-        const uploadSize = parseFloat(configValue, 10);
-        if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
-        {
-          serverConfig.maxPayloadSizeBytes = uploadSize;
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
-          soFarSoGood = false;
-        }
+        requiredKeysNotFound.push(configKeyName);
       }
       else
       {
         console.log('ERROR: Configuration:  maxpayloadsizebytes cannot be empty.');
+      }
+      soFarSoGood = false;
+    }
+
+    configKeyName = 'uploaddirectory';
+    configValue = processedConfigJSON[configKeyName];
+
+    if (typeof(configValue) === 'string')
+    {
+      const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+      if (dirName)
+      {
+        serverConfig.uploadDirectory = dirName;
+      }
+      else
+      {
+        console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
         soFarSoGood = false;
       }
     }
-  }
-
-  // uploaddirectory
-  if (soFarSoGood)
-  {
-    if (typeof(configValue) !== 'undefined')
+    else
     {
-      configValue = processedConfigJSON.uploaddirectory;
-      if (typeof(configValue) === 'string')
+      if (typeof(configValue) === 'undefined')
       {
-        const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
-        if (dirName)
-        {
-          serverConfig.uploadDirectory = dirName;
-        }
-        else
-        {
-          console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
-          soFarSoGood = false;
-        }
+        requiredKeysNotFound.push(configKeyName);
       }
       else
       {
         console.log('ERROR: Configuration:  Invalid uploaddirectory.  String value expected.');
-        soFarSoGood = false;
       }
+      soFarSoGood = false;
     }
   }
+  else {
+    soFarSoGood = false;
+  }
 
-  if (invalidKeysFound)
+  if (requiredKeysNotFound.length)
   {
-    console.log('ERROR: Check that all the keys and values in jscause.conf are valid.');
+    if (requiredKeysNotFound.length === 1)
+    {
+      console.log('ERROR: Configuration:  The following configuration attribute was not found:');
+    }
+    else
+    {
+      console.log('ERROR: Configuration:  The following configuration attributes were not found:');
+    }
+    requiredKeysNotFound.forEach((keyName) => {
+      console.log(`ERROR: - ${keyName}`);
+    });
+    soFarSoGood = false;
   }
 
   readSuccess = soFarSoGood;
