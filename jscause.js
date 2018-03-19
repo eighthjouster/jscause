@@ -898,7 +898,7 @@ function startServer(serverConfig)
   });
 }
 
-const readConfigurationFile = (name, path = './') => {
+const readConfigurationFile = (name, path = '.') => {
   let stats;
   let readConfigFile;
   let readSuccess = false;
@@ -906,7 +906,7 @@ const readConfigurationFile = (name, path = './') => {
 
   try
   {
-    stats = fs.statSync('./sites/mysite/site_configuration.json');
+    stats = fs.statSync(fullPath);
     readSuccess = true;
   }
   catch (e)
@@ -967,7 +967,6 @@ const readAndProcessJSONFile = (jsonFileName, jsonFilePath) => {
 
 let stats;
 let readConfigFile;
-let readConfigJSON;
 
 //const indexFile = './website/index.jssp'; //__RP
 const indexFile = './sites/mysite/website/index.jssp';
@@ -984,6 +983,21 @@ const compileContext =
 
 let jsonFileName;
 let jsonFilePath;
+
+/* ***************************************************
+ *
+ * Reading and processing the site configuration file
+ *
+ *****************************************************/
+jsonFileName = 'jscause.conf';
+
+const globalConfigJSON = readAndProcessJSONFile(jsonFileName);
+
+if (globalConfigJSON)
+{
+  console.log('NOT BAD!');//__RP
+}
+
 /* ***************************************************
  *
  * Reading and processing the site configuration file
@@ -991,14 +1005,12 @@ let jsonFilePath;
  *****************************************************/
 jsonFileName = 'site_configuration.json';
 jsonFilePath = './sites/mysite';
-//jsonFileName = 'jscause.conf'; //__RP
-//jsonFilePath = '';
 
-readConfigJSON = readAndProcessJSONFile(jsonFileName, jsonFilePath);
+const siteConfigJSON = readAndProcessJSONFile(jsonFileName, jsonFilePath);
 
-if (readConfigJSON)
+if (siteConfigJSON)
 {
-  const configKeys = Object.keys(readConfigJSON);
+  const configKeys = Object.keys(siteConfigJSON);
   const configKeysLength = configKeys.length;
   let invalidKeysFound = false;
   let soFarSoGood = true;
@@ -1028,7 +1040,7 @@ if (readConfigJSON)
     }
     else
     {
-      processedConfigJSON[configKeyLowerCase] = readConfigJSON[configKey];
+      processedConfigJSON[configKeyLowerCase] = siteConfigJSON[configKey];
     }
   }
   
