@@ -34,7 +34,7 @@ const prepareConfigFileForParsing = (readConfigFile) => {
      .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
 };
 
-const validateJSONFile = (readConfigFile) => {
+const validateJSONFile = (readConfigFile, fileName) => {
   let readSuccess = false;
   let readConfigJSON;
 
@@ -45,7 +45,7 @@ const validateJSONFile = (readConfigFile) => {
   }
   catch(e)
   {
-    console.log('ERROR: Invalid jscause.conf file format.');
+    console.log(`ERROR: Invalid ${fileName} file format.`);
     console.log(`ERROR: ${e.message}`);
     const positionExtract = e.message.match(/.+at position (\d+).*$/i);
     if (positionExtract)
@@ -63,7 +63,7 @@ const validateJSONFile = (readConfigFile) => {
   return readConfigJSON;
 };
 
-const configFileFreeOfDuplicates = (readConfigFile) => {
+const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
   // This is done after the parsing took place because at this point we know
@@ -368,7 +368,7 @@ const configFileFreeOfDuplicates = (readConfigFile) => {
 
   if (parseError)
   {
-    console.log('ERROR: Error parsing jscause.conf');
+    console.log(`ERROR: Error parsing ${fileName}`);
     console.log(`ERROR: ${parseErrorDescription}`);
   }
 
@@ -898,6 +898,53 @@ function startServer(serverConfig)
   });
 }
 
+const readConfigurationFile = (name, path = './') => {
+  let stats;
+  let readConfigFile;
+  let readSuccess = false;
+  const fullPath = `${path}/${name}`;
+
+  try
+  {
+    stats = fs.statSync('./sites/mysite/site_configuration.json');
+    readSuccess = true;
+  }
+  catch (e)
+  {
+    console.log(`ERROR: Cannot find ${name} file`);
+    console.log(e);
+  }
+
+  if (readSuccess)
+  {
+    readSuccess = false;
+
+    if (stats.isDirectory())
+    {
+      console.log(`ERROR: ${name} is a directory.`);
+    }
+    else
+    {
+      try
+      {
+        readConfigFile = fs.readFileSync(fullPath, 'utf-8');
+        readSuccess = true;
+      }
+      catch(e)
+      {
+        console.log('ERROR: Cannot load jscause.conf file.');
+        console.log(e);
+      }
+    }
+  }
+
+  if (!readSuccess) {
+    readConfigFile = undefined;
+  }
+
+  return readConfigFile;
+};
+
 let stats;
 let readConfigFile;
 let readConfigJSON;
@@ -909,59 +956,30 @@ let serverStarted = false;
 let readSuccess = false;
 let indexExists = false;
 
-const compileContext = 
+const compileContext =
 {
   data: null,
   compiledModule: null
 };
 
-try
-{
-//  stats = fs.statSync('jscause.conf'); //__RP
-  stats = fs.statSync('./sites/mysite/site_configuration.json');
-  readSuccess = true;
-}
-catch (e)
-{
-  console.log('ERROR: Cannot find jscause.conf file');
-  console.log(e);
-}
+let jsonFileName = 'site_configuration.json';
+let jsonFilePath = './sites/mysite';
+//let jsonFileName = 'jscause.json'; //__RP
+//let jsonFilePath = '';
 
-if (readSuccess)
-{
-  readSuccess = false;
+readConfigFile = readConfigurationFile(jsonFileName, jsonFilePath);
 
-  if (stats.isDirectory())
-  {
-    console.log(`ERROR: jscause.conf is a directory.`);
-  }
-  else
-  {
-    try
-    {
-      //readConfigFile = fs.readFileSync('jscause.conf', 'utf-8');
-      readConfigFile = fs.readFileSync('./sites/mysite/site_configuration.json', 'utf-8');
-      readSuccess = true;
-    }
-    catch(e)
-    {
-      console.log('ERROR: Cannot load jsconf.conf file.');
-      console.log(e);
-    }
-  }
-}
-  
-if (readSuccess)
+if (readConfigFile)
 {
   readConfigFile = prepareConfigFileForParsing(readConfigFile);
-  readConfigJSON = validateJSONFile(readConfigFile);
+  readConfigJSON = validateJSONFile(readConfigFile, jsonFileName);
 
   readSuccess = (typeof(readConfigJSON) !== undefined);
 }
 
 if (readSuccess)
 {
-  readSuccess = configFileFreeOfDuplicates(readConfigFile);
+  readSuccess = configFileFreeOfDuplicates(readConfigFile, jsonFileName);
 }
 
 if (readSuccess)

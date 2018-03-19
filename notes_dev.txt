@@ -6,6 +6,7 @@ Get jscause.js outside of mysite.
  - Config file should specify the mysite folder.
 
 Still on it.  Must parse a new "Sites" json file.
+ - And address the //__RP
 
 Option to use general upload directory and per-site upload directory.
 
