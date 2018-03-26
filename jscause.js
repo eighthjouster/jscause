@@ -11,7 +11,6 @@ const urlUtils = require('url');
 const crypto = require('crypto');
 const formidable = require('./jscvendor/formidable');
 const http = require('http');
-const util = require('util');
 const path = require('path');
 const sanitizeFilename = require('./jscvendor/sanitize-filename');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
@@ -27,21 +26,21 @@ const DEFAULT_UPLOAD_DIR = './workbench/uploads';
  * 
  * *****************************************/
 
-const prepareConfigFileForParsing = (readConfigFile) => {
+function prepareConfigFileForParsing(readConfigFile)
+{
   return readConfigFile
-     .replace(/\/\/[^\n]*/g, '') // Strip //
-     .replace(/\n\s*/g, '\n') // Strip leading white space at the beginning of line.
-     .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
-};
+    .replace(/\/\/[^\n]*/g, '') // Strip //
+    .replace(/\n\s*/g, '\n') // Strip leading white space at the beginning of line.
+    .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
+}
 
-const validateJSONFile = (readConfigFile, fileName) => {
-  let readSuccess = false;
+function validateJSONFile(readConfigFile, fileName)
+{
   let readConfigJSON;
 
   try
   {
     readConfigJSON = JSON.parse(readConfigFile) || {};
-    readSuccess = true;
   }
   catch(e)
   {
@@ -61,9 +60,10 @@ const validateJSONFile = (readConfigFile, fileName) => {
   }
 
   return readConfigJSON;
-};
+}
 
-const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
+function configFileFreeOfDuplicates(readConfigFile, fileName)
+{
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
   // This is done after the parsing took place because at this point we know
@@ -84,7 +84,6 @@ const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
 
   // Get rid of initial surrounding brackets.
   // But first, let's find out if said initial surrounding (if any) brackets match.
-  const allConfigKeys = [];
   const firstCharMatch = readConfigFile.match(/^\s*(.{1})/);
   
   // Good for debugging.
@@ -106,8 +105,8 @@ const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
   if (!parseError)
   {
     processingConfigFile = readConfigFile
-                            .replace(/^\s*\{\s*?\n?/, '')
-                            .replace(/\n?\s*?\}\s*$/, '');
+      .replace(/^\s*\{\s*?\n?/, '')
+      .replace(/\n?\s*?\}\s*$/, '');
   }
 
   while (!parseError && (currentPos < processingConfigFile.length))
@@ -374,9 +373,9 @@ const configFileFreeOfDuplicates = (readConfigFile, fileName) => {
   }
 
   return !parseError;
-};
+}
 
-const serverConfig = {
+const defaultSiteConfig = {
   server: null,
   indexRun: null,
   hostName: DEFAULT_HOSTNAME,
@@ -392,20 +391,31 @@ const symbolsToSanitize =
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;',
-  "'": '&#39;',
+  '\'': '&#39;',
   '/': '&#x2F;',
   '`': '&#x60;',
   '=': '&#x3D;'
 };
 
-const printInit = (ctx) => { ctx.outputQueue = []; };
-const assignAppHeaders = (ctx, headers) => { ctx.appHeaders = Object.assign(ctx.appHeaders, headers); };
-const sanitizeForHTMLOutput = (inputText) => String(inputText).replace(/[&<>"'`=\/]/g, (s) => symbolsToSanitize[s]);
+function printInit(ctx)
+{
+  ctx.outputQueue = [];
+}
 
-const setUploadDirectory = (dirName, serverConfig) =>
+function assignAppHeaders(ctx, headers)
+{
+  ctx.appHeaders = Object.assign(ctx.appHeaders, headers);
+}
+
+function sanitizeForHTMLOutput(inputText)
+{
+  return String(inputText).replace(/[&<>"'`=/]/g, (s) => symbolsToSanitize[s]);
+}
+
+function setUploadDirectory(dirName, siteConfig)
 {
   let setupSuccess = false;
-  if (!serverConfig || !serverConfig.canUpload)
+  if (!siteConfig || !siteConfig.canUpload)
   {
     setupSuccess = true;
   }
@@ -430,14 +440,14 @@ const setUploadDirectory = (dirName, serverConfig) =>
 
     if (setupSuccess)
     {
-      serverConfig.uploadDirectory = dirName.replace(/\/?$/,'');
+      siteConfig.uploadDirectory = dirName.replace(/\/?$/,'');
     }
   }
 
   return setupSuccess;
-};
+}
 
-const doDeleteFile = (thisFile) =>
+function doDeleteFile(thisFile)
 {
   fs.unlink(thisFile.path, (err) =>
   {
@@ -448,13 +458,13 @@ const doDeleteFile = (thisFile) =>
       console.log(err);
     }
   });
-};
+}
 
-const doMoveToUploadDir = (thisFile, { responder, req, res, formContext, pendingWork }) =>
+function doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
-  const newFilePath = `${serverConfig.uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
+  const newFilePath = `${siteConfig.uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
 
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
@@ -476,15 +486,17 @@ const doMoveToUploadDir = (thisFile, { responder, req, res, formContext, pending
       responder(req, res, formContext);
     }
   });
-};
+}
 
-const deleteUnhandledFiles = (unhandledFiles) => {
+function deleteUnhandledFiles(unhandledFiles)
+{
   Object.keys(unhandledFiles).forEach((name) =>
   {
     const fileInfo = unhandledFiles[name];
     if (Array.isArray(fileInfo))
     {
-      fileInfo.forEach((thisFile) => {
+      fileInfo.forEach((thisFile) =>
+      {
         doDeleteFile(thisFile);
       });
 
@@ -494,9 +506,9 @@ const deleteUnhandledFiles = (unhandledFiles) => {
       doDeleteFile(fileInfo);
     }
   });
-};
+}
 
-const doneWith = (ctx, id) =>
+function doneWith(ctx, id)
 {
   if (id)
   {
@@ -530,17 +542,18 @@ const doneWith = (ctx, id) =>
       resObject.end((ctx.outputQueue || []).join(''));
     }
   }
-};
-const finishUpHeaders = (ctx) =>
+}
+
+function finishUpHeaders(ctx)
 {
   const { appHeaders, resObject } = ctx;
   Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
-};
+}
 
-const createRunTime = (rtContext) =>
+function createRunTime(rtContext)
 {
   const { getParams, postParams, contentType,
-          requestMethod, uploadedFiles, additional } = rtContext;
+    requestMethod, uploadedFiles, additional } = rtContext;
 
   return {
     print: (output = '') => rtContext.outputQueue.push(output),
@@ -578,23 +591,23 @@ const createRunTime = (rtContext) =>
     uploadedFiles,
     additional
   };
-};
+}
 
 function extractErrorFromCompileObject(e)
 {
   const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
-  const lineNumber = lineNumberInfo.split(/.*\:([^\:]*)$/)[1] || '(unknown)';
+  const lineNumber = lineNumberInfo.split(/.*:([^:]*)$/)[1] || '(unknown)';
   return `${e.message} at line ${lineNumber}`;
 }
 
 function extractErrorFromRuntimeObject(e)
 {
   const lineNumberInfo = e.stack || '<anonymous>::(unknown)';
-  const [matchDummy, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+)\:(\d+)\n/) || [];
+  const [, fileName = '', potentialFileNumber] = lineNumberInfo.match(/^(.+):(\d+)\n/) || [];
   const atInfo = (potentialFileNumber) ?
     `at file ${fileName}, line ${potentialFileNumber}`
     :
-    `at line ${((lineNumberInfo.match(/\<anonymous\>\:(\d*)\:\d*/i) || [])[1] || '(unknown)')}`
+    `at line ${((lineNumberInfo.match(/<anonymous>:(\d*):\d*/i) || [])[1] || '(unknown)')}`
   return `${e.message} ${atInfo}`;
 }
 
@@ -604,11 +617,11 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const responder = (req, res,
-                    { requestMethod, contentType, requestBody,
-                      formData, formFiles, maxSizeExceeded,
-                      forbiddenUploadAttempted
-                    }) =>
+function responder(req, res,
+  { requestMethod, contentType, requestBody,
+    formData, formFiles, maxSizeExceeded,
+    forbiddenUploadAttempted
+  })
 {
   let postParams;
   let uploadedFiles = {};
@@ -673,7 +686,7 @@ const responder = (req, res,
   }
 
   const runTime = createRunTime(resContext);
-  const { indexRun } = serverConfig;
+  const { indexRun } = siteConfig;
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
@@ -702,7 +715,7 @@ const responder = (req, res,
   }
   
   doneWith(resContext);
-};
+}
 
 function sendPayLoadExceeded(res, maxPayloadSizeBytes)
 {
@@ -722,10 +735,13 @@ function sendUploadIsForbidden(res)
 
 function startServer(serverConfig)
 {
-  const { server, canUpload, hostName, port, maxPayloadSizeBytes } = serverConfig;
+  const { server, sites } = serverConfig;
+  const [ siteConfig ] = sites;
+  const { canUpload, hostName, port, maxPayloadSizeBytes } = siteConfig;
 
-  server.on('request', (req, res) => {
-    const { headers = {}, method, url } = req;
+  server.on('request', (req, res) =>
+  {
+    const { headers = {}, method } = req;
     const requestMethod = (method || '').toLowerCase();
 
     if ((requestMethod !== 'get') && (requestMethod !== 'post'))
@@ -791,7 +807,7 @@ function startServer(serverConfig)
         }
       });
 
-      postedForm.on('progress', function(bytesReceived, bytesExpected)
+      postedForm.on('progress', function(bytesReceived)
       {
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
@@ -865,8 +881,7 @@ function startServer(serverConfig)
           forbiddenUploadAttempted = true;
           sendUploadIsForbidden(res);
         }
-      })
-      .on('end', () =>
+      }).on('end', () =>
       {
         if (contentType === 'application/json')
         {
@@ -899,7 +914,8 @@ function startServer(serverConfig)
   });
 }
 
-const readConfigurationFile = (name, path = '.') => {
+function readConfigurationFile(name, path = '.')
+{
   let stats;
   let readConfigFile;
   let readSuccess = false;
@@ -945,9 +961,10 @@ const readConfigurationFile = (name, path = '.') => {
   }
 
   return readConfigFile;
-};
+}
 
-const readAndProcessJSONFile = (jsonFileName, jsonFilePath) => {
+function readAndProcessJSONFile(jsonFileName, jsonFilePath)
+{
   let readConfigJSON;
   let finalConfigJSON;
 
@@ -964,9 +981,10 @@ const readAndProcessJSONFile = (jsonFileName, jsonFilePath) => {
   }
 
   return finalConfigJSON;
-};
+}
 
-const prepareConfiguration = (configJSON, allowedKeys, fileName) => {
+function prepareConfiguration(configJSON, allowedKeys, fileName)
+{
   const configKeys = Object.keys(configJSON);
   const configKeysLength = configKeys.length;
   const processedConfigJSON = {};
@@ -1000,10 +1018,16 @@ const prepareConfiguration = (configJSON, allowedKeys, fileName) => {
   }
 
   return finalProcessedConfigJSON;
-};
+}
+
+function createSiteDefaultSiteConfig()
+{
+  return Object.assign({}, defaultSiteConfig);
+}
+
+const siteConfig = createSiteDefaultSiteConfig();
 
 let stats;
-let readConfigFile;
 
 //const indexFile = './website/index.jssp'; //__RP
 const indexFile = './sites/mysite/website/index.jssp';
@@ -1075,7 +1099,7 @@ if (siteConfigJSON)
     {
       if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
       {
-        serverConfig.hostName = configValue;
+        siteConfig.hostName = configValue;
       }
       else
       {
@@ -1104,7 +1128,7 @@ if (siteConfigJSON)
       const portNumber = parseFloat(configValue, 10);
       if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
       {
-        serverConfig.port = portNumber;
+        siteConfig.port = portNumber;
       }
       else
       {
@@ -1130,7 +1154,7 @@ if (siteConfigJSON)
 
     if (typeof(configValue) === 'boolean')
     {
-      serverConfig.canupload = configValue;
+      siteConfig.canupload = configValue;
     }
     else
     {
@@ -1153,7 +1177,7 @@ if (siteConfigJSON)
       const uploadSize = parseFloat(configValue, 10);
       if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
       {
-        serverConfig.maxPayloadSizeBytes = uploadSize;
+        siteConfig.maxPayloadSizeBytes = uploadSize;
       }
       else
       {
@@ -1182,7 +1206,7 @@ if (siteConfigJSON)
       const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
       if (dirName)
       {
-        serverConfig.uploadDirectory = dirName;
+        siteConfig.uploadDirectory = dirName;
       }
       else
       {
@@ -1217,7 +1241,8 @@ if (siteConfigJSON)
     {
       console.log('ERROR: Configuration:  The following configuration attributes were not found:');
     }
-    requiredKeysNotFound.forEach((keyName) => {
+    requiredKeysNotFound.forEach((keyName) =>
+    {
       console.log(`ERROR: - ${keyName}`);
     });
     soFarSoGood = false;
@@ -1280,11 +1305,11 @@ if (readSuccess)
     // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
     // (Otherwise, it would delete whatever character is right before.)
     let unprocessedData = compileContext.data
-                            .replace(/^[\s\n]*\<html\s*\/\>/i, '<js/js>')
-                            .replace(/([^\\])\<js/gi,'$1 <js')
-                            .replace(/^\<js/i,' <js')
-                            .replace(/([^\\])\/js\>/gi, '$1 /js>')
-                            .replace(/^\/js\>/i, ' /js>');
+      .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
+      .replace(/([^\\])<js/gi,'$1 <js')
+      .replace(/^<js/i,' <js')
+      .replace(/([^\\])\/js>/gi, '$1 /js>')
+      .replace(/^\/js>/i, ' /js>');
 
     const processedDataArray = [];
 
@@ -1292,29 +1317,29 @@ if (readSuccess)
     const firstClosingTag = unprocessedData.indexOf(' /js>');
 
     let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-                              CONTEXT_JAVASCRIPT :
-                              CONTEXT_HTML;
+      CONTEXT_JAVASCRIPT :
+      CONTEXT_HTML;
 
     do
     {
       if (processingContext === CONTEXT_HTML)
       {
         const [processBefore, processAfter] = unprocessedData
-                                                .split(/\s\<js([\s\S]*)/);
+          .split(/\s<js([\s\S]*)/);
 
         unprocessedData = processAfter;
 
         const printedStuff = (processBefore) ?
-                              processBefore
-                                .replace(/\\(\<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                                .replace(/\\(\/js\>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-                                .replace(/\\/g,'\\\\')
-                                .replace(/\'/g,'\\\'')
-                                .replace(/[^\S\n]{2,}/g, ' ')
-                                .replace(/^\s*|\n\s*/g, '\n')
-                                .split(/\n/)
-                                .join(' \\n \\\n') :
-                              '';
+          processBefore
+            .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+            .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+            .replace(/\\/g,'\\\\')
+            .replace(/'/g,'\\\'')
+            .replace(/[^\S\n]{2,}/g, ' ')
+            .replace(/^\s*|\n\s*/g, '\n')
+            .split(/\n/)
+            .join(' \\n \\\n') :
+          '';
       
         if (printedStuff)
         {
@@ -1328,9 +1353,9 @@ if (readSuccess)
         // Assuming processingContext is CONTEXT_JAVASCRIPT
 
         const [processBefore, processAfter] = unprocessedData
-                                                .split(/\s\/js\>([\s\S]*)/);
+          .split(/\s\/js>([\s\S]*)/);
 
-        if (processBefore.match(/\<html\s*\//i))
+        if (processBefore.match(/<html\s*\//i))
         {
           console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
         }
@@ -1365,26 +1390,32 @@ if (readSuccess)
 
 if (indexExists)
 {
-  serverConfig.indexRun = compileContext.compiledModule.exports;
+  siteConfig.indexRun = compileContext.compiledModule.exports;
 
-  if (typeof(serverConfig.indexRun) !== 'function')
+  if (typeof(siteConfig.indexRun) !== 'function')
   {
-    serverConfig.indexRun = undefined;
+    siteConfig.indexRun = undefined;
     console.log('ERROR: Could not compile code.');
   }
-  else if (setUploadDirectory(serverConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, serverConfig))
+  else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
   {
     // All is well so far.
-    serverConfig.server = http.createServer();
-
-    if ((serverConfig.maxPayloadSizeBytes || 0) < 0)
+    if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
     {
-      serverConfig.canUpload = false;
+      siteConfig.canUpload = false;
     }
-    
-    startServer(serverConfig);
-    serverStarted = true;
   }
+}
+
+const serverConfig = {
+  sites: [ siteConfig ]
+};
+
+if (indexExists)
+{
+  serverConfig.server = http.createServer();
+  startServer(serverConfig);
+  serverStarted = true;
 }
 
 if (!serverStarted)

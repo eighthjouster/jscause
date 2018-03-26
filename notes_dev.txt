@@ -2,6 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+The following functions need a siteConfig parameter:
+ - doMoveToUploadDir()
+ - responder()
+
+Consider using console.warn() and console.error()
+
 Implement the new jscause.conf:
  - Move port out of site_configuration.json
 
