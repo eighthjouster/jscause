@@ -1025,6 +1025,43 @@ function createSiteDefaultSiteConfig()
   return Object.assign({}, defaultSiteConfig);
 }
 
+function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound)
+{
+  if (typeof(configValue) === 'undefined')
+  {
+    requiredKeysNotFound.push(configKeyName);
+  }
+  else
+  {
+    console.log(`ERROR: ${errorMsgIfFound}`);
+  }
+}
+
+function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
+{
+  let soFarSoGood = true;
+  if (requiredKeysNotFound.length)
+  {
+    if (requiredKeysNotFound.length === 1)
+    {
+      console.log(`ERROR: ${configName}:  The following configuration attribute was not found:`);
+    }
+    else
+    {
+      console.log(`ERROR: ${configName}:  The following configuration attributes were not found:`);
+    }
+    requiredKeysNotFound.forEach((keyName) =>
+    {
+      console.log(`ERROR: - ${keyName}`);
+    });
+
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+
 const siteConfig = createSiteDefaultSiteConfig();
 
 let stats;
@@ -1053,6 +1090,41 @@ if (globalConfigJSON)
 {
   console.log('NOT BAD!');//__RP
   console.log(globalConfigJSON);
+  const allAllowedKeys =
+  [
+    'sites'
+  ];
+
+  const requiredKeysNotFound = [];
+
+  let soFarSoGood = true;
+  
+  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME);
+  let configValue;
+  let configKeyName;
+
+  // hostname
+  if (processedConfigJSON)
+  {
+    configKeyName = 'sites';
+    configValue = processedConfigJSON[configKeyName];
+
+    if (Array.isArray(configValue))
+    {
+    }
+    else
+    {
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
+      soFarSoGood = false;
+    }
+  }
+  else {
+    soFarSoGood = false;
+  }
+
+  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
+
+  readSuccess = soFarSoGood && allRequiredKeys;
 }
 
 /* ***************************************************
@@ -1107,14 +1179,7 @@ if (siteConfigJSON)
     }
     else
     {
-      if (typeof(configValue) === 'undefined')
-      {
-        requiredKeysNotFound.push(configKeyName);
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  Invalid hostname.  String value expected.');
-      }
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
       soFarSoGood = false;
     }
 
@@ -1136,14 +1201,7 @@ if (siteConfigJSON)
     }
     else
     {
-      if (typeof(configValue) === 'undefined')
-      {
-        requiredKeysNotFound.push(configKeyName);
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  port cannot be empty.');
-      }
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  port cannot be empty.');
       soFarSoGood = false;
     }
 
@@ -1156,14 +1214,7 @@ if (siteConfigJSON)
     }
     else
     {
-      if (typeof(configValue) === 'undefined')
-      {
-        requiredKeysNotFound.push(configKeyName);
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  Invalid canupload.  Boolean expected.');
-      }
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
       soFarSoGood = false;
     }
 
@@ -1185,14 +1236,7 @@ if (siteConfigJSON)
     }
     else
     {
-      if (typeof(configValue) === 'undefined')
-      {
-        requiredKeysNotFound.push(configKeyName);
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  maxpayloadsizebytes cannot be empty.');
-      }
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
       soFarSoGood = false;
     }
 
@@ -1214,14 +1258,7 @@ if (siteConfigJSON)
     }
     else
     {
-      if (typeof(configValue) === 'undefined')
-      {
-        requiredKeysNotFound.push(configKeyName);
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  Invalid uploaddirectory.  String value expected.');
-      }
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
       soFarSoGood = false;
     }
   }
@@ -1229,24 +1266,9 @@ if (siteConfigJSON)
     soFarSoGood = false;
   }
 
-  if (requiredKeysNotFound.length)
-  {
-    if (requiredKeysNotFound.length === 1)
-    {
-      console.log('ERROR: Configuration:  The following configuration attribute was not found:');
-    }
-    else
-    {
-      console.log('ERROR: Configuration:  The following configuration attributes were not found:');
-    }
-    requiredKeysNotFound.forEach((keyName) =>
-    {
-      console.log(`ERROR: - ${keyName}`);
-    });
-    soFarSoGood = false;
-  }
+  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
 
-  readSuccess = soFarSoGood;
+  readSuccess = soFarSoGood && allRequiredKeys;
 }
 
 if (readSuccess)
