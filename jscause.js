@@ -7,6 +7,7 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
+const JSCAUSE_SITECONF_FILENAME = 'site_configuration.json';
 const fs = require('fs');
 const urlUtils = require('url');
 const crypto = require('crypto');
@@ -378,6 +379,8 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
 
 const defaultSiteConfig = {
   server: null,
+  name: '',
+  rootDirectoryName: '',
   indexRun: null,
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
@@ -1020,9 +1023,10 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
   return finalProcessedConfigJSON;
 }
 
-function createSiteDefaultSiteConfig()
+function createInitialSiteConfig(siteInfo)
 {
-  return Object.assign({}, defaultSiteConfig);
+  const { name, rootDirectoryName } = siteInfo;
+  return Object.assign({}, defaultSiteConfig, { name, rootDirectoryName });
 }
 
 function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound)
@@ -1061,9 +1065,6 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
   return soFarSoGood;
 }
 
-
-const siteConfig = createSiteDefaultSiteConfig();
-
 let stats;
 
 //const indexFile = './website/index.jssp'; //__RP
@@ -1079,17 +1080,16 @@ const compileContext =
   compiledModule: null
 };
 
-/* ***************************************************
+let allSitesInServer;
+/* *****************************************************
  *
- * Reading and processing the site configuration file
+ * Reading and processing the server configuration file
  *
- *****************************************************/
+ *******************************************************/
 const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
 
 if (globalConfigJSON)
 {
-  console.log('NOT BAD!');//__RP
-  console.log(globalConfigJSON);
   const allAllowedKeys =
   [
     'sites'
@@ -1111,6 +1111,7 @@ if (globalConfigJSON)
 
     if (Array.isArray(configValue))
     {
+      allSitesInServer = configValue;
     }
     else
     {
@@ -1132,13 +1133,13 @@ if (globalConfigJSON)
  * Reading and processing the site configuration file
  *
  *****************************************************/
-let siteJSONFileName;
+const thisServerSite = allSitesInServer[0];
+const siteConfig = createInitialSiteConfig(thisServerSite);
 let siteJSONFilePath;
 
-siteJSONFileName = 'site_configuration.json';
-siteJSONFilePath = './sites/mysite';
+siteJSONFilePath = `./sites/${siteConfig.rootDirectoryName}`;
 
-const siteConfigJSON = readAndProcessJSONFile(siteJSONFileName, siteJSONFilePath);
+const siteConfigJSON = readSuccess && readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
 
 if (siteConfigJSON)
 {
@@ -1155,7 +1156,7 @@ if (siteConfigJSON)
 
   let soFarSoGood = true;
   
-  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, siteJSONFileName);
+  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
   let configValue;
   let configKeyName;
 
