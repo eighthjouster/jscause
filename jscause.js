@@ -6,6 +6,7 @@
    *
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
+const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const fs = require('fs');
 const urlUtils = require('url');
 const crypto = require('crypto');
@@ -460,11 +461,11 @@ function doDeleteFile(thisFile)
   });
 }
 
-function doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork })
+function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
-  const newFilePath = `${siteConfig.uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
+  const newFilePath = `${uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
 
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
@@ -483,7 +484,7 @@ function doMoveToUploadDir(thisFile, { responder, req, res, formContext, pending
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, formContext);
+      responder(req, res, indexRun, formContext);
     }
   });
 }
@@ -617,7 +618,7 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(req, res,
+function responder(req, res, indexRun,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted
@@ -686,7 +687,6 @@ function responder(req, res,
   }
 
   const runTime = createRunTime(resContext);
-  const { indexRun } = siteConfig;
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
@@ -737,7 +737,7 @@ function startServer(serverConfig)
 {
   const { server, sites } = serverConfig;
   const [ siteConfig ] = sites;
-  const { canUpload, hostName, port, maxPayloadSizeBytes } = siteConfig;
+  const { canUpload, hostName, port, maxPayloadSizeBytes, uploadDirectory, indexRun } = siteConfig;
 
   server.on('request', (req, res) =>
   {
@@ -840,18 +840,18 @@ function startServer(serverConfig)
             {
               thisFile.forEach((thisActualFile) =>
               {
-                doMoveToUploadDir(thisActualFile, { responder, req, res, formContext, pendingWork });
+                doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
               });
             }
             else
             {
-              doMoveToUploadDir(thisFile, { responder, req, res, formContext, pendingWork });
+              doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
             }
           });
         }
         else
         {
-          responder(req, res, formContext);
+          responder(req, res, indexRun, formContext);
         }
       });
     }
@@ -889,7 +889,7 @@ function startServer(serverConfig)
         }
 
         const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-        responder(req, res, postContext);
+        responder(req, res, indexRun, postContext);
       });
     }
 
@@ -1042,17 +1042,12 @@ const compileContext =
   compiledModule: null
 };
 
-let jsonFileName;
-let jsonFilePath;
-
 /* ***************************************************
  *
  * Reading and processing the site configuration file
  *
  *****************************************************/
-jsonFileName = 'jscause.conf';
-
-const globalConfigJSON = readAndProcessJSONFile(jsonFileName);
+const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
 
 if (globalConfigJSON)
 {
@@ -1065,10 +1060,13 @@ if (globalConfigJSON)
  * Reading and processing the site configuration file
  *
  *****************************************************/
-jsonFileName = 'site_configuration.json';
-jsonFilePath = './sites/mysite';
+let siteJSONFileName;
+let siteJSONFilePath;
 
-const siteConfigJSON = readAndProcessJSONFile(jsonFileName, jsonFilePath);
+siteJSONFileName = 'site_configuration.json';
+siteJSONFilePath = './sites/mysite';
+
+const siteConfigJSON = readAndProcessJSONFile(siteJSONFileName, siteJSONFilePath);
 
 if (siteConfigJSON)
 {
@@ -1085,7 +1083,7 @@ if (siteConfigJSON)
 
   let soFarSoGood = true;
   
-  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, jsonFileName);
+  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, siteJSONFileName);
   let configValue;
   let configKeyName;
 
