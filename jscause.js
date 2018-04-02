@@ -736,10 +736,9 @@ function sendUploadIsForbidden(res)
   res.end('Forbidden!');
 }
 
-function startServer(serverConfig)
+function startServer(siteConfig)
 {
-  const { server, sites } = serverConfig;
-  const [ siteConfig ] = sites;
+  const { server } = siteConfig;
   const { canUpload, hostName, port, maxPayloadSizeBytes, uploadDirectory, indexRun } = siteConfig;
 
   server.on('request', (req, res) =>
@@ -1067,9 +1066,6 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
 
 let stats;
 
-//const indexFile = './website/index.jssp'; //__RP
-const indexFile = './sites/mysite/website/index.jssp';
-
 let serverStarted = false;
 let readSuccess = false;
 let indexExists = false;
@@ -1103,7 +1099,7 @@ if (globalConfigJSON)
   let configValue;
   let configKeyName;
 
-  // hostname
+  // sites
   if (processedConfigJSON)
   {
     configKeyName = 'sites';
@@ -1112,6 +1108,19 @@ if (globalConfigJSON)
     if (Array.isArray(configValue))
     {
       allSitesInServer = configValue;
+      if (Array.isArray(allSitesInServer))
+      {
+        if  (!allSitesInServer.length)
+        {
+          console.log('ERROR: Configuration:  sites cannot be empty.');
+          soFarSoGood = false;
+        }
+      }
+      else
+      {
+        console.log('ERROR: Server configuration:  sites must be an array.');
+        soFarSoGood = false;
+      }
     }
     else
     {
@@ -1133,313 +1142,337 @@ if (globalConfigJSON)
  * Reading and processing the site configuration file
  *
  *****************************************************/
-const thisServerSite = allSitesInServer[0];
-const siteConfig = createInitialSiteConfig(thisServerSite);
-let siteJSONFilePath;
-
-siteJSONFilePath = `./sites/${siteConfig.rootDirectoryName}`;
-
-const siteConfigJSON = readSuccess && readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
-
-if (siteConfigJSON)
-{
-  const allAllowedKeys =
-  [
-    'hostname',
-    'port',
-    'uploaddirectory',
-    'canupload',
-    'maxpayloadsizebytes'
-  ];
-
-  const requiredKeysNotFound = [];
-
-  let soFarSoGood = true;
-  
-  let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
-  let configValue;
-  let configKeyName;
-
-  // hostname
-  if (processedConfigJSON)
-  {
-    configKeyName = 'hostname';
-    configValue = processedConfigJSON[configKeyName];
-
-    if (typeof(configValue) === 'string')
-    {
-      if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-      {
-        siteConfig.hostName = configValue;
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  hostname cannot be empty.');
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
-      soFarSoGood = false;
-    }
-
-    configKeyName = 'port';
-    configValue = processedConfigJSON[configKeyName];
-
-    if ((typeof(configValue) !== 'undefined') && ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, '')))
-    {
-      const portNumber = parseFloat(configValue, 10);
-      if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
-      {
-        siteConfig.port = portNumber;
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  port cannot be empty.');
-      soFarSoGood = false;
-    }
-
-    configKeyName = 'canupload';
-    configValue = processedConfigJSON[configKeyName];
-
-    if (typeof(configValue) === 'boolean')
-    {
-      siteConfig.canupload = configValue;
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
-      soFarSoGood = false;
-    }
-
-    configKeyName = 'maxpayloadsizebytes';
-    configValue = processedConfigJSON[configKeyName];
-
-    if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-    {
-      const uploadSize = parseFloat(configValue, 10);
-      if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
-      {
-        siteConfig.maxPayloadSizeBytes = uploadSize;
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
-      soFarSoGood = false;
-    }
-
-    configKeyName = 'uploaddirectory';
-    configValue = processedConfigJSON[configKeyName];
-
-    if (typeof(configValue) === 'string')
-    {
-      const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
-      if (dirName)
-      {
-        siteConfig.uploadDirectory = dirName;
-      }
-      else
-      {
-        console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
-      soFarSoGood = false;
-    }
-  }
-  else {
-    soFarSoGood = false;
-  }
-
-  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
-
-  readSuccess = soFarSoGood && allRequiredKeys;
-}
-
+const allSiteConfigs = [];
 if (readSuccess)
 {
-  readSuccess = false;
+  allSitesInServer.forEach((thisServerSite) =>
+  {
+    const siteConfig = createInitialSiteConfig(thisServerSite);
+    const { rootDirectoryName } = siteConfig;
 
-  try
-  {
-    stats = fs.statSync(indexFile);
-    readSuccess = true;
-  }
-  catch (e)
-  {
-    console.log('ERROR: Cannot find index file');
-    console.log(e);
-  }
-}
-
-if (readSuccess)
-{
-  readSuccess = false;
-
-  if (stats.isDirectory())
-  {
-    console.log(`ERROR: Entry point is a directory: ${indexFile}`);
-  }
-  else
-  {
-    try
+    if (rootDirectoryName)
     {
-      compileContext.data = fs.readFileSync(indexFile, 'utf-8');
-      readSuccess = true;
-    }
-    catch(e)
-    {
-      console.log('ERROR: Cannot load index file.');
-      console.log(e);
-    }
-  }
-}
+      let siteJSONFilePath;
 
-if (readSuccess)
-{
-  const Module = module.constructor;
-  Module._nodeModulePaths(path.dirname(''))
-  compileContext.compiledModule = new Module();
-  try
-  {
-    const CONTEXT_HTML = 0;
-    const CONTEXT_JAVASCRIPT = 1;
+      siteJSONFilePath = `./sites/${rootDirectoryName}`;
 
-    // Matches '<js', '<JS', /js>' or '/JS>'
-    // Adds a prefixing space to distinguish from 
-    // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
-    // (Otherwise, it would delete whatever character is right before.)
-    let unprocessedData = compileContext.data
-      .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
-      .replace(/([^\\])<js/gi,'$1 <js')
-      .replace(/^<js/i,' <js')
-      .replace(/([^\\])\/js>/gi, '$1 /js>')
-      .replace(/^\/js>/i, ' /js>');
+      const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
 
-    const processedDataArray = [];
-
-    const firstOpeningTag = unprocessedData.indexOf(' <js');
-    const firstClosingTag = unprocessedData.indexOf(' /js>');
-
-    let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-      CONTEXT_JAVASCRIPT :
-      CONTEXT_HTML;
-
-    do
-    {
-      if (processingContext === CONTEXT_HTML)
+      if (siteConfigJSON)
       {
-        const [processBefore, processAfter] = unprocessedData
-          .split(/\s<js([\s\S]*)/);
+        const allAllowedKeys =
+        [
+          'hostname',
+          'port',
+          'uploaddirectory',
+          'canupload',
+          'maxpayloadsizebytes'
+        ];
 
-        unprocessedData = processAfter;
+        const requiredKeysNotFound = [];
 
-        const printedStuff = (processBefore) ?
-          processBefore
-            .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-            .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-            .replace(/\\/g,'\\\\')
-            .replace(/'/g,'\\\'')
-            .replace(/[^\S\n]{2,}/g, ' ')
-            .replace(/^\s*|\n\s*/g, '\n')
-            .split(/\n/)
-            .join(' \\n \\\n') :
-          '';
-      
-        if (printedStuff)
-        {
-          processedDataArray.push(`rt.print('${printedStuff}');`);
-        }
-
-        processingContext = CONTEXT_JAVASCRIPT;
-      }
-      else
-      {
-        // Assuming processingContext is CONTEXT_JAVASCRIPT
-
-        const [processBefore, processAfter] = unprocessedData
-          .split(/\s\/js>([\s\S]*)/);
-
-        if (processBefore.match(/<html\s*\//i))
-        {
-          console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
-        }
-
-        processedDataArray.push(processBefore);
+        let soFarSoGood = true;
         
-        unprocessedData = processAfter;
+        let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
+        let configValue;
+        let configKeyName;
 
-        processingContext = CONTEXT_HTML;
+        // hostname
+        if (processedConfigJSON)
+        {
+          configKeyName = 'hostname';
+          configValue = processedConfigJSON[configKeyName];
+
+          if (typeof(configValue) === 'string')
+          {
+            if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+            {
+              siteConfig.hostName = configValue;
+            }
+            else
+            {
+              console.log('ERROR: Configuration:  hostname cannot be empty.');
+              soFarSoGood = false;
+            }
+          }
+          else
+          {
+            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
+            soFarSoGood = false;
+          }
+
+          configKeyName = 'port';
+          configValue = processedConfigJSON[configKeyName];
+
+          if ((typeof(configValue) !== 'undefined') && ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, '')))
+          {
+            const portNumber = parseFloat(configValue, 10);
+            if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+            {
+              siteConfig.port = portNumber;
+            }
+            else
+            {
+              console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+              soFarSoGood = false;
+            }
+          }
+          else
+          {
+            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  port cannot be empty.');
+            soFarSoGood = false;
+          }
+
+          configKeyName = 'canupload';
+          configValue = processedConfigJSON[configKeyName];
+
+          if (typeof(configValue) === 'boolean')
+          {
+            siteConfig.canupload = configValue;
+          }
+          else
+          {
+            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
+            soFarSoGood = false;
+          }
+
+          configKeyName = 'maxpayloadsizebytes';
+          configValue = processedConfigJSON[configKeyName];
+
+          if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+          {
+            const uploadSize = parseFloat(configValue, 10);
+            if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+            {
+              siteConfig.maxPayloadSizeBytes = uploadSize;
+            }
+            else
+            {
+              console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+              soFarSoGood = false;
+            }
+          }
+          else
+          {
+            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
+            soFarSoGood = false;
+          }
+
+          configKeyName = 'uploaddirectory';
+          configValue = processedConfigJSON[configKeyName];
+
+          if (typeof(configValue) === 'string')
+          {
+            const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+            if (dirName)
+            {
+              siteConfig.uploadDirectory = dirName;
+            }
+            else
+            {
+              console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
+              soFarSoGood = false;
+            }
+          }
+          else
+          {
+            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
+            soFarSoGood = false;
+          }
+        }
+        else {
+          soFarSoGood = false;
+        }
+
+        const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
+
+        readSuccess = soFarSoGood && allRequiredKeys;
       }
-    } while (unprocessedData);
-    
-    const processedData = processedDataArray.join('');
 
-    try
-    {
-      compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
-      indexExists = true;
+      const indexFile = `${siteJSONFilePath}/website/index.jssp`;
+
+      if (readSuccess)
+      {
+        readSuccess = false;
+
+        try
+        {
+          stats = fs.statSync(indexFile);
+          readSuccess = true;
+        }
+        catch (e)
+        {
+          console.log('ERROR: Cannot find index file');
+          console.log(e);
+        }
+      }
+
+      if (readSuccess)
+      {
+        readSuccess = false;
+
+        if (stats.isDirectory())
+        {
+          console.log(`ERROR: Entry point is a directory: ${indexFile}`);
+        }
+        else
+        {
+          try
+          {
+            compileContext.data = fs.readFileSync(indexFile, 'utf-8');
+            readSuccess = true;
+          }
+          catch(e)
+          {
+            console.log('ERROR: Cannot load index file.');
+            console.log(e);
+          }
+        }
+      }
+
+      if (readSuccess)
+      {
+        const Module = module.constructor;
+        Module._nodeModulePaths(path.dirname(''))
+        compileContext.compiledModule = new Module();
+        try
+        {
+          const CONTEXT_HTML = 0;
+          const CONTEXT_JAVASCRIPT = 1;
+
+          // Matches '<js', '<JS', /js>' or '/JS>'
+          // Adds a prefixing space to distinguish from 
+          // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+          // (Otherwise, it would delete whatever character is right before.)
+          let unprocessedData = compileContext.data
+            .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
+            .replace(/([^\\])<js/gi,'$1 <js')
+            .replace(/^<js/i,' <js')
+            .replace(/([^\\])\/js>/gi, '$1 /js>')
+            .replace(/^\/js>/i, ' /js>');
+
+          const processedDataArray = [];
+
+          const firstOpeningTag = unprocessedData.indexOf(' <js');
+          const firstClosingTag = unprocessedData.indexOf(' /js>');
+
+          let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
+            CONTEXT_JAVASCRIPT :
+            CONTEXT_HTML;
+
+          do
+          {
+            if (processingContext === CONTEXT_HTML)
+            {
+              const [processBefore, processAfter] = unprocessedData
+                .split(/\s<js([\s\S]*)/);
+
+              unprocessedData = processAfter;
+
+              const printedStuff = (processBefore) ?
+                processBefore
+                  .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                  .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+                  .replace(/\\/g,'\\\\')
+                  .replace(/'/g,'\\\'')
+                  .replace(/[^\S\n]{2,}/g, ' ')
+                  .replace(/^\s*|\n\s*/g, '\n')
+                  .split(/\n/)
+                  .join(' \\n \\\n') :
+                '';
+            
+              if (printedStuff)
+              {
+                processedDataArray.push(`rt.print('${printedStuff}');`);
+              }
+
+              processingContext = CONTEXT_JAVASCRIPT;
+            }
+            else
+            {
+              // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+              const [processBefore, processAfter] = unprocessedData
+                .split(/\s\/js>([\s\S]*)/);
+
+              if (processBefore.match(/<html\s*\//i))
+              {
+                console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+              }
+
+              processedDataArray.push(processBefore);
+              
+              unprocessedData = processAfter;
+
+              processingContext = CONTEXT_HTML;
+            }
+          } while (unprocessedData);
+          
+          const processedData = processedDataArray.join('');
+
+          try
+          {
+            compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+            indexExists = true;
+          }
+          catch (e)
+          {
+            console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
+            console.log(e);
+          }
+        }
+        catch (e)
+        {
+          console.log('ERROR: Parsing error, possibly internal.');
+          console.log(e);
+        }
+      }
+
+      if (indexExists)
+      {
+        readSuccess = false;
+        siteConfig.indexRun = compileContext.compiledModule.exports;
+
+        if (typeof(siteConfig.indexRun) !== 'function')
+        {
+          siteConfig.indexRun = undefined;
+          console.log('ERROR: Could not compile code.');
+        }
+        else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
+        {
+          // All is well so far.
+          if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
+          {
+            siteConfig.canUpload = false;
+          }
+
+          allSiteConfigs.push(siteConfig);
+          readSuccess = true;
+        }
+      }
     }
-    catch (e)
-    {
-      console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
-      console.log(e);
+    else {
+      console.log('ERROR: missing rootDirectoryName.');
+      readSuccess = false;
     }
-  }
-  catch (e)
-  {
-    console.log('ERROR: Parsing error, possibly internal.');
-    console.log(e);
-  }
+
+    if (!readSuccess)
+    {
+      console.log(`ERROR: Site ${siteConfig.name} not started.`);
+    }
+  });
 }
 
-if (indexExists)
-{
-  siteConfig.indexRun = compileContext.compiledModule.exports;
+const serverConfig = {};
 
-  if (typeof(siteConfig.indexRun) !== 'function')
-  {
-    siteConfig.indexRun = undefined;
-    console.log('ERROR: Could not compile code.');
-  }
-  else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
-  {
-    // All is well so far.
-    if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
-    {
-      siteConfig.canUpload = false;
-    }
-  }
-}
-
-const serverConfig = {
-  sites: [ siteConfig ]
-};
-
-if (indexExists)
-{
-  serverConfig.server = http.createServer();
-  startServer(serverConfig);
+serverConfig.sites = allSiteConfigs || [];
+serverConfig.sites.forEach((site) => {
+  site.server = http.createServer();
+  startServer(site);
   serverStarted = true;
-}
+});
 
 if (!serverStarted)
 {
-  console.log('ERROR: Server not started.');
+  console.log('ERROR: No server started.');
 }

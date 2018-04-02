@@ -2,22 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Check for empty allSitesInServer array.  Server should not start if empty.
- - And address:
-    const thisServerSite = allSitesInServer[0];
-Test that the site configs are valid (name, serverName and rootDirectoryName)
+Test that the site configs are valid:
+ *- rootDirectoryName - done.
+ - name
 
-No more site_configuration.json path hardcoding at this point.
+No two sites should have the same rootDirectoryName or the same name.
 
-Re-test file uploads.  Especifically, file deletion after upload.
+No two sites should have the same hostname and port.
 
 Consider using console.warn() and console.error()
 
-Option to use general upload directory and per-site upload directory.
-
-A default config file stowed away, and a app-specific config file for overrides.
-
-No hardcoding?
+Re-test file uploads.  Especifically, file deletion after upload.
 
 Cookies?
  - Read/write?
@@ -30,10 +25,8 @@ Other files? (images, css, js).
 Are we vulnerable to this?
 https://hackerone.com/reports/310439
 
-At this point, start abstracting away the engine.
+At this point, divide up the engine into different files.
  - Make it one file using gulp or something, for prod.
-
-Server Id? (Multi-host).
 
 Server-side rendering?
 
@@ -71,6 +64,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+Option to use general upload directory and per-site upload directory.
 
 Databases, advanced features.
 
