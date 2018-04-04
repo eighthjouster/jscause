@@ -2,10 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Test that the site configs are valid:
- *- rootDirectoryName - done.
- - name
-
 No two sites should have the same rootDirectoryName or the same name.
 
 No two sites should have the same hostname and port.
@@ -13,6 +9,9 @@ No two sites should have the same hostname and port.
 Consider using console.warn() and console.error()
 
 Re-test file uploads.  Especifically, file deletion after upload.
+
+Test with two sites.
+ - And re-test file uploads for both sites.  Especifically, file deletion after upload.
 
 Cookies?
  - Read/write?

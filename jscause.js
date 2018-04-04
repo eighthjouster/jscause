@@ -1148,9 +1148,15 @@ if (readSuccess)
   allSitesInServer.forEach((thisServerSite) =>
   {
     const siteConfig = createInitialSiteConfig(thisServerSite);
-    const { rootDirectoryName } = siteConfig;
+    const { name: siteName, rootDirectoryName } = siteConfig;
 
-    if (rootDirectoryName)
+    if (!siteName)
+    {
+      console.log('ERROR: missing name.');
+      readSuccess = false;
+    }
+
+    if (readSuccess && rootDirectoryName)
     {
       let siteJSONFilePath;
 
@@ -1191,7 +1197,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Configuration:  hostname cannot be empty.');
+              console.log('ERROR: Site configuration:  hostname cannot be empty.');
               soFarSoGood = false;
             }
           }
@@ -1213,7 +1219,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Configuration:  Invalid port.  Integer number expected.');
+              console.log('ERROR: Site configuration:  Invalid port.  Integer number expected.');
               soFarSoGood = false;
             }
           }
@@ -1248,7 +1254,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+              console.log('ERROR: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
               soFarSoGood = false;
             }
           }
@@ -1270,7 +1276,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Configuration:  uploaddirectory cannot be empty.');
+              console.log('ERROR: Site configuration:  uploaddirectory cannot be empty.');
               soFarSoGood = false;
             }
           }
@@ -1302,7 +1308,7 @@ if (readSuccess)
         }
         catch (e)
         {
-          console.log('ERROR: Cannot find index file');
+          console.log('ERROR: Site: Cannot find index file');
           console.log(e);
         }
       }
@@ -1313,7 +1319,7 @@ if (readSuccess)
 
         if (stats.isDirectory())
         {
-          console.log(`ERROR: Entry point is a directory: ${indexFile}`);
+          console.log(`ERROR: Site: Entry point is a directory: ${indexFile}`);
         }
         else
         {
@@ -1324,7 +1330,7 @@ if (readSuccess)
           }
           catch(e)
           {
-            console.log('ERROR: Cannot load index file.');
+            console.log('ERROR: Site: Cannot load index file.');
             console.log(e);
           }
         }
@@ -1397,7 +1403,7 @@ if (readSuccess)
 
               if (processBefore.match(/<html\s*\//i))
               {
-                console.log('WARNING: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+                console.log('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
               }
 
               processedDataArray.push(processBefore);
@@ -1417,13 +1423,13 @@ if (readSuccess)
           }
           catch (e)
           {
-            console.log(`ERROR: Compile error: ${extractErrorFromCompileObject(e)}`);
+            console.log(`ERROR: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
             console.log(e);
           }
         }
         catch (e)
         {
-          console.log('ERROR: Parsing error, possibly internal.');
+          console.log('ERROR: Site: Parsing error, possibly internal.');
           console.log(e);
         }
       }
@@ -1436,7 +1442,7 @@ if (readSuccess)
         if (typeof(siteConfig.indexRun) !== 'function')
         {
           siteConfig.indexRun = undefined;
-          console.log('ERROR: Could not compile code.');
+          console.log('ERROR: Site: Could not compile code.');
         }
         else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
         {
@@ -1451,14 +1457,19 @@ if (readSuccess)
         }
       }
     }
-    else {
-      console.log('ERROR: missing rootDirectoryName.');
+    else if (readSuccess)
+    {
+      console.log('ERROR: Site configuration: missing rootDirectoryName.');
       readSuccess = false;
     }
 
-    if (!readSuccess)
+    if (readSuccess)
     {
-      console.log(`ERROR: Site ${siteConfig.name} not started.`);
+      console.log(`INFO: Site '${siteName}' ready.`);
+    }
+    else
+    {
+      console.log(`ERROR: Site ${siteName ? `'${siteName}'` : '(no name)'} not started.`);
     }
   });
 }
