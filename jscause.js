@@ -1143,17 +1143,45 @@ if (globalConfigJSON)
  *
  *****************************************************/
 const allSiteConfigs = [];
+let allRootDirectoryNames = [];
+let allSiteNames = [];
 if (readSuccess)
 {
   allSitesInServer.forEach((thisServerSite) =>
   {
+    readSuccess = true;
     const siteConfig = createInitialSiteConfig(thisServerSite);
     const { name: siteName, rootDirectoryName } = siteConfig;
 
-    if (!siteName)
+    if (siteName)
+    {
+      if (allSiteNames.indexOf(siteName) === -1)
+      {
+        allSiteNames.push(siteName);
+      }
+      else
+      {
+        console.log(`ERROR: Site configuration: Site name '${siteName}' is not unique.`);
+        readSuccess = false;
+      }
+    }
+    else
     {
       console.log('ERROR: missing name.');
       readSuccess = false;
+    }
+
+    if (readSuccess && rootDirectoryName)
+    {
+      if (allRootDirectoryNames.indexOf(rootDirectoryName) === -1)
+      {
+        allRootDirectoryNames.push(rootDirectoryName);
+      }
+      else
+      {
+        console.log(`ERROR: Site configuration: rootDirectoryName '${rootDirectoryName}' is not unique.`);
+        readSuccess = false;
+      }
     }
 
     if (readSuccess && rootDirectoryName)
@@ -1459,7 +1487,7 @@ if (readSuccess)
     }
     else if (readSuccess)
     {
-      console.log('ERROR: Site configuration: missing rootDirectoryName.');
+      console.log('ERROR: Site configuration: invalid or missing rootDirectoryName.');
       readSuccess = false;
     }
 
@@ -1473,6 +1501,9 @@ if (readSuccess)
     }
   });
 }
+
+allRootDirectoryNames = null;
+allSiteNames = null;
 
 const serverConfig = {};
 

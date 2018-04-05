@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-No two sites should have the same rootDirectoryName or the same name.
-
 No two sites should have the same hostname and port.
 
 Consider using console.warn() and console.error()
