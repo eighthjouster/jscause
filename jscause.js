@@ -22,6 +22,7 @@ const DEFAULT_HOSTNAME = 'localhost';
 const DEFAULT_PORT = 3000;
 const DEFAULT_UPLOAD_DIR = './workbench/uploads';
 
+console.log(`JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 /* *****************************************
  * 
  * Helper functions
@@ -904,7 +905,7 @@ function startServer(siteConfig)
 
   server.listen(port, hostName, () =>
   {
-    console.log(`JSCause Server version ${JSCAUSE_APPLICATION_VERSION} running at http://${hostName}:${port}/`);
+    console.log(`Site running at http://${hostName}:${port}/`);
   });
 
   server.on('error', (e) =>
@@ -912,7 +913,7 @@ function startServer(siteConfig)
     console.log('ERROR: Could not start listening on hostname and port specified.')
     console.log('ERROR: Error returned by the server follows.')
     console.log(`ERROR: ${e.message}`);
-    console.log('ERROR: Server not started.');
+    console.log(`ERROR: Site http://${hostName}:${port}/ not started.`);
   });
 }
 
@@ -1066,7 +1067,7 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
 
 let stats;
 
-let serverStarted = false;
+let atLeastOneSiteStarted = false;
 let readSuccess = false;
 let indexExists = false;
 
@@ -1143,8 +1144,12 @@ if (globalConfigJSON)
  *
  *****************************************************/
 const allSiteConfigs = [];
+let allReadySiteNames = [];
+let allFailedSiteNames = [];
 let allRootDirectoryNames = [];
 let allSiteNames = [];
+let allHostNames = [];
+
 if (readSuccess)
 {
   allSitesInServer.forEach((thisServerSite) =>
@@ -1190,9 +1195,12 @@ if (readSuccess)
 
       siteJSONFilePath = `./sites/${rootDirectoryName}`;
 
+      console.log(`INFO: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
       const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
+      
+      readSuccess = !!siteConfigJSON;
 
-      if (siteConfigJSON)
+      if (readSuccess)
       {
         const allAllowedKeys =
         [
@@ -1211,8 +1219,10 @@ if (readSuccess)
         let configValue;
         let configKeyName;
 
+        soFarSoGood = !!processedConfigJSON;
+
         // hostname
-        if (processedConfigJSON)
+        if (soFarSoGood)
         {
           configKeyName = 'hostname';
           configValue = processedConfigJSON[configKeyName];
@@ -1313,9 +1323,6 @@ if (readSuccess)
             checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
             soFarSoGood = false;
           }
-        }
-        else {
-          soFarSoGood = false;
         }
 
         const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
@@ -1462,7 +1469,7 @@ if (readSuccess)
         }
       }
 
-      if (indexExists)
+      if (readSuccess && indexExists)
       {
         readSuccess = false;
         siteConfig.indexRun = compileContext.compiledModule.exports;
@@ -1494,10 +1501,12 @@ if (readSuccess)
     if (readSuccess)
     {
       console.log(`INFO: Site '${siteName}' ready.`);
+      allReadySiteNames.push(siteName);
     }
     else
     {
       console.log(`ERROR: Site ${siteName ? `'${siteName}'` : '(no name)'} not started.`);
+      allFailedSiteNames.push(siteName);
     }
   });
 }
@@ -1511,10 +1520,34 @@ serverConfig.sites = allSiteConfigs || [];
 serverConfig.sites.forEach((site) => {
   site.server = http.createServer();
   startServer(site);
-  serverStarted = true;
+  atLeastOneSiteStarted = true;
 });
 
-if (!serverStarted)
+console.log('INFO: ************ All sites\' configuration read at this point ********************');
+
+if (allReadySiteNames.length)
 {
-  console.log('ERROR: No server started.');
+  console.log('INFO: The following sites were set up successfully:');
+  allReadySiteNames.forEach((name) =>
+  {
+    console.log(`INFO: - ${name ? `'${name}'` : '(no name)'}`);
+  });
+}
+
+if (allFailedSiteNames.length)
+{
+  console.log('ERROR: The following sites failed to run:');
+  allFailedSiteNames.forEach((name) =>
+  {
+    console.log(`ERROR: - ${name ? `'${name}'` : '(no name)'}`);
+  });
+}
+
+if (atLeastOneSiteStarted)
+{
+  console.log('INFO: Will start listening.');
+}
+else
+{
+  console.log('ERROR: Server not started.  No site is running.');
 }
