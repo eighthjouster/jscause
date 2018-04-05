@@ -87,3 +87,5 @@ Or this:
 - jscause.conf:  Global enclosing curly brackets are optional.
 - Comments in jscause.conf: // are allowed.  Yes, we know comments are not valid json.  But they are allowed for documentation.
 - All attributes declared in jscause.conf must be valid (known), or else the server will NOT start.  If any attribute is omitted, defaults will apply.
+- No two sites can have the same rootDirectoryName or the same name.
+- No two sites can have the same hostname/port combination.

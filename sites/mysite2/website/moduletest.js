@@ -1,1 +1,0 @@
-module.exports = () => { return 'WHAT IS UP!'; };

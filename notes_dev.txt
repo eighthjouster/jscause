@@ -2,9 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-No two sites should have the same hostname and port.
-
 Consider using console.warn() and console.error()
+
+Should the application warn if two different sites specify the same upload directory?
+ - What about the same location of files? (esp. if the HTTP protocols are the same.)
 
 Re-test file uploads.  Especifically, file deletion after upload.
 
@@ -15,6 +16,8 @@ Cookies?
  - Read/write?
 
 Redirects?
+
+HTTPS?
 
 Other files? (images, css, js).
  - Static files?
@@ -28,6 +31,9 @@ At this point, divide up the engine into different files.
 Server-side rendering?
 
 Server logging?
+
+Handling server termination gracefully?
+ - Perhaps it should indicate at least that the application/process was terminated?
 
 Route to site.
 

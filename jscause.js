@@ -22,7 +22,7 @@ const DEFAULT_HOSTNAME = 'localhost';
 const DEFAULT_PORT = 3000;
 const DEFAULT_UPLOAD_DIR = './workbench/uploads';
 
-console.log(`JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
+console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 /* *****************************************
  * 
  * Helper functions
@@ -459,7 +459,7 @@ function doDeleteFile(thisFile)
     if (err)
     {
       console.log(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
-      console.log(`WARNING (CONT): On the file system as: ${thisFile.path}`);
+      console.log(`WARNING: (CONT) On the file system as: ${thisFile.path}`);
       console.log(err);
     }
   });
@@ -477,8 +477,8 @@ function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, ind
     if (err)
     {
       console.log(`ERROR: Could not rename unhandled uploaded file: ${thisFile.name}`);
-      console.log(`ERROR (CONT): Renaming from: ${oldFilePath}`);
-      console.log(`ERROR (CONT): Renaming to: ${newFilePath}`);
+      console.log(`ERROR: (CONT) Renaming from: ${oldFilePath}`);
+      console.log(`ERROR: (CONT) Renaming to: ${newFilePath}`);
       console.log(err);
     }
     else
@@ -740,7 +740,7 @@ function sendUploadIsForbidden(res)
 function startServer(siteConfig)
 {
   const { server } = siteConfig;
-  const { canUpload, hostName, port, maxPayloadSizeBytes, uploadDirectory, indexRun } = siteConfig;
+  const { name, canUpload, hostName, port, maxPayloadSizeBytes, uploadDirectory, indexRun } = siteConfig;
 
   server.on('request', (req, res) =>
   {
@@ -905,15 +905,15 @@ function startServer(siteConfig)
 
   server.listen(port, hostName, () =>
   {
-    console.log(`Site running at http://${hostName}:${port}/`);
+    console.log(`INFO: Site ${getSiteNameOrNoName(name)} running at http://${hostName}:${port}/`);
   });
 
   server.on('error', (e) =>
   {
     console.log('ERROR: Could not start listening on hostname and port specified.')
-    console.log('ERROR: Error returned by the server follows.')
+    console.log('ERROR: Error returned by the server follows:')
     console.log(`ERROR: ${e.message}`);
-    console.log(`ERROR: Site http://${hostName}:${port}/ not started.`);
+    console.log(`ERROR: Site ${getSiteNameOrNoName(name)} not started.`);
   });
 }
 
@@ -931,7 +931,7 @@ function readConfigurationFile(name, path = '.')
   }
   catch (e)
   {
-    console.log(`ERROR: Cannot find ${name} file`);
+    console.log(`ERROR: Cannot find ${name} file.`);
     console.log(e);
   }
 
@@ -1065,6 +1065,11 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
   return soFarSoGood;
 }
 
+function getSiteNameOrNoName(name)
+{
+  return name ? `'${name}'` : '(no name)';
+}
+
 let stats;
 
 let atLeastOneSiteStarted = false;
@@ -1148,7 +1153,7 @@ let allReadySiteNames = [];
 let allFailedSiteNames = [];
 let allRootDirectoryNames = [];
 let allSiteNames = [];
-let allHostNames = [];
+let allHostNamePortCombos = [];
 
 if (readSuccess)
 {
@@ -1157,6 +1162,7 @@ if (readSuccess)
     readSuccess = true;
     const siteConfig = createInitialSiteConfig(thisServerSite);
     const { name: siteName, rootDirectoryName } = siteConfig;
+    let  indexFile = '';
 
     if (siteName)
     {
@@ -1330,11 +1336,33 @@ if (readSuccess)
         readSuccess = soFarSoGood && allRequiredKeys;
       }
 
-      const indexFile = `${siteJSONFilePath}/website/index.jssp`;
+      if (readSuccess)
+      {
+        const currentSiteName = siteConfig.name;
+        const currentSiteHostName = siteConfig.hostName.toLowerCase();
+        const currentSitePort = siteConfig.port;
+        allHostNamePortCombos.every((combo) =>
+        {
+          if ((currentSiteHostName === combo.hostName.toLowerCase()) && (currentSitePort === combo.port))
+          {
+            console.log(`ERROR: Site configuration: Both sites ${getSiteNameOrNoName(currentSiteName)} and ${getSiteNameOrNoName(combo.name)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
+            readSuccess = false;
+          }
+
+          return readSuccess;
+        });
+
+        if (readSuccess)
+        {
+          allHostNamePortCombos.push({hostName: siteConfig.hostName, port: siteConfig.port, name: siteConfig.name});
+        }
+      }
 
       if (readSuccess)
       {
         readSuccess = false;
+
+        indexFile = `${siteJSONFilePath}/website/index.jssp`;
 
         try
         {
@@ -1505,7 +1533,7 @@ if (readSuccess)
     }
     else
     {
-      console.log(`ERROR: Site ${siteName ? `'${siteName}'` : '(no name)'} not started.`);
+      console.log(`ERROR: Site ${getSiteNameOrNoName(siteName)} not started.`);
       allFailedSiteNames.push(siteName);
     }
   });
@@ -1517,7 +1545,8 @@ allSiteNames = null;
 const serverConfig = {};
 
 serverConfig.sites = allSiteConfigs || [];
-serverConfig.sites.forEach((site) => {
+serverConfig.sites.forEach((site) =>
+{
   site.server = http.createServer();
   startServer(site);
   atLeastOneSiteStarted = true;
@@ -1530,7 +1559,7 @@ if (allReadySiteNames.length)
   console.log('INFO: The following sites were set up successfully:');
   allReadySiteNames.forEach((name) =>
   {
-    console.log(`INFO: - ${name ? `'${name}'` : '(no name)'}`);
+    console.log(`INFO: - ${getSiteNameOrNoName(name)}`);
   });
 }
 
@@ -1539,7 +1568,7 @@ if (allFailedSiteNames.length)
   console.log('ERROR: The following sites failed to run:');
   allFailedSiteNames.forEach((name) =>
   {
-    console.log(`ERROR: - ${name ? `'${name}'` : '(no name)'}`);
+    console.log(`ERROR: - ${getSiteNameOrNoName(name)}`);
   });
 }
 
