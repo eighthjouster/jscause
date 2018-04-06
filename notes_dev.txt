@@ -2,13 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Should the application warn if two different sites specify the same upload directory?
- - What about the same location of files? (esp. if the HTTP protocols are the same.)
-
-Re-test file uploads.  Especifically, file deletion after upload.
-
 Test with two sites.
- - And re-test file uploads for both sites.  Especifically, file deletion after upload.
+ - And re-test file uploads for both sites.
+   - Especifically, file deletion after upload.
+     - When they share the same directories.
+     - When they use different directories.
+       - Test with Chrome.
+   - And file saving to custom location after upload.
+     - When they share the same directories.
+     - When they use different directories.
+
+Git tag at this point.
 
 Cookies?
  - Read/write?
@@ -16,6 +20,7 @@ Cookies?
 Redirects?
 
 HTTPS?
+ - Thorough documentation to do this.
 
 Other files? (images, css, js).
  - Static files?
@@ -25,6 +30,9 @@ https://hackerone.com/reports/310439
 
 At this point, divide up the engine into different files.
  - Make it one file using gulp or something, for prod.
+
+Watch for and reload changes at this point.
+ - And only the site it's affected, leaving the reset intact. - If possible.
 
 Server-side rendering?
 
@@ -65,6 +73,10 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+Should the application warn if two different sites specify the same upload directory?
+ - What about the same location of files? (esp. if the HTTP protocols are the same.)
+ - Probably not? What do Apache, nginx and other server applications do?
 
 Option to use general upload directory and per-site upload directory.
 

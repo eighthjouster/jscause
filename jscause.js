@@ -470,7 +470,7 @@ function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, ind
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
   const newFilePath = `${uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
-
+  
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
     pendingWork.pendingRenaming--;
@@ -785,6 +785,12 @@ function startServer(siteConfig)
       postedForm.keepExtensions = false;
 
       postedForm.parse(req);
+
+      postedForm.on('error', (err) =>
+      {
+        console.error('ERROR: Form upload related error.');
+        console.error(err);
+      });
 
       postedForm.on('field', (name, value) =>
       {
