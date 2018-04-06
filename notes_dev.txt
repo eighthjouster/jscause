@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Consider using console.warn() and console.error()
-
 Should the application warn if two different sites specify the same upload directory?
  - What about the same location of files? (esp. if the HTTP protocols are the same.)
 

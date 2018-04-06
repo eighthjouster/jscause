@@ -47,8 +47,8 @@ function validateJSONFile(readConfigFile, fileName)
   }
   catch(e)
   {
-    console.log(`ERROR: Invalid ${fileName} file format.`);
-    console.log(`ERROR: ${e.message}`);
+    console.error(`ERROR: Invalid ${fileName} file format.`);
+    console.error(`ERROR: ${e.message}`);
     const positionExtract = e.message.match(/.+at position (\d+).*$/i);
     if (positionExtract)
     {
@@ -56,8 +56,8 @@ function validateJSONFile(readConfigFile, fileName)
       if (errorPosition)
       {
         const excerpt = (readConfigFile || '').substr(errorPosition - 20, 40).split(/\n/);
-        console.log('ERROR: Error is around the following section of the file:');
-        console.log(`ERROR: ${excerpt.join('')}`);
+        console.error('ERROR: Error is around the following section of the file:');
+        console.error(`ERROR: ${excerpt.join('')}`);
       }
     }
   }
@@ -371,8 +371,8 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
 
   if (parseError)
   {
-    console.log(`ERROR: Error parsing ${fileName}`);
-    console.log(`ERROR: ${parseErrorDescription}`);
+    console.error(`ERROR: Error parsing ${fileName}`);
+    console.error(`ERROR: ${parseErrorDescription}`);
   }
 
   return !parseError;
@@ -435,12 +435,12 @@ function setUploadDirectory(dirName, siteConfig)
       }
       catch (e)
       {
-        console.log(`ERROR: Upload directory ${dirName} is not writeable`);
+        console.error(`ERROR: Upload directory ${dirName} is not writeable`);
       }
     }
     else
     {
-      console.log(`ERROR: Upload directory ${dirName} not found`);
+      console.error(`ERROR: Upload directory ${dirName} not found`);
     }
 
     if (setupSuccess)
@@ -458,9 +458,9 @@ function doDeleteFile(thisFile)
   {
     if (err)
     {
-      console.log(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
-      console.log(`WARNING: (CONT) On the file system as: ${thisFile.path}`);
-      console.log(err);
+      console.warn(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
+      console.warn(`WARNING: (CONT) On the file system as: ${thisFile.path}`);
+      console.warn(err);
     }
   });
 }
@@ -476,10 +476,10 @@ function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, ind
     pendingWork.pendingRenaming--;
     if (err)
     {
-      console.log(`ERROR: Could not rename unhandled uploaded file: ${thisFile.name}`);
-      console.log(`ERROR: (CONT) Renaming from: ${oldFilePath}`);
-      console.log(`ERROR: (CONT) Renaming to: ${newFilePath}`);
-      console.log(err);
+      console.error(`ERROR: Could not rename unhandled uploaded file: ${thisFile.name}`);
+      console.error(`ERROR: (CONT) Renaming from: ${oldFilePath}`);
+      console.error(`ERROR: (CONT) Renaming to: ${newFilePath}`);
+      console.error(err);
     }
     else
     {
@@ -532,8 +532,8 @@ function doneWith(ctx, id)
     if (runtimeException)
     {
       ctx.outputQueue = ['<br />Runtime error!<br />'];
-      console.log(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
-      console.log(runtimeException);
+      console.error(`ERROR: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
+      console.error(runtimeException);
     }
 
     const { resObject, statusCode } = ctx;
@@ -723,7 +723,7 @@ function responder(req, res, indexRun,
 
 function sendPayLoadExceeded(res, maxPayloadSizeBytes)
 {
-  console.log(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+  console.error(`ERROR: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
   res.statusCode = 413;
   res.setHeader('Connection', 'close');
   res.end('Request size exceeded!');
@@ -731,7 +731,7 @@ function sendPayLoadExceeded(res, maxPayloadSizeBytes)
 
 function sendUploadIsForbidden(res)
 {
-  console.log('ERROR: Uploading is forbidden.');
+  console.error('ERROR: Uploading is forbidden.');
   res.statusCode = 403;
   res.setHeader('Connection', 'close');
   res.end('Forbidden!');
@@ -898,8 +898,8 @@ function startServer(siteConfig)
 
     req.on('error', (err) =>
     {
-      console.log('ERROR: Request related error.');
-      console.log(err);
+      console.error('ERROR: Request related error.');
+      console.error(err);
     })
   });
 
@@ -910,10 +910,10 @@ function startServer(siteConfig)
 
   server.on('error', (e) =>
   {
-    console.log('ERROR: Could not start listening on hostname and port specified.')
-    console.log('ERROR: Error returned by the server follows:')
-    console.log(`ERROR: ${e.message}`);
-    console.log(`ERROR: Site ${getSiteNameOrNoName(name)} not started.`);
+    console.error('ERROR: Could not start listening on hostname and port specified.')
+    console.error('ERROR: Error returned by the server follows:')
+    console.error(`ERROR: ${e.message}`);
+    console.error(`ERROR: Site ${getSiteNameOrNoName(name)} not started.`);
   });
 }
 
@@ -931,8 +931,8 @@ function readConfigurationFile(name, path = '.')
   }
   catch (e)
   {
-    console.log(`ERROR: Cannot find ${name} file.`);
-    console.log(e);
+    console.error(`ERROR: Cannot find ${name} file.`);
+    console.error(e);
   }
 
   if (readSuccess)
@@ -941,7 +941,7 @@ function readConfigurationFile(name, path = '.')
 
     if (stats.isDirectory())
     {
-      console.log(`ERROR: ${name} is a directory.`);
+      console.error(`ERROR: ${name} is a directory.`);
     }
     else
     {
@@ -952,8 +952,8 @@ function readConfigurationFile(name, path = '.')
       }
       catch(e)
       {
-        console.log(`ERROR: Cannot load ${name} file.`);
-        console.log(e);
+        console.error(`ERROR: Cannot load ${name} file.`);
+        console.error(e);
       }
     }
   }
@@ -1002,7 +1002,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
     {
       const emptyValueReport = (configKey) ? '': ' (empty value)';
       const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-      console.log(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
+      console.error(`ERROR: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
       invalidKeysFound = true;
     }
     else
@@ -1013,7 +1013,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
 
   if (invalidKeysFound)
   {
-    console.log(`ERROR: Check that all the keys and values in ${fileName} are valid.`);
+    console.error(`ERROR: Check that all the keys and values in ${fileName} are valid.`);
   }
   else
   {
@@ -1037,7 +1037,7 @@ function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNo
   }
   else
   {
-    console.log(`ERROR: ${errorMsgIfFound}`);
+    console.error(`ERROR: ${errorMsgIfFound}`);
   }
 }
 
@@ -1048,15 +1048,15 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
   {
     if (requiredKeysNotFound.length === 1)
     {
-      console.log(`ERROR: ${configName}:  The following configuration attribute was not found:`);
+      console.error(`ERROR: ${configName}:  The following configuration attribute was not found:`);
     }
     else
     {
-      console.log(`ERROR: ${configName}:  The following configuration attributes were not found:`);
+      console.error(`ERROR: ${configName}:  The following configuration attributes were not found:`);
     }
     requiredKeysNotFound.forEach((keyName) =>
     {
-      console.log(`ERROR: - ${keyName}`);
+      console.error(`ERROR: - ${keyName}`);
     });
 
     soFarSoGood = false;
@@ -1118,13 +1118,13 @@ if (globalConfigJSON)
       {
         if  (!allSitesInServer.length)
         {
-          console.log('ERROR: Configuration:  sites cannot be empty.');
+          console.error('ERROR: Configuration:  sites cannot be empty.');
           soFarSoGood = false;
         }
       }
       else
       {
-        console.log('ERROR: Server configuration:  sites must be an array.');
+        console.error('ERROR: Server configuration:  sites must be an array.');
         soFarSoGood = false;
       }
     }
@@ -1172,13 +1172,13 @@ if (readSuccess)
       }
       else
       {
-        console.log(`ERROR: Site configuration: Site name '${siteName}' is not unique.`);
+        console.error(`ERROR: Site configuration: Site name '${siteName}' is not unique.`);
         readSuccess = false;
       }
     }
     else
     {
-      console.log('ERROR: missing name.');
+      console.error('ERROR: missing name.');
       readSuccess = false;
     }
 
@@ -1190,7 +1190,7 @@ if (readSuccess)
       }
       else
       {
-        console.log(`ERROR: Site configuration: rootDirectoryName '${rootDirectoryName}' is not unique.`);
+        console.error(`ERROR: Site configuration: rootDirectoryName '${rootDirectoryName}' is not unique.`);
         readSuccess = false;
       }
     }
@@ -1241,7 +1241,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Site configuration:  hostname cannot be empty.');
+              console.error('ERROR: Site configuration:  hostname cannot be empty.');
               soFarSoGood = false;
             }
           }
@@ -1263,7 +1263,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Site configuration:  Invalid port.  Integer number expected.');
+              console.error('ERROR: Site configuration:  Invalid port.  Integer number expected.');
               soFarSoGood = false;
             }
           }
@@ -1298,7 +1298,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
+              console.error('ERROR: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.');
               soFarSoGood = false;
             }
           }
@@ -1320,7 +1320,7 @@ if (readSuccess)
             }
             else
             {
-              console.log('ERROR: Site configuration:  uploaddirectory cannot be empty.');
+              console.error('ERROR: Site configuration:  uploaddirectory cannot be empty.');
               soFarSoGood = false;
             }
           }
@@ -1345,7 +1345,7 @@ if (readSuccess)
         {
           if ((currentSiteHostName === combo.hostName.toLowerCase()) && (currentSitePort === combo.port))
           {
-            console.log(`ERROR: Site configuration: Both sites ${getSiteNameOrNoName(currentSiteName)} and ${getSiteNameOrNoName(combo.name)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
+            console.error(`ERROR: Site configuration: Both sites ${getSiteNameOrNoName(currentSiteName)} and ${getSiteNameOrNoName(combo.name)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
             readSuccess = false;
           }
 
@@ -1371,8 +1371,8 @@ if (readSuccess)
         }
         catch (e)
         {
-          console.log('ERROR: Site: Cannot find index file');
-          console.log(e);
+          console.error('ERROR: Site: Cannot find index file');
+          console.error(e);
         }
       }
 
@@ -1382,7 +1382,7 @@ if (readSuccess)
 
         if (stats.isDirectory())
         {
-          console.log(`ERROR: Site: Entry point is a directory: ${indexFile}`);
+          console.error(`ERROR: Site: Entry point is a directory: ${indexFile}`);
         }
         else
         {
@@ -1393,8 +1393,8 @@ if (readSuccess)
           }
           catch(e)
           {
-            console.log('ERROR: Site: Cannot load index file.');
-            console.log(e);
+            console.error('ERROR: Site: Cannot load index file.');
+            console.error(e);
           }
         }
       }
@@ -1466,7 +1466,7 @@ if (readSuccess)
 
               if (processBefore.match(/<html\s*\//i))
               {
-                console.log('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+                console.warn('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
               }
 
               processedDataArray.push(processBefore);
@@ -1486,14 +1486,14 @@ if (readSuccess)
           }
           catch (e)
           {
-            console.log(`ERROR: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
-            console.log(e);
+            console.error(`ERROR: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
+            console.error(e);
           }
         }
         catch (e)
         {
-          console.log('ERROR: Site: Parsing error, possibly internal.');
-          console.log(e);
+          console.error('ERROR: Site: Parsing error, possibly internal.');
+          console.error(e);
         }
       }
 
@@ -1505,7 +1505,7 @@ if (readSuccess)
         if (typeof(siteConfig.indexRun) !== 'function')
         {
           siteConfig.indexRun = undefined;
-          console.log('ERROR: Site: Could not compile code.');
+          console.error('ERROR: Site: Could not compile code.');
         }
         else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
         {
@@ -1522,7 +1522,7 @@ if (readSuccess)
     }
     else if (readSuccess)
     {
-      console.log('ERROR: Site configuration: invalid or missing rootDirectoryName.');
+      console.error('ERROR: Site configuration: invalid or missing rootDirectoryName.');
       readSuccess = false;
     }
 
@@ -1533,7 +1533,7 @@ if (readSuccess)
     }
     else
     {
-      console.log(`ERROR: Site ${getSiteNameOrNoName(siteName)} not started.`);
+      console.error(`ERROR: Site ${getSiteNameOrNoName(siteName)} not started.`);
       allFailedSiteNames.push(siteName);
     }
   });
@@ -1565,10 +1565,10 @@ if (allReadySiteNames.length)
 
 if (allFailedSiteNames.length)
 {
-  console.log('ERROR: The following sites failed to run:');
+  console.error('ERROR: The following sites failed to run:');
   allFailedSiteNames.forEach((name) =>
   {
-    console.log(`ERROR: - ${getSiteNameOrNoName(name)}`);
+    console.error(`ERROR: - ${getSiteNameOrNoName(name)}`);
   });
 }
 
@@ -1578,5 +1578,5 @@ if (atLeastOneSiteStarted)
 }
 else
 {
-  console.log('ERROR: Server not started.  No site is running.');
+  console.error('ERROR: Server not started.  No site is running.');
 }
