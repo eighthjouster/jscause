@@ -28,7 +28,7 @@ a large variety of clients and is considered production-ready.
 npm i -S formidable
 ```
 
-This is a low level package, and if you're using a high level framework such as Express, chances are it's already included in it. You can [read this discussion](http://stackoverflow.com/questions/11295554/how-to-disable-express-bodyparser-for-file-uploads-node-js) about how Formidable is integrated with Express.
+This is a low-level package, and if you're using a high-level framework it may already be included. However, [Express v4](http://expressjs.com) does not include any multipart handling, nor does [body-parser](https://github.com/expressjs/body-parser).
 
 Note: Formidable requires [gently](http://github.com/felixge/node-gently) to run the unit tests, but you won't need it for just using the library.
 
@@ -95,11 +95,18 @@ form.type
 Either 'multipart' or 'urlencoded' depending on the incoming request.
 
 ```javascript
-form.maxFieldsSize = 2 * 1024 * 1024;
+form.maxFieldsSize = 20 * 1024 * 1024;
 ```
 Limits the amount of memory all fields together (except files) can allocate in bytes.
 If this value is exceeded, an `'error'` event is emitted. The default
-size is 2MB.
+size is 20MB.
+
+```javascript
+form.maxFileSize = 200 * 1024 * 1024;
+```
+Limits the size of uploaded file.
+If this value is exceeded, an `'error'` event is emitted. The default
+size is 200MB.
 
 ```javascript
 form.maxFields = 1000;
@@ -266,6 +273,13 @@ Emitted when the entire request has been received, and all contained files have 
 
 
 ## Changelog
+
+### v1.2.1 (2018-03-20)
+
+ * `maxFileSize` option with default of 200MB (Charlike Mike Reagent, Nima Shahri)
+ * Simplified buffering in JSON parser to avoid denial of service attack (Kornel)
+ * Fixed upload file cleanup on aborted requests (liaoweiqiang)
+ * Fixed error handling of closed _writeStream (Vitalii)
 
 ### v1.1.1 (2017-01-15)
 
