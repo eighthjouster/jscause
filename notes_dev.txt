@@ -3,8 +3,7 @@ git bundle create jscause-.bundle devel
 =====
 
 Address:
-runningServers[reqPort]
-runningServers[reqPort].sites[0]
+runningServer.sites[0].name
 
 Test with two sites.
  - And re-test file uploads for both sites.

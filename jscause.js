@@ -926,34 +926,51 @@ function incomingRequestHandler(req, res)
 
 function startServer(siteConfig)
 {
-  const server = http.createServer();
   const serverPort = siteConfig.port;
-  const serverName = '0';
-  const runningServer =
+
+  let runningServer = runningServers[serverPort];
+  let httpServer;
+  let serverName;
+
+  if (runningServer)
   {
-    serverName,
-    server,
-    sites: [siteConfig]
-  };
-
-  server.on('request', incomingRequestHandler);
-
-  console.log(`INFO: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${runningServer.sites[0].hostName}:${serverPort}/ assigned to server ${serverName}`);
-  server.listen(serverPort, () =>
+    serverName  = runningServer.serverName;
+  }
+  else
   {
-    console.log(`INFO: Server ${serverName} listening on port ${serverPort}`);
-  });
+    serverName = Object.keys(runningServers).length.toString();
 
-  server.on('error', (e) =>
-  {
-    console.error('ERROR: Could not start listening on hostname and port specified.')
-    console.error('ERROR: Error returned by the server follows:')
-    console.error(`ERROR: ${e.message}`);
-    console.error(`ERROR: Server ${serverName} (port: ${serverPort}) not started.`);
-    console.error(`ERROR: Site ${getSiteNameOrNoName(runningServer.sites[0].name)} not started.`);
-  });
+    httpServer = http.createServer();
 
-  runningServers[serverPort] = runningServer;
+    runningServer =
+    {
+      serverName,
+      server: httpServer,
+      sites: []
+    };
+
+    httpServer.on('request', incomingRequestHandler);
+
+    httpServer.on('error', (e) =>
+    {
+      console.error(`ERROR: Server ${serverName} could not start listening on port ${serverPort}.`)
+      console.error('ERROR: Error returned by the server follows:')
+      console.error(`ERROR: ${e.message}`);
+      console.error(`ERROR: Server ${serverName} (port: ${serverPort}) not started.`);
+      console.error(`ERROR: Site ${getSiteNameOrNoName(runningServer.sites[0].name)} not started.`);
+    });
+
+    httpServer.listen(serverPort, () =>
+    {
+      console.log(`INFO: Server ${serverName} listening on port ${serverPort}`);
+    });
+
+    runningServers[serverPort] = runningServer;
+  }
+
+  runningServer.sites.push(siteConfig);
+
+  console.log(`INFO: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
 }
 
 function readConfigurationFile(name, path = '.')
@@ -1567,7 +1584,6 @@ if (readSuccess)
 
     if (readSuccess)
     {
-      console.log(`INFO: Site '${siteName}' ready.`);
       allReadySiteNames.push(siteName);
     }
     else
