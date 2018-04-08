@@ -1,5 +1,5 @@
 {
-  "hostName": "localhost2",
+  "hostName": "localhost",
   "port": 3000,
   "uploadDirectory": "/Users/rafael/Desktop/",
   "canUpload": true,

@@ -1,5 +1,0 @@
-/*
-This folder will hold extra configuration files:
-  - database.json:  Database connection info.
-  - custom_config.json: Application-specific configuration.
-*/

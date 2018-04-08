@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Ready for testing:
+
 Test with two sites.
  - And re-test file uploads for both sites.
    - Especifically, file deletion after upload.
@@ -12,12 +14,14 @@ Test with two sites.
      - When they share the same directories.
      - When they use different directories.
 
-Shouldn't server processes be cleanly shutdown during a Ctrl+C or error?
-
-Retry trying to listen when address is in use?
-https://nodejs.org/api/net.html#net_server_listen
+- A bit of documentation at this point?
 
 Git tag at this point.
+
+There should be two directories:  jscause and sites, sitting side by side.
+
+Serve files other than index.jscp
+ - And _NEVER_ serve .jscm files.  Ever.
 
 Cookies?
  - Read/write?
@@ -29,6 +33,8 @@ HTTPS?
 
 Other files? (images, css, js).
  - Static files?
+ - Files in assets/ directory?
+   - If there are modules in there, it should be easy to access them.
 
 Are we vulnerable to this?
 https://hackerone.com/reports/310439
@@ -44,7 +50,7 @@ Server-side rendering?
 Server logging?
  - Access and errors.
 
-Handling server termination gracefully?
+Handling server termination gracefully? (with Ctrl+C and/or process TERM/KILL/etc signaling)
  - Perhaps it should indicate at least that the application/process was terminated?
 
 Route to site.
@@ -123,7 +129,7 @@ ESLint.
 Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
  - Don't waste too much time on this.  You can defer it to a future version.
 
-jssp syntax coloring? linting?
+jscp/jscm syntax coloring? linting?
 
 Remove __RP comments.
 

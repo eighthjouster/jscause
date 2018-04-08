@@ -7,7 +7,8 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
-const JSCAUSE_SITECONF_FILENAME = 'site_configuration.json';
+const JSCAUSE_CONF_PATH = 'configuration';
+const JSCAUSE_SITECONF_FILENAME = `${JSCAUSE_CONF_PATH}/site.json`;
 const fs = require('fs');
 const urlUtils = require('url');
 const crypto = require('crypto');
@@ -1420,7 +1421,7 @@ if (readSuccess)
       {
         readSuccess = false;
 
-        indexFile = `${siteJSONFilePath}/website/index.jssp`;
+        indexFile = `${siteJSONFilePath}/website/index.jscp`;
 
         try
         {
