@@ -622,6 +622,8 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
+const runningServers = {};
+
 function responder(req, res, indexRun,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
@@ -737,181 +739,209 @@ function sendUploadIsForbidden(res)
   res.end('Forbidden!');
 }
 
-function startServer(siteConfig)
+function incomingRequestHandler(req, res)
 {
-  const { server } = siteConfig;
-  const { name, canUpload, hostName, port, maxPayloadSizeBytes, uploadDirectory, indexRun } = siteConfig;
+  const { headers = {}, headers: { host: hostHeader = '' }, method } = req;
+  const [/* Deliberately left blank. */, reqHostName, preparsedReqPort = DEFAULT_PORT] = hostHeader.match(/(.+):(\d+)$/);
+  const requestMethod = (method || '').toLowerCase();
+  const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
+  const reqPort = parseInt(preparsedReqPort, 10);
+  const runningServer = runningServers[reqPort];
+  let identifiedSite;
 
-  server.on('request', (req, res) =>
+  if (runningServer)
   {
-    const { headers = {}, method } = req;
-    const requestMethod = (method || '').toLowerCase();
+    const thisSite = runningServer.sites[0];
+    const { hostName, port } = thisSite;
 
-    if ((requestMethod !== 'get') && (requestMethod !== 'post'))
+    if (reqHostName && (reqHostName === hostName) && (reqPort === port))
     {
-      res.statusCode = 405;
-      res.end('Not allowed!');
-      return;
+      identifiedSite = thisSite;
     }
+  }
 
-    let contentType = (headers['content-type'] || '').toLowerCase();
-    const contentLength = parseInt(headers['content-length'] || 0, 10);
-    const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-    const incomingForm = ((requestMethod === 'post') &&
-                          (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
+  if (!identifiedSite || !reqMethodIsValid)
+  {
+    res.statusCode = 405;
+    res.end('Not allowed!');
+    return;
+  }
 
-    const postedForm = (incomingForm && canUpload) ?
-      new formidable.IncomingForm()
-      :
-      null;
+  const { canUpload, maxPayloadSizeBytes, uploadDirectory, indexRun } = identifiedSite;
 
-    let maxSizeExceeded = false;
-    let forbiddenUploadAttempted = false;
-    
-    const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
+  let contentType = (headers['content-type'] || '').toLowerCase();
+  const contentLength = parseInt(headers['content-length'] || 0, 10);
+  const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
+  const incomingForm = ((requestMethod === 'post') &&
+                        (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
 
-    if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
+  const postedForm = (incomingForm && canUpload) ?
+    new formidable.IncomingForm()
+    :
+    null;
+
+  let maxSizeExceeded = false;
+  let forbiddenUploadAttempted = false;
+  
+  const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
+
+  if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
+  {
+    maxSizeExceeded = true;
+    sendPayLoadExceeded(res, maxPayloadSizeBytes);
+  }
+  else if (incomingForm && !canUpload)
+  {
+    forbiddenUploadAttempted = true;
+    sendUploadIsForbidden(res);
+  }
+  else if (postedForm)
+  {
+    postedForm.keepExtensions = false;
+
+    postedForm.parse(req);
+
+    postedForm.on('error', (err) =>
     {
-      maxSizeExceeded = true;
-      sendPayLoadExceeded(res, maxPayloadSizeBytes);
-    }
-    else if (incomingForm && !canUpload)
+      console.error('ERROR: Form upload related error.');
+      console.error(err);
+    });
+
+    postedForm.on('field', (name, value) =>
     {
-      forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(res);
-    }
-    else if (postedForm)
+      postedFormData.params[name] = value;
+    });
+
+    postedForm.on('file', (name, file) =>
     {
-      postedForm.keepExtensions = false;
+      file.unsafeName = file.name;
+      file.name = sanitizeFilename(file.name, { replacement: '_' }).replace(';', '_');
 
-      postedForm.parse(req);
-
-      postedForm.on('error', (err) =>
+      if (postedFormData.files[name])
       {
-        console.error('ERROR: Form upload related error.');
-        console.error(err);
-      });
-
-      postedForm.on('field', (name, value) =>
-      {
-        postedFormData.params[name] = value;
-      });
-
-      postedForm.on('file', (name, file) =>
-      {
-        file.unsafeName = file.name;
-        file.name = sanitizeFilename(file.name, { replacement: '_' }).replace(';', '_');
-
-        if (postedFormData.files[name])
+        if (!Array.isArray(postedFormData.files[name]))
         {
-          if (!Array.isArray(postedFormData.files[name]))
+          postedFormData.files[name] = [ postedFormData.files[name] ];
+        }
+        postedFormData.files[name].push(file);
+      }
+      else
+      {
+        postedFormData.files[name] = file;
+      }
+    });
+
+    postedForm.on('progress', function(bytesReceived)
+    {
+      if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
+      {
+        maxSizeExceeded = true;
+        sendPayLoadExceeded(res, maxPayloadSizeBytes);
+      }
+    });
+
+    postedForm.on('end', () =>
+    {
+      const { params: formData, files: formFiles, pendingWork } = postedFormData;
+      const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
+
+      const formContext =
+      {
+        requestMethod,
+        contentType: postType,
+        formData,
+        formFiles,
+        maxSizeExceeded,
+        forbiddenUploadAttempted
+      };
+
+      if (isUpload)
+      {
+        Object.keys(formFiles).forEach((fileKey) =>
+        {
+          const thisFile = formFiles[fileKey];
+          if (Array.isArray(thisFile))
           {
-            postedFormData.files[name] = [ postedFormData.files[name] ];
+            thisFile.forEach((thisActualFile) =>
+            {
+              doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
+            });
           }
-          postedFormData.files[name].push(file);
-        }
-        else
-        {
-          postedFormData.files[name] = file;
-        }
-      });
-
-      postedForm.on('progress', function(bytesReceived)
+          else
+          {
+            doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
+          }
+        });
+      }
+      else
       {
-        if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
+        responder(req, res, indexRun, formContext);
+      }
+    });
+  }
+  else
+  {
+    let requestBody = [];
+    let bodyLength = 0;
+    req.on('data', (chunk) =>
+    {
+      if (canUpload)
+      {
+        const futureBodyLength = bodyLength + chunk.length;
+
+        if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
           sendPayLoadExceeded(res, maxPayloadSizeBytes);
         }
-      });
-
-      postedForm.on('end', () =>
-      {
-        const { params: formData, files: formFiles, pendingWork } = postedFormData;
-        const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
-
-        const formContext =
-        {
-          requestMethod,
-          contentType: postType,
-          formData,
-          formFiles,
-          maxSizeExceeded,
-          forbiddenUploadAttempted
-        };
-
-        if (isUpload)
-        {
-          Object.keys(formFiles).forEach((fileKey) =>
-          {
-            const thisFile = formFiles[fileKey];
-            if (Array.isArray(thisFile))
-            {
-              thisFile.forEach((thisActualFile) =>
-              {
-                doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
-              });
-            }
-            else
-            {
-              doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
-            }
-          });
-        }
         else
         {
-          responder(req, res, indexRun, formContext);
+          bodyLength += chunk.length;
+          requestBody.push(chunk);
         }
-      });
-    }
-    else
-    {
-      let requestBody = [];
-      let bodyLength = 0;
-      req.on('data', (chunk) =>
+      }
+      else
       {
-        if (canUpload)
-        {
-          const futureBodyLength = bodyLength + chunk.length;
-
-          if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
-          {
-            maxSizeExceeded = true;
-            sendPayLoadExceeded(res, maxPayloadSizeBytes);
-          }
-          else
-          {
-            bodyLength += chunk.length;
-            requestBody.push(chunk);
-          }
-        }
-        else
-        {
-          forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(res);
-        }
-      }).on('end', () =>
-      {
-        if (contentType === 'application/json')
-        {
-          contentType = 'jsonData';
-        }
-
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-        responder(req, res, indexRun, postContext);
-      });
-    }
-
-    req.on('error', (err) =>
+        forbiddenUploadAttempted = true;
+        sendUploadIsForbidden(res);
+      }
+    }).on('end', () =>
     {
-      console.error('ERROR: Request related error.');
-      console.error(err);
-    })
-  });
+      if (contentType === 'application/json')
+      {
+        contentType = 'jsonData';
+      }
 
-  server.listen(port, hostName, () =>
+      const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
+      responder(req, res, indexRun, postContext);
+    });
+  }
+
+  req.on('error', (err) =>
   {
-    console.log(`INFO: Site ${getSiteNameOrNoName(name)} running at http://${hostName}:${port}/`);
+    console.error('ERROR: Request related error.');
+    console.error(err);
+  })
+}
+
+function startServer(siteConfig)
+{
+  const server = http.createServer();
+  const serverPort = siteConfig.port;
+  const serverName = '0';
+  const runningServer =
+  {
+    serverName,
+    server,
+    sites: [siteConfig]
+  };
+
+  server.on('request', incomingRequestHandler);
+
+  console.log(`INFO: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${runningServer.sites[0].hostName}:${serverPort}/ assigned to server ${serverName}`);
+  server.listen(serverPort, () =>
+  {
+    console.log(`INFO: Server ${serverName} listening on port ${serverPort}`);
   });
 
   server.on('error', (e) =>
@@ -919,8 +949,11 @@ function startServer(siteConfig)
     console.error('ERROR: Could not start listening on hostname and port specified.')
     console.error('ERROR: Error returned by the server follows:')
     console.error(`ERROR: ${e.message}`);
-    console.error(`ERROR: Site ${getSiteNameOrNoName(name)} not started.`);
+    console.error(`ERROR: Server ${serverName} (port: ${serverPort}) not started.`);
+    console.error(`ERROR: Site ${getSiteNameOrNoName(runningServer.sites[0].name)} not started.`);
   });
+
+  runningServers[serverPort] = runningServer;
 }
 
 function readConfigurationFile(name, path = '.')
@@ -1553,7 +1586,6 @@ const serverConfig = {};
 serverConfig.sites = allSiteConfigs || [];
 serverConfig.sites.forEach((site) =>
 {
-  site.server = http.createServer();
   startServer(site);
   atLeastOneSiteStarted = true;
 });

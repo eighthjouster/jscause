@@ -2,6 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Address:
+runningServers[reqPort]
+runningServers[reqPort].sites[0]
+
 Test with two sites.
  - And re-test file uploads for both sites.
    - Especifically, file deletion after upload.
@@ -11,6 +15,11 @@ Test with two sites.
    - And file saving to custom location after upload.
      - When they share the same directories.
      - When they use different directories.
+
+Shouldn't server processes be cleanly shutdown during a Ctrl+C or error?
+
+Retry trying to listen when address is in use?
+https://nodejs.org/api/net.html#net_server_listen
 
 Git tag at this point.
 
@@ -37,6 +46,7 @@ Watch for and reload changes at this point.
 Server-side rendering?
 
 Server logging?
+ - Access and errors.
 
 Handling server termination gracefully?
  - Perhaps it should indicate at least that the application/process was terminated?
