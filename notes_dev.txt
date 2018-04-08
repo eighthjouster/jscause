@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Address:
-runningServer.sites[0].name
-
 Test with two sites.
  - And re-test file uploads for both sites.
    - Especifically, file deletion after upload.

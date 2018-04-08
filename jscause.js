@@ -957,7 +957,9 @@ function startServer(siteConfig)
       console.error('ERROR: Error returned by the server follows:')
       console.error(`ERROR: ${e.message}`);
       console.error(`ERROR: Server ${serverName} (port: ${serverPort}) not started.`);
-      console.error(`ERROR: Site ${getSiteNameOrNoName(runningServer.sites[0].name)} not started.`);
+      runningServer.sites.forEach((site) => {
+        console.error(`ERROR: - Site ${getSiteNameOrNoName(site.name)} not started.`);
+      });
     });
 
     httpServer.listen(serverPort, () =>
