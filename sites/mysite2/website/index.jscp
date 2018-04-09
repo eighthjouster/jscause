@@ -10,7 +10,7 @@ if (rt.additional.jsonParseError)
 }
 
 /js>
-<h1>COOOL</h1>
+<h1>COOOL 2</h1>
 <!--form method="post"-->
     <input name="myFile" type="text" value="" /-->
 <form method="post" enctype="multipart/form-data">

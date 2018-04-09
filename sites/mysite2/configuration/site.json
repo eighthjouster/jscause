@@ -1,6 +1,5 @@
 {
-  "hostName": "localhost",
-  "port": 3000,
+  "hostName": "jscausesite1",
   "uploadDirectory": "/Users/rafael/Desktop/",
   "canUpload": true,
   "maxPayloadSizeBytes": 3072 // 3 KB.

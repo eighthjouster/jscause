@@ -24,7 +24,7 @@ sites/mysite/scripts/main.sjs
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 
 Each site contains:
-    - A site_configuration.json file:  Site name, listening port, domain name, ssl, etc.
+    - A site.json file:  Site name, domain name, ssl, etc.
     - A site_routes.json (optional):  Will map files to routes, overriding whatever is on public/.
     - A public/ folder, which will contain files that can be requested directly by the browser.
     - Files with an SJS extension (for example, index.sjs) will be executed first, with its output sent to the browser.
@@ -33,6 +33,8 @@ Each site contains:
     - database.json:  Database connection info.
     - custom_config.json: Application-specific configuration.
     - A scripts/ folder:  With server-side Javascript files.  They can only be accessed via routes, or by importing.
+
+The ports of each site are configured in jscause.conf
 
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 
@@ -87,5 +89,6 @@ Or this:
 - jscause.conf:  Global enclosing curly brackets are optional.
 - Comments in jscause.conf: // are allowed.  Yes, we know comments are not valid json.  But they are allowed for documentation.
 - All attributes declared in jscause.conf must be valid (known), or else the server will NOT start.  If any attribute is omitted, defaults will apply.
-- No two sites can have the same rootDirectoryName or the same name.
-- No two sites can have the same hostname/port combination.
+- No two sites can have the same name.
+- No two sites can have the same rootDirectoryName/port combination (that is, they can have the same rootDirectoryName if they have different ports.)
+- No two sites can have the same hostname/port combination (that is, they can have the same hostname if they have different ports.)

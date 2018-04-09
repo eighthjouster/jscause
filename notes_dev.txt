@@ -2,7 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Ready for testing:
+Should jscause warn when two different sites share the same upload directory?
+ - Use: TERMINAL_INFO_WARNING
+   - Or remove declaration if no warning is implemented in the end.
 
 Test with two sites.
  - And re-test file uploads for both sites.
@@ -14,7 +16,15 @@ Test with two sites.
      - When they share the same directories.
      - When they use different directories.
 
+- Unrecognized key detection for site configuration ("site": [{here}]), just like you do in site.json
+
+Shouldn't the jscause.conf key names be case insensitive?
+ - This may have been fixed with the unrecognized keyname detection addressed earlier.
+
 - A bit of documentation at this point?
+
+- But wait, why do we have default values, if omitting keywords is forbidden, then?
+   - e.g. DEFAULT_HOSTNAME? DEFAULT_PORT?
 
 Git tag at this point.
 
@@ -49,6 +59,7 @@ Server-side rendering?
 
 Server logging?
  - Access and errors.
+ - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Handling server termination gracefully? (with Ctrl+C and/or process TERM/KILL/etc signaling)
  - Perhaps it should indicate at least that the application/process was terminated?
@@ -72,6 +83,10 @@ What is 'this' in our environment context?  Find out, document if necessary.
 Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
 
 Make two versions:  Standalone and NPM-installable.
+
+Remove these from /etc/hosts:
+127.0.0.1       jscausesite1
+127.0.0.1       jscausesite2
 
 Version 0.7b here!
  - Upload to https://github.com/eighthjouster/jscause
