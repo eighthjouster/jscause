@@ -1385,6 +1385,7 @@ if (readSuccess)
         const currentSiteHostName = siteConfig.hostName.toLowerCase();
         const currentSitePort = siteConfig.port;
         const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
+        const currentUploadDirectory = siteConfig.uploadDirectory;
         allConfigCombos.every((combo) =>
         {
           if (currentSitePort === combo.port)
@@ -1400,12 +1401,26 @@ if (readSuccess)
               readSuccess = false;
             }
           }
+
+          if ((currentUploadDirectory === combo.uploadDirectory) &&
+              (currentSiteHostName !== combo.hostName))
+          {
+            console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} share the same upload directory:`);
+            console.warn(`${TERMINAL_INFO_WARNING}: - ${currentUploadDirectory}`);
+          }
+
           return readSuccess;
         });
 
         if (readSuccess)
         {
-          allConfigCombos.push({hostName: siteConfig.hostName, port: siteConfig.port, name: siteConfig.name, rootDirectoryName: siteConfig.rootDirectoryName});
+          allConfigCombos.push({
+            hostName: siteConfig.hostName,
+            port: siteConfig.port,
+            name: siteConfig.name,
+            rootDirectoryName: siteConfig.rootDirectoryName,
+            uploadDirectory: siteConfig.uploadDirectory
+          });
         }
       }
 

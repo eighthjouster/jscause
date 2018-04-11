@@ -2,10 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Should jscause warn when two different sites share the same upload directory?
- - Use: TERMINAL_INFO_WARNING
-   - Or remove declaration if no warning is implemented in the end.
-
 Test with two sites.
  - And re-test file uploads for both sites.
    - Especifically, file deletion after upload.

@@ -92,3 +92,4 @@ Or this:
 - No two sites can have the same name.
 - No two sites can have the same rootDirectoryName/port combination (that is, they can have the same rootDirectoryName if they have different ports.)
 - No two sites can have the same hostname/port combination (that is, they can have the same hostname if they have different ports.)
+- A warning will be issued if two sites share the same upload directory and don't have the same host name.
