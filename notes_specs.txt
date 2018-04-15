@@ -59,6 +59,7 @@ Or this:
   - Write it as: setTimeout(rt.waitFor(() => { rt.print('Hello, world!'); }), 1000);
   - If you don't do this, then the response will be sent to the client without waiting.
   - rt.waitFor()'s can be nested.
+  - rt.waitFor() will correctly pass down the arguments it receives.
 - rt.queryParams is an object containing the GET query parameters.
 - rt.postParams is an object containing the POST form parameters.
 - rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.

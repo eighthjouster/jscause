@@ -580,11 +580,11 @@ function createRunTime(rtContext)
     {
       const waitForId = rtContext.waitForNextId++;
       rtContext.waitForQueue[waitForId] = true;
-      return () =>
+      return (...params) =>
       {
         try
         {
-          cb();
+          cb.call({}, ...params);
         }
         catch(e)
         {
@@ -592,7 +592,7 @@ function createRunTime(rtContext)
         }
 
         doneWith(rtContext, waitForId);
-      }
+      };
     },
     getParams,
     postParams,
@@ -717,7 +717,7 @@ function responder(req, res, indexRun,
       printInit(resContext);
       try
       {
-        indexRun(runTime);
+        indexRun.call({}, runTime);
       }
       catch (e)
       {

@@ -1,5 +1,7 @@
 const fs = require('fs');
 
+console.log('Called twice?!');
+rt.print('Called twice, apparently.<br>&copy;');
 if (rt.postParams['submitIt'])
 {
   rt.print(rt.uploadedFiles['myFile'].name);
@@ -7,9 +9,6 @@ if (rt.postParams['submitIt'])
     if (error) {
       console.error("read error:  " + error.message);
     } else {
-        console.log('hmm');//__RP
-        console.log(data);//__RP
-        console.log('hmm2');//__RP
       rt.print(data);
     }
   }));
