@@ -2,20 +2,18 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Test with two sites.
- - And re-test file uploads for both sites.
-   - Especifically, file deletion after upload.
-     - When they share the same directories.
-     - When they use different directories.
-       - Test with Chrome.
-   - And file saving to custom location after upload.
-     - When they share the same directories.
-     - When they use different directories.
+Unrecognized key detection for site configuration ("site": [{here}]), just like you do in site.json
 
-- Unrecognized key detection for site configuration ("site": [{here}]), just like you do in site.json
+Test reading the contents of a file from index.jscp (since we made a couple of modifications.)
+ - Test again, just in case, that the file gets deleted from the system temp location.
 
 Shouldn't the jscause.conf key names be case insensitive?
  - This may have been fixed with the unrecognized keyname detection addressed earlier.
+
+Easy file manipulation:
+ - Easy way to read a binary blob, to read text and to copy/move files.
+ - Easy way to write binary blobs and text.
+  - And document.
 
 - A bit of documentation at this point?
 
@@ -97,11 +95,7 @@ Version 0.7b here!
 
 Order by priority:
 
-Should the application warn if two different sites specify the same upload directory?
- - What about the same location of files? (esp. if the HTTP protocols are the same.)
- - Probably not? What do Apache, nginx and other server applications do?
-
-Option to use general upload directory and per-site upload directory.
+ Any way to set fs permissions, so individual website processes can only read/write to their user directories only?
 
 Databases, advanced features.
 

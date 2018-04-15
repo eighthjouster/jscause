@@ -642,7 +642,17 @@ function responder(req, res, indexRun,
   if (contentType === 'formDataWithUpload')
   {
     postParams = formData;
-    uploadedFiles = formFiles;
+    Object.keys(formFiles).forEach((keyName) => {
+      const file = formFiles[keyName];
+      uploadedFiles[keyName] = {
+        lastModifiedDate: file.lastModifiedDate,
+        name: file.name,
+        path: file.path,
+        size: file.size,
+        type: file.type,
+        unsafeName: file.unsafeName
+      }
+    });
   }
   else if (contentType === 'formData')
   {

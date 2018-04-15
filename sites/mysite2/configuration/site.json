@@ -1,6 +1,6 @@
 {
-  "hostName": "jscausesite1",
+  "hostName": "jscausesite2",
   "uploadDirectory": "/Users/rafael/Desktop/",
   "canUpload": true,
-  "maxPayloadSizeBytes": 3072 // 3 KB.
+  "maxPayloadSizeBytes": 0//3072 // 3 KB.
 }

@@ -2,11 +2,12 @@
 if (rt.postParams['submitIt'])
 {
   rt.print(rt.uploadedFiles['myFile'].name);
+  //console.log(rt.uploadedFiles['myFile']);
 }
 
 if (rt.additional.jsonParseError)
 {
-    console.log('ERROR PARSING!');
+  console.log('ERROR PARSING!');
 }
 
 /js>
