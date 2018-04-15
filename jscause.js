@@ -642,7 +642,8 @@ function responder(req, res, indexRun,
   if (contentType === 'formDataWithUpload')
   {
     postParams = formData;
-    Object.keys(formFiles).forEach((keyName) => {
+    Object.keys(formFiles).forEach((keyName) =>
+    {
       const file = formFiles[keyName];
       uploadedFiles[keyName] = {
         lastModifiedDate: file.lastModifiedDate,
@@ -1093,7 +1094,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
 
 function createInitialSiteConfig(siteInfo)
 {
-  const { name, port, rootDirectoryName } = siteInfo;
+  const { name, port, rootdirectoryname: rootDirectoryName } = siteInfo;
   return Object.assign({}, defaultSiteConfig, { name, port, rootDirectoryName });
 }
 
@@ -1224,394 +1225,416 @@ let allConfigCombos = [];
 
 if (readSuccess)
 {
-  allSitesInServer.forEach((thisServerSite) =>
+  const allAllowedSiteKeys =
+  [
+    'name',
+    'port',
+    'rootdirectoryname'
+  ];
+  
+  const allSitesInServerLength = allSitesInServer.length;
+
+  for (let i = 0; i < allSitesInServerLength; i++)
   {
     readSuccess = true;
-    const siteConfig = createInitialSiteConfig(thisServerSite);
-    const { name: siteName, port: sitePort, rootDirectoryName } = siteConfig;
-    let  indexFile = '';
 
-    if (siteName)
-    {
-      if (allSiteNames.indexOf(siteName) === -1)
-      {
-        allSiteNames.push(siteName);
-      }
-      else
-      {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name '${siteName}' is not unique.`);
-        readSuccess = false;
-      }
-    }
-    else
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Missing name.`);
-      readSuccess = false;
-    }
+    const thisUnprocessedServerSite = allSitesInServer[i];
 
-    if (readSuccess)
+    let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, JSCAUSE_CONF_FILENAME);
+
+    if (thisServerSite)
     {
-      if (typeof(sitePort) !== 'undefined')
+      const siteConfig = createInitialSiteConfig(thisServerSite);
+
+      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
+      let  indexFile = '';
+
+      if (siteName)
       {
-        const portNumber = parseFloat(sitePort, 10);
-        if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+        if (allSiteNames.indexOf(siteName) === -1)
         {
-          siteConfig.port = portNumber;
+          allSiteNames.push(siteName);
         }
         else
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`);
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name '${siteName}' is not unique.`);
           readSuccess = false;
         }
       }
       else
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Missing name.`);
         readSuccess = false;
       }
-    }
-
-    if (readSuccess && rootDirectoryName)
-    {
-      let siteJSONFilePath;
-
-      siteJSONFilePath = `./sites/${rootDirectoryName}`;
-
-      console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
-      const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
-      
-      readSuccess = !!siteConfigJSON;
 
       if (readSuccess)
       {
-        const allAllowedKeys =
-        [
-          'hostname',
-          'uploaddirectory',
-          'canupload',
-          'maxpayloadsizebytes'
-        ];
-
-        const requiredKeysNotFound = [];
-
-        let soFarSoGood = true;
-        
-        let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
-        let configValue;
-        let configKeyName;
-
-        soFarSoGood = !!processedConfigJSON;
-
-        // hostname
-        if (soFarSoGood)
+        if (typeof(sitePort) !== 'undefined')
         {
-          configKeyName = 'hostname';
-          configValue = processedConfigJSON[configKeyName];
-
-          if (typeof(configValue) === 'string')
+          const portNumber = parseFloat(sitePort, 10);
+          if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
           {
-            if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-            {
-              siteConfig.hostName = configValue;
-            }
-            else
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  hostname cannot be empty.`);
-              soFarSoGood = false;
-            }
+            siteConfig.port = portNumber;
           }
           else
           {
-            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
-            soFarSoGood = false;
+            console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`);
+            readSuccess = false;
           }
-
-          configKeyName = 'canupload';
-          configValue = processedConfigJSON[configKeyName];
-
-          if (typeof(configValue) === 'boolean')
-          {
-            siteConfig.canupload = configValue;
-          }
-          else
-          {
-            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
-            soFarSoGood = false;
-          }
-
-          configKeyName = 'maxpayloadsizebytes';
-          configValue = processedConfigJSON[configKeyName];
-
-          if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-          {
-            const uploadSize = parseFloat(configValue, 10);
-            if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
-            {
-              siteConfig.maxPayloadSizeBytes = uploadSize;
-            }
-            else
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.`);
-              soFarSoGood = false;
-            }
-          }
-          else
-          {
-            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
-            soFarSoGood = false;
-          }
-
-          configKeyName = 'uploaddirectory';
-          configValue = processedConfigJSON[configKeyName];
-
-          if (typeof(configValue) === 'string')
-          {
-            const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
-            if (dirName)
-            {
-              siteConfig.uploadDirectory = dirName;
-            }
-            else
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  uploaddirectory cannot be empty.`);
-              soFarSoGood = false;
-            }
-          }
-          else
-          {
-            checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
-            soFarSoGood = false;
-          }
-        }
-
-        const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
-
-        readSuccess = soFarSoGood && allRequiredKeys;
-      }
-
-      if (readSuccess)
-      {
-        const currentSiteName = siteConfig.name;
-        const currentSiteHostName = siteConfig.hostName.toLowerCase();
-        const currentSitePort = siteConfig.port;
-        const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
-        const currentUploadDirectory = siteConfig.uploadDirectory;
-        allConfigCombos.every((combo) =>
-        {
-          if (currentSitePort === combo.port)
-          {
-            if (currentSiteHostName === combo.hostName.toLowerCase())
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
-              readSuccess = false;
-            }
-            else if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${rootDirectoryName}', ${currentSitePort}`);
-              readSuccess = false;
-            }
-          }
-
-          if ((currentUploadDirectory === combo.uploadDirectory) &&
-              (currentSiteHostName !== combo.hostName))
-          {
-            console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} share the same upload directory:`);
-            console.warn(`${TERMINAL_INFO_WARNING}: - ${currentUploadDirectory}`);
-          }
-
-          return readSuccess;
-        });
-
-        if (readSuccess)
-        {
-          allConfigCombos.push({
-            hostName: siteConfig.hostName,
-            port: siteConfig.port,
-            name: siteConfig.name,
-            rootDirectoryName: siteConfig.rootDirectoryName,
-            uploadDirectory: siteConfig.uploadDirectory
-          });
-        }
-      }
-
-      if (readSuccess)
-      {
-        readSuccess = false;
-
-        indexFile = `${siteJSONFilePath}/website/index.jscp`;
-
-        try
-        {
-          stats = fs.statSync(indexFile);
-          readSuccess = true;
-        }
-        catch (e)
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot find index file`);
-          console.error(e);
-        }
-      }
-
-      if (readSuccess)
-      {
-        readSuccess = false;
-
-        if (stats.isDirectory())
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Site: Entry point is a directory: ${indexFile}`);
         }
         else
         {
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`);
+          readSuccess = false;
+        }
+      }
+
+      if (readSuccess && siteRootDirectoryName)
+      {
+        let siteJSONFilePath;
+
+        siteJSONFilePath = `./sites/${siteRootDirectoryName}`;
+
+        console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
+        const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
+        
+        readSuccess = !!siteConfigJSON;
+
+        if (readSuccess)
+        {
+          const allAllowedKeys =
+          [
+            'hostname',
+            'uploaddirectory',
+            'canupload',
+            'maxpayloadsizebytes'
+          ];
+
+          const requiredKeysNotFound = [];
+
+          let soFarSoGood = true;
+          
+          let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
+          let configValue;
+          let configKeyName;
+
+          soFarSoGood = !!processedConfigJSON;
+
+          // hostname
+          if (soFarSoGood)
+          {
+            configKeyName = 'hostname';
+            configValue = processedConfigJSON[configKeyName];
+
+            if (typeof(configValue) === 'string')
+            {
+              if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+              {
+                siteConfig.hostName = configValue;
+              }
+              else
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  hostname cannot be empty.`);
+                soFarSoGood = false;
+              }
+            }
+            else
+            {
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
+              soFarSoGood = false;
+            }
+
+            configKeyName = 'canupload';
+            configValue = processedConfigJSON[configKeyName];
+
+            if (typeof(configValue) === 'boolean')
+            {
+              siteConfig.canupload = configValue;
+            }
+            else
+            {
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
+              soFarSoGood = false;
+            }
+
+            configKeyName = 'maxpayloadsizebytes';
+            configValue = processedConfigJSON[configKeyName];
+
+            if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+            {
+              const uploadSize = parseFloat(configValue, 10);
+              if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+              {
+                siteConfig.maxPayloadSizeBytes = uploadSize;
+              }
+              else
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.`);
+                soFarSoGood = false;
+              }
+            }
+            else
+            {
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
+              soFarSoGood = false;
+            }
+
+            configKeyName = 'uploaddirectory';
+            configValue = processedConfigJSON[configKeyName];
+
+            if (typeof(configValue) === 'string')
+            {
+              const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+              if (dirName)
+              {
+                siteConfig.uploadDirectory = dirName;
+              }
+              else
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  uploaddirectory cannot be empty.`);
+                soFarSoGood = false;
+              }
+            }
+            else
+            {
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
+              soFarSoGood = false;
+            }
+          }
+
+          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
+
+          readSuccess = soFarSoGood && allRequiredKeys;
+        }
+
+        if (readSuccess)
+        {
+          const currentSiteName = siteConfig.name;
+          const currentSiteHostName = siteConfig.hostName.toLowerCase();
+          const currentSitePort = siteConfig.port;
+          const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
+          const currentUploadDirectory = siteConfig.uploadDirectory;
+          allConfigCombos.every((combo) =>
+          {
+            if (currentSitePort === combo.port)
+            {
+              if (currentSiteHostName === combo.hostName.toLowerCase())
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
+                readSuccess = false;
+              }
+              else if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${rootDirectoryName}', ${currentSitePort}`);
+                readSuccess = false;
+              }
+            }
+
+            if ((currentUploadDirectory === combo.uploadDirectory) &&
+                (currentSiteHostName !== combo.hostName))
+            {
+              console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} share the same upload directory:`);
+              console.warn(`${TERMINAL_INFO_WARNING}: - ${currentUploadDirectory}`);
+            }
+
+            return readSuccess;
+          });
+
+          if (readSuccess)
+          {
+            allConfigCombos.push({
+              hostName: siteConfig.hostName,
+              port: siteConfig.port,
+              name: siteConfig.name,
+              rootDirectoryName: siteConfig.rootDirectoryName,
+              uploadDirectory: siteConfig.uploadDirectory
+            });
+          }
+        }
+
+        if (readSuccess)
+        {
+          readSuccess = false;
+
+          indexFile = `${siteJSONFilePath}/website/index.jscp`;
+
           try
           {
-            compileContext.data = fs.readFileSync(indexFile, 'utf-8');
+            stats = fs.statSync(indexFile);
             readSuccess = true;
           }
-          catch(e)
+          catch (e)
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot load index file.`);
+            console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot find index file`);
             console.error(e);
           }
         }
+
+        if (readSuccess)
+        {
+          readSuccess = false;
+
+          if (stats.isDirectory())
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site: Entry point is a directory: ${indexFile}`);
+          }
+          else
+          {
+            try
+            {
+              compileContext.data = fs.readFileSync(indexFile, 'utf-8');
+              readSuccess = true;
+            }
+            catch(e)
+            {
+              console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot load index file.`);
+              console.error(e);
+            }
+          }
+        }
+
+        if (readSuccess)
+        {
+          const Module = module.constructor;
+          Module._nodeModulePaths(path.dirname(''))
+          compileContext.compiledModule = new Module();
+          try
+          {
+            const CONTEXT_HTML = 0;
+            const CONTEXT_JAVASCRIPT = 1;
+
+            // Matches '<js', '<JS', /js>' or '/JS>'
+            // Adds a prefixing space to distinguish from 
+            // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+            // (Otherwise, it would delete whatever character is right before.)
+            let unprocessedData = compileContext.data
+              .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
+              .replace(/([^\\])<js/gi,'$1 <js')
+              .replace(/^<js/i,' <js')
+              .replace(/([^\\])\/js>/gi, '$1 /js>')
+              .replace(/^\/js>/i, ' /js>');
+
+            const processedDataArray = [];
+
+            const firstOpeningTag = unprocessedData.indexOf(' <js');
+            const firstClosingTag = unprocessedData.indexOf(' /js>');
+
+            let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
+              CONTEXT_JAVASCRIPT :
+              CONTEXT_HTML;
+
+            do
+            {
+              if (processingContext === CONTEXT_HTML)
+              {
+                const [processBefore, processAfter] = unprocessedData
+                  .split(/\s<js([\s\S]*)/);
+
+                unprocessedData = processAfter;
+
+                const printedStuff = (processBefore) ?
+                  processBefore
+                    .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+                    .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+                    .replace(/\\/g,'\\\\')
+                    .replace(/'/g,'\\\'')
+                    .replace(/[^\S\n]{2,}/g, ' ')
+                    .replace(/^\s*|\n\s*/g, '\n')
+                    .split(/\n/)
+                    .join(' \\n \\\n') :
+                  '';
+              
+                if (printedStuff)
+                {
+                  processedDataArray.push(`rt.print('${printedStuff}');`);
+                }
+
+                processingContext = CONTEXT_JAVASCRIPT;
+              }
+              else
+              {
+                // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+                const [processBefore, processAfter] = unprocessedData
+                  .split(/\s\/js>([\s\S]*)/);
+
+                if (processBefore.match(/<html\s*\//i))
+                {
+                  console.warn('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+                }
+
+                processedDataArray.push(processBefore);
+                
+                unprocessedData = processAfter;
+
+                processingContext = CONTEXT_HTML;
+              }
+            } while (unprocessedData);
+            
+            const processedData = processedDataArray.join('');
+
+            try
+            {
+              compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+              indexExists = true;
+            }
+            catch (e)
+            {
+              console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
+              console.error(e);
+            }
+          }
+          catch (e)
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
+            console.error(e);
+          }
+        }
+
+        if (readSuccess && indexExists)
+        {
+          readSuccess = false;
+          siteConfig.indexRun = compileContext.compiledModule.exports;
+
+          if (typeof(siteConfig.indexRun) !== 'function')
+          {
+            siteConfig.indexRun = undefined;
+            console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code.`);
+          }
+          else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
+          {
+            // All is well so far.
+            if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
+            {
+              siteConfig.canUpload = false;
+            }
+
+            allSiteConfigs.push(siteConfig);
+            readSuccess = true;
+          }
+        }
+      }
+      else if (readSuccess)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: invalid or missing rootDirectoryName.`);
+        readSuccess = false;
       }
 
       if (readSuccess)
       {
-        const Module = module.constructor;
-        Module._nodeModulePaths(path.dirname(''))
-        compileContext.compiledModule = new Module();
-        try
-        {
-          const CONTEXT_HTML = 0;
-          const CONTEXT_JAVASCRIPT = 1;
-
-          // Matches '<js', '<JS', /js>' or '/JS>'
-          // Adds a prefixing space to distinguish from 
-          // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
-          // (Otherwise, it would delete whatever character is right before.)
-          let unprocessedData = compileContext.data
-            .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
-            .replace(/([^\\])<js/gi,'$1 <js')
-            .replace(/^<js/i,' <js')
-            .replace(/([^\\])\/js>/gi, '$1 /js>')
-            .replace(/^\/js>/i, ' /js>');
-
-          const processedDataArray = [];
-
-          const firstOpeningTag = unprocessedData.indexOf(' <js');
-          const firstClosingTag = unprocessedData.indexOf(' /js>');
-
-          let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-            CONTEXT_JAVASCRIPT :
-            CONTEXT_HTML;
-
-          do
-          {
-            if (processingContext === CONTEXT_HTML)
-            {
-              const [processBefore, processAfter] = unprocessedData
-                .split(/\s<js([\s\S]*)/);
-
-              unprocessedData = processAfter;
-
-              const printedStuff = (processBefore) ?
-                processBefore
-                  .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                  .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-                  .replace(/\\/g,'\\\\')
-                  .replace(/'/g,'\\\'')
-                  .replace(/[^\S\n]{2,}/g, ' ')
-                  .replace(/^\s*|\n\s*/g, '\n')
-                  .split(/\n/)
-                  .join(' \\n \\\n') :
-                '';
-            
-              if (printedStuff)
-              {
-                processedDataArray.push(`rt.print('${printedStuff}');`);
-              }
-
-              processingContext = CONTEXT_JAVASCRIPT;
-            }
-            else
-            {
-              // Assuming processingContext is CONTEXT_JAVASCRIPT
-
-              const [processBefore, processAfter] = unprocessedData
-                .split(/\s\/js>([\s\S]*)/);
-
-              if (processBefore.match(/<html\s*\//i))
-              {
-                console.warn('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
-              }
-
-              processedDataArray.push(processBefore);
-              
-              unprocessedData = processAfter;
-
-              processingContext = CONTEXT_HTML;
-            }
-          } while (unprocessedData);
-          
-          const processedData = processedDataArray.join('');
-
-          try
-          {
-            compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
-            indexExists = true;
-          }
-          catch (e)
-          {
-            console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
-            console.error(e);
-          }
-        }
-        catch (e)
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
-          console.error(e);
-        }
+        allReadySiteNames.push(siteName);
       }
-
-      if (readSuccess && indexExists)
+      else
       {
-        readSuccess = false;
-        siteConfig.indexRun = compileContext.compiledModule.exports;
-
-        if (typeof(siteConfig.indexRun) !== 'function')
-        {
-          siteConfig.indexRun = undefined;
-          console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code.`);
-        }
-        else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
-        {
-          // All is well so far.
-          if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
-          {
-            siteConfig.canUpload = false;
-          }
-
-          allSiteConfigs.push(siteConfig);
-          readSuccess = true;
-        }
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
+        allFailedSiteNames.push(siteName);
       }
-    }
-    else if (readSuccess)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: invalid or missing rootDirectoryName.`);
-      readSuccess = false;
-    }
-
-    if (readSuccess)
-    {
-      allReadySiteNames.push(siteName);
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
-      allFailedSiteNames.push(siteName);
+      break;
     }
-  });
+  }
 }
 
 allSiteNames = null;

@@ -2,13 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Unrecognized key detection for site configuration ("site": [{here}]), just like you do in site.json
-
 Test reading the contents of a file from index.jscp (since we made a couple of modifications.)
  - Test again, just in case, that the file gets deleted from the system temp location.
-
-Shouldn't the jscause.conf key names be case insensitive?
- - This may have been fixed with the unrecognized keyname detection addressed earlier.
 
 Easy file manipulation:
  - Easy way to read a binary blob, to read text and to copy/move files.

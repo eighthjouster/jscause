@@ -1,8 +1,18 @@
+const fs = require('fs');
 
 if (rt.postParams['submitIt'])
 {
   rt.print(rt.uploadedFiles['myFile'].name);
-  //console.log(rt.uploadedFiles['myFile']);
+  fs.readFile(rt.uploadedFiles['myFile'].path, "utf8", rt.waitFor(function(error, data) {
+    if (error) {
+      console.error("read error:  " + error.message);
+    } else {
+        console.log('hmm');//__RP
+        console.log(data);//__RP
+        console.log('hmm2');//__RP
+      rt.print(data);
+    }
+  }));
 }
 
 if (rt.additional.jsonParseError)
