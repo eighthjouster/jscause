@@ -566,8 +566,8 @@ function createRunTime(rtContext)
     requestMethod, uploadedFiles, additional } = rtContext;
 
   return {
-    print: (output = '') => rtContext.outputQueue.push(output),
-    printSafely: (output = '') => rtContext.outputQueue.push(sanitizeForHTMLOutput(output)),
+    unsafePrint: (output = '') => rtContext.outputQueue.push(output),
+    print: (output = '') => rtContext.outputQueue.push(sanitizeForHTMLOutput(output)),
     header: (nameOrObject, value) =>
     {
       assignAppHeaders.apply(this,
@@ -1546,7 +1546,7 @@ if (readSuccess)
               
                 if (printedStuff)
                 {
-                  processedDataArray.push(`rt.print('${printedStuff}');`);
+                  processedDataArray.push(`rt.unsafePrint('${printedStuff}');`);
                 }
 
                 processingContext = CONTEXT_JAVASCRIPT;

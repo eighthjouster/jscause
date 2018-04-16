@@ -2,25 +2,13 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-The specs indicate that waitFor()s can be nested:
- - Is this still correct?
- - Will arguments still be passed down correctly?
- - What about two waitFor()'s side-by-side? Two waitFor()s side-by-side and within a parent waitFor()?
-
-Why is:
-on('end', () => {}
-being called twice? (at around line 918)
- - At least submission code gets called just once.  Still.... weird.
-
 Easy file manipulation:
  - Easy way to read a binary blob, to read text and to copy/move files.
  - Easy way to write binary blobs and text.
   - And document.
 
-Rename rt.print to rt.unsafePrint.  And rename rt.printSafely to rt.print.
- - And update the documentation.
-
 - A bit of documentation at this point?
+ - Just tweaking what we have in notes_specs.txt so it reflects the latest changes.
 
 - But wait, why do we have default values, if omitting keywords is forbidden, then?
    - e.g. DEFAULT_HOSTNAME? DEFAULT_PORT?
@@ -36,7 +24,16 @@ Git tag at this point.
 There should be two directories:  jscause and sites, sitting side by side.
 
 Serve files other than index.jscp
+ - Multiple compilations, one per file.
+ - Call responder() only on jscp files.  The rest, treat as static downloads.
  - And _NEVER_ serve .jscm files.  Ever.
+   - A directive to blacklist/whitelist directories from which .js files can be served as static files.
+     - When absent, all .js is blacklisted.
+   - And document this restriction.
+Other files? (images, css, js).
+ - Static files?
+ - Files in assets/ directory?
+   - If there are modules in there, it should be easy to access them.
 
 Cookies?
  - Read/write?
@@ -45,11 +42,6 @@ Redirects?
 
 HTTPS?
  - Thorough documentation to do this.
-
-Other files? (images, css, js).
- - Static files?
- - Files in assets/ directory?
-   - If there are modules in there, it should be easy to access them.
 
 Are we vulnerable to this?
 https://hackerone.com/reports/310439

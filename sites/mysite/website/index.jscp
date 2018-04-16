@@ -1,12 +1,30 @@
 const fs = require('fs');
 
 console.log('Called twice?!');
-rt.print('Called twice, apparently.<br>&copy;');
+
+function makeCallback(value, createMore)
+{
+  return function(value2)
+  {
+    rt.print(`Yeah ${value} - ${Math.random()} - ${value2}`);
+    rt.unsafePrint('<br />');
+    if (createMore !== false)
+    {
+      rt.waitFor(makeCallback(5+value, false))(222);
+    }
+  }
+}
+
+setTimeout(rt.waitFor(makeCallback(20)), 2000);
+setTimeout(rt.waitFor(makeCallback(30)), 3000);
+
 if (rt.postParams['submitIt'])
 {
   rt.print(rt.uploadedFiles['myFile'].name);
-  fs.readFile(rt.uploadedFiles['myFile'].path, "utf8", rt.waitFor(function(error, data) {
-    if (error) {
+  fs.readFile(rt.uploadedFiles['myFile'].path, "utf8", rt.waitFor(function(error, data)
+  {
+    if (error)
+    {
       console.error("read error:  " + error.message);
     } else {
       rt.print(data);
@@ -30,7 +48,8 @@ if (rt.additional.jsonParseError)
     <a href="#" id="whatevs" onclick="sendBody">Send JSON body</a>
 </form>
 <script>
-  whatevs.onclick = function() {
+  whatevs.onclick = function()
+  {
       var sb = new XMLHttpRequest();
       sb.open('POST', 'http://localhost:3000');
       sb.setRequestHeader('Content-Type', 'application/json');

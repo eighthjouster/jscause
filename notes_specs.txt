@@ -59,7 +59,7 @@ Or this:
   - Write it as: setTimeout(rt.waitFor(() => { rt.print('Hello, world!'); }), 1000);
   - If you don't do this, then the response will be sent to the client without waiting.
   - rt.waitFor()'s can be nested.
-  - rt.waitFor() will correctly pass down the arguments it receives.
+  - rt.waitFor() will correctly pass down the arguments it receives to its callback parameter.
 - rt.queryParams is an object containing the GET query parameters.
 - rt.postParams is an object containing the POST form parameters.
 - rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.
@@ -82,7 +82,7 @@ Or this:
     - JSON: it will be jsonData.
  - We also have: rt.requestMethod ('get' or 'post').  PUT and DELETE are not supported and will return a 405 (method not allowed.)
 - Never trust user input!
-- printSafely will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.
+- print will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.  If you want to print everything unescaped, use rt.unsafePrint().
 - When handling uploaded files, users can use file.name directly as it has been sanitized.  If for some reason they want to access the original filename, they can do so through file.unsafeName.
 - jscause.conf is almost a valid JSON object.  Almost, because it allows // comments, for documentation.
 - Duplicate first-level keys in jscause.conf will cause an error.  Duplicate keys in values will be ignored, with the last value listed being the one used (just like it's done in Javascript).
