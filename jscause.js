@@ -535,7 +535,7 @@ function doneWith(ctx, id)
     if (ctx.runAfterQueue.length)
     {
       const cb = ctx.runAfterQueue.shift();
-      createWaitForCallback(ctx, cb)();
+      ctx.waitForQueue[createWaitForCallback(ctx, cb)]();
     }
     else
     {
@@ -573,11 +573,11 @@ function finishUpHeaders(ctx)
   Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
 }
 
-function createWaitForCallback(rtContext, cb)
+function createWaitForCallback(rtContext, cb, waitForId)
 {
-  const waitForId = rtContext.waitForNextId++;
-  rtContext.waitForQueue[waitForId] = true;
-  return (...params) =>
+  waitForId = waitForId || rtContext.waitForNextId++;
+  
+  rtContext.waitForQueue[waitForId] = (...params) =>
   {
     try
     {
@@ -590,6 +590,8 @@ function createWaitForCallback(rtContext, cb)
 
     doneWith(rtContext, waitForId);
   };
+
+  return waitForId;
 }
 
 function createRunTime(rtContext)
@@ -610,7 +612,7 @@ function createRunTime(rtContext)
     },
     waitFor(cb)
     {
-      return createWaitForCallback(rtContext, cb);
+      return rtContext.waitForQueue[createWaitForCallback(rtContext, cb)];
     },
     runAfter(cb)
     {
@@ -618,13 +620,26 @@ function createRunTime(rtContext)
     },
     readFile(path, readFileInfo)
     {
-      fs.readFile(path, 'utf-8', createWaitForCallback(rtContext, (error, data) => {
+      let readCallback = (error, data) =>
+      {
         if (typeof(readFileInfo) === 'object')
         {
           readFileInfo.error = error;
           readFileInfo.data = data;
         }
-      }));
+      };
+
+      let callbackId = createWaitForCallback(rtContext, readCallback);
+
+      fs.readFile(path, 'utf-8', (err, data) => {
+        rtContext.waitForQueue[callbackId](err, data);
+      });
+
+      return {
+        handleResult(handleResultCallback) {
+          callbackId = createWaitForCallback(rtContext, handleResultCallback, callbackId);
+        }
+      };
     },
     getParams,
     postParams,

@@ -1,12 +1,13 @@
-const fileInfo = {};
-
 if (rt.postParams['submitIt'])
 {
-  rt.readFile(rt.uploadedFiles['myFile'].path, fileInfo);
+  rt.readFile(rt.uploadedFiles['myFile'].path)
+  .handleResult((err, data) =>
+  {
+    console.log('YOOOOOOOOO');
+    console.log(data);
+  });
 }
 
-rt.runAfter(() => {
-  console.log(fileInfo);
 /js>
 
 <h1>COOOL 1</h1>
@@ -15,5 +16,3 @@ rt.runAfter(() => {
   <input name="myFile" type="file" />
   <input type="submit" name="submitIt" value="Submit it!" />
 </form>
-
-<js });

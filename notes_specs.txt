@@ -101,3 +101,6 @@ Or this:
   - fileInfo must be an object.  When the file is read, data will be in fileInfo.data, and any error will be in fileInfo.error.
   - There is no callback.  Contents can be read from a runAfter() callback.
   - Relies on readFile.  So, whatever limitations readFile has, this one has as well (e.g., handling of big files, etc.)
+  - You can chain .handleResults() which has a callback that does not need a waitFor().  Example:
+      rt.readFile(path).handleResult((err, data) => { console.log(data); });
+

@@ -2,11 +2,32 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Why does this:
+//rt.runAfter(() => {
+//  console.log('Not bad');
+
+/js>
+
+<h1>COOOL 1</h1>
+<p>This is a test.</p>
+<form method="post" enctype="multipart/form-data">
+  <input name="myFile" type="file" />
+  <input type="submit" name="submitIt" value="Submit it!" />
+</form>
+
+<js
+//});
+create an error?
+ - Check the specs.  Maybe they say something about the error per se.
+   - And why does that put the site in listening mode?! - FIX THIS ONE FIRST.
+
 Easy file manipulation:
  - Easy way to copy/move files.
  - Easy way to delete files.
    - This will all need to be coordinated with runAfter.
-     - And document.
+     - Or with handleResults.
+     - Use rt.readFile() as a model.
+   - And document.
 
 - A bit of documentation at this point?
  - Just tweaking what we have in notes_specs.txt so it reflects the latest changes.
