@@ -3,10 +3,10 @@ git bundle create jscause-.bundle devel
 =====
 
 Easy file manipulation:
- - Easy way to read a binary blob, to read text and to copy/move files.
- - Easy way to write binary blobs and text.
- - This will all need to be coordinated with runAtTheEnd.
-  - And document.
+ - Easy way to copy/move files.
+ - Easy way to delete files.
+   - This will all need to be coordinated with runAfter.
+     - And document.
 
 - A bit of documentation at this point?
  - Just tweaking what we have in notes_specs.txt so it reflects the latest changes.
@@ -96,6 +96,21 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+- Easy way to write binary blobs and text.
+  - Follow what rt.readFile() does.
+
+- rt.readFile() alternative that returns a promise?  rt.readFilePromise()?
+
+Decorator for rt.runAfter(() => {});
+ - Something like:
+    - <js-after begin /> does: <js rt.runAfter(() => { /js>
+    - <js-after end /> does: <js }); /js>
+    - Both blocks must be _outside_ of <js /js> blocks.
+
+- Retriggable waitFor(), so stuff like on('data') can work. - Otherwise, the app will ignore later calls since the callback was dropped off the queue.
+- Cancellable waitFor(), so stuff like retriggable waitFor(), or callbacks that may or may not execute can be cancelled from, say, an on('end') or on('error').
+  - Perhaps there could be options, like: waitFor(cb1, { name: 'callback 1', retriggable: true }) and waitFor(cb2, { cancels: 'callback 1' }).
 
 Any way to clean up the upload directory (the one specified in site.json) in case of a server error?
  - Maybe at startup?

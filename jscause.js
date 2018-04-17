@@ -412,9 +412,9 @@ function printInit(ctx)
   ctx.outputQueue = [];
 }
 
-function runAtTheEndInit(ctx)
+function runAfterInit(ctx)
 {
-  ctx.runAtTheEndQueue = [];
+  ctx.runAfterQueue = [];
 }
 
 function assignAppHeaders(ctx, headers)
@@ -532,9 +532,9 @@ function doneWith(ctx, id)
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
-    if (ctx.runAtTheEndQueue.length)
+    if (ctx.runAfterQueue.length)
     {
-      const cb = ctx.runAtTheEndQueue.shift();
+      const cb = ctx.runAfterQueue.shift();
       createWaitForCallback(ctx, cb)();
     }
     else
@@ -612,9 +612,19 @@ function createRunTime(rtContext)
     {
       return createWaitForCallback(rtContext, cb);
     },
-    runAtTheEnd(cb)
+    runAfter(cb)
     {
-      rtContext.runAtTheEndQueue.push(cb);
+      rtContext.runAfterQueue.push(cb);
+    },
+    readFile(path, readFileInfo)
+    {
+      fs.readFile(path, 'utf-8', createWaitForCallback(rtContext, (error, data) => {
+        if (typeof(readFileInfo) === 'object')
+        {
+          readFileInfo.error = error;
+          readFileInfo.data = data;
+        }
+      }));
     },
     getParams,
     postParams,
@@ -709,7 +719,7 @@ function responder(req, res, indexRun,
   const resContext =
   {
     outputQueue: undefined,
-    runAtTheEndQueue: undefined,
+    runAfterQueue: undefined,
     appHeaders: {},
     resObject: res,
     waitForNextId: 1,
@@ -738,7 +748,7 @@ function responder(req, res, indexRun,
     if (indexRun)
     {
       printInit(resContext);
-      runAtTheEndInit(resContext);
+      runAfterInit(resContext);
       try
       {
         indexRun.call({}, runTime);

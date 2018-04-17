@@ -94,6 +94,10 @@ Or this:
 - No two sites can have the same rootDirectoryName/port combination (that is, they can have the same rootDirectoryName if they have different ports.)
 - No two sites can have the same hostname/port combination (that is, they can have the same hostname if they have different ports.)
 - A warning will be issued if two sites share the same upload directory and don't have the same host name.
-- rt.runAtTheEnd() will enqueue code that will be run after all waitFor() callbacks are run.  This is especially useful with the JSCause file manipulation functions.
-  - You can call several rt.runAtTheEnd().  Each callback will be run one after the other (not concurrently.)
-  - rt.waitFor() can be used inside rt.runAtTheEnd() callbacks.  If they are used, any enqueued runAtTheEnd callbacks will again wait until said waitFor callbacks are run.
+- rt.runAfter() will enqueue code that will be run after all waitFor() callbacks are run.  This is especially useful with the JSCause file manipulation functions.
+  - You can call several rt.runAfter().  Each callback will be run one after the other (not concurrently.)
+  - rt.waitFor() can be used inside rt.runAfter() callbacks.  If they are used, any enqueued runAfter callbacks will again wait until said waitFor callbacks are run.
+- rt.readFile(path, fileInfo) allows to read a file from path.
+  - fileInfo must be an object.  When the file is read, data will be in fileInfo.data, and any error will be in fileInfo.error.
+  - There is no callback.  Contents can be read from a runAfter() callback.
+  - Relies on readFile.  So, whatever limitations readFile has, this one has as well (e.g., handling of big files, etc.)
