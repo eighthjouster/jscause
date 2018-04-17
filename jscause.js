@@ -412,6 +412,11 @@ function printInit(ctx)
   ctx.outputQueue = [];
 }
 
+function runAtTheEndInit(ctx)
+{
+  ctx.runAtTheEndQueue = [];
+}
+
 function assignAppHeaders(ctx, headers)
 {
   ctx.appHeaders = Object.assign(ctx.appHeaders, headers);
@@ -527,29 +532,37 @@ function doneWith(ctx, id)
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
-    const formFiles = ctx.uploadedFiles;
-    if (formFiles)
+    if (ctx.runAtTheEndQueue.length)
     {
-      deleteUnhandledFiles(formFiles);
-    }
-
-    const { runtimeException } = ctx;
-    if (runtimeException)
-    {
-      ctx.outputQueue = ['<br />Runtime error!<br />'];
-      console.error(`${TERMINAL_ERROR_STRING}: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
-      console.error(runtimeException);
-    }
-
-    const { resObject, statusCode } = ctx;
-    resObject.statusCode = statusCode;
-    if (ctx.compileTimeError)
-    {
-      resObject.end('Compile time error!');
+      const cb = ctx.runAtTheEndQueue.shift();
+      createWaitForCallback(ctx, cb)();
     }
     else
     {
-      resObject.end((ctx.outputQueue || []).join(''));
+      const formFiles = ctx.uploadedFiles;
+      if (formFiles)
+      {
+        deleteUnhandledFiles(formFiles);
+      }
+
+      const { runtimeException } = ctx;
+      if (runtimeException)
+      {
+        ctx.outputQueue = ['<br />Runtime error!<br />'];
+        console.error(`${TERMINAL_ERROR_STRING}: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
+        console.error(runtimeException);
+      }
+
+      const { resObject, statusCode } = ctx;
+      resObject.statusCode = statusCode;
+      if (ctx.compileTimeError)
+      {
+        resObject.end('Compile time error!');
+      }
+      else
+      {
+        resObject.end((ctx.outputQueue || []).join(''));
+      }
     }
   }
 }
@@ -560,15 +573,34 @@ function finishUpHeaders(ctx)
   Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
 }
 
+function createWaitForCallback(rtContext, cb)
+{
+  const waitForId = rtContext.waitForNextId++;
+  rtContext.waitForQueue[waitForId] = true;
+  return (...params) =>
+  {
+    try
+    {
+      cb.call({}, ...params);
+    }
+    catch(e)
+    {
+      rtContext.runtimeException = e;
+    }
+
+    doneWith(rtContext, waitForId);
+  };
+}
+
 function createRunTime(rtContext)
 {
   const { getParams, postParams, contentType,
     requestMethod, uploadedFiles, additional } = rtContext;
 
   return {
-    unsafePrint: (output = '') => rtContext.outputQueue.push(output),
-    print: (output = '') => rtContext.outputQueue.push(sanitizeForHTMLOutput(output)),
-    header: (nameOrObject, value) =>
+    unsafePrint(output = '') { rtContext.outputQueue.push(output); },
+    print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); },
+    header(nameOrObject, value)
     {
       assignAppHeaders.apply(this,
         (typeof(nameOrObject) === 'string') ?
@@ -576,23 +608,13 @@ function createRunTime(rtContext)
           [].concat(rtContext, nameOrObject)
       );
     },
-    waitFor: (cb) =>
+    waitFor(cb)
     {
-      const waitForId = rtContext.waitForNextId++;
-      rtContext.waitForQueue[waitForId] = true;
-      return (...params) =>
-      {
-        try
-        {
-          cb.call({}, ...params);
-        }
-        catch(e)
-        {
-          rtContext.runtimeException = e;
-        }
-
-        doneWith(rtContext, waitForId);
-      };
+      return createWaitForCallback(rtContext, cb);
+    },
+    runAtTheEnd(cb)
+    {
+      rtContext.runAtTheEndQueue.push(cb);
     },
     getParams,
     postParams,
@@ -687,6 +709,7 @@ function responder(req, res, indexRun,
   const resContext =
   {
     outputQueue: undefined,
+    runAtTheEndQueue: undefined,
     appHeaders: {},
     resObject: res,
     waitForNextId: 1,
@@ -715,6 +738,7 @@ function responder(req, res, indexRun,
     if (indexRun)
     {
       printInit(resContext);
+      runAtTheEndInit(resContext);
       try
       {
         indexRun.call({}, runTime);

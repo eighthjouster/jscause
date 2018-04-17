@@ -5,6 +5,7 @@ git bundle create jscause-.bundle devel
 Easy file manipulation:
  - Easy way to read a binary blob, to read text and to copy/move files.
  - Easy way to write binary blobs and text.
+ - This will all need to be coordinated with runAtTheEnd.
   - And document.
 
 - A bit of documentation at this point?

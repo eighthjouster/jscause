@@ -1,58 +1,22 @@
 const fs = require('fs');
 
-console.log('Called twice?!');
-
-function makeCallback(value, createMore)
+function yeahCallback()
 {
-  return function(value2)
-  {
-    rt.print(`Yeah ${value} - ${Math.random()} - ${value2}`);
-    rt.unsafePrint('<br />');
-    if (createMore !== false)
-    {
-      rt.waitFor(makeCallback(5+value, false))(222);
-    }
-  }
+  rt.print(`Yeah - ${Math.random()}`);
+  rt.unsafePrint('<br />');
 }
 
-setTimeout(rt.waitFor(makeCallback(20)), 2000);
-setTimeout(rt.waitFor(makeCallback(30)), 3000);
+setTimeout(rt.waitFor(yeahCallback, 500));
 
-if (rt.postParams['submitIt'])
+//rt.runAtTheEnd(
+//function()
 {
-  rt.print(rt.uploadedFiles['myFile'].name);
-  fs.readFile(rt.uploadedFiles['myFile'].path, "utf8", rt.waitFor(function(error, data)
-  {
-    if (error)
-    {
-      console.error("read error:  " + error.message);
-    } else {
-      rt.print(data);
-    }
-  }));
-}
-
-if (rt.additional.jsonParseError)
-{
-  console.log('ERROR PARSING!');
-}
-
 /js>
+
 <h1>COOOL 1</h1>
-<!--form method="post"-->
-    <input name="myFile" type="text" value="" /-->
-<form method="post" enctype="multipart/form-data">
-    <input name="myFile" type="file" multiple />
-    <input name="myFile2" type="file" />
-    <input type="submit" name="submitIt" value="Submit it!" />
-    <a href="#" id="whatevs" onclick="sendBody">Send JSON body</a>
-</form>
-<script>
-  whatevs.onclick = function()
-  {
-      var sb = new XMLHttpRequest();
-      sb.open('POST', 'http://localhost:3000');
-      sb.setRequestHeader('Content-Type', 'application/json');
-      sb.send(JSON.stringify({a:'dfadsfadsfd'}));
-  };
-</script>
+<p>This is a test.</p>
+
+<js
+
+}
+//);
