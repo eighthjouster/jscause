@@ -1562,6 +1562,13 @@ if (readSuccess)
               .replace(/^<js/i,' <js')
               .replace(/([^\\])\/js>/gi, '$1 /js>')
               .replace(/^\/js>/i, ' /js>');
+            
+            if (!unprocessedData.match(/\n$/))
+            {
+              // Adding a blank line at the end of the source code avoids a
+              // compilation error if the very last line is a // comment.
+              unprocessedData += '\n';
+            }
 
             const processedDataArray = [];
 
@@ -1631,12 +1638,14 @@ if (readSuccess)
             {
               console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
               console.error(e);
+              readSuccess = false;
             }
           }
           catch (e)
           {
             console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
             console.error(e);
+            readSuccess = false;
           }
         }
 

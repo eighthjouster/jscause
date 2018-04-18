@@ -103,4 +103,4 @@ Or this:
   - Relies on readFile.  So, whatever limitations readFile has, this one has as well (e.g., handling of big files, etc.)
   - You can chain .handleResults() which has a callback that does not need a waitFor().  Example:
       rt.readFile(path).handleResult((err, data) => { console.log(data); });
-
+- Common error: If you receive an unexpected token error referring to a part of the file that was supposed to be treated as HTML, check if the closing /js> previous to the line with the error was put in a line with a comment in it.  Example:  // This whole line is a comment /js>
