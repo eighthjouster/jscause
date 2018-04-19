@@ -595,6 +595,62 @@ function createWaitForCallback(rtContext, cb)
   return waitForId;
 }
 
+function makeRTPromiseHandler(rtContext, resolve, reject)
+{
+  const resolverCallback = (err, data) =>
+  {
+    if (err)
+    {
+      reject(err);
+    }
+    else
+    {
+      resolve(data);
+    }
+  };
+
+  const waitForId = createWaitForCallback(rtContext, resolverCallback);
+  return rtContext.waitForQueue[waitForId];
+}
+
+function makeRTPromiseSettlers(readPromise, rtContext, thenWaitForId, catchWaitForId)
+{
+  let readPromiseChain = readPromise;
+  return {
+    rtThen: (thenCallback) =>
+    {
+      const cb = (response) =>
+      {
+        thenCallback(response);
+        if (catchWaitForId)
+        {
+          doneWith(rtContext, catchWaitForId);
+        }
+      };
+
+      thenWaitForId = createWaitForCallback(rtContext, cb);
+      readPromiseChain = readPromiseChain.then(rtContext.waitForQueue[thenWaitForId]);
+
+      return {
+        rtCatch: (catchCallback) =>
+        {
+          const cb = (err) =>
+          {
+            catchCallback(err);
+            if (thenWaitForId)
+            {
+              doneWith(rtContext, thenWaitForId);
+            }
+          };
+
+          catchWaitForId = createWaitForCallback(rtContext, cb);
+          readPromiseChain.catch(rtContext.waitForQueue[catchWaitForId]);
+        }
+      };
+    }
+  };
+}
+
 function createRunTime(rtContext)
 {
   const { getParams, postParams, contentType,
@@ -621,64 +677,15 @@ function createRunTime(rtContext)
     },
     readFile(path)
     {
-      let readPromiseChain;
       let thenWaitForId;
       let catchWaitForId;
 
       const readPromise = new Promise((resolve, reject) =>
       {
-        const resolverCallback = (err, data) =>
-        {
-          if (err)
-          {
-            reject(err);
-          }
-          else
-          {
-            resolve(data);
-          }
-        };
-
-        const waitForId = createWaitForCallback(rtContext, resolverCallback);
-        
-        fs.readFile(path, 'utf-8', rtContext.waitForQueue[waitForId]);
+        fs.readFile(path, 'utf-8', makeRTPromiseHandler(rtContext, resolve, reject));
       });
 
-      readPromiseChain = readPromise;
-
-      return {
-        rtThen: (thenCallback) =>
-        {
-          const cb = (response) =>
-          {
-            thenCallback(response);
-            if (catchWaitForId)
-            {
-              doneWith(rtContext, catchWaitForId);
-            }
-          };
-
-          thenWaitForId = createWaitForCallback(rtContext, cb);
-          readPromiseChain = readPromiseChain.then(rtContext.waitForQueue[thenWaitForId]);
-
-          return {
-            rtCatch: (catchCallback) =>
-            {
-              const cb = (err) =>
-              {
-                catchCallback(err);
-                if (thenWaitForId)
-                {
-                  doneWith(rtContext, thenWaitForId);
-                }
-              };
-
-              catchWaitForId = createWaitForCallback(rtContext, cb);
-              readPromiseChain.catch(rtContext.waitForQueue[catchWaitForId]);
-            }
-          };
-        }
-      };
+      return makeRTPromiseSettlers(readPromise, rtContext, thenWaitForId, catchWaitForId);
     },
     getParams,
     postParams,

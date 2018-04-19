@@ -4,6 +4,8 @@ git bundle create jscause-.bundle devel
 
 Reading files with promises done.
 
+Check that rt.runAfter() still works as intended with the new file reading functionality.
+
 Easy file manipulation:
  - Easy way to copy/move files.
  - Easy way to delete files.
