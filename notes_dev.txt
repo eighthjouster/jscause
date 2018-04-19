@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Reading files with promises done.
+
 Easy file manipulation:
  - Easy way to copy/move files.
  - Easy way to delete files.

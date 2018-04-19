@@ -1,13 +1,19 @@
 if (rt.postParams['submitIt'])
 {
-  rt.readFile(rt.uploadedFiles['myFile'].path)
-  .handleResult((err, data) =>
+  rt.readFileThen(rt.uploadedFiles['myFile'].path)
+  .rtThen((response) =>
   {
-    rt.readFile(rt.uploadedFiles['myFile'].path)
+    console.log('All good.');
+    rt.print(response);
+  })
+  .rtCatch((err) =>
+  {
+    console.log('error!!!!');
+    console.log(err);
+    rt.print('ERRORRRRRRR!');
   });
 }
 
-//rt.runAfter(() => {
 /js>
 
 <h1>COOOL 1</h1>
@@ -16,6 +22,3 @@ if (rt.postParams['submitIt'])
   <input name="myFile" type="file" />
   <input type="submit" name="submitIt" value="Submit it!" />
 </form>
-
-<js
-//});

@@ -529,13 +529,14 @@ function doneWith(ctx, id)
   {
     delete ctx.waitForQueue[id];
   }
-
+  
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
     if (ctx.runAfterQueue.length)
     {
       const cb = ctx.runAfterQueue.shift();
-      ctx.waitForQueue[createWaitForCallback(ctx, cb)]();
+      const waitForId = createWaitForCallback(ctx, cb);
+      ctx.waitForQueue[waitForId]();
     }
     else
     {
@@ -631,13 +632,76 @@ function createRunTime(rtContext)
 
       let callbackId = createWaitForCallback(rtContext, readCallback);
 
-      fs.readFile(path, 'utf-8', (err, data) => {
+      fs.readFile(path, 'utf-8', (err, data) =>
+      {
         rtContext.waitForQueue[callbackId](err, data);
       });
 
       return {
-        handleResult(handleResultCallback) {
+        handleResult(handleResultCallback)
+        {
           callbackId = createWaitForCallback(rtContext, handleResultCallback, callbackId);
+        }
+      };
+    },
+    readFileThen(path)
+    {
+      let readPromiseChain;
+      let thenWaitForId;
+      let catchWaitForId;
+
+      const readPromise = new Promise((resolve, reject) =>
+      {
+        const resolverCallback = (err, data) =>
+        {
+          if (err)
+          {
+            reject(err);
+          }
+          else
+          {
+            resolve(data);
+          }
+        };
+
+        const waitForId = createWaitForCallback(rtContext, resolverCallback);
+        
+        fs.readFile(path, 'utf-8', rtContext.waitForQueue[waitForId]);
+      });
+
+      readPromiseChain = readPromise;
+
+      return {
+        rtThen: (thenCallback) =>
+        {
+          const cb = (response) =>
+          {
+            thenCallback(response);
+            if (catchWaitForId)
+            {
+              doneWith(rtContext, catchWaitForId);
+            }
+          };
+
+          thenWaitForId = createWaitForCallback(rtContext, cb);
+          readPromiseChain = readPromiseChain.then(rtContext.waitForQueue[thenWaitForId]);
+
+          return {
+            rtCatch: (catchCallback) =>
+            {
+              const cb = (err) =>
+              {
+                catchCallback(err);
+                if (thenWaitForId)
+                {
+                  doneWith(rtContext, thenWaitForId);
+                }
+              };
+
+              catchWaitForId = createWaitForCallback(rtContext, cb);
+              readPromiseChain.catch(rtContext.waitForQueue[catchWaitForId]);
+            }
+          };
         }
       };
     },
