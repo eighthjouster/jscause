@@ -574,9 +574,9 @@ function finishUpHeaders(ctx)
   Object.keys(appHeaders).forEach((headerName) => resObject.setHeader(headerName, appHeaders[headerName]));
 }
 
-function createWaitForCallback(rtContext, cb, waitForId)
+function createWaitForCallback(rtContext, cb)
 {
-  waitForId = waitForId || rtContext.waitForNextId++;
+  const waitForId = rtContext.waitForNextId++;
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
@@ -619,32 +619,7 @@ function createRunTime(rtContext)
     {
       rtContext.runAfterQueue.push(cb);
     },
-    readFile(path, readFileInfo)
-    {
-      let readCallback = (error, data) =>
-      {
-        if (typeof(readFileInfo) === 'object')
-        {
-          readFileInfo.error = error;
-          readFileInfo.data = data;
-        }
-      };
-
-      let callbackId = createWaitForCallback(rtContext, readCallback);
-
-      fs.readFile(path, 'utf-8', (err, data) =>
-      {
-        rtContext.waitForQueue[callbackId](err, data);
-      });
-
-      return {
-        handleResult(handleResultCallback)
-        {
-          callbackId = createWaitForCallback(rtContext, handleResultCallback, callbackId);
-        }
-      };
-    },
-    readFileThen(path)
+    readFile(path)
     {
       let readPromiseChain;
       let thenWaitForId;

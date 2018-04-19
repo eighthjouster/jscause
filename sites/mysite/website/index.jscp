@@ -1,6 +1,6 @@
 if (rt.postParams['submitIt'])
 {
-  rt.readFileThen(rt.uploadedFiles['myFile'].path)
+  rt.readFile(rt.uploadedFiles['myFile'].path)
   .rtThen((response) =>
   {
     console.log('All good.');
