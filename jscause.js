@@ -613,12 +613,15 @@ function makeRTPromiseHandler(rtContext, resolve, reject)
   return rtContext.waitForQueue[waitForId];
 }
 
-function makeRTPromiseSettlers(readPromise, rtContext, thenWaitForId, catchWaitForId)
+function makeRTPromise(rtContext, rtPromise)
 {
-  let readPromiseChain = readPromise;
   return {
-    rtThen: (thenCallback) =>
+    thenWaitForId: undefined,
+    catchWaitForId: undefined,
+    readPromiseChain: new Promise(rtPromise),
+    rtThen: function(thenCallback)
     {
+      let { thenWaitForId , catchWaitForId, readPromiseChain } = this;
       const cb = (response) =>
       {
         thenCallback(response);
@@ -677,15 +680,10 @@ function createRunTime(rtContext)
     },
     readFile(path)
     {
-      let thenWaitForId;
-      let catchWaitForId;
-
-      const readPromise = new Promise((resolve, reject) =>
+      return makeRTPromise(rtContext, (resolve, reject) =>
       {
         fs.readFile(path, 'utf-8', makeRTPromiseHandler(rtContext, resolve, reject));
       });
-
-      return makeRTPromiseSettlers(readPromise, rtContext, thenWaitForId, catchWaitForId);
     },
     getParams,
     postParams,

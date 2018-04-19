@@ -12,7 +12,28 @@ if (rt.postParams['submitIt'])
     console.log(err);
     rt.print('ERRORRRRRRR!');
   });
+
+  rt.readFile(rt.uploadedFiles['myFile'].path+'error')
+  .rtThen((response) =>
+  {
+    console.log('All good.');
+    rt.print(response);
+  })
+  .rtCatch((err) =>
+  {
+    console.log('error!!!!');
+    console.log(err);
+    rt.print('ERRORRRRRRR!');
+  });
 }
+
+rt.runAfter(() => {
+  rt.print('Just wow.  We did it.');
+});
+
+rt.runAfter(() => {
+  rt.print('Love it.');
+});
 
 /js>
 
