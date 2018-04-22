@@ -1,10 +1,9 @@
 if (rt.postParams['submitIt'])
 {
-  rt.readFile(rt.uploadedFiles['myFile'].path)
-  .rtThen((response) =>
+  rt.copyFile(rt.uploadedFiles['myFile'].path, 'nice.txt')
+  .rtThen((theFile) =>
   {
     console.log('All good.');
-    rt.print(response);
   })
   .rtCatch((err) =>
   {
@@ -13,23 +12,7 @@ if (rt.postParams['submitIt'])
     rt.print('ERRORRRRRRR!');
   });
 
-  rt.readFile(rt.uploadedFiles['myFile'].path+'error')
-  .rtThen((response) =>
-  {
-    console.log('All good.');
-    rt.print(response);
-  })
-  .rtCatch((err) =>
-  {
-    console.log('error!!!!');
-    console.log(err);
-    rt.print('ERRORRRRRRR!');
-  });
 }
-
-rt.runAfter(() => {
-  rt.print('Just wow.  We did it.');
-});
 
 rt.runAfter(() => {
   rt.print('Love it.');

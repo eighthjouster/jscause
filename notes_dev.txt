@@ -2,8 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+ Easy way to copy files.
+ - Almost there:
+   - Test the not overwriting option (should trigger the rtCatch part?).
+   - Does the rtCatch part also throw exceptions alright?
+ - And document.
+ 
 Easy file manipulation:
- - Easy way to copy/move files.
+ - Easy way to move files.
+ - Easy way to check that files exist.
  - Easy way to delete files.
      - Use rt.readFile() as a model.
    - And document.
@@ -51,7 +58,7 @@ At this point, divide up the engine into different files.
  - Make it one file using gulp or something, for prod.
 
 Watch for and reload changes at this point.
- - And only the site it's affected, leaving the reset intact. - If possible.
+ - And only the site it's affected, leaving the rest intact. - If possible.
 
 Server-side rendering?
 
@@ -67,6 +74,8 @@ Route to site.
 Databases.
  - Basic.
 
+Shouldn't we check if a randomly generated upload file name exists previously before using?
+
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.
 
@@ -79,6 +88,8 @@ Hard-coded values should go in a global file.
 Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
 
 Make two versions:  Standalone and NPM-installable.
+
+Does this work on Windows?
 
 Remove these from /etc/hosts:
 127.0.0.1       jscausesite1

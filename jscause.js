@@ -6,15 +6,19 @@
    *
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
+
+const http = require('http');
+const fs = require('fs');
+const fsPath = require('path');
+
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
-const JSCAUSE_SITECONF_FILENAME = `${JSCAUSE_CONF_PATH}/site.json`;
-const fs = require('fs');
+const JSCAUSE_SITES_PATH = 'sites';
+const JSCAUSE_WEBSITE_PATH = 'website';
+const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
 const urlUtils = require('url');
 const crypto = require('crypto');
 const formidable = require('./jscvendor/formidable');
-const http = require('http');
-const path = require('path');
 const sanitizeFilename = require('./jscvendor/sanitize-filename');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
@@ -22,10 +26,11 @@ const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 const DEFAULT_HOSTNAME = 'localhost';
 const DEFAULT_PORT = 3000;
 const DEFAULT_UPLOAD_DIR = './workbench/uploads';
-
 const TERMINAL_ERROR_STRING = '\x1b[31mERROR\x1b[0m';
 const TERMINAL_INFO_STRING = '\x1b[32mINFO\x1b[0m';
 const TERMINAL_INFO_WARNING = '\x1b[33mWARNING\x1b[0m';
+
+const RUNTIME_ROOT_DIR = process.cwd();
 
 console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 /* *****************************************
@@ -383,10 +388,12 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
   return !parseError;
 }
 
-const defaultSiteConfig = {
+const defaultSiteConfig =
+{
   server: null,
   name: '',
   rootDirectoryName: '',
+  fullWebsiteDirectoryName: '',
   indexRun: null,
   hostName: DEFAULT_HOSTNAME,
   port: DEFAULT_PORT,
@@ -475,11 +482,11 @@ function doDeleteFile(thisFile)
   });
 }
 
-function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork })
+function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
-  const newFilePath = `${uploadDirectory}/jscupload_${crypto.randomBytes(16).toString('hex')}`;
+  const newFilePath = fsPath.join(uploadDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
   
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
@@ -498,7 +505,7 @@ function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, ind
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, indexRun, formContext);
+      responder(req, res, indexRun, fullWebsiteDirectoryName, formContext);
     }
   });
 }
@@ -622,9 +629,17 @@ function makeRTPromise(rtContext, rtPromise)
     rtThen: function(thenCallback)
     {
       let { thenWaitForId , catchWaitForId, readPromiseChain } = this;
-      const cb = (response) =>
+      const cb = (...params) =>
       {
-        thenCallback(response);
+        try
+        {
+          thenCallback.call({}, ...params);
+        }
+        catch(e)
+        {
+          rtContext.runtimeException = e;
+        }
+
         if (catchWaitForId)
         {
           doneWith(rtContext, catchWaitForId);
@@ -685,6 +700,25 @@ function createRunTime(rtContext)
         fs.readFile(path, 'utf-8', makeRTPromiseHandler(rtContext, resolve, reject));
       });
     },
+    copyFile(source, destination, overwrite = true)
+    {
+      if (!fsPath.isAbsolute(destination))
+      {
+        destination = fsPath.join(rtContext.fullWebsiteDirectoryName, destination);
+      }
+
+      return makeRTPromise(rtContext, (resolve, reject) =>
+      {
+        if (overwrite)
+        {
+          fs.copyFile(source, destination, makeRTPromiseHandler(rtContext, resolve, reject));
+        }
+        else
+        {
+          fs.copy(source, destination, fs.constants.COPYFILE_EXCL, makeRTPromiseHandler(rtContext, resolve, reject));
+        }
+      });
+    },
     getParams,
     postParams,
     contentType,
@@ -720,7 +754,7 @@ function extractErrorFromRuntimeObject(e)
 
 const runningServers = {};
 
-function responder(req, res, indexRun,
+function responder(req, res, indexRun, fullWebsiteDirectoryName,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted
@@ -736,7 +770,8 @@ function responder(req, res, indexRun,
     Object.keys(formFiles).forEach((keyName) =>
     {
       const file = formFiles[keyName];
-      uploadedFiles[keyName] = {
+      uploadedFiles[keyName] =
+      {
         lastModifiedDate: file.lastModifiedDate,
         name: file.name,
         path: file.path,
@@ -754,7 +789,8 @@ function responder(req, res, indexRun,
   {
     const postBody = Buffer.concat(requestBody).toString();
     let parseSuccess = true;
-    try {
+    try
+    {
       postParams = JSON.parse(postBody);
     }
     catch(e)
@@ -789,6 +825,7 @@ function responder(req, res, indexRun,
     contentType,
     uploadedFiles,
     additional,
+    fullWebsiteDirectoryName,
     statusCode: 200,
     compileTimeError: false,
     runtimeException: undefined
@@ -870,7 +907,7 @@ function incomingRequestHandler(req, res)
     return;
   }
 
-  const { canUpload, maxPayloadSizeBytes, uploadDirectory, indexRun } = identifiedSite;
+  const { canUpload, maxPayloadSizeBytes, uploadDirectory, indexRun, fullWebsiteDirectoryName } = identifiedSite;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const contentLength = parseInt(headers['content-length'] || 0, 10);
@@ -967,18 +1004,18 @@ function incomingRequestHandler(req, res)
           {
             thisFile.forEach((thisActualFile) =>
             {
-              doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
+              doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
             });
           }
           else
           {
-            doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork });
+            doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
           }
         });
       }
       else
       {
-        responder(req, res, indexRun, formContext);
+        responder(req, res, indexRun, fullWebsiteDirectoryName, formContext);
       }
     });
   }
@@ -1016,7 +1053,7 @@ function incomingRequestHandler(req, res)
       }
 
       const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-      responder(req, res, indexRun, postContext);
+      responder(req, res, indexRun, fullWebsiteDirectoryName, postContext);
     });
   }
 
@@ -1084,7 +1121,7 @@ function readConfigurationFile(name, path = '.')
   let stats;
   let readConfigFile;
   let readSuccess = false;
-  const fullPath = `${path}/${name}`;
+  const fullPath = fsPath.join(path, name);
 
   try
   {
@@ -1384,9 +1421,9 @@ if (readSuccess)
 
       if (readSuccess && siteRootDirectoryName)
       {
-        let siteJSONFilePath;
+        let siteJSONFilePath = fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName);
 
-        siteJSONFilePath = `./sites/${siteRootDirectoryName}`;
+        siteConfig.fullWebsiteDirectoryName = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
 
         console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
         const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
@@ -1442,7 +1479,7 @@ if (readSuccess)
 
             if (typeof(configValue) === 'boolean')
             {
-              siteConfig.canupload = configValue;
+              siteConfig.canUpload = configValue;
             }
             else
             {
@@ -1507,6 +1544,7 @@ if (readSuccess)
           const currentSitePort = siteConfig.port;
           const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
           const currentUploadDirectory = siteConfig.uploadDirectory;
+          
           allConfigCombos.every((combo) =>
           {
             if (currentSitePort === combo.port)
@@ -1549,7 +1587,7 @@ if (readSuccess)
         {
           readSuccess = false;
 
-          indexFile = `${siteJSONFilePath}/website/index.jscp`;
+          indexFile = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, 'index.jscp');
 
           try
           {
@@ -1589,7 +1627,7 @@ if (readSuccess)
         if (readSuccess)
         {
           const Module = module.constructor;
-          Module._nodeModulePaths(path.dirname(''))
+          Module._nodeModulePaths(fsPath.dirname(''));
           compileContext.compiledModule = new Module();
           try
           {
