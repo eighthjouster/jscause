@@ -2,12 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
- Easy way to copy files.
- - Almost there:
-   - Test the not overwriting option (should trigger the rtCatch part?).
-   - Does the rtCatch part also throw exceptions alright?
- - And document.
- 
+Can we omit rtCatch? What happens when we do?
+
 Easy file manipulation:
  - Easy way to move files.
  - Easy way to check that files exist.
@@ -28,6 +24,8 @@ What is 'this' in our environment context?  Find out, document if necessary.
      - indexRun.call({}, runTime);
 
 Git tag at this point.
+
+Are file error codes the same in Linux, MacOS and Windows? (err.code === 'EEXIST', for example.)
 
 There should be two directories:  jscause and sites, sitting side by side.
 

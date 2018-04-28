@@ -8,7 +8,7 @@ if (rt.postParams['submitIt'])
   .rtCatch((err) =>
   {
     console.log('error!!!!');
-    console.log(err);
+    console.log(err.code);
     rt.print('ERRORRRRRRR!');
   });
 

@@ -652,9 +652,17 @@ function makeRTPromise(rtContext, rtPromise)
       return {
         rtCatch: (catchCallback) =>
         {
-          const cb = (err) =>
+          const cb = (...params) =>
           {
-            catchCallback(err);
+            try
+            {
+              catchCallback.call({}, ...params);
+            }
+            catch(e)
+            {
+              rtContext.runtimeException = e;
+            }
+
             if (thenWaitForId)
             {
               doneWith(rtContext, thenWaitForId);
@@ -695,6 +703,11 @@ function createRunTime(rtContext)
     },
     readFile(path)
     {
+      if (!fsPath.isAbsolute(path))
+      {
+        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+      }
+
       return makeRTPromise(rtContext, (resolve, reject) =>
       {
         fs.readFile(path, 'utf-8', makeRTPromiseHandler(rtContext, resolve, reject));
@@ -702,6 +715,11 @@ function createRunTime(rtContext)
     },
     copyFile(source, destination, overwrite = true)
     {
+      if (!fsPath.isAbsolute(source))
+      {
+        source = fsPath.join(rtContext.fullWebsiteDirectoryName, source);
+      }
+
       if (!fsPath.isAbsolute(destination))
       {
         destination = fsPath.join(rtContext.fullWebsiteDirectoryName, destination);
@@ -715,7 +733,7 @@ function createRunTime(rtContext)
         }
         else
         {
-          fs.copy(source, destination, fs.constants.COPYFILE_EXCL, makeRTPromiseHandler(rtContext, resolve, reject));
+          fs.copyFile(source, destination, fs.constants.COPYFILE_EXCL, makeRTPromiseHandler(rtContext, resolve, reject));
         }
       });
     },
@@ -732,7 +750,7 @@ function extractErrorFromCompileObject(e)
 {
   const lineNumberInfo = (e.stack || ':(unknown)').toString().split('\n')[0];
   const lineNumber = lineNumberInfo.split(/.*:([^:]*)$/)[1] || '(unknown)';
-  return `${e.message} at line ${lineNumber}`;
+  return `${e.message || 'unknown error'} at line ${lineNumber}`;
 }
 
 function extractErrorFromRuntimeObject(e)
@@ -743,7 +761,7 @@ function extractErrorFromRuntimeObject(e)
     `at file ${fileName}, line ${potentialFileNumber}`
     :
     `at line ${((lineNumberInfo.match(/<anonymous>:(\d*):\d*/i) || [])[1] || '(unknown)')}`
-  return `${e.message} ${atInfo}`;
+  return `${e.message || 'unknown error'} ${atInfo}`;
 }
 
 /* *************************************
