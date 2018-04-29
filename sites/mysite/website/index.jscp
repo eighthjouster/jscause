@@ -1,6 +1,6 @@
 if (rt.postParams['submitIt'])
 {
-  rt.copyFile(rt.uploadedFiles['myFile'].path, 'nice.txt')
+  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt')
   .rtThen((theFile) =>
   {
     console.log('All good.');
@@ -8,10 +8,9 @@ if (rt.postParams['submitIt'])
   .rtCatch((err) =>
   {
     console.log('error!!!!');
-    console.log(err.code);
+    console.log(err);
     rt.print('ERRORRRRRRR!');
   });
-
 }
 
 rt.runAfter(() => {

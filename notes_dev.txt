@@ -2,8 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+- Oh, if you move the file, JSCause must not try to delete it from the uploads directory.
+
 Easy file manipulation:
- - Easy way to move files.
  - Easy way to check that files exist.
  - Easy way to delete files.
      - Use rt.readFile() as a model.
@@ -24,6 +25,7 @@ What is 'this' in our environment context?  Find out, document if necessary.
 Git tag at this point.
 
 Are file error codes the same in Linux, MacOS and Windows? (err.code === 'EEXIST', for example.)
+ - Check moveFile with overwrite=false, for example.
 
 There should be two directories:  jscause and sites, sitting side by side.
 
@@ -103,6 +105,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+- Create/rename/delete directories?
 
 - Easy way to write binary blobs and text.
   - Follow what rt.readFile() does.

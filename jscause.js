@@ -752,6 +752,47 @@ function createRunTime(rtContext)
         }
       });
     },
+    moveFile(source, destination, overwrite = true)
+    {
+      if (!fsPath.isAbsolute(source))
+      {
+        source = fsPath.join(rtContext.fullWebsiteDirectoryName, source);
+      }
+
+      if (!fsPath.isAbsolute(destination))
+      {
+        destination = fsPath.join(rtContext.fullWebsiteDirectoryName, destination);
+      }
+
+      return makeRTPromise(rtContext, (resolve, reject) =>
+      {
+        if (overwrite)
+        {
+          fs.rename(source, destination, makeRTPromiseHandler(rtContext, resolve, reject));
+        }
+        else
+        {
+          fs.stat(destination, (err) =>
+          {
+            if (err)
+            {
+              // If file doesn't exist, then we can proceed with the move operation.
+              fs.rename(source, destination, makeRTPromiseHandler(rtContext, resolve, reject));
+            }
+            else
+            {
+              reject({
+                Error: `EEXIST: file already exists, movefile '${source}' -> '${destination}'`,
+                code: 'EEXIST',
+                syscall: 'rename',
+                path: source,
+                dest: destination
+              });
+            }
+          });
+        }
+      });
+    },
     getParams,
     postParams,
     contentType,
