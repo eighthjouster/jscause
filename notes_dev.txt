@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Can we omit rtCatch? What happens when we do?
-
 Easy file manipulation:
  - Easy way to move files.
  - Easy way to check that files exist.

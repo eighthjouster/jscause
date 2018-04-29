@@ -629,6 +629,8 @@ function makeRTPromise(rtContext, rtPromise)
     rtThen: function(thenCallback)
     {
       let { thenWaitForId , catchWaitForId, readPromiseChain } = this;
+      let customCallBack;
+
       const cb = (...params) =>
       {
         try
@@ -647,12 +649,26 @@ function makeRTPromise(rtContext, rtPromise)
       };
 
       thenWaitForId = createWaitForCallback(rtContext, cb);
-      readPromiseChain = readPromiseChain.then(rtContext.waitForQueue[thenWaitForId]);
+      readPromiseChain
+        .then(rtContext.waitForQueue[thenWaitForId])
+        .catch((e) => {
+          if (customCallBack) {
+            rtContext.waitForQueue[catchWaitForId](e);
+          }
+          else {
+            rtContext.runtimeException = e;
+
+            if (thenWaitForId)
+            {
+              doneWith(rtContext, thenWaitForId);
+            }
+          }
+        });
 
       return {
         rtCatch: (catchCallback) =>
         {
-          const cb = (...params) =>
+          customCallBack = (...params) =>
           {
             try
             {
@@ -669,8 +685,7 @@ function makeRTPromise(rtContext, rtPromise)
             }
           };
 
-          catchWaitForId = createWaitForCallback(rtContext, cb);
-          readPromiseChain.catch(rtContext.waitForQueue[catchWaitForId]);
+          catchWaitForId = createWaitForCallback(rtContext, customCallBack);
         }
       };
     }
