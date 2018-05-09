@@ -471,13 +471,26 @@ function setUploadDirectory(dirName, siteConfig)
 
 function doDeleteFile(thisFile)
 {
-  fs.unlink(thisFile.path, (err) =>
+  fs.stat(thisFile.path, (err) =>
   {
     if (err)
     {
-      console.warn(`WARNING: Could not delete unhandled uploaded file: ${thisFile.name}`);
-      console.warn(`WARNING: (CONT) On the file system as: ${thisFile.path}`);
-      console.warn(err);
+      if (err.code !== 'ENOENT') {
+        console.warn(`${TERMINAL_INFO_WARNING}: Could not delete unhandled uploaded file: ${thisFile.name}`);
+        console.warn(`${TERMINAL_INFO_WARNING}: (CONT) On the file system as: ${thisFile.path}`);
+        console.warn(err);
+      }
+    }
+    else {
+      fs.unlink(thisFile.path, (err) =>
+      {
+        if (err)
+        {
+          console.warn(`${TERMINAL_INFO_WARNING}: Could not delete unhandled uploaded file: ${thisFile.name}`);
+          console.warn(`${TERMINAL_INFO_WARNING}: (CONT) On the file system as: ${thisFile.path}`);
+          console.warn(err);
+        }
+      });
     }
   });
 }
@@ -1772,7 +1785,7 @@ if (readSuccess)
 
                 if (processBefore.match(/<html\s*\//i))
                 {
-                  console.warn('WARNING: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+                  console.warn(`${TERMINAL_INFO_WARNING}: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?`);
                 }
 
                 processedDataArray.push(processBefore);

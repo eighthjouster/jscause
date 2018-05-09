@@ -2,11 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Oh, if you move the file, JSCause must not try to delete it from the uploads directory.
-
 Easy file manipulation:
- - Easy way to check that files exist.
  - Easy way to delete files.
+   - Use rt.moveFile() as a model, esp. because of its file existence checking code. 
+ - Easy way to check that files exist.
      - Use rt.readFile() as a model.
    - And document.
 
