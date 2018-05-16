@@ -2,9 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Delete the temp files from Desktop/, if any.
-
 Hmmm, perhaps we can avoid this whole "provide rtThen()" altogether?
+  - Done, but we need to:
+    - Maybe refactor a bit, for readability.  It seems too spaghetti.
+    - Test exhaustively.  Esp. with nested cases.
+  - And update behavior in the documentation (the part that talks about 'rtThen() can be omitted but this is not advisable!').
+
+Then merge devel-default-promises into devel, and BACKUP!
+
+Delete the temp files from Desktop/, if any.
 
 Easy file manipulation:
  - Easy way to check that files exist.
