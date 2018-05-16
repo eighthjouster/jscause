@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Change the name of readPromiseChain.
-
 rtThen and rtCatch should check that their callbacks are valid.
 
 Easy file manipulation:

@@ -638,10 +638,10 @@ function makeRTPromise(rtContext, rtPromise)
   return {
     thenWaitForId: undefined,
     catchWaitForId: undefined,
-    readPromiseChain: new Promise(rtPromise),
+    RTPromiseChain: new Promise(rtPromise),
     rtThen: function(thenCallback)
     {
-      let { thenWaitForId , catchWaitForId, readPromiseChain } = this;
+      let { thenWaitForId , catchWaitForId, RTPromiseChain } = this;
       let customCallBack;
 
       const cb = (...params) =>
@@ -662,7 +662,7 @@ function makeRTPromise(rtContext, rtPromise)
       };
 
       thenWaitForId = createWaitForCallback(rtContext, cb);
-      readPromiseChain
+      RTPromiseChain
         .then(rtContext.waitForQueue[thenWaitForId])
         .catch((e) => {
           if (customCallBack) {
