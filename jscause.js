@@ -544,11 +544,16 @@ function deleteUnhandledFiles(unhandledFiles)
   });
 }
 
-function doneWith(ctx, id)
+function doneWith(ctx, id, isCancellation)
 {
   if (id)
   {
     delete ctx.waitForQueue[id];
+  }
+
+  if (isCancellation)
+  {
+    return;
   }
   
   if (Object.keys(ctx.waitForQueue).length === 0)
@@ -564,6 +569,7 @@ function doneWith(ctx, id)
       const formFiles = ctx.uploadedFiles;
       if (formFiles)
       {
+        console.log('ME HERE?!'); //__RP
         deleteUnhandledFiles(formFiles);
       }
 
@@ -634,15 +640,54 @@ function makeRTPromiseHandler(rtContext, resolve, reject)
   return rtContext.waitForQueue[waitForId];
 }
 
+function cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, isCancellation)
+{
+  if (defaultThenWaitForId)
+  {
+    doneWith(rtContext, defaultThenWaitForId, isCancellation);
+  }
+
+  if (defaultCatchWaitForId)
+  {
+    doneWith(rtContext, defaultCatchWaitForId, isCancellation);
+  }
+}
+
 function makeRTPromise(rtContext, rtPromise)
 {
+  let defaultThenWaitForId;
+  let defaultCatchWaitForId;
+  let thenWaitForId;
+  let catchWaitForId;
+
+  defaultThenWaitForId = createWaitForCallback(rtContext, () =>
+  {
+    if (!thenWaitForId)
+    {
+      console.log('HERE?! 2');//__RP
+      cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
+    }
+  });
+
+  defaultCatchWaitForId = createWaitForCallback(rtContext, (e) =>
+  {
+    if (!catchWaitForId)
+    {
+      console.log('HERE?! 1');//__RP
+      rtContext.runtimeException = e;
+      cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
+    }
+  });
+
+  let RTPromiseChain = new Promise(rtPromise)
+    .then(rtContext.waitForQueue[defaultThenWaitForId])
+    .catch(rtContext.waitForQueue[defaultCatchWaitForId]);
+
   return {
-    thenWaitForId: undefined,
-    catchWaitForId: undefined,
-    RTPromiseChain: new Promise(rtPromise),
     rtThen: function(thenCallback)
     {
-      let { thenWaitForId , catchWaitForId, RTPromiseChain } = this;
+      RTPromiseChain = new Promise(rtPromise);
+
       let customCallBack;
 
       const cb = (thenCallback) ?
@@ -661,6 +706,9 @@ function makeRTPromise(rtContext, rtPromise)
           {
             doneWith(rtContext, catchWaitForId);
           }
+
+      console.log('HERE?! 3');//__RP
+          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
         } :
         () =>
         {
@@ -668,6 +716,9 @@ function makeRTPromise(rtContext, rtPromise)
           {
             doneWith(rtContext, catchWaitForId);
           }
+
+      console.log('HERE?! 4');//__RP
+          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
         };
 
       thenWaitForId = createWaitForCallback(rtContext, cb);
@@ -675,6 +726,7 @@ function makeRTPromise(rtContext, rtPromise)
         .then(rtContext.waitForQueue[thenWaitForId])
         .catch((e) =>
         {
+          console.log(e);//__RP
           if (customCallBack)
           {
             rtContext.waitForQueue[catchWaitForId](e);
@@ -686,6 +738,9 @@ function makeRTPromise(rtContext, rtPromise)
             {
               doneWith(rtContext, thenWaitForId);
             }
+
+      console.log('HERE?! 5');//__RP
+            cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
           }
         });
 
@@ -708,6 +763,9 @@ function makeRTPromise(rtContext, rtPromise)
               {
                 doneWith(rtContext, thenWaitForId);
               }
+
+      console.log('HERE?! 6');//__RP
+              cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
             } :
             () =>
             {
@@ -715,6 +773,9 @@ function makeRTPromise(rtContext, rtPromise)
               {
                 doneWith(rtContext, thenWaitForId);
               }
+
+      console.log('HERE?! 7');//__RP
+              cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
             };
 
           catchWaitForId = createWaitForCallback(rtContext, customCallBack);
@@ -798,6 +859,7 @@ function createRunTime(rtContext)
 
       return makeRTPromise(rtContext, (resolve, reject) =>
       {
+        console.log('EXECUTING THIS!');//__RP
         if (overwrite)
         {
           fs.rename(source, destination, makeRTPromiseHandler(rtContext, resolve, reject));
