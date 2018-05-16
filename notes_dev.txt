@@ -2,9 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Change the name of readPromiseChain.
+
+rtThen and rtCatch should check that their callbacks are valid.
+
 Easy file manipulation:
- - Easy way to delete files.
-   - Use rt.moveFile() as a model, esp. because of its file existence checking code. 
  - Easy way to check that files exist.
      - Use rt.readFile() as a model.
    - And document.

@@ -806,6 +806,18 @@ function createRunTime(rtContext)
         }
       });
     },
+    deleteFile(path)
+    {
+      if (!fsPath.isAbsolute(path))
+      {
+        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+      }
+
+      return makeRTPromise(rtContext, (resolve, reject) =>
+      {
+        fs.unlink(path, makeRTPromiseHandler(rtContext, resolve, reject));
+      });
+    },
     getParams,
     postParams,
     contentType,
