@@ -475,7 +475,8 @@ function doDeleteFile(thisFile)
   {
     if (err)
     {
-      if (err.code !== 'ENOENT') {
+      if (err.code !== 'ENOENT')
+      {
         console.warn(`${TERMINAL_INFO_WARNING}: Could not delete unhandled uploaded file: ${thisFile.name}`);
         console.warn(`${TERMINAL_INFO_WARNING}: (CONT) On the file system as: ${thisFile.path}`);
         console.warn(err);
@@ -644,28 +645,38 @@ function makeRTPromise(rtContext, rtPromise)
       let { thenWaitForId , catchWaitForId, RTPromiseChain } = this;
       let customCallBack;
 
-      const cb = (...params) =>
-      {
-        try
+      const cb = (thenCallback) ?
+        (...params) =>
         {
-          thenCallback.call({}, ...params);
-        }
-        catch(e)
-        {
-          rtContext.runtimeException = e;
-        }
+          try
+          {
+            thenCallback.call({}, ...params);
+          }
+          catch(e)
+          {
+            rtContext.runtimeException = e;
+          }
 
-        if (catchWaitForId)
+          if (catchWaitForId)
+          {
+            doneWith(rtContext, catchWaitForId);
+          }
+        } :
+        () =>
         {
-          doneWith(rtContext, catchWaitForId);
-        }
-      };
+          if (catchWaitForId)
+          {
+            doneWith(rtContext, catchWaitForId);
+          }
+        };
 
       thenWaitForId = createWaitForCallback(rtContext, cb);
       RTPromiseChain
         .then(rtContext.waitForQueue[thenWaitForId])
-        .catch((e) => {
-          if (customCallBack) {
+        .catch((e) =>
+        {
+          if (customCallBack)
+          {
             rtContext.waitForQueue[catchWaitForId](e);
           }
           else {
@@ -681,22 +692,30 @@ function makeRTPromise(rtContext, rtPromise)
       return {
         rtCatch: (catchCallback) =>
         {
-          customCallBack = (...params) =>
-          {
-            try
+          customCallBack = (catchCallback) ?
+            (...params) =>
             {
-              catchCallback.call({}, ...params);
-            }
-            catch(e)
-            {
-              rtContext.runtimeException = e;
-            }
+              try
+              {
+                catchCallback.call({}, ...params);
+              }
+              catch(e)
+              {
+                rtContext.runtimeException = e;
+              }
 
-            if (thenWaitForId)
+              if (thenWaitForId)
+              {
+                doneWith(rtContext, thenWaitForId);
+              }
+            } :
+            () =>
             {
-              doneWith(rtContext, thenWaitForId);
-            }
-          };
+              if (thenWaitForId)
+              {
+                doneWith(rtContext, thenWaitForId);
+              }
+            };
 
           catchWaitForId = createWaitForCallback(rtContext, customCallBack);
         }

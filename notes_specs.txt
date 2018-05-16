@@ -113,6 +113,7 @@ Or this:
 - rt.copyFile(source, destination, overwrite) allows to copy a file from source to destination.  It behaves in a promise-like way, just like rt.readFile().
   - The third parameter is optional, and true if omitted.  If true, the destination will be overwritten if it exists.  If false, an EEXIST error will be thrown (catchable with rtCatch, err.code).
   - Absolute paths can be provided.  If relative paths are provided instead, they will be relative to the site's root directory (rootDirectoryName).
+  - rtThen() and rtCatch() can omit their parameter (that is, their callback.)  This is not advisable from an application development standpoint, but it's allowed.
   - rtThen() can be omitted but this is not advisable!  You can't provide an rtCatch() without it, and the node server may shutdown if an error occurs and the promise is unhandled (per node's documentation on unhandled promises.)
   - rtCatch() can be omitted, but if an error occurs, the server will issue a runtime error.
 - Tip: Common error: If you receive an unexpected token error referring to a part of the file that was supposed to be treated as HTML, check if the closing /js> previous to the line with the error was put in a line with a comment in it.  Example:  // This whole line is a comment /js>

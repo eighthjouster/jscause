@@ -1,19 +1,10 @@
 if (rt.postParams['submitIt'])
 {
   rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt')
-  .rtThen((theFile) =>
+  .rtThen(
+    (theFile) =>
   {
-    rt.deleteFile('nice.txt')
-    .rtThen((theFile) =>
-    {
-      console.log('All good, again.');
-    })
-    .rtCatch((err) =>
-    {
-      console.log('error2!!!!');
-      console.log(err);
-      rt.print('ERRORRRRRRR2!');
-    });
+    console.log('All good, again.');
   })
   .rtCatch((err) =>
   {

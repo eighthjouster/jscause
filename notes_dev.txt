@@ -2,7 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-rtThen and rtCatch should check that their callbacks are valid.
+Delete the temp files from Desktop/, if any.
+
+Hmmm, perhaps we can avoid this whole "provide rtThen()" altogether?
 
 Easy file manipulation:
  - Easy way to check that files exist.
