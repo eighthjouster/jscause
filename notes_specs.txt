@@ -123,3 +123,9 @@ node's documentation on unhandled promises.)
   - rt.moveFile(source, destination, overwrite).
     - Notice that if overwrite is false and a file exists, the error thrown is not native, but it tries to mimmick what copyFile does as much as possible.  The 'errno' attribute won't be available.  This is because POSIX rename will always overwrite.  We had to check for file existence first.
   - rt.deleteFile(path).
+- Notice that if there is an error inside .rtThen(), the code will not jump to .rtCatch(), as these only deal with the original corresponding operation.  JSCause will emit a typical error (you can trap it with try() catch{} though.)
+
+Known issues:
+=============
+
+- Firefox 61.0.2 on MacOS High Sierra has issues when reloading a page that renders after an upload.  If a user uploads a file, then re-loads the page (triggering a browser re-upload confirmation page), Firefox will reset the connection.  Newer versions do not exhibit this behavior.  Chrome does not exhibit this behavior either.

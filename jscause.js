@@ -1013,7 +1013,6 @@ function responder(req, res, indexRun, fullWebsiteDirectoryName,
     runtimeException: undefined
   };
 
-
   if (additional.jsonParseError)
   {
     resContext.statusCode = 400;
@@ -1177,25 +1176,32 @@ function incomingRequestHandler(req, res)
         forbiddenUploadAttempted
       };
 
+      let formFilesKeys;
       if (isUpload)
       {
-        Object.keys(formFiles).forEach((fileKey) =>
+        formFilesKeys = Object.keys(formFiles);
+
+        if (formFilesKeys.length)
         {
-          const thisFile = formFiles[fileKey];
-          if (Array.isArray(thisFile))
+          formFilesKeys.forEach((fileKey) =>
           {
-            thisFile.forEach((thisActualFile) =>
+            const thisFile = formFiles[fileKey];
+            if (Array.isArray(thisFile))
             {
-              doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
-            });
-          }
-          else
-          {
-            doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
-          }
-        });
+              thisFile.forEach((thisActualFile) =>
+              {
+                doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
+              });
+            }
+            else
+            {
+              doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
+            }
+          });
+        }
       }
-      else
+
+      if (!isUpload || !formFilesKeys)
       {
         responder(req, res, indexRun, fullWebsiteDirectoryName, formContext);
       }
