@@ -2,11 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Hmmm, perhaps we can avoid this whole "provide rtThen()" altogether?
-  - Done, but we need to:
-    - Maybe refactor a bit, for readability.  It seems too spaghetti.
-    - Test exhaustively.  Esp. with nested cases.
-  - And update behavior in the documentation (the part that talks about 'rtThen() can be omitted but this is not advisable!').
+- We need to test rtTest/rtCatch exhaustively.  Esp. with nested cases.
 
 Then merge devel-default-promises into devel, and BACKUP!
 

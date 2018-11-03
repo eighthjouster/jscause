@@ -23,6 +23,9 @@ const sanitizeFilename = require('./jscvendor/sanitize-filename');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
+const PROMISE_ACTOR_TYPE_THEN = 1;
+const PROMISE_ACTOR_TYPE_CATCH = 2;
+
 const DEFAULT_HOSTNAME = 'localhost';
 const DEFAULT_PORT = 3000;
 const DEFAULT_UPLOAD_DIR = './workbench/uploads';
@@ -654,7 +657,17 @@ function cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWa
   }
 }
 
-const makeCustomRtPromiseActor = (rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId, actorCallback) => {
+function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType) {
+  const counterActorId = (promiseActorType === PROMISE_ACTOR_TYPE_THEN) ?
+    promiseContext.catchWaitForId :
+    promiseContext.thenWaitForId;
+  if (counterActorId)
+  {
+    doneWith(rtContext, counterActorId);
+  }
+}
+
+const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, defaultThenWaitForId, defaultCatchWaitForId, actorCallback) => {
   return (actorCallback) ?
     (...params) =>
     {
@@ -667,20 +680,12 @@ const makeCustomRtPromiseActor = (rtContext, promiseContext, defaultThenWaitForI
         rtContext.runtimeException = e;
       }
 
-      if (promiseContext.catchWaitForId)
-      {
-        doneWith(rtContext, promiseContext.catchWaitForId);
-      }
-
+      doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType);
       cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
     } :
     () =>
     {
-      if (promiseContext.catchWaitForId)
-      {
-        doneWith(rtContext, promiseContext.catchWaitForId);
-      }
-
+      doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType);
       cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
     };
 };
@@ -688,7 +693,7 @@ const makeCustomRtPromiseActor = (rtContext, promiseContext, defaultThenWaitForI
 function makeRtThenCatchHandlers(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId) {
   const rtThen = (thenCallback) =>
   {
-    const cb = makeCustomRtPromiseActor(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId, thenCallback);
+    const cb = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_THEN, defaultThenWaitForId, defaultCatchWaitForId, thenCallback);
 
     promiseContext.thenWaitForId = createWaitForCallback(rtContext, cb);
 
@@ -704,34 +709,7 @@ function makeRtThenCatchHandlers(rtContext, promiseContext, defaultThenWaitForId
         .rtCatch(catchCallback);
     }
 
-    promiseContext.customCallBack = (catchCallback) ?
-      (...params) =>
-      {
-        try
-        {
-          catchCallback.call({}, ...params);
-        }
-        catch(e)
-        {
-          rtContext.runtimeException = e;
-        }
-
-        if (promiseContext.thenWaitForId)
-        {
-          doneWith(rtContext, promiseContext.thenWaitForId);
-        }
-
-        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-      } :
-      () =>
-      {
-        if (promiseContext.thenWaitForId)
-        {
-          doneWith(rtContext, promiseContext.thenWaitForId);
-        }
-
-        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-      };
+    promiseContext.customCallBack = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_CATCH, defaultThenWaitForId, defaultCatchWaitForId, catchCallback);
 
     promiseContext.catchWaitForId = createWaitForCallback(rtContext, promiseContext.customCallBack);
   };
