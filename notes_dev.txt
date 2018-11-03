@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-If we provide a rtCatch with no rtThen, the application waits indefinitely.  How to fix this?
-
 Hmmm, perhaps we can avoid this whole "provide rtThen()" altogether?
   - Done, but we need to:
     - Maybe refactor a bit, for readability.  It seems too spaghetti.

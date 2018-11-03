@@ -755,6 +755,11 @@ function makeRTPromise(rtContext, rtPromise)
 
   const rtCatch = (catchCallback) =>
   {
+    if (typeof(thenWaitForId) === 'undefined') {
+      return rtThen()
+        .rtCatch(catchCallback);
+    }
+
     customCallBack = (catchCallback) ?
       (...params) =>
       {

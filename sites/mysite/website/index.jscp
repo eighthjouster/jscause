@@ -1,13 +1,11 @@
 if (rt.postParams['submitIt'])
 {
-  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt')
-  /*
+  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', true)
   .rtThen(
     (theFile) =>
   {
     console.log('All good, again.');
   })
-  */
   .rtCatch((err) =>
   {
     console.log('error!!!!');
