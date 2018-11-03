@@ -654,39 +654,41 @@ function cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWa
   }
 }
 
+const makeCustomRtPromiseActor = (rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId, actorCallback) => {
+  return (actorCallback) ?
+    (...params) =>
+    {
+      try
+      {
+        actorCallback.call({}, ...params);
+      }
+      catch(e)
+      {
+        rtContext.runtimeException = e;
+      }
+
+      if (promiseContext.catchWaitForId)
+      {
+        doneWith(rtContext, promiseContext.catchWaitForId);
+      }
+
+      cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+    } :
+    () =>
+    {
+      if (promiseContext.catchWaitForId)
+      {
+        doneWith(rtContext, promiseContext.catchWaitForId);
+      }
+
+      cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+    };
+};
+
 function makeRtThenCatchHandlers(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId) {
   const rtThen = (thenCallback) =>
   {
-    console.log('I AM THEN!!');//__RP
-    console.log(thenCallback);//__RP
-    const cb = (thenCallback) ?
-      (...params) =>
-      {
-        try
-        {
-          thenCallback.call({}, ...params);
-        }
-        catch(e)
-        {
-          rtContext.runtimeException = e;
-        }
-
-        if (promiseContext.catchWaitForId)
-        {
-          doneWith(rtContext, promiseContext.catchWaitForId);
-        }
-
-        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-      } :
-      () =>
-      {
-        if (promiseContext.catchWaitForId)
-        {
-          doneWith(rtContext, promiseContext.catchWaitForId);
-        }
-
-        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-      };
+    const cb = makeCustomRtPromiseActor(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId, thenCallback);
 
     promiseContext.thenWaitForId = createWaitForCallback(rtContext, cb);
 
