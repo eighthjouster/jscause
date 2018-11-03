@@ -1754,7 +1754,7 @@ if (readSuccess)
               }
               else if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${rootDirectoryName}', ${currentSitePort}`);
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`);
                 readSuccess = false;
               }
             }

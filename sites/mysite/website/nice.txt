@@ -1,0 +1,167 @@
+"Bing listed the same laptop 157 times on its app.  I laughed it off as a glitch.  Silly Bing.
+
+
+But then it happened again, the day after.  157 results.  Ok, it's not funny anymore.  Let me browse normally, Bing.
+
+
+By the third time, I was annoyed.  The same 157 results.  What's the deal with it?  There is no Feedback link either.  Whatever, Bing.  What is that laptop anyway?  And so, I clicked the link.
+
+
+
+Sure it's a nice laptop.  The specs are okay.  The description is just typical, except for seemingly random scattered capitalized letters here and there:
+
+
+_Newest Asus Q524UQ-BBI7T14 2-in-1W 15.6" TouCh-Screen LaptopC - 6th gen INtel Core i7-6500U - 12GB MemorGy - 2TB Hard Drive - NChocolate black aluminum haIrline with dark B copper (2016 model)_
+
+
+Damn my observational skills.  Just in case you missed it, I'll change the text so only the relevant letters are upper case:
+
+
+_newest asus q524uq-bbi7t14 2-in-1W 15.6" touCh-screen laptopC - 6th gen iNtel core i7-6500u - 12gb memorGy - 2tb hard drive - Nchocolate black aluminum haIrline with dark B copper (2016 model)_
+
+
+All the capital letters together:
+
+WCCNGNIB
+
+
+What could it mean?  WCCNGNIB  An anagram?  Oh!  If I reverse it, I get:
+
+
+BINGNCCW
+
+
+Or more like:
+
+
+BING NCCW
+
+
+Interesting.  I go to bing.com, and type NCCW in the search bar.  One result drew my attention:
+
+
+"Nebraska Correctional Center for Women - Official Site"
+
+
+A women's prison.  I clicked on it, and I get the prison's website.  I start browsing around, and after 10 seconds, I get a popup:
+
+
+"Welcome Bing users!  Feel free to search our site at the bottom of the page."
+
+
+Huh.  I go to the bottom, and lo and behold, there is a Bing search bar.  Why isn't it at the top?  I see there is a Google search bar at the top.  Perhaps to avoid competition?  Who knows.  What can I search in it, anyway?
+
+
+Let's try the laptop model:  Asus Q524UQ-BBI7T14
+
+
+"Invalid profile id:  Asus Q524UQ-BBI7T14"
+
+
+Huh.  Could it be that it needs a number?  Let's try:  524
+
+
+"
+Profile id:  524.
+
+Offender Name: 	Brenda Olsen
+
+Race: 	Mixed
+
+Sex: 	Female
+
+Date of Birth: 01/27/1966
+
+Height/Weight:  5'4" / 186
+
+Hair/Eyes: Brown/Black
+
+Address:  [Redacted]
+
+Assigned Officer: [Redacted]
+
+Phone Number: [Redacted]
+
+Sentence Summary:  2 YRS
+
+Active Offenses:  Operating vehicle with revoked license
+
+Completed Offenses:  None
+
+Aliases:  None
+"
+
+
+Okidoki.  Any other number I could try?  Any other interesting number associated with this laptop?
+
+Perhaps, the number of results appearing on Bing:  157.
+
+
+"
+Profile id:  157.
+
+Offender Name: 	Debbie Buteau.
+
+Race: 	White
+
+Sex: 	Female
+
+Date of Birth: 08/12/1907
+
+Height/Weight:  6'2" / 160 pounds
+
+Hair/Eyes: Blonde/Green
+
+Address:  [Redacted]
+
+Assigned Officer: [Redacted]
+
+Phone Number: [Redacted]
+
+Sentence Summary:  LIFE
+
+Active Offenses:  [Redacted]
+
+Completed Offenses:  Threatening with a blade in a public place; assaulting and causing bodily harm.
+
+Aliases:  Time over abandonment.  Follow my source.
+"
+
+
+Well, this is interesting.  This person died in jail for sure.  And what about those aliases, if they are aliases?  "Time Over Abandonment" and "Follow My Source."  What's the significance of them?  The acronyms are TOA and FMS; do they mean anything?
+
+
+But maybe they're not aliases.  It's most likely a message.  For whom?  Clearly, not for me.  Although TOA are my name's initials, TheOrangeAngle.  Funny!  Follow my source?  My _source_.  This profile, this document..... the document's source?  Let's view this page's source.
+
+
+Well, well, here's the source of the first two entries in the profile:
+
+    <table class="pr-info">
+      <tr><td> Profile id: </td>
+          <td> 157. </td></tr>
+      <tr><td> Offender Name: </td>
+          <td> Ruth Mills. <i> http://example.com/pdnxfdO-OIacv3df.html </i></td></tr>
+    </table>
+
+
+Heh, there is an example.com link.  Nice joke.  That link simply doesn't work- wait, what is this?  It should have not worked at all!
+
+
+"
+My name was Debbie Buteau.  I won't bore you with the details as I had no time, but you will have to believe me.  I had a special power.  I could foresee certain types of future.  No, I was not that type of clairvoyant.  But I could see things happening far away.  And by far away, I mean, far, far away.  Light years.  And so in 1930, I saw that a great evil, 3.2 light years away, was approaching the Solar System.  Approaching Earth.
+
+
+I alerted the authorities, but to my surprise, they already knew about it.  I could understand why they wanted to cover it up.  But I could never understand why they framed me and locked me up.  The reason they kept me alive was because I was sharp enough to setup an insurance.  I also saw yet another terrible thing, this time, caused by them.  And if they killed me, I made arrangements so that that information came to light.  Unfortunately, that was not enough to free me up, but at least I was alive.  What they did not know was that I also made arrangements to divulge it all out after my death.  If you are reading this, I am dead, and you, TheOrangeAngle, will be my emissary.  That's right, I knew about you.  I could see distant objects, remember?
+
+
+The evil I saw will land on Earth on November 22nd, 2016.  Look up and see, but not before getting ready.  Grab provisions, seek refuge in the deep jungle.  Do not worry about money or telling your loved ones.  I am sorry.
+"
+
+
+Ok, that was chilling.  Probably a prank from one of my geeky friends.  Nice one.  Anyway, time to move on.  I got actual important things to do.
+
+
+====
+
+
+I should have listened.  We are all doomed.  If you read this, we are all dead.  If you read this, you may be a galaxy investigator, or a space archeologist, who knows.   My only hope is that if you are reading this, the evil has passed.  When we saw it, we all thought it was not as bad, but as it approached us, we realized with horror of our mistake.  Don't make the same mistake!  I managed to take a picture of it.  I am not sure if you'll be able to see it, but I'll take my chances.  May the universe be in your favor.  Here is the cause of our demise.  [Behold the evilness of all evil](https://i.reddituploads.com/e32cb5a859b84e409af8d6ad07705895?fit=max&h=1536&w=1536&s=83458496455b60964ef384d9c7295259)
