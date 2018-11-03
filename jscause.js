@@ -654,69 +654,11 @@ function cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWa
   }
 }
 
-function makeRTPromise(rtContext, rtPromise)
-{
-  let defaultThenWaitForId;
-  let defaultCatchWaitForId;
-  let thenWaitForId;
-  let catchWaitForId;
-  let customCallBack;
-
-  defaultThenWaitForId = createWaitForCallback(rtContext, () =>
-  {
-    cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
-  });
-
-  defaultCatchWaitForId = createWaitForCallback(rtContext, (e) =>
-  {
-    rtContext.runtimeException = e;
-    
-    if (thenWaitForId)
-    {
-      doneWith(rtContext, thenWaitForId, true);
-    }
-
-    cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
-  });
-
-  new Promise(rtPromise)
-    .then(() => {
-      if (thenWaitForId)
-      {
-        rtContext.waitForQueue[thenWaitForId]();
-      }
-      else
-      {
-        rtContext.waitForQueue[defaultThenWaitForId]();
-      }
-    })
-    .catch((e) =>
-    {
-      if (catchWaitForId)
-      {
-        if (customCallBack)
-        {
-          rtContext.waitForQueue[catchWaitForId](e);
-        }
-        else {
-          rtContext.runtimeException = e;
-
-          if (thenWaitForId)
-          {
-            doneWith(rtContext, thenWaitForId);
-          }
-
-          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-        }
-      }
-      else
-      {
-        rtContext.waitForQueue[defaultCatchWaitForId](e);
-      }
-    });
-
+function makeRtThenCatchHandlers(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId) {
   const rtThen = (thenCallback) =>
   {
+    console.log('I AM THEN!!');//__RP
+    console.log(thenCallback);//__RP
     const cb = (thenCallback) ?
       (...params) =>
       {
@@ -729,24 +671,24 @@ function makeRTPromise(rtContext, rtPromise)
           rtContext.runtimeException = e;
         }
 
-        if (catchWaitForId)
+        if (promiseContext.catchWaitForId)
         {
-          doneWith(rtContext, catchWaitForId);
+          doneWith(rtContext, promiseContext.catchWaitForId);
         }
 
         cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
       } :
       () =>
       {
-        if (catchWaitForId)
+        if (promiseContext.catchWaitForId)
         {
-          doneWith(rtContext, catchWaitForId);
+          doneWith(rtContext, promiseContext.catchWaitForId);
         }
 
         cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
       };
 
-    thenWaitForId = createWaitForCallback(rtContext, cb);
+    promiseContext.thenWaitForId = createWaitForCallback(rtContext, cb);
 
     return {
       rtCatch
@@ -755,12 +697,12 @@ function makeRTPromise(rtContext, rtPromise)
 
   const rtCatch = (catchCallback) =>
   {
-    if (typeof(thenWaitForId) === 'undefined') {
+    if (typeof(promiseContext.thenWaitForId) === 'undefined') {
       return rtThen()
         .rtCatch(catchCallback);
     }
 
-    customCallBack = (catchCallback) ?
+    promiseContext.customCallBack = (catchCallback) ?
       (...params) =>
       {
         try
@@ -772,30 +714,96 @@ function makeRTPromise(rtContext, rtPromise)
           rtContext.runtimeException = e;
         }
 
-        if (thenWaitForId)
+        if (promiseContext.thenWaitForId)
         {
-          doneWith(rtContext, thenWaitForId);
+          doneWith(rtContext, promiseContext.thenWaitForId);
         }
 
         cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
       } :
       () =>
       {
-        if (thenWaitForId)
+        if (promiseContext.thenWaitForId)
         {
-          doneWith(rtContext, thenWaitForId);
+          doneWith(rtContext, promiseContext.thenWaitForId);
         }
 
         cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
       };
 
-    catchWaitForId = createWaitForCallback(rtContext, customCallBack);
+    promiseContext.catchWaitForId = createWaitForCallback(rtContext, promiseContext.customCallBack);
   };
 
   return {
     rtThen,
     rtCatch
   };
+}
+
+function makeRTPromise(rtContext, rtPromise)
+{
+  let defaultThenWaitForId;
+  let defaultCatchWaitForId;
+  const promiseContext = {
+    thenWaitForId: null,
+    catchWaitForId: null,
+    customCallBack: null
+  };
+
+  defaultThenWaitForId = createWaitForCallback(rtContext, () =>
+  {
+    cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
+  });
+
+  defaultCatchWaitForId = createWaitForCallback(rtContext, (e) =>
+  {
+    rtContext.runtimeException = e;
+    
+    if (promiseContext.thenWaitForId)
+    {
+      doneWith(rtContext, promiseContext.thenWaitForId, true);
+    }
+
+    cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId);
+  });
+
+  new Promise(rtPromise)
+    .then(() => {
+      if (promiseContext.thenWaitForId)
+      {
+        rtContext.waitForQueue[promiseContext.thenWaitForId]();
+      }
+      else
+      {
+        rtContext.waitForQueue[defaultThenWaitForId]();
+      }
+    })
+    .catch((e) =>
+    {
+      if (promiseContext.catchWaitForId)
+      {
+        if (promiseContext.customCallBack)
+        {
+          rtContext.waitForQueue[promiseContext.catchWaitForId](e);
+        }
+        else {
+          rtContext.runtimeException = e;
+
+          if (promiseContext.thenWaitForId)
+          {
+            doneWith(rtContext, promiseContext.thenWaitForId);
+          }
+
+          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+        }
+      }
+      else
+      {
+        rtContext.waitForQueue[defaultCatchWaitForId](e);
+      }
+    });
+
+  return makeRtThenCatchHandlers(rtContext, promiseContext, defaultThenWaitForId, defaultCatchWaitForId);
 }
 
 function createRunTime(rtContext)
