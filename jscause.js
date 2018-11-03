@@ -715,76 +715,81 @@ function makeRTPromise(rtContext, rtPromise)
       }
     });
 
-  return {
-    rtThen: function(thenCallback)
-    {
-      const cb = (thenCallback) ?
-        (...params) =>
+  const rtThen = (thenCallback) =>
+  {
+    const cb = (thenCallback) ?
+      (...params) =>
+      {
+        try
         {
-          try
-          {
-            thenCallback.call({}, ...params);
-          }
-          catch(e)
-          {
-            rtContext.runtimeException = e;
-          }
-
-          if (catchWaitForId)
-          {
-            doneWith(rtContext, catchWaitForId);
-          }
-
-          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-        } :
-        () =>
-        {
-          if (catchWaitForId)
-          {
-            doneWith(rtContext, catchWaitForId);
-          }
-
-          cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-        };
-
-      thenWaitForId = createWaitForCallback(rtContext, cb);
-
-      return {
-        rtCatch: (catchCallback) =>
-        {
-          customCallBack = (catchCallback) ?
-            (...params) =>
-            {
-              try
-              {
-                catchCallback.call({}, ...params);
-              }
-              catch(e)
-              {
-                rtContext.runtimeException = e;
-              }
-
-              if (thenWaitForId)
-              {
-                doneWith(rtContext, thenWaitForId);
-              }
-
-              cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-            } :
-            () =>
-            {
-              if (thenWaitForId)
-              {
-                doneWith(rtContext, thenWaitForId);
-              }
-
-              cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
-            };
-
-          catchWaitForId = createWaitForCallback(rtContext, customCallBack);
+          thenCallback.call({}, ...params);
         }
+        catch(e)
+        {
+          rtContext.runtimeException = e;
+        }
+
+        if (catchWaitForId)
+        {
+          doneWith(rtContext, catchWaitForId);
+        }
+
+        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+      } :
+      () =>
+      {
+        if (catchWaitForId)
+        {
+          doneWith(rtContext, catchWaitForId);
+        }
+
+        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
       };
-    }
+
+    thenWaitForId = createWaitForCallback(rtContext, cb);
+
+    return {
+      rtCatch
+    };
+  };
+
+  const rtCatch = (catchCallback) =>
+  {
+    customCallBack = (catchCallback) ?
+      (...params) =>
+      {
+        try
+        {
+          catchCallback.call({}, ...params);
+        }
+        catch(e)
+        {
+          rtContext.runtimeException = e;
+        }
+
+        if (thenWaitForId)
+        {
+          doneWith(rtContext, thenWaitForId);
+        }
+
+        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+      } :
+      () =>
+      {
+        if (thenWaitForId)
+        {
+          doneWith(rtContext, thenWaitForId);
+        }
+
+        cancelDefaultRTPromises(rtContext, defaultThenWaitForId, defaultCatchWaitForId, true);
+      };
+
+    catchWaitForId = createWaitForCallback(rtContext, customCallBack);
+  };
+
+  return {
+    rtThen,
+    rtCatch
   };
 }
 
