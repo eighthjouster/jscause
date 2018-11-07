@@ -725,9 +725,9 @@ function makeRTPromise(rtContext, rtPromise)
   let defaultThenWaitForId;
   let defaultCatchWaitForId;
   const promiseContext = {
-    thenWaitForId: null,
-    catchWaitForId: null,
-    customCallBack: null
+    thenWaitForId: undefined,
+    catchWaitForId: undefined,
+    customCallBack: undefined
   };
 
   defaultThenWaitForId = createWaitForCallback(rtContext, () =>

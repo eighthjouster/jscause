@@ -2,18 +2,13 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- We need to test rtTest/rtCatch exhaustively.  Esp. with nested cases.
-
-Then merge devel-default-promises into devel, and BACKUP!
-
-Delete the temp files from Desktop/, if any.
+- Rename rtThen and rtCatch to rtOnSuccess and rtOnError.
+ - And document.
 
 Easy file manipulation:
  - Easy way to check that files exist.
      - Use rt.readFile() as a model.
    - And document.
-
-- Rename rtThen and rtCatch to rtOnSuccess and rtOnError.
 
 - A bit of documentation at this point?
  - Just tweaking what we have in notes_specs.txt so it reflects the latest changes.

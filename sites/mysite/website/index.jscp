@@ -4,7 +4,13 @@ if (rt.postParams['submitIt'])
   .rtThen(
     (theFile) =>
   {
-    console.log('All good, again.');
+    rt.moveFile('nice.txt', 'nice2.txt', true)
+    .rtCatch((err) =>
+    {
+      console.log('error 2!!!!');
+      console.log(err);
+      rt.print('ERROR 2!');
+    });
   })
   .rtCatch((err) =>
   {
