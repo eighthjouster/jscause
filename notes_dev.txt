@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Rename rtThen and rtCatch to rtOnSuccess and rtOnError.
- - And document.
-
 Easy file manipulation:
  - Easy way to check that files exist.
      - Use rt.readFile() as a model.
