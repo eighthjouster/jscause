@@ -810,6 +810,18 @@ function createRunTime(rtContext)
     {
       rtContext.runAfterQueue.push(cb);
     },
+    fileExists(path)
+    {
+      if (!fsPath.isAbsolute(path))
+      {
+        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+      }
+
+      return makeRTPromise(rtContext, (resolve, reject) =>
+      {
+        fs.stat(path, makeRTPromiseHandler(rtContext, resolve, reject));
+      });
+    },
     readFile(path)
     {
       if (!fsPath.isAbsolute(path))
