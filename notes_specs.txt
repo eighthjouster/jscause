@@ -67,13 +67,14 @@ Or this:
   - The filename in the client is under the .name attribute.
   - The whole path, including a temp name assigned by JSCause, is under the .path attribute.
   - The developer is responsible to do something with the file during the execution of the script.  Once the script is done (and all the waitFor() callbacks completed), the files will be deleted from their temporary location.
+    - The temporary location is specified by uploadDirectory.  The default is './workbench/uploads'.  An absolute path can also be specified.  If a relative path is provided, it will be relative to the jsframework's directory (notice how this is different from rt.* file handling functions' relative path handling.)
     - So, copy the file somewhere else if you plan to save it.  Do it asynchronously if possible (in combination with waitFor().)
   - Examples:
     - rt.uploadedFiles['myFile'].name
     - rt.uploadedFiles['myFile'][0].name
   - If the canUpload server configuration value is set to false, any attempts to upload anything will immediately close the connection.  The application will try to send a 403 forbidden error, but this is not guaranteed.
     - Same thing with max file size.  If this is not desired, is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)
-  - A maxPayloadSizeBytes server config value of 0 indicated unlimited upload size.  Fewer than 0 is as if canUpload is false.
+  - A maxPayloadSizeBytes server config value of 0 indicated unlimited upload size.  Fewer than 0 is as if canUpload is false.  Use the 0 value with caution.
   - When POSTing, if the content-type header is set to application/json, the app will do its best to parse it.  If it fails, rt.additional.jsonParseError will be true.  If it succeeds, the json object will be available as rt.postParams.
   - If when POSTing the content-type header is set to anything other than application/json o form encoded, the payload will be available as rt.postParams.data.  If the user is sure it will be a string, they should do rt.postParams.data.toString() before processing.
   - contentType can be whatever the content-type header is set to, except for:

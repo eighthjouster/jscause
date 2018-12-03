@@ -1,4 +1,3 @@
-require('./moduletest.jscm')();
 if (rt.postParams['submitIt'])
 {
   rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', true)

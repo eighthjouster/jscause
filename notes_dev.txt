@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- But wait, why do we have default values, if omitting keywords is forbidden, then?
-   - e.g. DEFAULT_HOSTNAME? DEFAULT_PORT?
-
 What is 'this' in our environment context?  Find out, document if necessary.
  - So far, it's {}.  I think it should be undefined.
    - Check inside callbacks and waitFor() callbacks as well:

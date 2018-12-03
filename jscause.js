@@ -26,9 +26,6 @@ const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 const PROMISE_ACTOR_TYPE_SUCCESS = 1;
 const PROMISE_ACTOR_TYPE_ERROR = 2;
 
-const DEFAULT_HOSTNAME = 'localhost';
-const DEFAULT_PORT = 3000;
-const DEFAULT_UPLOAD_DIR = './workbench/uploads';
 const TERMINAL_ERROR_STRING = '\x1b[31mERROR\x1b[0m';
 const TERMINAL_INFO_STRING = '\x1b[32mINFO\x1b[0m';
 const TERMINAL_INFO_WARNING = '\x1b[33mWARNING\x1b[0m';
@@ -398,11 +395,11 @@ const defaultSiteConfig =
   rootDirectoryName: '',
   fullWebsiteDirectoryName: '',
   indexRun: null,
-  hostName: DEFAULT_HOSTNAME,
-  port: DEFAULT_PORT,
+  hostName: undefined,
+  port: undefined,
   uploadDirectory: null,
   canUpload: true,
-  maxPayloadSizeBytes: 3 * 1024, // 3 KB
+  maxPayloadSizeBytes: undefined
 };
 
 const symbolsToSanitize =
@@ -1295,7 +1292,7 @@ function startServer(siteConfig)
       console.error(`${TERMINAL_ERROR_STRING}: Error returned by the server follows:`)
       console.error(`${TERMINAL_ERROR_STRING}: ${e.message}`);
       console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} (port: ${serverPort}) not started.`);
-      runningServer.sites.forEach((site) =>
+      Object.values(runningServer.sites).forEach((site) =>
       {
         console.error(`${TERMINAL_ERROR_STRING}: - Site ${getSiteNameOrNoName(site.name)} not started.`);
       });
@@ -1697,7 +1694,7 @@ if (readSuccess)
               }
               else
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.`);
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.`);
                 soFarSoGood = false;
               }
             }
@@ -1939,7 +1936,7 @@ if (readSuccess)
             siteConfig.indexRun = undefined;
             console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code.`);
           }
-          else if (setUploadDirectory(siteConfig.uploadDirectory || DEFAULT_UPLOAD_DIR, siteConfig))
+          else if (setUploadDirectory(siteConfig.uploadDirectory, siteConfig))
           {
             // All is well so far.
             if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
@@ -2012,5 +2009,5 @@ if (atLeastOneSiteStarted)
 }
 else
 {
-  console.error(`${TERMINAL_ERROR_STRING}: Server not started.  No site is running.`);
+  console.error(`${TERMINAL_ERROR_STRING}: Server not started.  No sites are running.`);
 }
