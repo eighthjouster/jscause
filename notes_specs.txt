@@ -24,19 +24,19 @@ sites/mysite/scripts/main.sjs
 public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
 
 Each site contains:
-    - A site.json file:  Site name, domain name, ssl, etc.
-    - A site_routes.json (optional):  Will map files to routes, overriding whatever is on public/.
-    - A public/ folder, which will contain files that can be requested directly by the browser.
-    - Files with an SJS extension (for example, index.sjs) will be executed first, with its output sent to the browser.
-    - A files/ folder, which will contain files that can only be accessed by server-side scripts.
-    - A json/ folder, with extra configuration files:
-    - database.json:  Database connection info.
-    - custom_config.json: Application-specific configuration.
-    - A scripts/ folder:  With server-side Javascript files.  They can only be accessed via routes, or by importing.
+    - A configuration/site.json file:  Site name, domain name, ssl, etc.
+    - A website/ folder, which will contain files that can be requested directly by the browser.
+      - Files with a JSCP extension (for example, index.jscp) will be executed first, with its output sent to the browser.  They can only live inside website/
+      - Module files with a JSCM extension (for example, module.jscp) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
+    - An assets/ folder, which will contain files that can only be accessed by server-side scripts.
+    - The configuration/ folder may have extra configuration files:
+      - database.json:  Database connection info.
+      - A routes.json (optional):  Will map files to routes, overriding whatever is on website/.
+      - custom.json: Application-specific configuration.
 
 The ports of each site are configured in jscause.conf
 
-public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
+website/, configuration/ and assets/ must allow hot reloading.
 
 This is valid:
 <js rt.print('WHOA 4!'); /js>
@@ -51,8 +51,8 @@ Or this:
 - To '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
 - '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
 - If there are no tags, the whole file is considered Javascript.
-- If there are no tags, but there is a <html/> tag at the top of the file, the file is considered HTML.
-- If the first thing in a file is an opening tag, it can be omitted.  Likewise, the last thing in a file is a closing file, it can be omitted.
+- If there are no tags, but there is an <html/> tag at the top of the file, the file is considered HTML.
+- If the first line in a file is an opening tag, it can be omitted.  Likewise, the last line in a file is a closing file, it can be omitted.
 - rt.header() sets headers.  You can call them as many times as needed.
 - rt.waitFor() must be used when defining callbacks.  For example:
   - Instead of:  setTimeout(() => { rt.print('Hello, world!'); }, 1000);
@@ -121,6 +121,7 @@ Or this:
   - rt.moveFile(source, destination, overwrite).
     - Notice that if overwrite is false and a file exists, the error thrown is not native, but it tries to mimmick what copyFile does as much as possible.  The 'errno' attribute won't be available.  This is because POSIX rename will always overwrite.  We had to check for file existence first.
   - rt.deleteFile(path).
+  - rt.fileExists(path).  rtOnSuccess is called if file exists.  rtOnError otherwise.  It is advised that the error be examined.  Typically, err.code should be 'ENOENT'.
 - Notice that if there is an error inside .rtOnSuccess(), the code will not jump to .rtOnError(), as these only deal with the original corresponding operation.  JSCause will emit a typical error (you can trap it with try() catch{} though.)
 
 Known issues:

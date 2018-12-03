@@ -1,15 +1,20 @@
+require('./moduletest.jscm')();
 if (rt.postParams['submitIt'])
 {
   rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', true)
   .rtOnSuccess(
     (theFile) =>
   {
-    rt.moveFile('nice.txt', 'nice2.txt', true)
+    rt.fileExists('nice44.txt')
+    .rtOnSuccess(() => {
+      console.log('FILE EXISTS!!');
+      rt.print('FILE EXISTS');
+    })
     .rtOnError((err) =>
     {
-      console.log('error 2!!!!');
+      console.log('FILE DOES NOT EXIST!!');
+      rt.print('FILE DOES NOT EXIST');
       console.log(err);
-      rt.print('ERROR 2!');
     });
   })
   .rtOnError((err) =>
