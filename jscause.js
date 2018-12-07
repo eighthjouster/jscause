@@ -654,7 +654,8 @@ function cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErro
   }
 }
 
-function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType) {
+function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType)
+{
   const counterActorId = (promiseActorType === PROMISE_ACTOR_TYPE_SUCCESS) ?
     promiseContext.errorWaitForId :
     promiseContext.successWaitForId;
@@ -687,7 +688,8 @@ const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, d
     };
 };
 
-function makeRTOnSuccessOnErrorHandlers(rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId) {
+function makeRTOnSuccessOnErrorHandlers(rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId)
+{
   const rtOnSuccess = (successCallback) =>
   {
     const cb = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_SUCCESS, defaultSuccessWaitForId, defaultErrorWaitForId, successCallback);
@@ -701,7 +703,8 @@ function makeRTOnSuccessOnErrorHandlers(rtContext, promiseContext, defaultSucces
 
   const rtOnError = (errorCallback) =>
   {
-    if (typeof(promiseContext.successWaitForId) === 'undefined') {
+    if (typeof(promiseContext.successWaitForId) === 'undefined')
+    {
       return rtOnSuccess()
         .rtOnError(errorCallback);
     }
@@ -1908,7 +1911,7 @@ if (readSuccess)
 
             try
             {
-              compileContext.compiledModule._compile(`module.exports = (rt) => {${processedData}};`, '');
+              compileContext.compiledModule._compile(`module.exports = function(rt) {${processedData}}`, '');
               indexExists = true;
             }
             catch (e)

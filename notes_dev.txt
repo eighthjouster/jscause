@@ -2,14 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-What is 'this' in our environment context?  Find out, document if necessary.
- - So far, it's {}.  I think it should be undefined.
-   - Check inside callbacks and waitFor() callbacks as well:
-     - cb.apply({}, arguments);
-     - indexRun.call({}, runTime);
-
-Git tag at this point.
-
 Are file error codes the same in Linux, MacOS and Windows? (err.code === 'EEXIST', for example.)
  - Check moveFile with overwrite=false, for example.
 
