@@ -114,6 +114,11 @@ Or this:
   - Absolute paths can be provided.  If relative paths are provided instead, they will be relative to the site's root directory (rootDirectoryName).
   - rtOnSuccess() and rtOnError() can omit their parameter (that is, their callback.)  This is not advisable from an application development standpoint, but it's allowed.
   - rtOnError() can be omitted, but if an error occurs, the server will issue a runtime error.
+- rt.module(moduleName): Syntactic sugar for: require('./moduleName.jscm').
+  - It could be either: rt.module('moduleName') or rt.module('moduleName.jscm')
+  - Path is relative to the website's directory (e.g. 'moduleName' => 'mySite/website/moduleName.jscm').
+  - Absolute paths are not permitted.
+
 - Tip: Common error: If you receive an unexpected token error referring to a part of the file that was supposed to be treated as HTML, check if the closing /js> previous to the line with the error was put in a line with a comment in it.  Example:  // This whole line is a comment /js>
 - Tip: Moving uploaded files is quicker than copying them to their final destination.
 - Other file functions:

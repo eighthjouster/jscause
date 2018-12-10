@@ -1,3 +1,6 @@
+const whatIsUp = rt.module('moduletest');
+rt.print(whatIsUp());
+
 if (rt.postParams['submitIt'])
 {
   rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', false)

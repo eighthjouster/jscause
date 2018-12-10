@@ -5,10 +5,10 @@ git bundle create jscause-.bundle devel
 - How do we use modules again?
   - And document.
 
-There should be two directories:  jscause and sites, sitting side by side.
-
 Serve files other than index.jscp
  - Multiple compilations, one per file.
+   - Check that runtime errors correctly indicate the file the error happened in (right now it only reports index.jscp.)
+     - Report in modules? At least it should say the file the module was called from.
  - Call responder() only on jscp files.  The rest, treat as static downloads.
  - And _NEVER_ serve .jscm files.  Ever.
    - A directive to blacklist/whitelist directories from which .js files can be served as static files.

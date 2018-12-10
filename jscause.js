@@ -395,6 +395,7 @@ const defaultSiteConfig =
   rootDirectoryName: '',
   fullSitePath: '',
   indexRun: null,
+  indexRunFileName: '',
   hostName: undefined,
   port: undefined,
   tempWorkDirectory: null,
@@ -504,7 +505,7 @@ function doDeleteFile(thisFile)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, indexRunFileName, formContext, pendingWork, fullSitePath })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
@@ -527,7 +528,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res,
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, indexRun, fullSitePath, formContext);
+      responder(req, res, indexRun, indexRunFileName, fullSitePath, formContext);
     }
   });
 }
@@ -580,11 +581,11 @@ function doneWith(ctx, id, isCancellation)
         deleteUnhandledFiles(formFiles);
       }
 
-      const { runtimeException } = ctx;
+      const { runtimeException, indexRunFileName } = ctx;
       if (runtimeException)
       {
         ctx.outputQueue = ['<br />Runtime error!<br />'];
-        console.error(`${TERMINAL_ERROR_STRING}: Runtime error: ${extractErrorFromRuntimeObject(runtimeException)}`);
+        console.error(`${TERMINAL_ERROR_STRING}: Runtime error on file ${indexRunFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`);
         console.error(runtimeException);
       }
 
@@ -870,8 +871,6 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(source))
       {
-        console.log('RELATIVE PATH!');//__RP
-        console.log(rtContext.fullSitePath, source);//__RP
         source = fsPath.join(rtContext.fullSitePath, source);
       }
 
@@ -921,6 +920,17 @@ function createRunTime(rtContext)
         fs.unlink(path, makeRTPromiseHandler(rtContext, resolve, reject));
       });
     },
+    module(moduleName) {
+      if (fsPath.isAbsolute(moduleName))
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Module name and path ${moduleName} must be specified as relative.`);
+      }
+      else
+      {
+        const modulePath = fsPath.join(rtContext.fullSitePath, JSCAUSE_WEBSITE_PATH, `${moduleName}.jscm`);
+        return require(modulePath);
+      }
+    },
     getParams,
     postParams,
     contentType,
@@ -956,7 +966,7 @@ function extractErrorFromRuntimeObject(e)
 
 const runningServers = {};
 
-function responder(req, res, indexRun, fullSitePath,
+function responder(req, res, indexRun, indexRunFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted
@@ -1023,6 +1033,7 @@ function responder(req, res, indexRun, fullSitePath,
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
     postParams,
+    indexRunFileName,
     requestMethod,
     contentType,
     uploadedFiles,
@@ -1108,7 +1119,7 @@ function incomingRequestHandler(req, res)
     return;
   }
 
-  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, indexRun, fullSitePath } = identifiedSite;
+  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, indexRun, indexRunFileName, fullSitePath } = identifiedSite;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const contentLength = parseInt(headers['content-length'] || 0, 10);
@@ -1210,12 +1221,12 @@ function incomingRequestHandler(req, res)
             {
               thisFile.forEach((thisActualFile) =>
               {
-                doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath });
+                doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, indexRun, indexRunFileName, formContext, pendingWork, fullSitePath });
               });
             }
             else
             {
-              doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath });
+              doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, indexRunFileName, formContext, pendingWork, fullSitePath });
             }
           });
         }
@@ -1223,7 +1234,7 @@ function incomingRequestHandler(req, res)
 
       if (!isUpload || !formFilesKeys)
       {
-        responder(req, res, indexRun, fullSitePath, formContext);
+        responder(req, res, indexRun, indexRunFileName, fullSitePath, formContext);
       }
     });
   }
@@ -1261,7 +1272,7 @@ function incomingRequestHandler(req, res)
       }
 
       const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-      responder(req, res, indexRun, fullSitePath, postContext);
+      responder(req, res, indexRun, indexRunFileName, fullSitePath, postContext);
     });
   }
 
@@ -1585,7 +1596,8 @@ if (readSuccess)
       const siteConfig = createInitialSiteConfig(thisServerSite);
 
       const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
-      let  indexFile = '';
+      let indexFile = '';
+      let processedFileName = '';
 
       if (siteName)
       {
@@ -1795,7 +1807,9 @@ if (readSuccess)
         {
           readSuccess = false;
 
-          indexFile = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, 'index.jscp');
+          processedFileName = 'index.jscp';
+
+          indexFile = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, processedFileName);
 
           try
           {
@@ -1943,6 +1957,7 @@ if (readSuccess)
         {
           readSuccess = false;
           siteConfig.indexRun = compileContext.compiledModule.exports;
+          siteConfig.indexRunFileName = processedFileName;
 
           if (typeof(siteConfig.indexRun) !== 'function')
           {
