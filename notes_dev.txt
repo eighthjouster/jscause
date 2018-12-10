@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Are file error codes the same in Linux, MacOS and Windows? (err.code === 'EEXIST', for example.)
- - Check moveFile with overwrite=false, for example.
-
 - How do we use modules again?
   - And document.
 

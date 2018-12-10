@@ -393,11 +393,11 @@ const defaultSiteConfig =
   server: null,
   name: '',
   rootDirectoryName: '',
-  fullWebsiteDirectoryName: '',
+  fullSitePath: '',
   indexRun: null,
   hostName: undefined,
   port: undefined,
-  uploadDirectory: null,
+  tempWorkDirectory: null,
   canUpload: true,
   maxPayloadSizeBytes: undefined
 };
@@ -434,35 +434,43 @@ function sanitizeForHTMLOutput(inputText)
   return String(inputText).replace(/[&<>"'`=/]/g, (s) => symbolsToSanitize[s]);
 }
 
-function setUploadDirectory(dirName, siteConfig)
+function setTempWorkDirectory(siteConfig)
 {
+  let  { tempWorkDirectory } = siteConfig;
+
   let setupSuccess = false;
+
   if (!siteConfig || !siteConfig.canUpload)
   {
     setupSuccess = true;
   }
+  if (fsPath.isAbsolute(tempWorkDirectory))
+  {
+    console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory path ${tempWorkDirectory} must be specified as relative.`);
+  }
   else
   {
-    if (fs.existsSync(dirName))
+    tempWorkDirectory = fsPath.join(siteConfig.fullSitePath, tempWorkDirectory);
+    if (fs.existsSync(tempWorkDirectory))
     {
       try
       {
-        fs.accessSync(dirName, fs.constants.W_OK);
+        fs.accessSync(tempWorkDirectory, fs.constants.W_OK);
         setupSuccess = true;
       }
       catch (e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Upload directory ${dirName} is not writeable`);
+        console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory ${tempWorkDirectory} is not writeable`);
       }
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Upload directory ${dirName} not found`);
+      console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory ${tempWorkDirectory} not found`);
     }
 
     if (setupSuccess)
     {
-      siteConfig.uploadDirectory = dirName.replace(/\/?$/,'');
+      siteConfig.tempWorkDirectory = tempWorkDirectory.replace(/\/?$/,'');
     }
   }
 
@@ -496,11 +504,11 @@ function doDeleteFile(thisFile)
   });
 }
 
-function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
-  const newFilePath = fsPath.join(uploadDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
+  const newFilePath = fsPath.join(tempWorkDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
   
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
@@ -519,7 +527,7 @@ function doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, ind
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, indexRun, fullWebsiteDirectoryName, formContext);
+      responder(req, res, indexRun, fullSitePath, formContext);
     }
   });
 }
@@ -814,7 +822,7 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+        path = fsPath.join(rtContext.fullSitePath, path);
       }
 
       return makeRTPromise(rtContext, (resolve, reject) =>
@@ -826,7 +834,7 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+        path = fsPath.join(rtContext.fullSitePath, path);
       }
 
       return makeRTPromise(rtContext, (resolve, reject) =>
@@ -838,12 +846,12 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(source))
       {
-        source = fsPath.join(rtContext.fullWebsiteDirectoryName, source);
+        source = fsPath.join(rtContext.fullSitePath, source);
       }
 
       if (!fsPath.isAbsolute(destination))
       {
-        destination = fsPath.join(rtContext.fullWebsiteDirectoryName, destination);
+        destination = fsPath.join(rtContext.fullSitePath, destination);
       }
 
       return makeRTPromise(rtContext, (resolve, reject) =>
@@ -862,12 +870,14 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(source))
       {
-        source = fsPath.join(rtContext.fullWebsiteDirectoryName, source);
+        console.log('RELATIVE PATH!');//__RP
+        console.log(rtContext.fullSitePath, source);//__RP
+        source = fsPath.join(rtContext.fullSitePath, source);
       }
 
       if (!fsPath.isAbsolute(destination))
       {
-        destination = fsPath.join(rtContext.fullWebsiteDirectoryName, destination);
+        destination = fsPath.join(rtContext.fullSitePath, destination);
       }
 
       return makeRTPromise(rtContext, (resolve, reject) =>
@@ -903,7 +913,7 @@ function createRunTime(rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullWebsiteDirectoryName, path);
+        path = fsPath.join(rtContext.fullSitePath, path);
       }
 
       return makeRTPromise(rtContext, (resolve, reject) =>
@@ -946,7 +956,7 @@ function extractErrorFromRuntimeObject(e)
 
 const runningServers = {};
 
-function responder(req, res, indexRun, fullWebsiteDirectoryName,
+function responder(req, res, indexRun, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted
@@ -1017,7 +1027,7 @@ function responder(req, res, indexRun, fullWebsiteDirectoryName,
     contentType,
     uploadedFiles,
     additional,
-    fullWebsiteDirectoryName,
+    fullSitePath,
     statusCode: 200,
     compileTimeError: false,
     runtimeException: undefined
@@ -1079,7 +1089,7 @@ function sendUploadIsForbidden(res)
 function incomingRequestHandler(req, res)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, method } = req;
-  const [/* Deliberately left blank. */, reqHostName, preparsedReqPort = DEFAULT_PORT] = hostHeader.match(/(.+):(\d+)$/);
+  const [/* Deliberately left blank. */, reqHostName, preparsedReqPort] = hostHeader.match(/(.+):(\d+)$/);
   const requestMethod = (method || '').toLowerCase();
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
   const reqPort = parseInt(preparsedReqPort, 10);
@@ -1098,7 +1108,7 @@ function incomingRequestHandler(req, res)
     return;
   }
 
-  const { canUpload, maxPayloadSizeBytes, uploadDirectory, indexRun, fullWebsiteDirectoryName } = identifiedSite;
+  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, indexRun, fullSitePath } = identifiedSite;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const contentLength = parseInt(headers['content-length'] || 0, 10);
@@ -1200,12 +1210,12 @@ function incomingRequestHandler(req, res)
             {
               thisFile.forEach((thisActualFile) =>
               {
-                doMoveToUploadDir(thisActualFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
+                doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath });
               });
             }
             else
             {
-              doMoveToUploadDir(thisFile, uploadDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullWebsiteDirectoryName });
+              doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, indexRun, formContext, pendingWork, fullSitePath });
             }
           });
         }
@@ -1213,7 +1223,7 @@ function incomingRequestHandler(req, res)
 
       if (!isUpload || !formFilesKeys)
       {
-        responder(req, res, indexRun, fullWebsiteDirectoryName, formContext);
+        responder(req, res, indexRun, fullSitePath, formContext);
       }
     });
   }
@@ -1251,7 +1261,7 @@ function incomingRequestHandler(req, res)
       }
 
       const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-      responder(req, res, indexRun, fullWebsiteDirectoryName, postContext);
+      responder(req, res, indexRun, fullSitePath, postContext);
     });
   }
 
@@ -1621,7 +1631,7 @@ if (readSuccess)
       {
         let siteJSONFilePath = fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName);
 
-        siteConfig.fullWebsiteDirectoryName = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
+        siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
 
         console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
         const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
@@ -1633,7 +1643,7 @@ if (readSuccess)
           const allAllowedKeys =
           [
             'hostname',
-            'uploaddirectory',
+            'tempworkdirectory',
             'canupload',
             'maxpayloadsizebytes'
           ];
@@ -1707,7 +1717,7 @@ if (readSuccess)
               soFarSoGood = false;
             }
 
-            configKeyName = 'uploaddirectory';
+            configKeyName = 'tempworkdirectory';
             configValue = processedConfigJSON[configKeyName];
 
             if (typeof(configValue) === 'string')
@@ -1715,17 +1725,17 @@ if (readSuccess)
               const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
               if (dirName)
               {
-                siteConfig.uploadDirectory = dirName;
+                siteConfig.tempWorkDirectory = dirName;
               }
               else
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  uploaddirectory cannot be empty.`);
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  tempworkdirectory cannot be empty.`);
                 soFarSoGood = false;
               }
             }
             else
             {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid uploaddirectory.  String value expected.');
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.');
               soFarSoGood = false;
             }
           }
@@ -1741,7 +1751,7 @@ if (readSuccess)
           const currentSiteHostName = siteConfig.hostName.toLowerCase();
           const currentSitePort = siteConfig.port;
           const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
-          const currentUploadDirectory = siteConfig.uploadDirectory;
+          const currentTempWorkDirectory = siteConfig.tempWorkDirectory;
           
           allConfigCombos.every((combo) =>
           {
@@ -1759,11 +1769,11 @@ if (readSuccess)
               }
             }
 
-            if ((currentUploadDirectory === combo.uploadDirectory) &&
+            if ((currentTempWorkDirectory === combo.tempWorkDirectory) &&
                 (currentSiteHostName !== combo.hostName))
             {
               console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} share the same upload directory:`);
-              console.warn(`${TERMINAL_INFO_WARNING}: - ${currentUploadDirectory}`);
+              console.warn(`${TERMINAL_INFO_WARNING}: - ${currentTempWorkDirectory}`);
             }
 
             return readSuccess;
@@ -1776,7 +1786,7 @@ if (readSuccess)
               port: siteConfig.port,
               name: siteConfig.name,
               rootDirectoryName: siteConfig.rootDirectoryName,
-              uploadDirectory: siteConfig.uploadDirectory
+              tempWorkDirectory: siteConfig.tempWorkDirectory
             });
           }
         }
@@ -1939,7 +1949,7 @@ if (readSuccess)
             siteConfig.indexRun = undefined;
             console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code.`);
           }
-          else if (setUploadDirectory(siteConfig.uploadDirectory, siteConfig))
+          else if (setTempWorkDirectory(siteConfig))
           {
             // All is well so far.
             if ((siteConfig.maxPayloadSizeBytes || 0) < 0)

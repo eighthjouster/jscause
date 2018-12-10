@@ -1,10 +1,10 @@
 if (rt.postParams['submitIt'])
 {
-  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', true)
+  rt.moveFile(rt.uploadedFiles['myFile'].path, 'nice.txt', false)
   .rtOnSuccess(
     (theFile) =>
   {
-    rt.fileExists('nice44.txt')
+    rt.fileExists('nice.txt')
     .rtOnSuccess(() => {
       console.log('FILE EXISTS!!');
       rt.print('FILE EXISTS');

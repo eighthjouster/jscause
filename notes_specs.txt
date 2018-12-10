@@ -8,20 +8,17 @@ With a hierarchy like the followng:
 
 sites/
 sites/mysite/
-sites/mysite/site_configuration.json
-sites/mysite/site_routes.json
-sites/mysite/public/
-sites/mysite/public/index.html
-sites/mysite/public/index.sjs
-sites/mysite/files/
-sites/mysite/files/user_list.csv
-sites/mysite/json/
-sites/mysite/json/database.json
-sites/mysite/json/custom_config.json
-sites/mysite/scripts/
-sites/mysite/scripts/main.sjs
+sites/mysite/assets/*
+sites/mysite/configuration/custom.json
+sites/mysite/configuration/database.json
+sites/mysite/configuration/routes.json
+sites/mysite/configuration/site.json
+sites/mysite/website/
+sites/mysite/website/index.html
+sites/mysite/website/index.jscp
+sites/mysite/workbench/
 
-public/, json/, files/, site_routes.json and scripts/ must allow hot reloading.
+website/ and configuration/ must allow hot reloading.
 
 Each site contains:
     - A configuration/site.json file:  Site name, domain name, ssl, etc.
@@ -67,7 +64,7 @@ Or this:
   - The filename in the client is under the .name attribute.
   - The whole path, including a temp name assigned by JSCause, is under the .path attribute.
   - The developer is responsible to do something with the file during the execution of the script.  Once the script is done (and all the waitFor() callbacks completed), the files will be deleted from their temporary location.
-    - The temporary location is specified by uploadDirectory.  The default is './workbench/uploads'.  An absolute path can also be specified.  If a relative path is provided, it will be relative to the jsframework's directory (notice how this is different from rt.* file handling functions' relative path handling.)
+    - The temporary location is specified by tempWorkDirectory.  The default is './workbench'.  A relative path must be provided, which will be relative to the site's directory.  An absolute path CANNOT be specified.
     - So, copy the file somewhere else if you plan to save it.  Do it asynchronously if possible (in combination with waitFor().)
   - Examples:
     - rt.uploadedFiles['myFile'].name
@@ -108,7 +105,8 @@ Or this:
      .rtOnError((err) => { rt.print(err.code); });
        - Again, no need to wrap the callback with a waitFor().
   - Relies on readFile.  So, whatever limitations readFile has, this one has as well (e.g., handling of big files, etc.)
-  - An absolute paths can be provided.  If a relative path is provided instead, it will be relative to the site's root directory (rootDirectoryName).
+  - Absolute paths can be provided.  If a relative path is provided instead, it will be relative to the site's root directory (rootDirectoryName).
+    - Avoid reading or manipulating the path specified by tempWorkDirectory directly.  This is used by the framework.
   - rt.readFile()'s can be nested.
   - rtOnSuccess() and rtOnError() can be omitted (but if omitted, and an error occurs, the server will issue a runtime error.)
 - rt.copyFile(source, destination, overwrite) allows to copy a file from source to destination.  It behaves in a promise-like way, just like rt.readFile().
