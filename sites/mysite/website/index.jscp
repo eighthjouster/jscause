@@ -1,5 +1,6 @@
+console.log('Let us do this.');
 const whatIsUp = rt.module('moduletest');
-rt.print(whatIsUp());
+whatIsUp(rt);
 
 if (rt.postParams['submitIt'])
 {

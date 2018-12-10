@@ -2,11 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- How do we use modules again?
-  - And document.
-
 Serve files other than index.jscp
- - Multiple compilations, one per file.
+ - Multiple compilations, one per file.  Do it at the very beginning.
    - Check that runtime errors correctly indicate the file the error happened in (right now it only reports index.jscp.)
      - Report in modules? At least it should say the file the module was called from.
  - Call responder() only on jscp files.  The rest, treat as static downloads.
@@ -83,6 +80,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+When defining a function and calling it inside a script, 'this' will refer to that of the node environment.  How to avoid this?  Or is this a "feature"? It should be an empty object.
 
 - We have to start writing tests.
   - Define what needs to be tested.

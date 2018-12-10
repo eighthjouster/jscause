@@ -132,8 +132,16 @@ On regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.
  - If you use setInterval(), you will see that the 'this' can be modified and its modified content will be available next time the callback is ran.  This is normal behavior.  That setInterval() is occurring inside the execution environment of the request that started it.
+ - When a function is defined inside a script (or imported with rt.module()), the 'this' inside it will be the system's.  This behavior could change in a future version; perhaps not completely, but there might be some optional configuration directive to make it an empty object.
  
 Known issues:
 =============
 
+- When invoking a function defined inside a JSCP script (or when using rt.module()), 'this' inside the module will be the system's.  In a future version, a configurable directive may force it to an empty object.  But we'll see.
+
 - Firefox 61.0.2 on MacOS High Sierra has issues when reloading a page that renders after an upload.  If a user uploads a file, then re-loads the page (triggering a browser re-upload confirmation page), Firefox will reset the connection.  Newer versions do not exhibit this behavior.  Chrome does not exhibit this behavior either.
+
+- Modules do not have direct access to rt functions.  A workaround would be to pass in the rt object when invoking the module:
+   - Inside the module: module.exports = function(rt) { use rt here... }
+   - Script invoking the module: const myModule = rt.module('examplemodule')(rt);
+
