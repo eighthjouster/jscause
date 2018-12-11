@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Try to open a non-existing file.  incomingRequestHandler(), line 1123 might (or will?) fail.  Create a failsafe.
+
 Serve files other than index.jscp
  - Multiple compilations, one per file.  Do it at the very beginning.
    - Check that runtime errors correctly indicate the file the error happened in (right now it only reports index.jscp.)

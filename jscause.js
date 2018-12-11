@@ -394,8 +394,7 @@ const defaultSiteConfig =
   name: '',
   rootDirectoryName: '',
   fullSitePath: '',
-  indexRun: null,
-  indexRunFileName: '',
+  compiledFiles: {},
   hostName: undefined,
   port: undefined,
   tempWorkDirectory: null,
@@ -1119,7 +1118,9 @@ function incomingRequestHandler(req, res)
     return;
   }
 
-  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, indexRun, indexRunFileName, fullSitePath } = identifiedSite;
+  const indexRunFileName = 'index.jscp';
+
+  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles: { [indexRunFileName]: indexRun }, fullSitePath } = identifiedSite;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const contentLength = parseInt(headers['content-length'] || 0, 10);
@@ -1969,12 +1970,10 @@ if (readSuccess)
         if (readSuccess && indexExists)
         {
           readSuccess = false;
-          siteConfig.indexRun = compileContext.compiledModule.exports;
-          siteConfig.indexRunFileName = processedFileName;
-
-          if (typeof(siteConfig.indexRun) !== 'function')
+          let indexRun = compileContext.compiledModule.exports;
+          if (typeof(indexRun) !== 'function')
           {
-            siteConfig.indexRun = undefined;
+            indexRun = undefined;
             console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code.`);
           }
           else if (setTempWorkDirectory(siteConfig))
@@ -1988,6 +1987,10 @@ if (readSuccess)
             allSiteConfigs.push(siteConfig);
             readSuccess = true;
           }
+
+          siteConfig.compiledFiles = {
+            [processedFileName]: indexRun
+          };
         }
       }
       else if (readSuccess)
