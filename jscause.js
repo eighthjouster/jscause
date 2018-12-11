@@ -1488,6 +1488,113 @@ function getSiteNameOrNoName(name)
   return name ? `'${name}'` : '(no name)';
 }
 
+function compileFile(sourceData)
+{
+  const Module = module.constructor;
+  Module._nodeModulePaths(fsPath.dirname(''));
+  let compiledModule = null;
+  try
+  {
+    const CONTEXT_HTML = 0;
+    const CONTEXT_JAVASCRIPT = 1;
+
+    // Matches '<js', '<JS', /js>' or '/JS>'
+    // Adds a prefixing space to distinguish from 
+    // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
+    // (Otherwise, it would delete whatever character is right before.)
+    let unprocessedData = sourceData
+      .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
+      .replace(/([^\\])<js/gi,'$1 <js')
+      .replace(/^<js/i,' <js')
+      .replace(/([^\\])\/js>/gi, '$1 /js>')
+      .replace(/^\/js>/i, ' /js>');
+    
+    if (!unprocessedData.match(/\n$/))
+    {
+      // Adding a blank line at the end of the source code avoids a
+      // compilation error if the very last line is a // comment.
+      unprocessedData += '\n';
+    }
+
+    const processedDataArray = [];
+
+    const firstOpeningTag = unprocessedData.indexOf(' <js');
+    const firstClosingTag = unprocessedData.indexOf(' /js>');
+
+    let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
+      CONTEXT_JAVASCRIPT :
+      CONTEXT_HTML;
+
+    do
+    {
+      if (processingContext === CONTEXT_HTML)
+      {
+        const [processBefore, processAfter] = unprocessedData
+          .split(/\s<js([\s\S]*)/);
+
+        unprocessedData = processAfter;
+
+        const printedStuff = (processBefore) ?
+          processBefore
+            .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
+            .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
+            .replace(/\\/g,'\\\\')
+            .replace(/'/g,'\\\'')
+            .replace(/[^\S\n]{2,}/g, ' ')
+            .replace(/^\s*|\n\s*/g, '\n')
+            .split(/\n/)
+            .join(' \\n \\\n') :
+          '';
+      
+        if (printedStuff)
+        {
+          processedDataArray.push(`rt.unsafePrint('${printedStuff}');`);
+        }
+
+        processingContext = CONTEXT_JAVASCRIPT;
+      }
+      else
+      {
+        // Assuming processingContext is CONTEXT_JAVASCRIPT
+
+        const [processBefore, processAfter] = unprocessedData
+          .split(/\s\/js>([\s\S]*)/);
+
+        if (processBefore.match(/<html\s*\//i))
+        {
+          console.warn(`${TERMINAL_INFO_WARNING}: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?`);
+        }
+
+        processedDataArray.push(processBefore);
+        
+        unprocessedData = processAfter;
+
+        processingContext = CONTEXT_HTML;
+      }
+    } while (unprocessedData);
+    
+    const processedData = processedDataArray.join('');
+
+    try
+    {
+      compiledModule = new Module();
+      compiledModule._compile(`module.exports = function(rt) {${processedData}}`, '');
+    }
+    catch (e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
+      console.error(e);
+    }
+  }
+  catch (e)
+  {
+    console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
+    console.error(e);
+  }
+
+  return compiledModule;
+}
+
 let stats;
 
 let atLeastOneSiteStarted = false;
@@ -1848,107 +1955,13 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          const Module = module.constructor;
-          Module._nodeModulePaths(fsPath.dirname(''));
-          compileContext.compiledModule = new Module();
-          try
+          compileContext.compiledModule = compileFile(compileContext.data);
+          if (compileContext.compiledModule)
           {
-            const CONTEXT_HTML = 0;
-            const CONTEXT_JAVASCRIPT = 1;
-
-            // Matches '<js', '<JS', /js>' or '/JS>'
-            // Adds a prefixing space to distinguish from 
-            // '\<js', '\<JS', '/js>', '/JS>', for easy splitting
-            // (Otherwise, it would delete whatever character is right before.)
-            let unprocessedData = compileContext.data
-              .replace(/^[\s\n]*<html\s*\/>/i, '<js/js>')
-              .replace(/([^\\])<js/gi,'$1 <js')
-              .replace(/^<js/i,' <js')
-              .replace(/([^\\])\/js>/gi, '$1 /js>')
-              .replace(/^\/js>/i, ' /js>');
-            
-            if (!unprocessedData.match(/\n$/))
-            {
-              // Adding a blank line at the end of the source code avoids a
-              // compilation error if the very last line is a // comment.
-              unprocessedData += '\n';
-            }
-
-            const processedDataArray = [];
-
-            const firstOpeningTag = unprocessedData.indexOf(' <js');
-            const firstClosingTag = unprocessedData.indexOf(' /js>');
-
-            let processingContext = ((firstOpeningTag === -1) && (firstClosingTag === -1) || ((firstClosingTag > -1) && ((firstClosingTag < firstOpeningTag) || (firstOpeningTag === -1)))) ?
-              CONTEXT_JAVASCRIPT :
-              CONTEXT_HTML;
-
-            do
-            {
-              if (processingContext === CONTEXT_HTML)
-              {
-                const [processBefore, processAfter] = unprocessedData
-                  .split(/\s<js([\s\S]*)/);
-
-                unprocessedData = processAfter;
-
-                const printedStuff = (processBefore) ?
-                  processBefore
-                    .replace(/\\(<js)/gi,'$1') // Matches '\<js' or '\<JS' and gets rid of the '\'.
-                    .replace(/\\(\/js>)/gi,'$1') // Matches '\/js>' or '\/JS>' and gets rid of the '\'.
-                    .replace(/\\/g,'\\\\')
-                    .replace(/'/g,'\\\'')
-                    .replace(/[^\S\n]{2,}/g, ' ')
-                    .replace(/^\s*|\n\s*/g, '\n')
-                    .split(/\n/)
-                    .join(' \\n \\\n') :
-                  '';
-              
-                if (printedStuff)
-                {
-                  processedDataArray.push(`rt.unsafePrint('${printedStuff}');`);
-                }
-
-                processingContext = CONTEXT_JAVASCRIPT;
-              }
-              else
-              {
-                // Assuming processingContext is CONTEXT_JAVASCRIPT
-
-                const [processBefore, processAfter] = unprocessedData
-                  .split(/\s\/js>([\s\S]*)/);
-
-                if (processBefore.match(/<html\s*\//i))
-                {
-                  console.warn(`${TERMINAL_INFO_WARNING}: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?`);
-                }
-
-                processedDataArray.push(processBefore);
-                
-                unprocessedData = processAfter;
-
-                processingContext = CONTEXT_HTML;
-              }
-            } while (unprocessedData);
-            
-            const processedData = processedDataArray.join('');
-
-            try
-            {
-              compileContext.compiledModule._compile(`module.exports = function(rt) {${processedData}}`, '');
-              indexExists = true;
-            }
-            catch (e)
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
-              console.error(e);
-              readSuccess = false;
-            }
+            indexExists = true;
           }
-          catch (e)
+          else
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
-            console.error(e);
             readSuccess = false;
           }
         }
