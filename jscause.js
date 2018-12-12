@@ -566,7 +566,7 @@ function doneWith(ctx, id, isCancellation)
   
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
-    if (ctx.runAfterQueue.length)
+    if (ctx.runAfterQueue && ctx.runAfterQueue.length)
     {
       const cb = ctx.runAfterQueue.shift();
       const waitForId = createWaitForCallback(ctx, cb);
@@ -1121,6 +1121,12 @@ function incomingRequestHandler(req, res)
   const indexRunFileName = 'index.jscp';
 
   const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles: { [indexRunFileName]: indexRun }, fullSitePath } = identifiedSite;
+
+  if (typeof(indexRun) === 'undefined') {
+    res.statusCode = 404;
+    res.end('Not found.');
+    return;
+  }
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const contentLength = parseInt(headers['content-length'] || 0, 10);
