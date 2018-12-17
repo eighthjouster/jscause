@@ -2,6 +2,28 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Get all the JSCP files inside the website directory and put them in the fileNameList array.
+
+Call the right file depending on the url.
+ - Only try to run if it's a JSCP file.
+ - Throw a 404 if a JSCM file is requested.
+ - Otherwise, serve as static.
+ - Check for directories (/directory/index2.php)
+ - Check for files without extensions.
+   - Put in documentation (but check that everything mentioned has been implemented):
+     1. If the url is '/', '/index.jscp' will be assumed (see #5).
+     2. If the url is '/name' and the file 'name' does not exist, check if a 'name' directory exists.  If it does, assume '/name/index.jscp' (see #5).
+     3. If the url is '/name' (for example '/index'), and the file 'name' (without an extension) exists, JSCause will serve the contents of such file.
+     4. If the url is '/name.extension', with the extension being neither jscp nor jscm, JSCause will serve the contents of such file.
+     5. If the url is '/name.jscp' (or '/directory/name.jscp'), then JSCause will run the contents and serve its output.
+     6. If the extension is jscm, serve a 404.
+     7. If none of the above applies, serve a 404.
+
+With a setting, indicate if a url needs to hide the jscp extension (for security purposes).
+ - And document.
+With a setting, indicate if the header 'X-Powered-By: jscause' should be included in the response (off by default)
+ - And document.
+
 Serve files other than index.jscp
  - Multiple compilations, one per file.  Do it at the very beginning.
    - Check that runtime errors correctly indicate the file the error happened in (right now it only reports index.jscp.)
@@ -15,6 +37,9 @@ Other files? (images, css, js).
  - Static files?
  - Files in assets/ directory?
    - If there are modules in there, it should be easy to access them.
+ - Optional 4xx.jscp and 5xx.jscp files to run something when a 4xx or 5xx error occurs.
+   - Same for 4xx.html and 5xx.html
+   - And document.
 
 Cookies?
  - Read/write?

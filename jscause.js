@@ -1099,12 +1099,13 @@ function sendUploadIsForbidden(res)
 
 function incomingRequestHandler(req, res)
 {
-  const { headers = {}, headers: { host: hostHeader = '' }, method } = req;
+  const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
   const [/* Deliberately left blank. */, reqHostName, preparsedReqPort] = hostHeader.match(/(.+):(\d+)$/);
   const requestMethod = (method || '').toLowerCase();
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
   const reqPort = parseInt(preparsedReqPort, 10);
   const runningServer = runningServers[reqPort];
+
   let identifiedSite;
 
   if (runningServer)
@@ -1115,18 +1116,22 @@ function incomingRequestHandler(req, res)
   if (!identifiedSite || !reqMethodIsValid)
   {
     res.statusCode = 405;
-    res.end('Not allowed!');
+    res.end('Not Allowed.');
     return;
   }
 
-  const runFileName = 'index.jscp';
+  const { pathname: pathName } = urlUtils.parse(url, true);
+  const pathComponents = pathName.split('/');
+  const resourceName = pathComponents.pop() || 'index';
+  const [ /* Deliberately empty */ , resourceFileExtension ] = resourceName.match(/(.*)\.([^.]*)$/) || [];
+  const runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
 
   const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles: { [runFileName]: compiledCode }, fullSitePath } = identifiedSite;
 
   if (typeof(compiledCode) === 'undefined')
   {
     res.statusCode = 404;
-    res.end('Not found.');
+    res.end('Not Found.');
     return;
   }
 
