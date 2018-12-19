@@ -1120,13 +1120,25 @@ function incomingRequestHandler(req, res)
     return;
   }
 
-  const { pathname: pathName } = urlUtils.parse(url, true);
-  const pathComponents = pathName.split('/');
-  const resourceName = pathComponents.pop() || 'index';
-  const [ /* Deliberately empty */ , resourceFileExtension ] = resourceName.match(/(.*)\.([^.]*)$/) || [];
-  const runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
+  let { pathname: resourceName } = urlUtils.parse(url, true);
+  if (resourceName.match(/\/$/))
+  {
+    resourceName += 'index.jscp';
+  }
 
-  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles: { [runFileName]: compiledCode }, fullSitePath } = identifiedSite;
+  const [ /* Deliberately empty */ , /* Deliberately empty */ , resourceFileExtension ] = resourceName.match(/(.*)\.([^./]+)$/) || [];
+
+  let runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
+
+  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, fullSitePath } = identifiedSite;
+  
+  let compiledCode = compiledFiles[runFileName];
+
+  if (typeof(compiledCode) === 'undefined')
+  {
+    runFileName = `${resourceName}/index.jscp`;
+    compiledCode = compiledFiles[runFileName];
+  }
 
   if (typeof(compiledCode) === 'undefined')
   {
@@ -1610,9 +1622,9 @@ function compileSource(sourceData)
   return compiledModule;
 }
 
-function processSourceFile(sourceFileName, siteJSONFilePath)
+function processSourceFile(sourceFilePath, siteJSONFilePath)
 {
-  let sourcePath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, sourceFileName);
+  let sourcePath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...sourceFilePath);
   let compileData;
   let compiledSource;
   let stats;
@@ -1623,7 +1635,7 @@ function processSourceFile(sourceFileName, siteJSONFilePath)
   }
   catch (e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot find source file: ${sourceFileName} (${sourcePath})`);
+    console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot find source file: ${sourcePath}`);
     console.error(e);
   }
 
@@ -1641,7 +1653,7 @@ function processSourceFile(sourceFileName, siteJSONFilePath)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot load source file: ${sourceFileName} (${sourcePath})`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot load source file: ${sourcePath}`);
         console.error(e);
       }
     }
@@ -1967,11 +1979,11 @@ if (readSuccess)
           }
         }
 
-        let fileNameList;
+        let filePathsList;
         if (readSuccess)
         {
           // Let's read the files.
-          fileNameList = [];
+          filePathsList = [];
 
           readSuccess = false;
           let soFarSoGood;
@@ -2024,7 +2036,7 @@ if (readSuccess)
                   {
                     if (fileName.match(/\.jscp$/))
                     {
-                      fileNameList.push([...currentDirectoryElements, fileName].join('/').replace(/^\//, ''));
+                      filePathsList.push([...currentDirectoryElements, fileName]);
                     }
                   }
                 }
@@ -2040,19 +2052,18 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          console.log(fileNameList);//__RP
-
           siteConfig.compiledFiles = {};
 
-          fileNameList.forEach((fileName) =>
+          filePathsList.forEach((filePath) =>
           {
-            const processedSourceFile = processSourceFile(fileName, siteJSONFilePath);
+            const webPath = filePath.join('/');
+            const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
             if (typeof(processedSourceFile) === 'undefined')
             {
               readSuccess = false;
             }
             else{
-              siteConfig.compiledFiles[fileName] = processedSourceFile;
+              siteConfig.compiledFiles[webPath] = processedSourceFile;
             }
           });
         }

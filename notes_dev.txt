@@ -2,15 +2,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-+Ok, all file names are retrieved from the file system.
-  +- Can the server serve them no problem right now?
-  - What about testFolder/index3.jscp?
+Can you disallow the use of '.' and '..'? /testFolder/.. shouldn't work.
+ - If not, remove such claim from the docs.
+
+Test folder within folder. /folder1/folder2/file
+
+Re-test at least one rt.* file operation. For example, rt.moveFile.  Just to make sure it's still working.
 
 Get all the JSCP files inside the website directory and put them in the fileNameList array.
  - Check that at least one file was processed.  Otherwise, throw an error.
  - Careful with circular symlinks.
-
-- Get rid of //__RP
 
 At this point, back up.
 
@@ -183,7 +184,7 @@ Compile everything? (not just wait for a runtime error to find out that a module
 
 jscp/jscm syntax coloring? linting?
 
-Remove __RP comments.
+Remove //__RP comments.
 
 ====
 

@@ -128,6 +128,13 @@ Or this:
   - rt.deleteFile(path).
   - rt.fileExists(path).  rtOnSuccess is called if file exists.  rtOnError otherwise.  It is advised that the error be examined.  Typically, err.code should be 'ENOENT'.
 - Notice that if there is an error inside .rtOnSuccess(), the code will not jump to .rtOnError(), as these only deal with the original corresponding operation.  JSCause will emit a typical error (you can trap it with try() catch{} though.)
+- Filesystem - URL mapping:
+  - Folders (directories) are allowed.
+  - Folders with names with extensions are allowed.
+  - If a folder is specified with no file/resource name (e.g. /myFolder/), JSCause will assume /myFolder/index.jscp.  If /myFolder/index.jscp doesn't exist, it will throw a 404 error.
+  - If there is a file with the same name as a folder + the jscp extension (for example, file name hello.jscp and folder name hello), the file takes precedence for the /filename url (example: /hello.)  To specify the folder, add a '/', as in /hello/, or use /hello/index, or /hello/index.jscp
+  - Files with .jscp extensions can be referred to without said extension.  For example, hello.jscp can be referred to both as /hello and /hello.jscp (but not /hello/ or /hello.jscp/, which will throw a 404 error.)  The file /myFolder/hello.jscp can be referred to as /myFolder/hello
+  - '.' and '..' are not allowed.
 
 On regards of 'this':
 =====================
