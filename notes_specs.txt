@@ -25,6 +25,7 @@ Each site contains:
     - A website/ folder, which will contain files that can be requested directly by the browser.
       - Files with a JSCP extension (for example, index.jscp) will be executed first, with its output sent to the browser.  They can only live inside website/
       - Module files with a JSCM extension (for example, module.jscp) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
+      - The file name is case-sensitive (if the file system allows it).  A file will be considered JSCP only if its extension is lower case (that is, .jscp is valid, but .JSCP is not.)  Same with JSCM.
     - An assets/ folder, which will contain files that can only be accessed by server-side scripts.
     - The configuration/ folder may have extra configuration files:
       - database.json:  Database connection info.

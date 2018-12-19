@@ -1967,13 +1967,80 @@ if (readSuccess)
           }
         }
 
+        let fileNameList;
         if (readSuccess)
         {
-          // For now:
-          const fileNameList = ({
-            'mysite': ['index.jscp', 'index2.jscp'],
-            'mysite2': ['index.jscp']
-          })[siteConfig.rootDirectoryName];
+          // Let's read the files.
+          fileNameList = [];
+
+          readSuccess = false;
+          let soFarSoGood;
+
+          const directoriesToProcess = [ [''] ];
+
+          do
+          {
+            const currentDirectoryElements = directoriesToProcess.shift();
+            const currentPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...currentDirectoryElements);
+            let allFiles;
+            
+            soFarSoGood = false;
+            try
+            {
+              allFiles = fs.readdirSync(currentPath);
+              soFarSoGood = true;
+            }
+            catch(e)
+            {
+              console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentPath}`);
+              console.error(e);
+            }
+
+            if (soFarSoGood)
+            {
+              soFarSoGood = false;
+              let stats;
+              allFiles.every((fileName) =>
+              {
+                const fullPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...currentDirectoryElements, fileName);
+                try
+                {
+                  stats = fs.statSync(fullPath);
+                  soFarSoGood = true;
+                }
+                catch (e)
+                {
+                  console.error(`${TERMINAL_ERROR_STRING}: Cannot find ${fullPath}`);
+                  console.error(e);
+                }
+
+                if (soFarSoGood)
+                {
+                  if (stats.isDirectory())
+                  {
+                    directoriesToProcess.push([...currentDirectoryElements, fileName]);
+                  }
+                  else
+                  {
+                    if (fileName.match(/\.jscp$/))
+                    {
+                      fileNameList.push([...currentDirectoryElements, fileName].join('/').replace(/^\//, ''));
+                    }
+                  }
+                }
+
+                return soFarSoGood;
+              });
+            }
+          }
+          while(directoriesToProcess.length && soFarSoGood);
+
+          readSuccess = soFarSoGood;
+        }
+
+        if (readSuccess)
+        {
+          console.log(fileNameList);//__RP
 
           siteConfig.compiledFiles = {};
 

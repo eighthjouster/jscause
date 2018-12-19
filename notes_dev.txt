@@ -2,7 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
++Ok, all file names are retrieved from the file system.
+  +- Can the server serve them no problem right now?
+  - What about testFolder/index3.jscp?
+
 Get all the JSCP files inside the website directory and put them in the fileNameList array.
+ - Check that at least one file was processed.  Otherwise, throw an error.
+ - Careful with circular symlinks.
+
+- Get rid of //__RP
+
+At this point, back up.
 
 Call the right file depending on the url.
  - Only try to run if it's a JSCP file.
