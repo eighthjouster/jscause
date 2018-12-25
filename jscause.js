@@ -1624,7 +1624,11 @@ function compileSource(sourceData)
 
 function processSourceFile(sourceFilePath, siteJSONFilePath)
 {
-  let sourcePath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...sourceFilePath);
+  let sourcePath = fsPath.join(...sourceFilePath);
+  if (!fsPath.isAbsolute(sourcePath))
+  {
+    sourcePath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...sourceFilePath);
+  }
   let compileData;
   let compiledSource;
   let stats;
@@ -1993,35 +1997,56 @@ if (readSuccess)
           do
           {
             const currentDirectoryElements = directoriesToProcess.shift();
-            const currentPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...currentDirectoryElements);
+            const directoryPath = fsPath.join(...currentDirectoryElements);
+            let currentDirectoryPath;
+            if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
+            {
+              console.log('ABSOLUTE DIRECTORY!');//__RP
+              console.log(directoryPath);//__RP
+              currentDirectoryPath = directoryPath;
+            }
+            else
+            {
+              currentDirectoryPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, directoryPath);
+            }
+
             let allFiles;
             
             soFarSoGood = false;
             try
             {
-              allFiles = fs.readdirSync(currentPath);
+              allFiles = fs.readdirSync(currentDirectoryPath);
               soFarSoGood = true;
             }
             catch(e)
             {
-              console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentPath}`);
+              console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`);
               console.error(e);
             }
 
             if (soFarSoGood)
             {
-              soFarSoGood = false;
               let stats;
-              allFiles.every((fileName) =>
+              while (allFiles.length)
               {
-                const fullPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, ...currentDirectoryElements, fileName);
+                const fileName = allFiles.shift();
+                let fullPath;
+                if (fsPath.isAbsolute(fileName)) // It can happen if more directories were inserted during this iteration.
+                {
+                  fullPath = fileName;
+                }
+                else
+                {
+                  fullPath = fsPath.join(currentDirectoryPath, fileName);
+                }
                 try
                 {
-                  stats = fs.statSync(fullPath);
-                  soFarSoGood = true;
+                  console.log(`stating: ${fullPath}`);//__RP
+                  stats = fs.lstatSync(fullPath);
                 }
                 catch (e)
                 {
+                  soFarSoGood = false;
                   console.error(`${TERMINAL_ERROR_STRING}: Cannot find ${fullPath}`);
                   console.error(e);
                 }
@@ -2032,6 +2057,51 @@ if (readSuccess)
                   {
                     directoriesToProcess.push([...currentDirectoryElements, fileName]);
                   }
+                  else if (stats.isSymbolicLink())
+                  {
+                    const linkedFileName = fs.readlinkSync(fullPath);
+                    const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
+                    let linkedPath;
+                    if (linkIsFullPath)
+                    {
+                      console.log('absolute path.');//__RP
+                      linkedPath = linkedFileName;
+                    }
+                    else
+                    {
+                      console.log('relative path.');//__RP
+                      linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
+                    }
+
+                    console.log(`Simlink: ${fullPath}`);//__RP
+                    console.log(`Linked to: ${linkedPath}`);//__RP
+
+                    let linkStats;
+                    try
+                    {
+                      console.log(`stating the link: ${linkedPath}`);//__RP
+                      linkStats = fs.lstatSync(linkedPath);
+                    }
+                    catch (e)
+                    {
+                      soFarSoGood = false;
+                      console.error(`${TERMINAL_ERROR_STRING}: Cannot find link ${fullPath} --> ${linkedFileName}`);
+                      console.error(e);
+                    }
+
+                    if (soFarSoGood)
+                    {
+                      if (linkStats.isDirectory())
+                      {
+                        directoriesToProcess.push((linkIsFullPath) ? [linkedPath] : [...currentDirectoryElements, linkedFileName]);
+                      }
+                      else
+                      {
+                        //__RP is this right?
+                        allFiles.push(linkedPath);
+                      }
+                    }
+                  }
                   else
                   {
                     if (fileName.match(/\.jscp$/))
@@ -2040,9 +2110,11 @@ if (readSuccess)
                     }
                   }
                 }
-
-                return soFarSoGood;
-              });
+                else
+                {
+                  break;
+                }
+              }
             }
           }
           while(directoriesToProcess.length && soFarSoGood);
@@ -2057,6 +2129,7 @@ if (readSuccess)
           filePathsList.forEach((filePath) =>
           {
             const webPath = filePath.join('/');
+            console.log(`WEB PATH IS: ${webPath}`);//__RP
             const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
             if (typeof(processedSourceFile) === 'undefined')
             {
