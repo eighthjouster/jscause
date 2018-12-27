@@ -2,10 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Almost there, maybe.  Full directory paths are parsed, but a later error is still happening for assuming too much.  Fix.
-
-If simlink is not a directory, add it to the list of files to be processed.
- - But also, check that it's not a full path.
+Simlinked files: If simlink is not a directory, add it to the list of files to be processed.
+ - Done, but needs to be modified so the "simlink source" is taken into account.
+   - Also, check that it's not a full path (check: //__RP is this right?).
+     - Maybe?
 
 Symlinks?
  - We'll need to detect symlinks beforehand, then add them to allFiles.
@@ -13,10 +13,14 @@ Symlinks?
      - Whether the link points to an absolute path.
      - Whether the link points to a directory.
      - Whether the link points to a file name.
+     - Whether the pointed directory or file has been processed already (but do create the path still? Different "routes" to the same file.  Interesting.)
+       - Perhaps currentDirectoryId (and equivalent for single file) might help.
 
 Get all the JSCP files inside the website directory and put them in the fileNameList array.
  - Check that at least one file was processed.  Otherwise, throw an error.
  - Careful with circular symlinks.
+
+ - Address the __RP
 
 At this point, back up.
 

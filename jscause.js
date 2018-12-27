@@ -1992,11 +1992,11 @@ if (readSuccess)
           readSuccess = false;
           let soFarSoGood;
 
-          const directoriesToProcess = [ [''] ];
+          const directoriesToProcess = [ { id: '', dirElements: [''] } ];
 
           do
           {
-            const currentDirectoryElements = directoriesToProcess.shift();
+            const { id: currentDirectoryId, simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = directoriesToProcess.shift(); // __RP will we use currentDirectoryId at some point?
             const directoryPath = fsPath.join(...currentDirectoryElements);
             let currentDirectoryPath;
             if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
@@ -2055,7 +2055,8 @@ if (readSuccess)
                 {
                   if (stats.isDirectory())
                   {
-                    directoriesToProcess.push([...currentDirectoryElements, fileName]);
+                    const dirElements = [...currentDirectoryElements, fileName];
+                    directoriesToProcess.push({ id: dirElements.join('_'), dirElements });
                   }
                   else if (stats.isSymbolicLink())
                   {
@@ -2064,7 +2065,7 @@ if (readSuccess)
                     let linkedPath;
                     if (linkIsFullPath)
                     {
-                      console.log('absolute path.');//__RP
+                      console.log(`absolute path. ${fileName}; ${linkedFileName}`);//__RP
                       linkedPath = linkedFileName;
                     }
                     else
@@ -2093,11 +2094,14 @@ if (readSuccess)
                     {
                       if (linkStats.isDirectory())
                       {
-                        directoriesToProcess.push((linkIsFullPath) ? [linkedPath] : [...currentDirectoryElements, linkedFileName]);
+                        const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
+                        const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
+                        directoriesToProcess.push({ id: simlinkSourceDirElements.join('_'), simlinkSourceDirElements, dirElements });
                       }
                       else
                       {
                         //__RP is this right?
+                        // - __RP maybe.  It may need "source file" just like "source dir elements" exists as well.
                         allFiles.push(linkedPath);
                       }
                     }
@@ -2106,7 +2110,23 @@ if (readSuccess)
                   {
                     if (fileName.match(/\.jscp$/))
                     {
-                      filePathsList.push([...currentDirectoryElements, fileName]);
+                      console.log(`WE ARE PUSHING: ${[...currentDirectoryElements, fileName].join(',')}`); //__RP
+                      if (currentSimlinkSourceDirectoryElements)
+                      {
+                        console.log(`THE SOURCE IS: ${[...currentSimlinkSourceDirectoryElements, fileName].join(',')}`);//__RP
+                      }
+
+                      const fileEntry =
+                      {
+                        filePath: [...currentDirectoryElements, fileName]
+                      };
+
+                      if (currentSimlinkSourceDirectoryElements)
+                      {
+                        fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
+                      }
+
+                      filePathsList.push(fileEntry);
                     }
                   }
                 }
@@ -2126,9 +2146,9 @@ if (readSuccess)
         {
           siteConfig.compiledFiles = {};
 
-          filePathsList.forEach((filePath) =>
+          filePathsList.forEach(({ filePath, simlinkSourceFilePath }) =>
           {
-            const webPath = filePath.join('/');
+            const webPath = (simlinkSourceFilePath || filePath).join('/');
             console.log(`WEB PATH IS: ${webPath}`);//__RP
             const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
             if (typeof(processedSourceFile) === 'undefined')
