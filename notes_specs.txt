@@ -136,6 +136,10 @@ Or this:
   - Files with .jscp extensions can be referred to without said extension.  For example, hello.jscp can be referred to both as /hello and /hello.jscp (but not /hello/ or /hello.jscp/, which will throw a 404 error.)  The file /myFolder/hello.jscp can be referred to as /myFolder/hello
   - '.' and '..' are not allowed.
 
+Symlinks:
+=========
+ - They work the same way they work on the host operating system.
+
 On regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.

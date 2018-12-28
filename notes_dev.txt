@@ -2,12 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Symlink of symlink?
- - For a directory.
- - For a file.
- - Simlinked directory within simlinked directory.
- - Simlinked  file within Simlinked directory.
- - You should probably list all cases and permutations at this point and see if you've tested them all, for peace of mind.
+Check for circular symlinks:
+ - A symlink that points to a directory, then a symlink inside that directory that points to the parent directory.
+   - Will jscause freak out during initialization?
 
 Symlinks?
  - We'll need to detect symlinks beforehand, then add them to allFiles.
