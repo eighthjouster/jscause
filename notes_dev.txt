@@ -2,10 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Simlinked files: If simlink is not a directory, add it to the list of files to be processed.
- - Done, but needs to be modified so the "simlink source" is taken into account.
-   - Also, check that it's not a full path (check: //__RP is this right?).
-     - Maybe?
++Simlinked files: If simlink is not a directory, add it to the list of files to be processed.
+ +- Full path simlinks.
+
+Symlink of symlink?
+ - For a directory.
+ - For a file.
 
 Symlinks?
  - We'll need to detect symlinks beforehand, then add them to allFiles.
@@ -19,6 +21,8 @@ Symlinks?
 Get all the JSCP files inside the website directory and put them in the fileNameList array.
  - Check that at least one file was processed.  Otherwise, throw an error.
  - Careful with circular symlinks.
+   - Circularly linked directories.
+   - Circularly linked files.
 
  - Address the __RP
 

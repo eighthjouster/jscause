@@ -2026,12 +2026,24 @@ if (readSuccess)
 
             if (soFarSoGood)
             {
+              if (Array.isArray(allFiles))
+              {
+                allFiles = allFiles.map(fileName => ({ fileName }));
+              }
+
               let stats;
               while (allFiles.length)
               {
-                const fileName = allFiles.shift();
+                const { fileName, simlinkSource } = allFiles.shift();
+                console.log(fileName, simlinkSource);//__RP
+
                 let fullPath;
-                if (fsPath.isAbsolute(fileName)) // It can happen if more directories were inserted during this iteration.
+
+                if (simlinkSource)
+                {
+                  fullPath = simlinkSource;
+                }
+                else if (fsPath.isAbsolute(fileName)) // It can happen if more directories were inserted during this iteration.
                 {
                   fullPath = fileName;
                 }
@@ -2039,6 +2051,7 @@ if (readSuccess)
                 {
                   fullPath = fsPath.join(currentDirectoryPath, fileName);
                 }
+
                 try
                 {
                   console.log(`stating: ${fullPath}`);//__RP
@@ -2100,9 +2113,7 @@ if (readSuccess)
                       }
                       else
                       {
-                        //__RP is this right?
-                        // - __RP maybe.  It may need "source file" just like "source dir elements" exists as well.
-                        allFiles.push(linkedPath);
+                        allFiles.push({ fileName, simlinkSource: linkedPath });
                       }
                     }
                   }
