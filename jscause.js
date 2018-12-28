@@ -2001,8 +2001,6 @@ if (readSuccess)
             let currentDirectoryPath;
             if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
             {
-              console.log('ABSOLUTE DIRECTORY!');//__RP
-              console.log(directoryPath);//__RP
               currentDirectoryPath = directoryPath;
             }
             else
@@ -2034,14 +2032,13 @@ if (readSuccess)
               let stats;
               while (allFiles.length)
               {
-                const { fileName, simlinkSource } = allFiles.shift();
-                console.log(fileName, simlinkSource);//__RP
+                const { fileName, simlinkTarget } = allFiles.shift();
 
                 let fullPath;
 
-                if (simlinkSource)
+                if (simlinkTarget)
                 {
-                  fullPath = simlinkSource;
+                  fullPath = simlinkTarget;
                 }
                 else if (fsPath.isAbsolute(fileName)) // It can happen if more directories were inserted during this iteration.
                 {
@@ -2054,7 +2051,6 @@ if (readSuccess)
 
                 try
                 {
-                  console.log(`stating: ${fullPath}`);//__RP
                   stats = fs.lstatSync(fullPath);
                 }
                 catch (e)
@@ -2078,22 +2074,16 @@ if (readSuccess)
                     let linkedPath;
                     if (linkIsFullPath)
                     {
-                      console.log(`absolute path. ${fileName}; ${linkedFileName}`);//__RP
                       linkedPath = linkedFileName;
                     }
                     else
                     {
-                      console.log('relative path.');//__RP
                       linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
                     }
-
-                    console.log(`Simlink: ${fullPath}`);//__RP
-                    console.log(`Linked to: ${linkedPath}`);//__RP
 
                     let linkStats;
                     try
                     {
-                      console.log(`stating the link: ${linkedPath}`);//__RP
                       linkStats = fs.lstatSync(linkedPath);
                     }
                     catch (e)
@@ -2113,7 +2103,7 @@ if (readSuccess)
                       }
                       else
                       {
-                        allFiles.push({ fileName, simlinkSource: linkedPath });
+                        allFiles.push({ fileName, simlinkTarget: linkedPath });
                       }
                     }
                   }
@@ -2121,16 +2111,15 @@ if (readSuccess)
                   {
                     if (fileName.match(/\.jscp$/))
                     {
-                      console.log(`WE ARE PUSHING: ${[...currentDirectoryElements, fileName].join(',')}`); //__RP
-                      if (currentSimlinkSourceDirectoryElements)
-                      {
-                        console.log(`THE SOURCE IS: ${[...currentSimlinkSourceDirectoryElements, fileName].join(',')}`);//__RP
-                      }
-
                       const fileEntry =
                       {
                         filePath: [...currentDirectoryElements, fileName]
                       };
+
+                      if (simlinkTarget)
+                      {
+                        fileEntry.isFileSymlink = true;
+                      }
 
                       if (currentSimlinkSourceDirectoryElements)
                       {
@@ -2157,10 +2146,18 @@ if (readSuccess)
         {
           siteConfig.compiledFiles = {};
 
-          filePathsList.forEach(({ filePath, simlinkSourceFilePath }) =>
+          filePathsList.forEach(({ filePath, simlinkSourceFilePath, isFileSymlink }) =>
           {
             const webPath = (simlinkSourceFilePath || filePath).join('/');
             console.log(`WEB PATH IS: ${webPath}`);//__RP
+            if (simlinkSourceFilePath)
+            {
+              console.log('- POINTS TO SYMLINKED DIRECTORY.');//__RP
+            }
+            if (isFileSymlink)
+            {
+              console.log('- POINTS TO SYMLINKED FILE.');//__RP
+            }
             const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
             if (typeof(processedSourceFile) === 'undefined')
             {
