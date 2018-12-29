@@ -2056,7 +2056,7 @@ if (readSuccess)
                 catch (e)
                 {
                   soFarSoGood = false;
-                  console.error(`${TERMINAL_ERROR_STRING}: Cannot find ${fullPath}`);
+                  console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`);
                   console.error(e);
                 }
 
@@ -2069,43 +2069,67 @@ if (readSuccess)
                   }
                   else if (stats.isSymbolicLink())
                   {
-                    const linkedFileName = fs.readlinkSync(fullPath);
-                    const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
-                    let linkedPath;
-                    if (linkIsFullPath)
-                    {
-                      linkedPath = linkedFileName;
-                    }
-                    else
-                    {
-                      linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
-                    }
-
                     let linkStats;
-                    try
+                    const symlinkList = [];
+                    do
                     {
-                      linkStats = fs.lstatSync(linkedPath);
-                    }
-                    catch (e)
-                    {
-                      soFarSoGood = false;
-                      console.error(`${TERMINAL_ERROR_STRING}: Cannot find link ${fullPath} --> ${linkedFileName}`);
-                      console.error(e);
-                    }
-
-                    if (soFarSoGood)
-                    {
-                      if (linkStats.isDirectory())
+                      const linkedFileName = fs.readlinkSync(fullPath);
+                      const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
+                      let linkedPath;
+                      if (linkIsFullPath)
                       {
-                        const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
-                        const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
-                        directoriesToProcess.push({ id: simlinkSourceDirElements.join('_'), simlinkSourceDirElements, dirElements });
+                        linkedPath = linkedFileName;
                       }
                       else
                       {
-                        allFiles.push({ fileName, simlinkTarget: linkedPath });
+                        linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
+                      }
+
+                      try
+                      {
+                        linkStats = fs.lstatSync(linkedPath);
+                      }
+                      catch (e)
+                      {
+                        soFarSoGood = false;
+                        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
+                        console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
+                        console.error(e);
+                      }
+
+                      if (soFarSoGood)
+                      {
+                        if (linkStats.isDirectory())
+                        {
+                          const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
+                          const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
+                          directoriesToProcess.push({ id: simlinkSourceDirElements.join('_'), simlinkSourceDirElements, dirElements });
+                        }
+                        else if (linkStats.isSymbolicLink())
+                        {
+                          console.log(`Ugh... ${linkedPath}`); //__RP
+                          if (symlinkList.indexOf(linkedPath) === -1)
+                          {
+                            symlinkList.push(linkedPath);
+                            fullPath = linkedPath;
+                          }
+                          else
+                          {
+                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
+                            symlinkList.forEach(symlinkPath =>
+                            {
+                              console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
+                            });
+                            soFarSoGood = false;
+                          }
+                        }
+                        else
+                        {
+                          allFiles.push({ fileName, simlinkTarget: linkedPath });
+                        }
                       }
                     }
+                    while(soFarSoGood && linkStats.isSymbolicLink());
                   }
                   else
                   {
