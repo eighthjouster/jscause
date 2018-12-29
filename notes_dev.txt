@@ -2,28 +2,14 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Check for circular symlinks:
- - A symlink that points to a directory, then a symlink inside that directory that points to the parent directory.
-   - Will jscause freak out during initialization?
-
-Symlinks?
- - We'll need to detect symlinks beforehand, then add them to allFiles.
-   - We'll need to make a lot of test cases.
-     - Whether the link points to an absolute path.
-     - Whether the link points to a directory.
-     - Whether the link points to a file name.
-     - Whether the pointed directory or file has been processed already (but do create the path still? Different "routes" to the same file.  Interesting.)
-       - Perhaps currentDirectoryId (and equivalent for single file) might help.
-
-Get all the JSCP files inside the website directory and put them in the fileNameList array.
- - Check that at least one file was processed.  Otherwise, throw an error.
- - Careful with circular symlinks.
-   - Circularly linked directories.
-   - Circularly linked files.
-
  - Address the __RP
+  - // __RP will we use currentDirectoryId at some point?
 
-At this point, back up.
+ - Document the use of symlinks a little.
+
+ - Remove all the example symlinks as well as any external website directory.
+
+At this point, commit and back up.
 
 Call the right file depending on the url.
  - Only try to run if it's a JSCP file.
@@ -128,6 +114,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+The values of the MAX_FILES_OR_DIRS_IN_DIRECTORY, MAX_DIRECTORIES_TO_PROCESS and MAX_PROCESSED_DIRECTORIES_THRESHOLD constants should be configurable via a config file.
 
 When defining a function and calling it inside a script, 'this' will refer to that of the node environment.  How to avoid this?  Or is this a "feature"? It should be an empty object.
 

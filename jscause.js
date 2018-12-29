@@ -30,6 +30,10 @@ const TERMINAL_ERROR_STRING = '\x1b[31mERROR\x1b[0m';
 const TERMINAL_INFO_STRING = '\x1b[32mINFO\x1b[0m';
 const TERMINAL_INFO_WARNING = '\x1b[33mWARNING\x1b[0m';
 
+const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
+const MAX_DIRECTORIES_TO_PROCESS = 2048
+const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
+
 const RUNTIME_ROOT_DIR = process.cwd();
 
 console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
@@ -1993,6 +1997,7 @@ if (readSuccess)
           let soFarSoGood;
 
           const directoriesToProcess = [ { id: '', dirElements: [''] } ];
+          let directoriesProcessedSoFar = 0;
 
           do
           {
@@ -2030,6 +2035,7 @@ if (readSuccess)
               }
 
               let stats;
+              let pushedFiles = 0;
               while (allFiles.length)
               {
                 const { fileName, simlinkTarget } = allFiles.shift();
@@ -2064,8 +2070,24 @@ if (readSuccess)
                 {
                   if (stats.isDirectory())
                   {
-                    const dirElements = [...currentDirectoryElements, fileName];
-                    directoriesToProcess.push({ id: dirElements.join('_'), dirElements });
+                    if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
+                    {
+                      soFarSoGood = false;
+                      console.error(`${TERMINAL_ERROR_STRING}: Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
+                      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+                    }
+                    else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
+                    {
+                      soFarSoGood = false;
+                      console.error(`${TERMINAL_ERROR_STRING}: Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
+                      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+                    }
+                    else
+                    {
+                      const dirElements = [...currentDirectoryElements, fileName];
+                      directoriesToProcess.push({ id: dirElements.join('_'), dirElements });
+                      directoriesProcessedSoFar++;
+                    }
                   }
                   else if (stats.isSymbolicLink())
                   {
@@ -2107,7 +2129,6 @@ if (readSuccess)
                         }
                         else if (linkStats.isSymbolicLink())
                         {
-                          console.log(`Ugh... ${linkedPath}`); //__RP
                           if (symlinkList.indexOf(linkedPath) === -1)
                           {
                             symlinkList.push(linkedPath);
@@ -2125,7 +2146,17 @@ if (readSuccess)
                         }
                         else
                         {
-                          allFiles.push({ fileName, simlinkTarget: linkedPath });
+                          if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
+                          {
+                            allFiles.push({ fileName, simlinkTarget: linkedPath });
+                            pushedFiles++;
+                          }
+                          else
+                          {
+                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
+                            console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
+                            soFarSoGood = false;
+                          }
                         }
                       }
                     }
@@ -2173,15 +2204,6 @@ if (readSuccess)
           filePathsList.forEach(({ filePath, simlinkSourceFilePath, isFileSymlink }) =>
           {
             const webPath = (simlinkSourceFilePath || filePath).join('/');
-            console.log(`WEB PATH IS: ${webPath}`);//__RP
-            if (simlinkSourceFilePath)
-            {
-              console.log('- POINTS TO SYMLINKED DIRECTORY.');//__RP
-            }
-            if (isFileSymlink)
-            {
-              console.log('- POINTS TO SYMLINKED FILE.');//__RP
-            }
             const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
             if (typeof(processedSourceFile) === 'undefined')
             {
