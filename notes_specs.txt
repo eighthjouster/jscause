@@ -140,6 +140,24 @@ Symlinks:
 =========
  - They work the same way they work on the host operating system.
 
+File and directory limits:
+==========================
+
+- A maximum of 2048 subdirectories or files are allowed in a single directory; including those resolved by following symbolic links.
+- A maximum of 4096 directories/subdirectories are allowed overall in a single application.
+
+How files are mapped to url routes:
+===================================
+
+1. If the url is '/', '/index.jscp' will be assumed (see #5.)
+2. If the url is '/name.jscp' (or '/directory/name.jscp'), JSCause will check for the file.  If it exists, it will run it (see #5.)  If it doesn't, or if the url ends in '/' (e.g. '/directory/name/' or '/directory/name.jscp/'), it will assume it's a directory (see #4.)
+3. If the url is '/name' (or '/directory/name'), JSCause will check for the file '/name.jscp' (or '/directory/name.jscp').  If it exists, it will run it (see #5.)  If the file name does not exist, or if the url ends in '/', it will assume it's a directory (see #4.)
+4. If the url refers to a directory (e.g. '/name' or '/name/'), check for '/name/index.jscp'.
+5. If the url is '/name.jscp' (or '/directory/name.jscp'), then JSCause will run the contents and serve its output.
+6. If the url is '/name.extension', with the extension being neither jscp nor jscm (or not present), JSCause will check for the file.  If it exists, it will serve the contents of it. [TO BE IMPLEMENTED.]
+6. If the extension is jscm, serve a 404.
+7. If none of the above applies, serve a 404.
+
 On regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.

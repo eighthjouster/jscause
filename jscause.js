@@ -31,7 +31,7 @@ const TERMINAL_INFO_STRING = '\x1b[32mINFO\x1b[0m';
 const TERMINAL_INFO_WARNING = '\x1b[33mWARNING\x1b[0m';
 
 const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
-const MAX_DIRECTORIES_TO_PROCESS = 2048
+const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 
 const RUNTIME_ROOT_DIR = process.cwd();
@@ -1996,12 +1996,12 @@ if (readSuccess)
           readSuccess = false;
           let soFarSoGood;
 
-          const directoriesToProcess = [ { id: '', dirElements: [''] } ];
+          const directoriesToProcess = [ { dirElements: [''] } ];
           let directoriesProcessedSoFar = 0;
 
           do
           {
-            const { id: currentDirectoryId, simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = directoriesToProcess.shift(); // __RP will we use currentDirectoryId at some point?
+            const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = directoriesToProcess.shift();
             const directoryPath = fsPath.join(...currentDirectoryElements);
             let currentDirectoryPath;
             if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
@@ -2085,7 +2085,7 @@ if (readSuccess)
                     else
                     {
                       const dirElements = [...currentDirectoryElements, fileName];
-                      directoriesToProcess.push({ id: dirElements.join('_'), dirElements });
+                      directoriesToProcess.push({ dirElements });
                       directoriesProcessedSoFar++;
                     }
                   }
@@ -2125,7 +2125,7 @@ if (readSuccess)
                         {
                           const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
                           const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
-                          directoriesToProcess.push({ id: simlinkSourceDirElements.join('_'), simlinkSourceDirElements, dirElements });
+                          directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
                         }
                         else if (linkStats.isSymbolicLink())
                         {
