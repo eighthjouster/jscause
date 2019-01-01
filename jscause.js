@@ -34,6 +34,25 @@ const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpg',
+  '.ico': 'image/x-icon',
+  '.txt': 'text/plain; charset=utf-8',
+  '.gif': 'image/gif',
+  '.wav': 'audio/wav',
+  '.mp4': 'video/mp4',
+  '.woff': 'application/font-woff',
+  '.ttf': 'application/font-ttf',
+  '.eot': 'application/vnd.ms-fontobject',
+  '.otf': 'application/font-otf',
+  '.svg': 'application/image/svg+xml; charset=utf-8'
+};
+
 const RUNTIME_ROOT_DIR = process.cwd();
 
 console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
@@ -1085,6 +1104,20 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   doneWith(resContext);
 }
 
+function responderStatic(req, res, contentType, contents)
+{
+  const resContext =
+  {
+    appHeaders: {},
+    resObject: res,
+    statusCode: 200
+  };
+
+  assignAppHeaders(resContext, {'Content-Type': contentType});
+  finishUpHeaders(resContext);
+  res.end(contents);
+}
+
 function sendPayLoadExceeded(res, maxPayloadSizeBytes)
 {
   console.error(`${TERMINAL_ERROR_STRING}: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
@@ -1134,176 +1167,183 @@ function incomingRequestHandler(req, res)
 
   let runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
 
-  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, fullSitePath } = identifiedSite;
-  
-  let compiledCode = compiledFiles[runFileName];
+  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
 
-  if (typeof(compiledCode) === 'undefined')
+  if (staticFiles[runFileName])
   {
-    runFileName = `${resourceName}/index.jscp`;
-    compiledCode = compiledFiles[runFileName];
-  }
-
-  if (typeof(compiledCode) === 'undefined')
-  {
-    res.statusCode = 404;
-    res.end('Not Found.');
-    return;
-  }
-
-  let contentType = (headers['content-type'] || '').toLowerCase();
-  const contentLength = parseInt(headers['content-length'] || 0, 10);
-  const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
-  const incomingForm = ((requestMethod === 'post') &&
-                        (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
-
-  const postedForm = (incomingForm && canUpload) ?
-    new formidable.IncomingForm()
-    :
-    null;
-
-  let maxSizeExceeded = false;
-  let forbiddenUploadAttempted = false;
-  
-  const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
-
-  if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
-  {
-    maxSizeExceeded = true;
-    sendPayLoadExceeded(res, maxPayloadSizeBytes);
-  }
-  else if (incomingForm && !canUpload)
-  {
-    forbiddenUploadAttempted = true;
-    sendUploadIsForbidden(res);
-  }
-  else if (postedForm)
-  {
-    postedForm.keepExtensions = false;
-
-    postedForm.parse(req);
-
-    postedForm.on('error', (err) =>
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Form upload related error.`);
-      console.error(err);
-    });
-
-    postedForm.on('field', (name, value) =>
-    {
-      postedFormData.params[name] = value;
-    });
-
-    postedForm.on('file', (name, file) =>
-    {
-      file.unsafeName = file.name;
-      file.name = sanitizeFilename(file.name, { replacement: '_' }).replace(';', '_');
-
-      if (postedFormData.files[name])
-      {
-        if (!Array.isArray(postedFormData.files[name]))
-        {
-          postedFormData.files[name] = [ postedFormData.files[name] ];
-        }
-        postedFormData.files[name].push(file);
-      }
-      else
-      {
-        postedFormData.files[name] = file;
-      }
-    });
-
-    postedForm.on('progress', function(bytesReceived)
-    {
-      if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
-      {
-        maxSizeExceeded = true;
-        sendPayLoadExceeded(res, maxPayloadSizeBytes);
-      }
-    });
-
-    postedForm.on('end', () =>
-    {
-      const { params: formData, files: formFiles, pendingWork } = postedFormData;
-      const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
-
-      const formContext =
-      {
-        requestMethod,
-        contentType: postType,
-        formData,
-        formFiles,
-        maxSizeExceeded,
-        forbiddenUploadAttempted
-      };
-
-      let formFilesKeys;
-      if (isUpload)
-      {
-        formFilesKeys = Object.keys(formFiles);
-
-        if (formFilesKeys.length)
-        {
-          formFilesKeys.forEach((fileKey) =>
-          {
-            const thisFile = formFiles[fileKey];
-            if (Array.isArray(thisFile))
-            {
-              thisFile.forEach((thisActualFile) =>
-              {
-                doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
-              });
-            }
-            else
-            {
-              doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
-            }
-          });
-        }
-      }
-
-      if (!isUpload || !formFilesKeys)
-      {
-        responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
-      }
-    });
+    const { fileContents, fileContentType } = staticFiles[runFileName];
+    responderStatic(req, res, fileContentType, fileContents);
   }
   else
   {
-    let requestBody = [];
-    let bodyLength = 0;
-    req.on('data', (chunk) =>
+    let compiledCode = compiledFiles[runFileName];
+    if (typeof(compiledCode) === 'undefined')
     {
-      if (canUpload)
-      {
-        const futureBodyLength = bodyLength + chunk.length;
+      runFileName = `${resourceName}/index.jscp`;
+      compiledCode = compiledFiles[runFileName];
+    }
 
-        if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
+    if (typeof(compiledCode) === 'undefined')
+    {
+      res.statusCode = 404;
+      res.end('Not Found.');
+      return;
+    }
+
+    let contentType = (headers['content-type'] || '').toLowerCase();
+    const contentLength = parseInt(headers['content-length'] || 0, 10);
+    const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
+    const incomingForm = ((requestMethod === 'post') &&
+                          (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
+
+    const postedForm = (incomingForm && canUpload) ?
+      new formidable.IncomingForm()
+      :
+      null;
+
+    let maxSizeExceeded = false;
+    let forbiddenUploadAttempted = false;
+    
+    const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
+
+    if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
+    {
+      maxSizeExceeded = true;
+      sendPayLoadExceeded(res, maxPayloadSizeBytes);
+    }
+    else if (incomingForm && !canUpload)
+    {
+      forbiddenUploadAttempted = true;
+      sendUploadIsForbidden(res);
+    }
+    else if (postedForm)
+    {
+      postedForm.keepExtensions = false;
+
+      postedForm.parse(req);
+
+      postedForm.on('error', (err) =>
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Form upload related error.`);
+        console.error(err);
+      });
+
+      postedForm.on('field', (name, value) =>
+      {
+        postedFormData.params[name] = value;
+      });
+
+      postedForm.on('file', (name, file) =>
+      {
+        file.unsafeName = file.name;
+        file.name = sanitizeFilename(file.name, { replacement: '_' }).replace(';', '_');
+
+        if (postedFormData.files[name])
+        {
+          if (!Array.isArray(postedFormData.files[name]))
+          {
+            postedFormData.files[name] = [ postedFormData.files[name] ];
+          }
+          postedFormData.files[name].push(file);
+        }
+        else
+        {
+          postedFormData.files[name] = file;
+        }
+      });
+
+      postedForm.on('progress', function(bytesReceived)
+      {
+        if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
           sendPayLoadExceeded(res, maxPayloadSizeBytes);
         }
+      });
+
+      postedForm.on('end', () =>
+      {
+        const { params: formData, files: formFiles, pendingWork } = postedFormData;
+        const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
+
+        const formContext =
+        {
+          requestMethod,
+          contentType: postType,
+          formData,
+          formFiles,
+          maxSizeExceeded,
+          forbiddenUploadAttempted
+        };
+
+        let formFilesKeys;
+        if (isUpload)
+        {
+          formFilesKeys = Object.keys(formFiles);
+
+          if (formFilesKeys.length)
+          {
+            formFilesKeys.forEach((fileKey) =>
+            {
+              const thisFile = formFiles[fileKey];
+              if (Array.isArray(thisFile))
+              {
+                thisFile.forEach((thisActualFile) =>
+                {
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                });
+              }
+              else
+              {
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+              }
+            });
+          }
+        }
+
+        if (!isUpload || !formFilesKeys)
+        {
+          responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
+        }
+      });
+    }
+    else
+    {
+      let requestBody = [];
+      let bodyLength = 0;
+      req.on('data', (chunk) =>
+      {
+        if (canUpload)
+        {
+          const futureBodyLength = bodyLength + chunk.length;
+
+          if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
+          {
+            maxSizeExceeded = true;
+            sendPayLoadExceeded(res, maxPayloadSizeBytes);
+          }
+          else
+          {
+            bodyLength += chunk.length;
+            requestBody.push(chunk);
+          }
+        }
         else
         {
-          bodyLength += chunk.length;
-          requestBody.push(chunk);
+          forbiddenUploadAttempted = true;
+          sendUploadIsForbidden(res);
         }
-      }
-      else
+      }).on('end', () =>
       {
-        forbiddenUploadAttempted = true;
-        sendUploadIsForbidden(res);
-      }
-    }).on('end', () =>
-    {
-      if (contentType === 'application/json')
-      {
-        contentType = 'jsonData';
-      }
+        if (contentType === 'application/json')
+        {
+          contentType = 'jsonData';
+        }
 
-      const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
-      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
-    });
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted };
+        responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+      });
+    }
   }
 
   req.on('error', (err) =>
@@ -1676,7 +1716,7 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code for ${sourceFileName}.`);
+      console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code for ${sourceFilePath}.`);
     }
   }
 
@@ -2162,27 +2202,51 @@ if (readSuccess)
                     }
                     while(soFarSoGood && linkStats.isSymbolicLink());
                   }
-                  else
+                  else if (!fileName.match(/\.jscm$/)) // Ignore jscm files.
                   {
+                    let fileEntry = {};
                     if (fileName.match(/\.jscp$/))
                     {
-                      const fileEntry =
-                      {
-                        filePath: [...currentDirectoryElements, fileName]
-                      };
-
-                      if (simlinkTarget)
-                      {
-                        fileEntry.isFileSymlink = true;
-                      }
-
-                      if (currentSimlinkSourceDirectoryElements)
-                      {
-                        fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
-                      }
-
-                      filePathsList.push(fileEntry);
+                      fileEntry.fileType = 'jscp';
                     }
+                    else
+                    {
+                      // Static files.
+                      fileEntry.fileType = 'static';
+
+                      const extName = String(fsPath.extname(fileName)).toLowerCase();
+
+                      const fileContentType = MIME_TYPES[extName] || 'application/octet-stream';
+
+                      let fileContents;
+
+                      try
+                      {
+                        fileContents = fs.readFileSync(fullPath, 'utf-8');
+                      }
+                      catch(e)
+                      {
+                        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
+                        console.error(e);
+                        soFarSoGood = false;
+                      }
+
+                      if (soFarSoGood)
+                      {
+                        Object.assign(fileEntry, { fileContents, fileContentType });
+                      }
+                      else
+                      {
+                        break;
+                      }
+                    }
+
+                    fileEntry.filePath = [...currentDirectoryElements, fileName];
+                    if (currentSimlinkSourceDirectoryElements)
+                    {
+                      fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
+                    }
+                    filePathsList.push(fileEntry);
                   }
                 }
                 else
@@ -2199,18 +2263,29 @@ if (readSuccess)
 
         if (readSuccess)
         {
+          siteConfig.staticFiles = {};
           siteConfig.compiledFiles = {};
 
-          filePathsList.forEach(({ filePath, simlinkSourceFilePath, isFileSymlink }) =>
+          filePathsList.forEach((fileEntry) =>
           {
+            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents } = fileEntry;
+
             const webPath = (simlinkSourceFilePath || filePath).join('/');
-            const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
-            if (typeof(processedSourceFile) === 'undefined')
+            if (fileType === 'jscp')
             {
-              readSuccess = false;
+              const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
+              if (typeof(processedSourceFile) === 'undefined')
+              {
+                readSuccess = false;
+              }
+              else{
+                siteConfig.compiledFiles[webPath] = processedSourceFile;
+              }
             }
-            else{
-              siteConfig.compiledFiles[webPath] = processedSourceFile;
+            else
+            {
+              // fileType assumed 'static'
+              siteConfig.staticFiles[webPath] = { fileContentType, fileContents };
             }
           });
         }

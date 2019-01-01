@@ -2,11 +2,24 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Right now, static files are being loaded in memory.  What to do with large files?
+  - Detect them.  They should be loaded and served later.
+    - Document this.  Smallish files (< 500kb) will be loaded on memory.
+  - OR..... maybe I shouldn't detect them at all and just serve them directly from the filesystem?
+    - Timeout? Configurable?
+      - Throttle? Future version?
+
+- Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
+
 Serve static files:
  - As long as it's not JSCM or JSCP:
-   - Serve as static.
    - Put some thought on JS files.
    - If you implement this, remove the [TO BE IMPLEMENTED.] string on the docs ("How files are mapped to url routes").
+
+More mime-types?
+
+Ignore files starting with '.'.
+ - And document.
 
 With a setting, indicate if a url needs to hide the jscp extension (for security purposes).
  - And document.
@@ -96,6 +109,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+File encoding detection (for now, every file is assumed UTF-8.)
 
 The values of the MAX_FILES_OR_DIRS_IN_DIRECTORY, MAX_DIRECTORIES_TO_PROCESS and MAX_PROCESSED_DIRECTORIES_THRESHOLD constants should be configurable via a config file.
 
