@@ -2,18 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Large file? (> 512kb) never cache.
-- Document.
-  - Throttle? Future version?
-
-File/directory names with spaces in them?
+Serving large static files efficiently?
 
 - Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
-
-Serve static files:
- - As long as it's not JSCM or JSCP:
-   - Put some thought on JS files.
-   - If you implement this, remove the [TO BE IMPLEMENTED.] string on the docs ("How files are mapped to url routes").
 
 More mime-types?
 
@@ -43,6 +34,8 @@ Other files? (images, css, js).
    - And document.
 
 - Make _really_ sure that .. won't access anything outside the website/ folder.
+
+File/directory names with spaces in them?
 
 Cookies?
  - Read/write?
@@ -109,6 +102,8 @@ Version 0.7b here!
 
 Order by priority:
 
+- Server throttling of large static files?
+
 File encoding detection (for now, every file is assumed UTF-8.)
 
 The values of the constants:
@@ -116,6 +111,7 @@ The values of the constants:
  - MAX_DIRECTORIES_TO_PROCESS
  - MAX_PROCESSED_DIRECTORIES_THRESHOLD
  - MAX_CACHED_FILES_PER_SITE
+ - MAX_CACHEABLE_FILE_SIZE_BYTES
 should be configurable via a config file.
 
 When defining a function and calling it inside a script, 'this' will refer to that of the node environment.  How to avoid this?  Or is this a "feature"? It should be an empty object.

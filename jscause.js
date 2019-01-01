@@ -34,6 +34,7 @@ const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 const MAX_CACHED_FILES_PER_SITE = 256;
+const MAX_CACHEABLE_FILE_SIZE_BYTES = 24 * 512;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -1172,7 +1173,7 @@ function incomingRequestHandler(req, res)
 
   if (staticFiles[runFileName])
   {
-    const { fileContents, fileContentType, fullPath } = staticFiles[runFileName];
+    const { fileContents, fileContentType, fullPath, fileSize } = staticFiles[runFileName];
     if (typeof(fileContents) === 'undefined')
     {
       fs.readFile(fullPath, 'utf-8', (err, readFileContents) =>
@@ -2234,7 +2235,6 @@ if (readSuccess)
                     {
                       // Static files.
                       fileEntry.fileType = 'static';
-                      cachedStaticFilesSoFar++;
 
                       const extName = String(fsPath.extname(fileName)).toLowerCase();
 
@@ -2242,30 +2242,36 @@ if (readSuccess)
 
                       let fileContents;
 
-                      if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
+                      const fileSize = stats.size;
+
+                      if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
                       {
-                        try
+                        cachedStaticFilesSoFar++;
+                        if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
                         {
-                          fileContents = fs.readFileSync(fullPath, 'utf-8');
+                          try
+                          {
+                            fileContents = fs.readFileSync(fullPath, 'utf-8');
+                          }
+                          catch(e)
+                          {
+                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
+                            console.error(e);
+                            soFarSoGood = false;
+                          }
                         }
-                        catch(e)
+                        else
                         {
-                          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
-                          console.error(e);
-                          soFarSoGood = false;
-                        }
-                      }
-                      else
-                      {
-                        if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
-                        {
-                          console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+                          if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
+                          {
+                            console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+                          }
                         }
                       }
 
                       if (soFarSoGood)
                       {
-                        Object.assign(fileEntry, { fileContents, fileContentType, fullPath });
+                        Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
                       }
                       else
                       {
@@ -2300,7 +2306,7 @@ if (readSuccess)
 
           filePathsList.forEach((fileEntry) =>
           {
-            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath } = fileEntry;
+            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
 
             const webPath = (simlinkSourceFilePath || filePath).join('/');
             if (fileType === 'jscp')
@@ -2317,7 +2323,7 @@ if (readSuccess)
             else
             {
               // fileType assumed 'static'
-              siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath };
+              siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath, fileSize };
             }
           });
         }
