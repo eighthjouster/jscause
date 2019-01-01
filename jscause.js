@@ -1167,12 +1167,31 @@ function incomingRequestHandler(req, res)
 
   let runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
 
-  const { canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
+  const { name: siteName, canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
 
   if (staticFiles[runFileName])
   {
-    const { fileContents, fileContentType } = staticFiles[runFileName];
-    responderStatic(req, res, fileContentType, fileContents);
+    const { fileContents, fileContentType, fullPath } = staticFiles[runFileName];
+    if (typeof(fileContents) === 'undefined')
+    {
+      fs.readFile(fullPath, 'utf-8', (err, readFileContents) =>
+      {
+        if (err)
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
+          res.statusCode = 404;
+          res.end('Not found.');
+        }
+        else
+        {
+          responderStatic(req, res, fileContentType, readFileContents);
+        }
+      });
+    }
+    else
+    {
+      responderStatic(req, res, fileContentType, fileContents);
+    }
   }
   else
   {
@@ -2233,7 +2252,7 @@ if (readSuccess)
 
                       if (soFarSoGood)
                       {
-                        Object.assign(fileEntry, { fileContents, fileContentType });
+                        Object.assign(fileEntry, { fileContents, fileContentType, fullPath });
                       }
                       else
                       {
@@ -2268,7 +2287,7 @@ if (readSuccess)
 
           filePathsList.forEach((fileEntry) =>
           {
-            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents } = fileEntry;
+            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath } = fileEntry;
 
             const webPath = (simlinkSourceFilePath || filePath).join('/');
             if (fileType === 'jscp')
@@ -2285,7 +2304,7 @@ if (readSuccess)
             else
             {
               // fileType assumed 'static'
-              siteConfig.staticFiles[webPath] = { fileContentType, fileContents };
+              siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath };
             }
           });
         }

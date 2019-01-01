@@ -2,12 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Right now, static files are being loaded in memory.  What to do with large files?
-  - Detect them.  They should be loaded and served later.
-    - Document this.  Smallish files (< 500kb) will be loaded on memory.
-  - OR..... maybe I shouldn't detect them at all and just serve them directly from the filesystem?
-    - Timeout? Configurable?
-      - Throttle? Future version?
+- Have already cached about 1024 files? No more caching.
+ - Put value in constant, put "Should be configurable" in the future section.
+- Large file? (> 512kb) never cache.
+- Document.
+  - Throttle? Future version?
 
 - Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
 
