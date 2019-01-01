@@ -2,11 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Have already cached about 1024 files? No more caching.
- - Put value in constant, put "Should be configurable" in the future section.
 - Large file? (> 512kb) never cache.
 - Document.
   - Throttle? Future version?
+
+File/directory names with spaces in them?
 
 - Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
 
@@ -111,7 +111,12 @@ Order by priority:
 
 File encoding detection (for now, every file is assumed UTF-8.)
 
-The values of the MAX_FILES_OR_DIRS_IN_DIRECTORY, MAX_DIRECTORIES_TO_PROCESS and MAX_PROCESSED_DIRECTORIES_THRESHOLD constants should be configurable via a config file.
+The values of the constants:
+ - MAX_FILES_OR_DIRS_IN_DIRECTORY
+ - MAX_DIRECTORIES_TO_PROCESS
+ - MAX_PROCESSED_DIRECTORIES_THRESHOLD
+ - MAX_CACHED_FILES_PER_SITE
+should be configurable via a config file.
 
 When defining a function and calling it inside a script, 'this' will refer to that of the node environment.  How to avoid this?  Or is this a "feature"? It should be an empty object.
 

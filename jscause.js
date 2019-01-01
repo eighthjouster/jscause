@@ -33,6 +33,7 @@ const TERMINAL_INFO_WARNING = '\x1b[33mWARNING\x1b[0m';
 const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
+const MAX_CACHED_FILES_PER_SITE = 256;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -2057,6 +2058,7 @@ if (readSuccess)
 
           const directoriesToProcess = [ { dirElements: [''] } ];
           let directoriesProcessedSoFar = 0;
+          let cachedStaticFilesSoFar = 0;
 
           do
           {
@@ -2232,6 +2234,7 @@ if (readSuccess)
                     {
                       // Static files.
                       fileEntry.fileType = 'static';
+                      cachedStaticFilesSoFar++;
 
                       const extName = String(fsPath.extname(fileName)).toLowerCase();
 
@@ -2239,15 +2242,25 @@ if (readSuccess)
 
                       let fileContents;
 
-                      try
+                      if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
                       {
-                        fileContents = fs.readFileSync(fullPath, 'utf-8');
+                        try
+                        {
+                          fileContents = fs.readFileSync(fullPath, 'utf-8');
+                        }
+                        catch(e)
+                        {
+                          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
+                          console.error(e);
+                          soFarSoGood = false;
+                        }
                       }
-                      catch(e)
+                      else
                       {
-                        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
-                        console.error(e);
-                        soFarSoGood = false;
+                        if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
+                        {
+                          console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+                        }
                       }
 
                       if (soFarSoGood)
