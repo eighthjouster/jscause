@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Serving large static files efficiently?
-
 - Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
 
 More mime-types?
@@ -101,6 +99,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+- Resuming interrupted large downloads.
 
 - Server throttling of large static files?
 

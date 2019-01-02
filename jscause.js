@@ -34,7 +34,7 @@ const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 const MAX_CACHED_FILES_PER_SITE = 256;
-const MAX_CACHEABLE_FILE_SIZE_BYTES = 24 * 512;
+const MAX_CACHEABLE_FILE_SIZE_BYTES = 1024 * 512;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -1106,18 +1106,51 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   doneWith(resContext);
 }
 
-function responderStatic(req, res, contentType, contents)
+function responderStatic(req, res, siteName, fullPath, contentType, fileSize, { fileContents: contents, readStream })
 {
-  const resContext =
-  {
-    appHeaders: {},
-    resObject: res,
-    statusCode: 200
-  };
+  const resObject = res;
+  const resContext = {appHeaders: {}, resObject};
 
-  assignAppHeaders(resContext, {'Content-Type': contentType});
+  assignAppHeaders(resContext, {'Content-Type': contentType, 'Content-Length': fileSize});
   finishUpHeaders(resContext);
-  res.end(contents);
+  
+  resObject.statusCode = 200;
+
+  if (contents || !readStream)
+  {
+    resObject.end(contents);
+  }
+  else
+  {
+    req.on('close', () =>
+    {
+      readStream.destroy();
+    });
+
+    readStream.on('data', (data) =>
+    {
+      resObject.write(data);
+    });
+
+    readStream.on('end', () =>
+    {
+      resObject.end();
+    });
+
+    readStream.on('close', () =>
+    {
+      resObject.end();
+    });
+
+    readStream.on('error', (e) =>
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
+      console.error(e);
+      resObject.statusCode = 404;
+      resObject.setHeader('Content-Type', 'application/octet-stream');
+      resObject.end();
+    });
+  }
 }
 
 function sendPayLoadExceeded(res, maxPayloadSizeBytes)
@@ -1176,23 +1209,12 @@ function incomingRequestHandler(req, res)
     const { fileContents, fileContentType, fullPath, fileSize } = staticFiles[runFileName];
     if (typeof(fileContents) === 'undefined')
     {
-      fs.readFile(fullPath, 'utf-8', (err, readFileContents) =>
-      {
-        if (err)
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
-          res.statusCode = 404;
-          res.end('Not found.');
-        }
-        else
-        {
-          responderStatic(req, res, fileContentType, readFileContents);
-        }
-      });
+      const readStream = fs.createReadStream(fullPath, { encoding: 'utf8' });
+      responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, { readStream });
     }
     else
     {
-      responderStatic(req, res, fileContentType, fileContents);
+      responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, { fileContents });
     }
   }
   else
@@ -1207,7 +1229,8 @@ function incomingRequestHandler(req, res)
     if (typeof(compiledCode) === 'undefined')
     {
       res.statusCode = 404;
-      res.end('Not Found.');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.end();
       return;
     }
 

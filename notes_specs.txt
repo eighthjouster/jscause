@@ -173,6 +173,8 @@ On regards of 'this':
 Known issues:
 =============
 
+- Does not support resuming of interrupted large file downloads.  For a future version.
+
 - For now, every file is assumed UTF-8.
 
 - When invoking a function defined inside a JSCP script (or when using rt.module()), 'this' inside the module will be the system's.  In a future version, a configurable directive may force it to an empty object.  But we'll see.
