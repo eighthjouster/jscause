@@ -2,5 +2,6 @@
   "hostName": "jscausesite2",
   "tempWorkDirectory": ".",
   "canUpload": true,
-  "maxPayloadSizeBytes": 0//3072 // 3 KB.
+  "maxPayloadSizeBytes": 0,
+  "mimeTypes": {}
 }

@@ -158,6 +158,42 @@ How files are mapped to url routes:
 6. If the extension is jscm, serve a 404.
 7. If none of the above applies, serve a 404.
 
+Mime types:
+===========
+
+JSCause can handle a set of mime types according to the url resource extension (e.g. 'image.png') [TODO: List them here.  See: MIME_TYPES].
+An unrecognized mime type will be treated as 'application/octet-stream'.  In these cases, the browser may attempt to download instead of display the resource.
+Add extra mime types to the list of recognized ones, with the "mimeTypes" configuration directive:
+  "mimeTypes": {
+    "include": {
+      "png": "image/png",
+      "some_other_type": "some_other_value"
+    }
+  }
+
+If you want a mime type to be handled as 'application/octet-stream', put it in the 'exclude' list:
+  "mimeTypes": {
+    "exclude": {
+      "jpg": "image/jpg",
+      "some_other_type": "some_other_value"
+    }
+  }
+
+Include and exclude can be used at the same time:
+  "mimeTypes": {
+    "include": {
+      "png": "image/png",
+      "some_other_type": "some_other_value"
+    },
+    "exclude": {
+      "jpg": "image/jpg",
+      "some_other_type": "some_other_value"
+    }
+  }
+
+If the same mime type is added to both lists, the lattermost list will prevail (e.g. if 'exclude' is defined after 'include', then the mime-type will be excluded.)
+JSCause will not guarantee which value is assigned to a mime type listed more than once in the 'include' section.
+
 Static files:
 =============
 - Files up to MAX_CACHEABLE_FILE_SIZE_BYTES (512 * 1024 = 512KBytes) will be cached.  Files larger than that will be read from the file system and served upon request.
