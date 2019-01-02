@@ -41,7 +41,7 @@ const MIME_TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
-  '.png': 'image/png',
+  //'.png': 'image/png', //__RP
   '.jpg': 'image/jpg',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
@@ -424,7 +424,8 @@ const defaultSiteConfig =
   port: undefined,
   tempWorkDirectory: null,
   canUpload: true,
-  maxPayloadSizeBytes: undefined
+  maxPayloadSizeBytes: undefined,
+  mimeTypes: {}
 };
 
 const symbolsToSanitize =
@@ -1209,7 +1210,7 @@ function incomingRequestHandler(req, res)
     const { fileContents, fileContentType, fullPath, fileSize } = staticFiles[runFileName];
     if (typeof(fileContents) === 'undefined')
     {
-      const readStream = fs.createReadStream(fullPath, { encoding: 'utf8' });
+      const readStream = fs.createReadStream(fullPath);
       responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, { readStream });
     }
     else
@@ -1925,7 +1926,8 @@ if (readSuccess)
             'hostname',
             'tempworkdirectory',
             'canupload',
-            'maxpayloadsizebytes'
+            'maxpayloadsizebytes',
+            'mimetypes'
           ];
 
           const requiredKeysNotFound = [];
@@ -1994,6 +1996,66 @@ if (readSuccess)
             else
             {
               checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
+              soFarSoGood = false;
+            }
+
+            configKeyName = 'mimetypes';
+            configValue = processedConfigJSON[configKeyName];
+            console.log(typeof(configValue));//__RP
+
+            if (typeof(configValue) === 'object')
+            {
+              Object.keys(configValue).some((valueName) =>
+              {
+                if (valueName.toLowerCase() === 'include')
+                {
+                  const includeList = configValue[valueName];
+                  if (typeof(includeList) === 'object')
+                  {
+                    Object.keys(includeList).some((includeName) => {
+                      if (typeof(includeName) === 'string')
+                      {
+                        const includeValue = includeList[includeName];
+                        if (typeof(includeValue) === 'string')
+                        {
+                          MIME_TYPES[`.${includeName.toLowerCase()}`] = includeValue.toLowerCase();
+                        }
+                        else
+                        {
+                          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid include value for ${includeName}.  String expected.`);
+                          soFarSoGood = false;
+                        }
+                      }
+                      else
+                      {
+                        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid include name.  String expected.`);
+                        soFarSoGood = false;
+                      }
+                      return soFarSoGood;
+                    });
+                  }
+                  else
+                  {
+                    console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid include attribute value.  Object expected.`);
+                    soFarSoGood = false;
+                  }
+                }
+                else if (valueName.toLowerCase() === 'exclude')
+                {
+
+                }
+                else
+                {
+                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.`);
+                  soFarSoGood = false;
+                }
+
+                return soFarSoGood;
+              });
+            }
+            else
+            {
+              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  mimetype cannot be empty.');
               soFarSoGood = false;
             }
 
@@ -2274,7 +2336,7 @@ if (readSuccess)
                         {
                           try
                           {
-                            fileContents = fs.readFileSync(fullPath, 'utf-8');
+                            fileContents = fs.readFileSync(fullPath);
                           }
                           catch(e)
                           {

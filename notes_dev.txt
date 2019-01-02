@@ -2,9 +2,27 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Test symlinks in static files.  Same deal (directories, recursion, circular references, etc.)
+Up next: Implement mime type name 'exclude'.
+ - Use jpg to test things out.
+
+Test including and excluding several mime-types at the same time.
+
+ - Take care of __RP's.
+
+Once you're done debugging with the png mime-type, remove it from the site's config file, re-add it to (uncomment from) the MIME_TYPES file.
 
 More mime-types?
+ - User should be able to specify more mime-types through configuration files.
+   - And remove them.
+     - Per site.
+       - And document (both adding and removing.)
+  - Test error handling.
+
+The mime-type implementation modifies the MIME_TYPES global.  In reality, it should modify a per-site list.
+
+At this point, back up.
+
+Refactor a bit.
 
 Ignore files starting with '.'.
  - And document.

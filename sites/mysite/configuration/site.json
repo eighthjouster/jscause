@@ -2,5 +2,10 @@
   "hostName": "jscausesite1",
   "tempWorkDirectory": "./workbench",
   "canUpload": true,
-  "maxPayloadSizeBytes": 0//3072 // 3 KB.
+  "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
+  "mimeTypes": {
+    "include": {
+      "png": "image/png"
+    }
+  }
 }
