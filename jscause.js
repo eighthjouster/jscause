@@ -1158,16 +1158,18 @@ function sendPayLoadExceeded(res, maxPayloadSizeBytes)
 {
   console.error(`${TERMINAL_ERROR_STRING}: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
   res.statusCode = 413;
+  res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  res.end('Request size exceeded!');
+  res.end();
 }
 
 function sendUploadIsForbidden(res)
 {
   console.error(`${TERMINAL_ERROR_STRING}: Uploading is forbidden.`);
   res.statusCode = 403;
+  res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  res.end('Forbidden!');
+  res.end();
 }
 
 function incomingRequestHandler(req, res)
@@ -1189,7 +1191,8 @@ function incomingRequestHandler(req, res)
   if (!identifiedSite || !reqMethodIsValid)
   {
     res.statusCode = 405;
-    res.end('Not Allowed.');
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.end();
     return;
   }
 
@@ -2004,6 +2007,7 @@ if (readSuccess)
 
             if (typeof(configValue) === 'object')
             {
+              siteConfig.mimeTypes.list = Object.assign({}, MIME_TYPES);
               Object.keys(configValue).every((rawValueName) =>
               {
                 const valueName = rawValueName.toLowerCase();
@@ -2035,11 +2039,11 @@ if (readSuccess)
                               switch(valueName)
                               {
                                 case 'include':
-                                  MIME_TYPES[`.${mimeTypeName}`] = includeValue.toLowerCase();
+                                 siteConfig.mimeTypes.list[`.${mimeTypeName}`] = includeValue.toLowerCase();
                                   break;
             
                                 case 'exclude':
-                                  delete MIME_TYPES[`.${mimeTypeName}`];
+                                  delete siteConfig.mimeTypes.list[`.${mimeTypeName}`];
                                   break;
                               }
                             }
@@ -2342,7 +2346,7 @@ if (readSuccess)
 
                       const extName = String(fsPath.extname(fileName)).toLowerCase();
 
-                      const fileContentType = MIME_TYPES[extName] || 'application/octet-stream';
+                      const fileContentType = siteConfig.mimeTypes.list[extName] || 'application/octet-stream';
 
                       let fileContents;
 

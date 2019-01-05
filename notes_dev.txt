@@ -2,8 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-The mime-type implementation modifies the MIME_TYPES global.  In reality, it should modify a per-site list.
- - And test with multiple sites.
+"exclude" must be an array.
 
 At this point, back up.
 
