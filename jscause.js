@@ -2011,67 +2011,67 @@ if (readSuccess)
               Object.keys(configValue).every((rawValueName) =>
               {
                 const valueName = rawValueName.toLowerCase();
+                const mimeTypeList = configValue[valueName];
                 if (['include', 'exclude'].indexOf(valueName) === -1)
                 {
                   console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.`);
                   soFarSoGood = false;
                 }
+                else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
+                {
+                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.`);
+                  soFarSoGood = false;
+                }
+                else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
+                {
+                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'exclude' attribute value. Array expected.`);
+                  soFarSoGood = false;
+                }
                 else
                 {
-                  const mimeTypeList = configValue[valueName];
-                  if (typeof(mimeTypeList) !== 'object')
-                  {
-                    console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid include attribute value.  Object expected.`);
-                    soFarSoGood = false;
-                  }
-                  else
-                  {
-                    Object.keys(mimeTypeList).every((mimeTypeName) => {
-                      if (typeof(mimeTypeName) === 'string')
+                  (Array.isArray(mimeTypeList) ? mimeTypeList : Object.keys(mimeTypeList)).every((mimeTypeName) => {
+                    if (typeof(mimeTypeName) === 'string')
+                    {
+                      if (mimeTypeName)
                       {
-                        if (mimeTypeName)
+                        const includeValue = (valueName === 'include') ? mimeTypeList[mimeTypeName.toLowerCase()] : '';
+                        if (typeof(includeValue) === 'string')
                         {
-                          const includeValue = mimeTypeList[mimeTypeName.toLowerCase()];
-                          if (typeof(includeValue) === 'string')
+                          if (!includeValue)
                           {
-                            if (includeValue)
-                            {
-                              switch(valueName)
-                              {
-                                case 'include':
-                                 siteConfig.mimeTypes.list[`.${mimeTypeName}`] = includeValue.toLowerCase();
-                                  break;
-            
-                                case 'exclude':
-                                  delete siteConfig.mimeTypes.list[`.${mimeTypeName}`];
-                                  break;
-                              }
-                            }
-                            else
-                            {
-                              console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.`);
-                            }
+                            console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
                           }
-                          else
+
+                          switch(valueName)
                           {
-                            console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
-                            soFarSoGood = false;
+                            case 'include':
+                              siteConfig.mimeTypes.list[`.${mimeTypeName}`] = includeValue.toLowerCase();
+                              break;
+        
+                            case 'exclude':
+                              delete siteConfig.mimeTypes.list[`.${mimeTypeName}`];
+                              break;
                           }
                         }
                         else
                         {
-                          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype name cannot be empty.`);
+                          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
                           soFarSoGood = false;
                         }
                       }
                       else
                       {
-                        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
+                        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype name cannot be empty.`);
                         soFarSoGood = false;
                       }
-                      return soFarSoGood;
-                    });
-                  }
+                    }
+                    else
+                    {
+                      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
+                      soFarSoGood = false;
+                    }
+                    return soFarSoGood;
+                  });
                 }
                 return soFarSoGood;
               });

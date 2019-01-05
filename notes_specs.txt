@@ -163,20 +163,21 @@ Mime types:
 
 JSCause can handle a set of mime types according to the url resource extension (e.g. 'image.png') [TODO: List them here.  See: MIME_TYPES].
 An unrecognized mime type will be treated as 'application/octet-stream'.  In these cases, the browser may attempt to download instead of display the resource.
-Add extra mime types to the list of recognized ones, with the "mimeTypes" configuration directive:
+Add extra mime types to the list of recognized ones (or replace their values), with the "mimeTypes" configuration directive:
   "mimeTypes": {
     "include": {
       "png": "image/png",
       "some_other_type": "some_other_value"
     }
   }
+If you specify an empty string as a value, it will be assumed octect-stream (a warning will be shown in the server console during startup.)
 
-If you want a mime type to be handled as 'application/octet-stream', put it in the 'exclude' list:
+If you want a mime type to be handled as 'application/octet-stream' (e.g. for downloading), put it in the 'exclude' list (note that 'exclude' is an array, as opposed to 'include', which is an associative array):
   "mimeTypes": {
-    "exclude": {
-      "jpg": "image/jpg",
-      "some_other_type": "some_other_value"
-    }
+    "exclude": [
+      "jpg",
+      "some_other_type"
+    ]
   }
 
 Include and exclude can be used at the same time:
@@ -185,10 +186,10 @@ Include and exclude can be used at the same time:
       "png": "image/png",
       "some_other_type": "some_other_value"
     },
-    "exclude": {
-      "jpg": "image/jpg",
-      "some_other_type": "some_other_value"
-    }
+    "exclude": [
+      "jpg",
+      "some_other_type"
+    ]
   }
 
 If the same mime type is added to both lists, the lattermost list will prevail (e.g. if 'exclude' is defined after 'include', then the mime-type will be excluded.)

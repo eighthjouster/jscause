@@ -2,10 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-"exclude" must be an array.
-
-At this point, back up.
-
 Why are switch statements being marked as mis-indented in vs code? eslint plugin mishap?
 
 Refactor a bit.
@@ -38,6 +34,9 @@ Other files? (images, css, js).
 - Make _really_ sure that .. won't access anything outside the website/ folder.
 
 File/directory names with spaces in them?
+ - Document the behavior, whatever it is.
+
+At this point, git tag and back up.
 
 Cookies?
  - Read/write?
@@ -152,6 +151,8 @@ Uploading files:  When an upload form is submitted with no files specified, the 
   - Any way to avoid the creation of an unnecessary file?
 
 Plugins.  Something as easy as dropping as a folder in a /plugins folder.
+
+JSCause modules.  They are regular npm modules, but certified with no external dependencies.
 
 Better handling of max file size exceeded and uploads forbidden.
 

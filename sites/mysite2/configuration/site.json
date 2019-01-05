@@ -4,8 +4,8 @@
   "canUpload": true,
   "maxPayloadSizeBytes": 0,
   "mimeTypes": {
-    "exclude": {
-      "png": "image/png"
-    }
+    "exclude": [
+      "png"
+    ]
   }
 }
