@@ -100,6 +100,244 @@ function validateJSONFile(readConfigFile, fileName)
   return readConfigJSON;
 }
 
+function parseNextInConfigFile(state)
+{
+  let
+    {
+      processingContext, processingState,
+      currentChar , keyChars, valueTypeQueue,
+      parseErrorDescription, parseError,
+      skipNext, firstLevelKeys
+    } = state;
+
+  // Good for debugging.
+  //console.log('Pass - begin');
+  //console.log(processingContext);
+  //console.log(processingState);
+  //console.log(currentChar);
+  
+  if (processingContext === 'keys')
+  {
+    if (processingState === 'expectkey')
+    {
+      if (currentChar === '"')
+      {
+        keyChars = [];
+        processingState = 'gettingkey';
+      }
+      else if (currentChar === '}')
+      {
+        const poppedType = valueTypeQueue.pop();
+        if (poppedType)
+        {
+          if (currentChar === poppedType)
+          {
+            processingContext = 'values';
+            processingState = 'donegettingvalue';
+          }
+          else
+          {
+            parseErrorDescription = `Expected ${poppedType}.`;
+            parseError = true;
+          }
+        }
+        else
+        {
+          parseErrorDescription = `Unexpected ${currentChar}.`;
+          parseError = true;
+        }
+      }
+      else if (currentChar !== ',')
+      {
+        parseErrorDescription = 'Expected quote.';
+        parseError = true;
+      }
+    }
+    else if (processingState === 'gettingkey')
+    {
+      if (currentChar === '\\')
+      {
+        skipNext = true;
+      }
+      else if (currentChar === '"')
+      {
+        processingState = 'expectcolon';
+
+        if (valueTypeQueue.length === 0)
+        {
+          const keyName = keyChars.join('').toLowerCase();
+          const keyNameLowerCase = keyName.toLowerCase();
+          if (firstLevelKeys.indexOf(keyNameLowerCase) === -1)
+          {
+            firstLevelKeys.push(keyNameLowerCase);
+          }
+          else
+          {
+            parseErrorDescription = `Duplicate key: ${keyName}`;
+            parseError = true;
+          }
+        }
+      }
+      else
+      {
+        keyChars.push(currentChar);
+      }
+    }
+    else if (processingState === 'expectcolon')
+    {
+      if (currentChar === ':')
+      {
+        processingContext = 'values';
+        processingState = 'expectvalue';
+      }
+      else
+      {
+        parseErrorDescription = 'Expected colon.';
+        parseError = true;
+      }
+    }
+    else
+    {
+      parseErrorDescription = 'Unexpected error.';
+      parseError = true;
+    }
+  }
+  else if (processingContext === 'values')
+  {
+    if (processingState === 'expectvalue')
+    {
+      if (currentChar === '"')
+      {
+        processingState = 'gettingstring';
+      }
+      else if (currentChar === '[')
+      {
+        valueTypeQueue.push(']');
+      }
+      else if (currentChar === '{')
+      {
+        valueTypeQueue.push('}');
+        processingContext = 'keys';
+        processingState = 'expectkey';
+      }
+      else if (currentChar === ']')
+      {
+        const poppedType = valueTypeQueue.pop();
+        if (poppedType)
+        {
+          if (currentChar === poppedType)
+          {
+            processingState = 'donegettingvalue';
+          }
+          else
+          {
+            parseErrorDescription = `Expected ${poppedType}.`;
+            parseError = true;
+          }
+        }
+        else
+        {
+          parseErrorDescription = `Unexpected ${currentChar}.`;
+          parseError = true;
+        }
+      }
+      else if (currentChar !== ',')
+      {
+        processingState = 'gettingliteral';
+      }
+    }
+    else if (processingState === 'gettingstring')
+    {
+      if (currentChar === '\\')
+      {
+        skipNext = true;
+      }
+      else if (currentChar === '"')
+      {
+        processingState = 'donegettingvalue';
+      }
+    }
+    else if ((processingState === 'gettingliteral') || (processingState === 'donegettingvalue'))
+    {
+      if (currentChar === ']')
+      {
+        const poppedType = valueTypeQueue.pop();
+        if (poppedType)
+        {
+          if (currentChar === poppedType)
+          {
+            processingState = 'donegettingvalue';
+          }
+          else
+          {
+            parseErrorDescription = `Expected ${poppedType}.`;
+            parseError = true;
+          }
+        }
+        else
+        {
+          parseErrorDescription = `Unexpected ${currentChar}.`;
+          parseError = true;
+        }
+      }
+      else if (currentChar === '}')
+      {
+        const poppedType = valueTypeQueue.pop();
+        if (poppedType)
+        {
+          if (currentChar === poppedType)
+          {
+            processingState = 'donegettingvalue';
+          }
+          else
+          {
+            parseErrorDescription = `Expected ${poppedType}.`;
+            parseError = true;
+          }
+        }
+        else
+        {
+          parseErrorDescription = `Unexpected ${currentChar}.`;
+          parseError = true;
+        }
+      }
+      else if (currentChar === ',')
+      {
+        if ((valueTypeQueue.length > 0) && valueTypeQueue[valueTypeQueue.length - 1] === ']')
+        {
+          processingState = 'expectvalue';
+        }
+        else
+        {
+          processingContext = 'keys';
+          processingState = 'expectkey';
+        }
+      }
+      else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
+      {
+        parseErrorDescription = '"," expected.';
+        parseError = true;
+      }
+      else if (processingState === 'donegettingvalue')
+      {
+        parseErrorDescription = `Unexpected ${currentChar}.`;
+        parseError = true;
+      }
+    }
+  }
+  else
+  {
+    parseErrorDescription = 'Unexpected error.';
+    parseError = true;
+  }
+
+  return { processingContext, processingState,
+    currentChar, keyChars, valueTypeQueue,
+    parseErrorDescription, parseError,
+    skipNext, firstLevelKeys
+  };
+}
+
 function configFileFreeOfDuplicates(readConfigFile, fileName)
 {
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
@@ -108,17 +346,20 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
   // that the source file is legal JSON (except for the potential duplicae keys),
   // and thus the code can be easy to parse.
 
-  let processingConfigFile;
-  let parseErrorDescription;
-  let currentPos = 0;
-  let processingContext = 'keys';
-  let processingState = 'expectkey';
-  let valueTypeQueue = [];
-  let skipNext = false;
-  let currentChar;
-  let parseError = false;
-  let keyChars = [];
-  let firstLevelKeys = [];
+  const state = 
+  {
+    processingConfigFile: null,
+    parseErrorDescription: null,
+    currentPos: 0,
+    processingContext: 'keys',
+    processingState: 'expectkey',
+    valueTypeQueue: [],
+    skipNext: false,
+    currentChar: null,
+    parseError: false,
+    keyChars: [],
+    firstLevelKeys: []
+  };
 
   // Get rid of initial surrounding brackets.
   // But first, let's find out if said initial surrounding (if any) brackets match.
@@ -134,283 +375,64 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
     {
       if (lastCharMatch[1] !== '}')
       {
-        parseErrorDescription = `Unexpected ending ${lastCharMatch[1]}.`;
-        parseError = true;
+        state.parseErrorDescription = `Unexpected ending ${lastCharMatch[1]}.`;
+        state.parseError = true;
       }
     }
   }
 
-  if (!parseError)
+  if (!state.parseError)
   {
-    processingConfigFile = readConfigFile
+    state.processingConfigFile = readConfigFile
       .replace(/^\s*\{\s*?\n?/, '')
       .replace(/\n?\s*?\}\s*$/, '');
   }
 
-  while (!parseError && (currentPos < processingConfigFile.length))
+  while (!state.parseError && (state.currentPos < state.processingConfigFile.length))
   {
-    currentChar = processingConfigFile.substr(currentPos, 1);
+    state.currentChar = state.processingConfigFile.substr(state.currentPos, 1);
     
     // Good for debugging.
-    if (currentChar === '*')
+    if (state.currentChar === '*')
     {
       break;
     }
 
-    if (skipNext)
+    if (state.skipNext)
     {
-      skipNext = false;
+      state.skipNext = false;
     }
     else
     {
-      if (!currentChar.match(/[\n\s]/) || (processingState === 'gettingkey') || (processingState === 'gettingvalue'))
+      if (!state.currentChar.match(/[\n\s]/) || (state.processingState === 'gettingkey') || (state.processingState === 'gettingvalue'))
       {
-        // Good for debugging.
-        //console.log('Pass - begin');
-        //console.log(processingContext);
-        //console.log(processingState);
-        //console.log(currentChar);
-        
-        if (processingContext === 'keys')
-        {
-          if (processingState === 'expectkey')
-          {
-            if (currentChar === '"')
-            {
-              keyChars = [];
-              processingState = 'gettingkey';
-            }
-            else if (currentChar === '}')
-            {
-              const poppedType = valueTypeQueue.pop();
-              if (poppedType)
-              {
-                if (currentChar === poppedType)
-                {
-                  processingContext = 'values';
-                  processingState = 'donegettingvalue';
-                }
-                else
-                {
-                  parseErrorDescription = `Expected ${poppedType}.`;
-                  parseError = true;
-                }
-              }
-              else
-              {
-                parseErrorDescription = `Unexpected ${currentChar}.`;
-                parseError = true;
-              }
-            }
-            else if (currentChar !== ',')
-            {
-              parseErrorDescription = 'Expected quote.';
-              parseError = true;
-            }
-          }
-          else if (processingState === 'gettingkey')
-          {
-            if (currentChar === '\\')
-            {
-              skipNext = true;
-            }
-            else if (currentChar === '"')
-            {
-              processingState = 'expectcolon';
-
-              if (valueTypeQueue.length === 0)
-              {
-                const keyName = keyChars.join('').toLowerCase();
-                const keyNameLowerCase = keyName.toLowerCase();
-                if (firstLevelKeys.indexOf(keyNameLowerCase) === -1)
-                {
-                  firstLevelKeys.push(keyNameLowerCase);
-                }
-                else
-                {
-                  parseErrorDescription = `Duplicate key: ${keyName}`;
-                  parseError = true;
-                }
-              }
-            }
-            else
-            {
-              keyChars.push(currentChar);
-            }
-          }
-          else if (processingState === 'expectcolon')
-          {
-            if (currentChar === ':')
-            {
-              processingContext = 'values';
-              processingState = 'expectvalue';
-            }
-            else
-            {
-              parseErrorDescription = 'Expected colon.';
-              parseError = true;
-            }
-          }
-          else
-          {
-            parseErrorDescription = 'Unexpected error.';
-            parseError = true;
-          }
-        }
-        else if (processingContext === 'values')
-        {
-          if (processingState === 'expectvalue')
-          {
-            if (currentChar === '"')
-            {
-              processingState = 'gettingstring';
-            }
-            else if (currentChar === '[')
-            {
-              valueTypeQueue.push(']');
-            }
-            else if (currentChar === '{')
-            {
-              valueTypeQueue.push('}');
-              processingContext = 'keys';
-              processingState = 'expectkey';
-            }
-            else if (currentChar === ']')
-            {
-              const poppedType = valueTypeQueue.pop();
-              if (poppedType)
-              {
-                if (currentChar === poppedType)
-                {
-                  processingState = 'donegettingvalue';
-                }
-                else
-                {
-                  parseErrorDescription = `Expected ${poppedType}.`;
-                  parseError = true;
-                }
-              }
-              else
-              {
-                parseErrorDescription = `Unexpected ${currentChar}.`;
-                parseError = true;
-              }
-            }
-            else if (currentChar !== ',')
-            {
-              processingState = 'gettingliteral';
-            }
-          }
-          else if (processingState === 'gettingstring')
-          {
-            if (currentChar === '\\')
-            {
-              skipNext = true;
-            }
-            else if (currentChar === '"')
-            {
-              processingState = 'donegettingvalue';
-            }
-          }
-          else if ((processingState === 'gettingliteral') || (processingState === 'donegettingvalue'))
-          {
-            if (currentChar === ']')
-            {
-              const poppedType = valueTypeQueue.pop();
-              if (poppedType)
-              {
-                if (currentChar === poppedType)
-                {
-                  processingState = 'donegettingvalue';
-                }
-                else
-                {
-                  parseErrorDescription = `Expected ${poppedType}.`;
-                  parseError = true;
-                }
-              }
-              else
-              {
-                parseErrorDescription = `Unexpected ${currentChar}.`;
-                parseError = true;
-              }
-            }
-            else if (currentChar === '}')
-            {
-              const poppedType = valueTypeQueue.pop();
-              if (poppedType)
-              {
-                if (currentChar === poppedType)
-                {
-                  processingState = 'donegettingvalue';
-                }
-                else
-                {
-                  parseErrorDescription = `Expected ${poppedType}.`;
-                  parseError = true;
-                }
-              }
-              else
-              {
-                parseErrorDescription = `Unexpected ${currentChar}.`;
-                parseError = true;
-              }
-            }
-            else if (currentChar === ',')
-            {
-              if ((valueTypeQueue.length > 0) && valueTypeQueue[valueTypeQueue.length - 1] === ']')
-              {
-                processingState = 'expectvalue';
-              }
-              else
-              {
-                processingContext = 'keys';
-                processingState = 'expectkey';
-              }
-            }
-            else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
-            {
-              parseErrorDescription = '"," expected.';
-              parseError = true;
-            }
-            else if (processingState === 'donegettingvalue')
-            {
-              parseErrorDescription = `Unexpected ${currentChar}.`;
-              parseError = true;
-            }
-          }
-        }
-        else
-        {
-          parseErrorDescription = 'Unexpected error.';
-          parseError = true;
-        }
+        Object.assign(state, parseNextInConfigFile(state));
       }
     }
 
     // Good for debugging.
     //console.log('Pass - end');
-    //console.log(processingContext);
-    //console.log(processingState);
+    //console.log(state.processingContext);
+    //console.log(state.processingState);
 
-    currentPos++;
+    state.currentPos++;
   }
 
-  if (!parseError && (valueTypeQueue.length !== 0))
+  if (!state.parseError && (state.valueTypeQueue.length !== 0))
   {
     // In theory, we should never get here because the file has already been JSON.parsed.
-    const lastBracket = valueTypeQueue.pop();
-    parseErrorDescription = `Unexpected end of file. ${lastBracket} was never found.`;
-    parseError = true;
+    const lastBracket = state.valueTypeQueue.pop();
+    state.parseErrorDescription = `Unexpected end of file. ${lastBracket} was never found.`;
+    state.parseError = true;
   }
 
-  if (parseError)
+  if (state.parseError)
   {
     console.error(`${TERMINAL_ERROR_STRING}: Error parsing ${fileName}`);
-    console.error(`${TERMINAL_ERROR_STRING}: ${parseErrorDescription}`);
+    console.error(`${TERMINAL_ERROR_STRING}: ${state.parseErrorDescription}`);
   }
 
-  return !parseError;
+  return !state.parseError;
 }
 
 const defaultSiteConfig =
