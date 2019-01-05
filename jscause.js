@@ -2012,9 +2012,10 @@ if (readSuccess)
               {
                 const valueName = rawValueName.toLowerCase();
                 const mimeTypeList = configValue[valueName];
-                if (['include', 'exclude'].indexOf(valueName) === -1)
+                const allowdNames = ['include', 'exclude'];
+                if (allowdNames.indexOf(valueName) === -1)
                 {
-                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.`);
+                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
                   soFarSoGood = false;
                 }
                 else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
@@ -2037,7 +2038,7 @@ if (readSuccess)
                         const includeValue = (valueName === 'include') ? mimeTypeList[mimeTypeName.toLowerCase()] : '';
                         if (typeof(includeValue) === 'string')
                         {
-                          if (!includeValue)
+                          if (!includeValue && (valueName === 'include'))
                           {
                             console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
                           }

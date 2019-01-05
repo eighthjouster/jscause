@@ -3,9 +3,5 @@
   "tempWorkDirectory": ".",
   "canUpload": true,
   "maxPayloadSizeBytes": 0,
-  "mimeTypes": {
-    "exclude": [
-      "png"
-    ]
-  }
+  "mimeTypes": {}
 }
