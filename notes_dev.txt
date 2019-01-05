@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Why are switch statements being marked as mis-indented in vs code? eslint plugin mishap?
-
 Refactor a bit.
 
 Ignore files starting with '.'.
