@@ -2088,6 +2088,176 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
   return soFarSoGood;
 }
 
+function analyzeStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+{
+  const { name: siteName } = siteConfig;
+  let
+    {
+      directoriesProcessedSoFar, soFarSoGood, directoriesToProcess,
+      pushedFiles, cachedStaticFilesSoFar
+    } = state;
+  if (stats.isDirectory())
+  {
+    if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
+    {
+      soFarSoGood = false;
+      console.error(`${TERMINAL_ERROR_STRING}: Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
+      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+    }
+    else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
+    {
+      soFarSoGood = false;
+      console.error(`${TERMINAL_ERROR_STRING}: Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
+      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+    }
+    else
+    {
+      const dirElements = [...currentDirectoryElements, fileName];
+      directoriesToProcess.push({ dirElements });
+      directoriesProcessedSoFar++;
+    }
+  }
+  else if (stats.isSymbolicLink())
+  {
+    let linkStats;
+    const symlinkList = [];
+    do
+    {
+      const linkedFileName = fs.readlinkSync(fullPath);
+      const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
+      let linkedPath;
+      if (linkIsFullPath)
+      {
+        linkedPath = linkedFileName;
+      }
+      else
+      {
+        linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
+      }
+
+      try
+      {
+        linkStats = fs.lstatSync(linkedPath);
+      }
+      catch (e)
+      {
+        soFarSoGood = false;
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
+        console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
+        console.error(e);
+      }
+
+      if (soFarSoGood)
+      {
+        if (linkStats.isDirectory())
+        {
+          const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
+          const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
+          directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
+        }
+        else if (linkStats.isSymbolicLink())
+        {
+          if (symlinkList.indexOf(linkedPath) === -1)
+          {
+            symlinkList.push(linkedPath);
+            fullPath = linkedPath;
+          }
+          else
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
+            symlinkList.forEach(symlinkPath =>
+            {
+              console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
+            });
+            soFarSoGood = false;
+          }
+        }
+        else
+        {
+          if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
+          {
+            allFiles.push({ fileName, simlinkTarget: linkedPath });
+            pushedFiles++;
+          }
+          else
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
+            console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
+            soFarSoGood = false;
+          }
+        }
+      }
+    }
+    while(soFarSoGood && linkStats.isSymbolicLink());
+  }
+  else if (!fileName.match(/\.jscm$/)) // Ignore jscm files.
+  {
+    let fileEntry = {};
+    if (fileName.match(/\.jscp$/))
+    {
+      fileEntry.fileType = 'jscp';
+    }
+    else
+    {
+      // Static files.
+      fileEntry.fileType = 'static';
+
+      const extName = String(fsPath.extname(fileName)).toLowerCase();
+
+      const fileContentType = siteConfig.mimeTypes.list[extName] || 'application/octet-stream';
+
+      let fileContents;
+
+      const fileSize = stats.size;
+
+      if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
+      {
+        cachedStaticFilesSoFar++;
+        if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
+        {
+          try
+          {
+            fileContents = fs.readFileSync(fullPath);
+          }
+          catch(e)
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
+            console.error(e);
+            soFarSoGood = false;
+          }
+        }
+        else
+        {
+          if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
+          {
+            console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+          }
+        }
+      }
+
+      if (soFarSoGood)
+      {
+        Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
+      }
+    }
+
+    if (soFarSoGood)
+    {
+      fileEntry.filePath = [...currentDirectoryElements, fileName];
+      if (currentSimlinkSourceDirectoryElements)
+      {
+        fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
+      }
+      filePathsList.push(fileEntry);
+    }
+  }
+
+  return {
+    directoriesProcessedSoFar, soFarSoGood, directoriesToProcess,
+    pushedFiles, cachedStaticFilesSoFar
+  };
+}
+
 const allSiteConfigs = [];
 let allReadySiteNames = [];
 let allFailedSiteNames = [];
@@ -2251,21 +2421,24 @@ if (readSuccess)
         let filePathsList;
         if (readSuccess)
         {
+          let state = {
+            directoriesProcessedSoFar: 0,
+            cachedStaticFilesSoFar: 0,
+            directoriesToProcess: [ { dirElements: [''] } ],
+            siteConfig,
+            pushedFiles: 0,
+            soFarSoGood: true
+          };
+
           // Let's read the files.
-          filePathsList = [];
-
           readSuccess = false;
-          let soFarSoGood;
-
-          const directoriesToProcess = [ { dirElements: [''] } ];
-          let directoriesProcessedSoFar = 0;
-          let cachedStaticFilesSoFar = 0;
+          filePathsList = [];
 
           do
           {
-            const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = directoriesToProcess.shift();
-            const directoryPath = fsPath.join(...currentDirectoryElements);
             let currentDirectoryPath;
+            const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = state.directoriesToProcess.shift();
+            const directoryPath = fsPath.join(...currentDirectoryElements);
             if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
             {
               currentDirectoryPath = directoryPath;
@@ -2275,13 +2448,12 @@ if (readSuccess)
               currentDirectoryPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, directoryPath);
             }
 
+            state.soFarSoGood = false;
             let allFiles;
-            
-            soFarSoGood = false;
             try
             {
               allFiles = fs.readdirSync(currentDirectoryPath);
-              soFarSoGood = true;
+              state.soFarSoGood = true;
             }
             catch(e)
             {
@@ -2289,20 +2461,20 @@ if (readSuccess)
               console.error(e);
             }
 
-            if (soFarSoGood)
+            if (state.soFarSoGood)
             {
               if (Array.isArray(allFiles))
               {
                 allFiles = allFiles.map(fileName => ({ fileName }));
               }
 
+
               let stats;
-              let pushedFiles = 0;
+              state.pushedFiles = 0;
+              let fullPath;
               while (allFiles.length)
               {
                 const { fileName, simlinkTarget } = allFiles.shift();
-
-                let fullPath;
 
                 if (simlinkTarget)
                 {
@@ -2323,169 +2495,14 @@ if (readSuccess)
                 }
                 catch (e)
                 {
-                  soFarSoGood = false;
+                  state.soFarSoGood = false;
                   console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`);
                   console.error(e);
                 }
 
-                if (soFarSoGood)
+                if (state.soFarSoGood)
                 {
-                  if (stats.isDirectory())
-                  {
-                    if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
-                    {
-                      soFarSoGood = false;
-                      console.error(`${TERMINAL_ERROR_STRING}: Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
-                      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
-                    }
-                    else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
-                    {
-                      soFarSoGood = false;
-                      console.error(`${TERMINAL_ERROR_STRING}: Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
-                      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
-                    }
-                    else
-                    {
-                      const dirElements = [...currentDirectoryElements, fileName];
-                      directoriesToProcess.push({ dirElements });
-                      directoriesProcessedSoFar++;
-                    }
-                  }
-                  else if (stats.isSymbolicLink())
-                  {
-                    let linkStats;
-                    const symlinkList = [];
-                    do
-                    {
-                      const linkedFileName = fs.readlinkSync(fullPath);
-                      const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
-                      let linkedPath;
-                      if (linkIsFullPath)
-                      {
-                        linkedPath = linkedFileName;
-                      }
-                      else
-                      {
-                        linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
-                      }
-
-                      try
-                      {
-                        linkStats = fs.lstatSync(linkedPath);
-                      }
-                      catch (e)
-                      {
-                        soFarSoGood = false;
-                        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
-                        console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
-                        console.error(e);
-                      }
-
-                      if (soFarSoGood)
-                      {
-                        if (linkStats.isDirectory())
-                        {
-                          const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
-                          const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
-                          directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
-                        }
-                        else if (linkStats.isSymbolicLink())
-                        {
-                          if (symlinkList.indexOf(linkedPath) === -1)
-                          {
-                            symlinkList.push(linkedPath);
-                            fullPath = linkedPath;
-                          }
-                          else
-                          {
-                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
-                            symlinkList.forEach(symlinkPath =>
-                            {
-                              console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
-                            });
-                            soFarSoGood = false;
-                          }
-                        }
-                        else
-                        {
-                          if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
-                          {
-                            allFiles.push({ fileName, simlinkTarget: linkedPath });
-                            pushedFiles++;
-                          }
-                          else
-                          {
-                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
-                            console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
-                            soFarSoGood = false;
-                          }
-                        }
-                      }
-                    }
-                    while(soFarSoGood && linkStats.isSymbolicLink());
-                  }
-                  else if (!fileName.match(/\.jscm$/)) // Ignore jscm files.
-                  {
-                    let fileEntry = {};
-                    if (fileName.match(/\.jscp$/))
-                    {
-                      fileEntry.fileType = 'jscp';
-                    }
-                    else
-                    {
-                      // Static files.
-                      fileEntry.fileType = 'static';
-
-                      const extName = String(fsPath.extname(fileName)).toLowerCase();
-
-                      const fileContentType = siteConfig.mimeTypes.list[extName] || 'application/octet-stream';
-
-                      let fileContents;
-
-                      const fileSize = stats.size;
-
-                      if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
-                      {
-                        cachedStaticFilesSoFar++;
-                        if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
-                        {
-                          try
-                          {
-                            fileContents = fs.readFileSync(fullPath);
-                          }
-                          catch(e)
-                          {
-                            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
-                            console.error(e);
-                            soFarSoGood = false;
-                          }
-                        }
-                        else
-                        {
-                          if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
-                          {
-                            console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
-                          }
-                        }
-                      }
-
-                      if (soFarSoGood)
-                      {
-                        Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
-                      }
-                      else
-                      {
-                        break;
-                      }
-                    }
-
-                    fileEntry.filePath = [...currentDirectoryElements, fileName];
-                    if (currentSimlinkSourceDirectoryElements)
-                    {
-                      fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
-                    }
-                    filePathsList.push(fileEntry);
-                  }
+                  Object.assign(state, analyzeStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
                 }
                 else
                 {
@@ -2494,9 +2511,9 @@ if (readSuccess)
               }
             }
           }
-          while(directoriesToProcess.length && soFarSoGood);
+          while(state.directoriesToProcess.length && state.soFarSoGood);
 
-          readSuccess = soFarSoGood;
+          readSuccess = state.soFarSoGood;
         }
 
         if (readSuccess)
