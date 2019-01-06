@@ -2088,7 +2088,87 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
   return soFarSoGood;
 }
 
-function analyzeStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+
+function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements)
+{
+  let { soFarSoGood, directoriesToProcess, pushedFiles } = state;
+  const { name: siteName } = siteConfig;
+
+  let linkStats;
+  const symlinkList = [];
+  do
+  {
+    const linkedFileName = fs.readlinkSync(fullPath);
+    const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
+    let linkedPath;
+    if (linkIsFullPath)
+    {
+      linkedPath = linkedFileName;
+    }
+    else
+    {
+      linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
+    }
+
+    try
+    {
+      linkStats = fs.lstatSync(linkedPath);
+    }
+    catch (e)
+    {
+      soFarSoGood = false;
+      console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
+      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
+      console.error(e);
+    }
+
+    if (soFarSoGood)
+    {
+      if (linkStats.isDirectory())
+      {
+        const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
+        const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
+        directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
+      }
+      else if (linkStats.isSymbolicLink())
+      {
+        if (symlinkList.indexOf(linkedPath) === -1)
+        {
+          symlinkList.push(linkedPath);
+          fullPath = linkedPath;
+        }
+        else
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
+          symlinkList.forEach(symlinkPath =>
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
+          });
+          soFarSoGood = false;
+        }
+      }
+      else
+      {
+        if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
+        {
+          allFiles.push({ fileName, simlinkTarget: linkedPath });
+          pushedFiles++;
+        }
+        else
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
+          console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
+          soFarSoGood = false;
+        }
+      }
+    }
+  }
+  while(soFarSoGood && linkStats.isSymbolicLink());
+
+  return { soFarSoGood, directoriesToProcess, pushedFiles };
+}
+
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
 {
   const { name: siteName } = siteConfig;
   let
@@ -2119,76 +2199,7 @@ function analyzeStats(state, siteConfig, fileName, currentDirectoryPath, allFile
   }
   else if (stats.isSymbolicLink())
   {
-    let linkStats;
-    const symlinkList = [];
-    do
-    {
-      const linkedFileName = fs.readlinkSync(fullPath);
-      const linkIsFullPath = fsPath.isAbsolute(linkedFileName);
-      let linkedPath;
-      if (linkIsFullPath)
-      {
-        linkedPath = linkedFileName;
-      }
-      else
-      {
-        linkedPath = fsPath.join(currentDirectoryPath, linkedFileName);
-      }
-
-      try
-      {
-        linkStats = fs.lstatSync(linkedPath);
-      }
-      catch (e)
-      {
-        soFarSoGood = false;
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
-        console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
-        console.error(e);
-      }
-
-      if (soFarSoGood)
-      {
-        if (linkStats.isDirectory())
-        {
-          const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
-          const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
-          directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
-        }
-        else if (linkStats.isSymbolicLink())
-        {
-          if (symlinkList.indexOf(linkedPath) === -1)
-          {
-            symlinkList.push(linkedPath);
-            fullPath = linkedPath;
-          }
-          else
-          {
-            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
-            symlinkList.forEach(symlinkPath =>
-            {
-              console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
-            });
-            soFarSoGood = false;
-          }
-        }
-        else
-        {
-          if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
-          {
-            allFiles.push({ fileName, simlinkTarget: linkedPath });
-            pushedFiles++;
-          }
-          else
-          {
-            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
-            console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
-            soFarSoGood = false;
-          }
-        }
-      }
-    }
-    while(soFarSoGood && linkStats.isSymbolicLink());
+    Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements));
   }
   else if (!fileName.match(/\.jscm$/)) // Ignore jscm files.
   {
@@ -2502,7 +2513,7 @@ if (readSuccess)
 
                 if (state.soFarSoGood)
                 {
-                  Object.assign(state, analyzeStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
+                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
                 }
                 else
                 {

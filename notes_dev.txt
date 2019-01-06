@@ -4,7 +4,7 @@ git bundle create jscause-.bundle devel
 
 +Refactor a bit.
  +- On it.
-   - Refactor analyzeStats() so that the symbolic link stats are analyzed in a different function.
+   - Refactor the section under // Static files.
      - Then stop refactoring and keep going with the rest of the notes.
 
 Ignore files starting with '.'.
