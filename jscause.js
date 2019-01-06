@@ -100,6 +100,244 @@ function validateJSONFile(readConfigFile, fileName)
   return readConfigJSON;
 }
 
+function processKeyContext(state)
+{
+  let
+    {
+      processingContext, processingState,
+      currentChar , keyChars, valueTypeQueue,
+      parseErrorDescription, parseError,
+      skipNext, firstLevelKeys
+    } = state;
+
+  if (processingState === 'expectkey')
+  {
+    if (currentChar === '"')
+    {
+      keyChars = [];
+      processingState = 'gettingkey';
+    }
+    else if (currentChar === '}')
+    {
+      const poppedType = valueTypeQueue.pop();
+      if (poppedType)
+      {
+        if (currentChar === poppedType)
+        {
+          processingContext = 'values';
+          processingState = 'donegettingvalue';
+        }
+        else
+        {
+          parseErrorDescription = `Expected ${poppedType}.`;
+          parseError = true;
+        }
+      }
+      else
+      {
+        parseErrorDescription = `Unexpected ${currentChar}.`;
+        parseError = true;
+      }
+    }
+    else if (currentChar !== ',')
+    {
+      parseErrorDescription = 'Expected quote.';
+      parseError = true;
+    }
+  }
+  else if (processingState === 'gettingkey')
+  {
+    if (currentChar === '\\')
+    {
+      skipNext = true;
+    }
+    else if (currentChar === '"')
+    {
+      processingState = 'expectcolon';
+
+      if (valueTypeQueue.length === 0)
+      {
+        const keyName = keyChars.join('').toLowerCase();
+        const keyNameLowerCase = keyName.toLowerCase();
+        if (firstLevelKeys.indexOf(keyNameLowerCase) === -1)
+        {
+          firstLevelKeys.push(keyNameLowerCase);
+        }
+        else
+        {
+          parseErrorDescription = `Duplicate key: ${keyName}`;
+          parseError = true;
+        }
+      }
+    }
+    else
+    {
+      keyChars.push(currentChar);
+    }
+  }
+  else if (processingState === 'expectcolon')
+  {
+    if (currentChar === ':')
+    {
+      processingContext = 'values';
+      processingState = 'expectvalue';
+    }
+    else
+    {
+      parseErrorDescription = 'Expected colon.';
+      parseError = true;
+    }
+  }
+  else
+  {
+    parseErrorDescription = 'Unexpected error.';
+    parseError = true;
+  }
+  return { processingContext, processingState,
+    currentChar, keyChars, valueTypeQueue,
+    parseErrorDescription, parseError,
+    skipNext, firstLevelKeys
+  };
+}
+
+function processValueContext(state)
+{
+  let
+    {
+      processingContext, processingState,
+      currentChar , keyChars, valueTypeQueue,
+      parseErrorDescription, parseError,
+      skipNext, firstLevelKeys
+    } = state;
+
+  if (processingState === 'expectvalue')
+  {
+    if (currentChar === '"')
+    {
+      processingState = 'gettingstring';
+    }
+    else if (currentChar === '[')
+    {
+      valueTypeQueue.push(']');
+    }
+    else if (currentChar === '{')
+    {
+      valueTypeQueue.push('}');
+      processingContext = 'keys';
+      processingState = 'expectkey';
+    }
+    else if (currentChar === ']')
+    {
+      const poppedType = valueTypeQueue.pop();
+      if (poppedType)
+      {
+        if (currentChar === poppedType)
+        {
+          processingState = 'donegettingvalue';
+        }
+        else
+        {
+          parseErrorDescription = `Expected ${poppedType}.`;
+          parseError = true;
+        }
+      }
+      else
+      {
+        parseErrorDescription = `Unexpected ${currentChar}.`;
+        parseError = true;
+      }
+    }
+    else if (currentChar !== ',')
+    {
+      processingState = 'gettingliteral';
+    }
+  }
+  else if (processingState === 'gettingstring')
+  {
+    if (currentChar === '\\')
+    {
+      skipNext = true;
+    }
+    else if (currentChar === '"')
+    {
+      processingState = 'donegettingvalue';
+    }
+  }
+  else if ((processingState === 'gettingliteral') || (processingState === 'donegettingvalue'))
+  {
+    if (currentChar === ']')
+    {
+      const poppedType = valueTypeQueue.pop();
+      if (poppedType)
+      {
+        if (currentChar === poppedType)
+        {
+          processingState = 'donegettingvalue';
+        }
+        else
+        {
+          parseErrorDescription = `Expected ${poppedType}.`;
+          parseError = true;
+        }
+      }
+      else
+      {
+        parseErrorDescription = `Unexpected ${currentChar}.`;
+        parseError = true;
+      }
+    }
+    else if (currentChar === '}')
+    {
+      const poppedType = valueTypeQueue.pop();
+      if (poppedType)
+      {
+        if (currentChar === poppedType)
+        {
+          processingState = 'donegettingvalue';
+        }
+        else
+        {
+          parseErrorDescription = `Expected ${poppedType}.`;
+          parseError = true;
+        }
+      }
+      else
+      {
+        parseErrorDescription = `Unexpected ${currentChar}.`;
+        parseError = true;
+      }
+    }
+    else if (currentChar === ',')
+    {
+      if ((valueTypeQueue.length > 0) && valueTypeQueue[valueTypeQueue.length - 1] === ']')
+      {
+        processingState = 'expectvalue';
+      }
+      else
+      {
+        processingContext = 'keys';
+        processingState = 'expectkey';
+      }
+    }
+    else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
+    {
+      parseErrorDescription = '"," expected.';
+      parseError = true;
+    }
+    else if (processingState === 'donegettingvalue')
+    {
+      parseErrorDescription = `Unexpected ${currentChar}.`;
+      parseError = true;
+    }
+  }
+
+  return { processingContext, processingState,
+    currentChar, keyChars, valueTypeQueue,
+    parseErrorDescription, parseError,
+    skipNext, firstLevelKeys
+  };
+}
+  
 function parseNextInConfigFile(state)
 {
   let
@@ -118,212 +356,11 @@ function parseNextInConfigFile(state)
   
   if (processingContext === 'keys')
   {
-    if (processingState === 'expectkey')
-    {
-      if (currentChar === '"')
-      {
-        keyChars = [];
-        processingState = 'gettingkey';
-      }
-      else if (currentChar === '}')
-      {
-        const poppedType = valueTypeQueue.pop();
-        if (poppedType)
-        {
-          if (currentChar === poppedType)
-          {
-            processingContext = 'values';
-            processingState = 'donegettingvalue';
-          }
-          else
-          {
-            parseErrorDescription = `Expected ${poppedType}.`;
-            parseError = true;
-          }
-        }
-        else
-        {
-          parseErrorDescription = `Unexpected ${currentChar}.`;
-          parseError = true;
-        }
-      }
-      else if (currentChar !== ',')
-      {
-        parseErrorDescription = 'Expected quote.';
-        parseError = true;
-      }
-    }
-    else if (processingState === 'gettingkey')
-    {
-      if (currentChar === '\\')
-      {
-        skipNext = true;
-      }
-      else if (currentChar === '"')
-      {
-        processingState = 'expectcolon';
-
-        if (valueTypeQueue.length === 0)
-        {
-          const keyName = keyChars.join('').toLowerCase();
-          const keyNameLowerCase = keyName.toLowerCase();
-          if (firstLevelKeys.indexOf(keyNameLowerCase) === -1)
-          {
-            firstLevelKeys.push(keyNameLowerCase);
-          }
-          else
-          {
-            parseErrorDescription = `Duplicate key: ${keyName}`;
-            parseError = true;
-          }
-        }
-      }
-      else
-      {
-        keyChars.push(currentChar);
-      }
-    }
-    else if (processingState === 'expectcolon')
-    {
-      if (currentChar === ':')
-      {
-        processingContext = 'values';
-        processingState = 'expectvalue';
-      }
-      else
-      {
-        parseErrorDescription = 'Expected colon.';
-        parseError = true;
-      }
-    }
-    else
-    {
-      parseErrorDescription = 'Unexpected error.';
-      parseError = true;
-    }
+    Object.assign(state, processKeyContext(state));
   }
   else if (processingContext === 'values')
   {
-    if (processingState === 'expectvalue')
-    {
-      if (currentChar === '"')
-      {
-        processingState = 'gettingstring';
-      }
-      else if (currentChar === '[')
-      {
-        valueTypeQueue.push(']');
-      }
-      else if (currentChar === '{')
-      {
-        valueTypeQueue.push('}');
-        processingContext = 'keys';
-        processingState = 'expectkey';
-      }
-      else if (currentChar === ']')
-      {
-        const poppedType = valueTypeQueue.pop();
-        if (poppedType)
-        {
-          if (currentChar === poppedType)
-          {
-            processingState = 'donegettingvalue';
-          }
-          else
-          {
-            parseErrorDescription = `Expected ${poppedType}.`;
-            parseError = true;
-          }
-        }
-        else
-        {
-          parseErrorDescription = `Unexpected ${currentChar}.`;
-          parseError = true;
-        }
-      }
-      else if (currentChar !== ',')
-      {
-        processingState = 'gettingliteral';
-      }
-    }
-    else if (processingState === 'gettingstring')
-    {
-      if (currentChar === '\\')
-      {
-        skipNext = true;
-      }
-      else if (currentChar === '"')
-      {
-        processingState = 'donegettingvalue';
-      }
-    }
-    else if ((processingState === 'gettingliteral') || (processingState === 'donegettingvalue'))
-    {
-      if (currentChar === ']')
-      {
-        const poppedType = valueTypeQueue.pop();
-        if (poppedType)
-        {
-          if (currentChar === poppedType)
-          {
-            processingState = 'donegettingvalue';
-          }
-          else
-          {
-            parseErrorDescription = `Expected ${poppedType}.`;
-            parseError = true;
-          }
-        }
-        else
-        {
-          parseErrorDescription = `Unexpected ${currentChar}.`;
-          parseError = true;
-        }
-      }
-      else if (currentChar === '}')
-      {
-        const poppedType = valueTypeQueue.pop();
-        if (poppedType)
-        {
-          if (currentChar === poppedType)
-          {
-            processingState = 'donegettingvalue';
-          }
-          else
-          {
-            parseErrorDescription = `Expected ${poppedType}.`;
-            parseError = true;
-          }
-        }
-        else
-        {
-          parseErrorDescription = `Unexpected ${currentChar}.`;
-          parseError = true;
-        }
-      }
-      else if (currentChar === ',')
-      {
-        if ((valueTypeQueue.length > 0) && valueTypeQueue[valueTypeQueue.length - 1] === ']')
-        {
-          processingState = 'expectvalue';
-        }
-        else
-        {
-          processingContext = 'keys';
-          processingState = 'expectkey';
-        }
-      }
-      else if ((currentChar === '"') || (currentChar === '[') || (currentChar === '{'))
-      {
-        parseErrorDescription = '"," expected.';
-        parseError = true;
-      }
-      else if (processingState === 'donegettingvalue')
-      {
-        parseErrorDescription = `Unexpected ${currentChar}.`;
-        parseError = true;
-      }
-    }
+    Object.assign(state, processValueContext(state));
   }
   else
   {
@@ -1862,6 +1899,195 @@ if (globalConfigJSON)
  * Reading and processing the site configuration file
  *
  *****************************************************/
+function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'hostname';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+    {
+      siteConfig.hostName = configValue;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  hostname cannot be empty.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'canupload';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'boolean')
+  {
+    siteConfig.canUpload = configValue;
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'maxpayloadsizebytes';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+  {
+    const uploadSize = parseFloat(configValue, 10);
+    if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
+    {
+      siteConfig.maxPayloadSizeBytes = uploadSize;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'mimetypes';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'object')
+  {
+    siteConfig.mimeTypes.list = Object.assign({}, MIME_TYPES);
+    Object.keys(configValue).every((rawValueName) =>
+    {
+      const valueName = rawValueName.toLowerCase();
+      const mimeTypeList = configValue[valueName];
+      const allowdNames = ['include', 'exclude'];
+      if (allowdNames.indexOf(valueName) === -1)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
+        soFarSoGood = false;
+      }
+      else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.`);
+        soFarSoGood = false;
+      }
+      else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'exclude' attribute value. Array expected.`);
+        soFarSoGood = false;
+      }
+      else
+      {
+        (Array.isArray(mimeTypeList) ? mimeTypeList : Object.keys(mimeTypeList)).every((mimeTypeName) => {
+          if (typeof(mimeTypeName) === 'string')
+          {
+            if (mimeTypeName)
+            {
+              const includeValue = (valueName === 'include') ? mimeTypeList[mimeTypeName.toLowerCase()] : '';
+              if (typeof(includeValue) === 'string')
+              {
+                if (!includeValue && (valueName === 'include'))
+                {
+                  console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
+                }
+
+                switch(valueName)
+                {
+                  case 'include':
+                    siteConfig.mimeTypes.list[`.${mimeTypeName}`] = includeValue.toLowerCase();
+                    break;
+
+                  case 'exclude':
+                    delete siteConfig.mimeTypes.list[`.${mimeTypeName}`];
+                    break;
+                }
+              }
+              else
+              {
+                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
+                soFarSoGood = false;
+              }
+            }
+            else
+            {
+              console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype name cannot be empty.`);
+              soFarSoGood = false;
+            }
+          }
+          else
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
+            soFarSoGood = false;
+          }
+          return soFarSoGood;
+        });
+      }
+      return soFarSoGood;
+    });
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid mimetypes.  Object expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'tempworkdirectory';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
+    if (dirName)
+    {
+      siteConfig.tempWorkDirectory = dirName;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  tempworkdirectory cannot be empty.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
 const allSiteConfigs = [];
 let allReadySiteNames = [];
 let allFailedSiteNames = [];
@@ -1957,175 +2183,18 @@ if (readSuccess)
 
           const requiredKeysNotFound = [];
 
-          let soFarSoGood = true;
-          
           let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
-          let configValue;
-          let configKeyName;
 
-          soFarSoGood = !!processedConfigJSON;
+          let soFarSoGood = !!processedConfigJSON;
 
           // hostname
           if (soFarSoGood)
           {
-            configKeyName = 'hostname';
-            configValue = processedConfigJSON[configKeyName];
-
-            if (typeof(configValue) === 'string')
-            {
-              if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-              {
-                siteConfig.hostName = configValue;
-              }
-              else
-              {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  hostname cannot be empty.`);
-                soFarSoGood = false;
-              }
-            }
-            else
-            {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
-              soFarSoGood = false;
-            }
-
-            configKeyName = 'canupload';
-            configValue = processedConfigJSON[configKeyName];
-
-            if (typeof(configValue) === 'boolean')
-            {
-              siteConfig.canUpload = configValue;
-            }
-            else
-            {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
-              soFarSoGood = false;
-            }
-
-            configKeyName = 'maxpayloadsizebytes';
-            configValue = processedConfigJSON[configKeyName];
-
-            if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
-            {
-              const uploadSize = parseFloat(configValue, 10);
-              if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
-              {
-                siteConfig.maxPayloadSizeBytes = uploadSize;
-              }
-              else
-              {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.`);
-                soFarSoGood = false;
-              }
-            }
-            else
-            {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
-              soFarSoGood = false;
-            }
-
-            configKeyName = 'mimetypes';
-            configValue = processedConfigJSON[configKeyName];
-
-            if (typeof(configValue) === 'object')
-            {
-              siteConfig.mimeTypes.list = Object.assign({}, MIME_TYPES);
-              Object.keys(configValue).every((rawValueName) =>
-              {
-                const valueName = rawValueName.toLowerCase();
-                const mimeTypeList = configValue[valueName];
-                const allowdNames = ['include', 'exclude'];
-                if (allowdNames.indexOf(valueName) === -1)
-                {
-                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
-                  soFarSoGood = false;
-                }
-                else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
-                {
-                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.`);
-                  soFarSoGood = false;
-                }
-                else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
-                {
-                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'exclude' attribute value. Array expected.`);
-                  soFarSoGood = false;
-                }
-                else
-                {
-                  (Array.isArray(mimeTypeList) ? mimeTypeList : Object.keys(mimeTypeList)).every((mimeTypeName) => {
-                    if (typeof(mimeTypeName) === 'string')
-                    {
-                      if (mimeTypeName)
-                      {
-                        const includeValue = (valueName === 'include') ? mimeTypeList[mimeTypeName.toLowerCase()] : '';
-                        if (typeof(includeValue) === 'string')
-                        {
-                          if (!includeValue && (valueName === 'include'))
-                          {
-                            console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
-                          }
-
-                          switch(valueName)
-                          {
-                            case 'include':
-                              siteConfig.mimeTypes.list[`.${mimeTypeName}`] = includeValue.toLowerCase();
-                              break;
-        
-                            case 'exclude':
-                              delete siteConfig.mimeTypes.list[`.${mimeTypeName}`];
-                              break;
-                          }
-                        }
-                        else
-                        {
-                          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
-                          soFarSoGood = false;
-                        }
-                      }
-                      else
-                      {
-                        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype name cannot be empty.`);
-                        soFarSoGood = false;
-                      }
-                    }
-                    else
-                    {
-                      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
-                      soFarSoGood = false;
-                    }
-                    return soFarSoGood;
-                  });
-                }
-                return soFarSoGood;
-              });
-            }
-            else
-            {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid mimetypes.  Object expected.');
-              soFarSoGood = false;
-            }
-
-            configKeyName = 'tempworkdirectory';
-            configValue = processedConfigJSON[configKeyName];
-
-            if (typeof(configValue) === 'string')
-            {
-              const dirName = configValue.replace(/^\s*/g, '').replace(/\s*$/g, '');
-              if (dirName)
-              {
-                siteConfig.tempWorkDirectory = dirName;
-              }
-              else
-              {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  tempworkdirectory cannot be empty.`);
-                soFarSoGood = false;
-              }
-            }
-            else
-            {
-              checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.');
-              soFarSoGood = false;
-            }
+            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound);
+            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
           }
 
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');

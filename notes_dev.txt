@@ -2,7 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Refactor a bit.
++Refactor a bit.
+ +- On it.
+   - Refactor the if() after // Let's read the files.
 
 Ignore files starting with '.'.
  - And document.
