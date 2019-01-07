@@ -485,6 +485,7 @@ const defaultSiteConfig =
   canUpload: true,
   maxPayloadSizeBytes: undefined,
   jscpExtensionRequired: 'optional',
+  includeHttpPoweredByHeader: true,
   mimeTypes: {}
 };
 
@@ -1275,8 +1276,13 @@ function incomingRequestHandler(req, res)
     {
       name: siteName, canUpload, maxPayloadSizeBytes,
       tempWorkDirectory, compiledFiles, staticFiles,
-      fullSitePath, jscpExtensionRequired
+      fullSitePath, jscpExtensionRequired, includeHttpPoweredByHeader
     } = identifiedSite;
+
+  if (includeHttpPoweredByHeader)
+  {
+    res.setHeader('X-Powered-By', 'jscause');
+  }
 
   let compiledCode = compiledFiles[runFileName];
   let compiledCodeExists = (typeof(compiledCode) !== 'undefined');
@@ -2064,7 +2070,7 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
           siteConfig.jscpExtensionRequired = finalValue;
           break;
         default:
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid jscpExtensionRequired value.  Use 'never' (recommended), 'optional' or 'always'.`);
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid jscpextensionrequired value.  Use 'never' (recommended), 'optional' or 'always'.`);
           soFarSoGood = false;
       }
     }
@@ -2077,6 +2083,43 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
   else
   {
     checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid jscpextensionrequired.  String value expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'httppoweredbyheader';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    if (configValue)
+    {
+      const finalValue = configValue.toLowerCase();
+      switch(finalValue)
+      {
+        case 'include':
+        case 'exclude':
+          siteConfig.includeHttpPoweredByHeader = (finalValue === 'include');
+          break;
+        default:
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid httppoweredbyheader value.  Use 'include' or 'exclude'.`);
+          soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httppoweredbyheader cannot be empty.  Use 'include' or 'exclude'.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httppoweredbyheader.  String value expected.');
     soFarSoGood = false;
   }
 
@@ -2436,7 +2479,8 @@ if (readSuccess)
             'canupload',
             'maxpayloadsizebytes',
             'mimetypes',
-            'jscpextensionrequired'
+            'jscpextensionrequired',
+            'httppoweredbyheader'
           ];
 
           const requiredKeysNotFound = [];
@@ -2454,6 +2498,7 @@ if (readSuccess)
             soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
           }
 
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');

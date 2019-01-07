@@ -131,6 +131,7 @@ Or this:
   - '.' and '..' are not allowed.
   - Files and folders starting with '.' (e.g. '.myFile.jscp') will be considered hidden, and thus, ignored by the JSCause server.  It's as if they're not there, and thus they won't be served.
   - A file literally named '.jscp', while technically hidden, will still be parsed during server init.  So it must be a valid JSCP file.
+- The per-site httpPoweredByHeader config value can show or hide the 'X-Powered-By: jscause' HTTP response header.  Assign 'include' to show, 'exclude' to hide.
 
 Symlinks:
 =========

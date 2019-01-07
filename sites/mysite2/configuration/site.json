@@ -4,5 +4,6 @@
   "canUpload": true,
   "maxPayloadSizeBytes": 0,
   "mimeTypes": {},
-  "jscpExtensionRequired": "optional"
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include"
 }

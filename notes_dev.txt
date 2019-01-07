@@ -2,19 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-With a setting, indicate if the header 'X-Powered-By: jscause' should be included in the response (off by default)
- - Per site.
- - And document.
-
-- Report runtime errors in modules? At least it should say the file the module was called from.
- - Not happening?
-
 - Optional error4xx.jscp and error5xx.jscp files to run something when a 4xx or 5xx error occurs.
   - Same for error4xx.html and error5xx.html
     - Don't serve these on their own.
       - No matter the directory. Put this in the docs.
         - Only the ones in the root will be taken into account.
   - And document.
+
+- Report runtime errors in modules? At least it should say the file the module was called from.
+ - Not happening?
 
 At this point, git tag and back up.
 
@@ -26,16 +22,18 @@ Redirects?
 HTTPS?
  - Thorough documentation to do this.
 
+Server logging?
+ - Access and errors.
+ - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
+
+Publish alpha version here.
+
 Databases.
  - Basic.
 
 Server-side rendering?
 
 Put in docs that a favicon.ico should be provided in the website root.
-
-Server logging?
- - Access and errors.
- - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Watch for and reload changes at this point (hot reloading.)
  - And only the site it's affected, leaving the rest intact. - If possible.
