@@ -2496,14 +2496,15 @@ if (readSuccess)
               while (allFiles.length)
               {
                 const { fileName, simlinkTarget } = allFiles.shift();
+                if (fileName.substr(0, 1) === '.')
+                {
+                  // Assumed hidden file.  Skip it.
+                  continue;
+                }
 
                 if (simlinkTarget)
                 {
                   fullPath = simlinkTarget;
-                }
-                else if (fsPath.isAbsolute(fileName)) // It can happen if more directories were inserted during this iteration.
-                {
-                  fullPath = fileName;
                 }
                 else
                 {

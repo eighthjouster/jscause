@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Ignore files starting with '.'.
- - And document.
-
 With a setting, indicate if a url needs to hide the jscp extension (for security purposes).
  - And document.
 With a setting, indicate if the header 'X-Powered-By: jscause' should be included in the response (off by default)
@@ -26,8 +23,6 @@ Other files? (images, css, js).
  - Optional 4xx.jscp and 5xx.jscp files to run something when a 4xx or 5xx error occurs.
    - Same for 4xx.html and 5xx.html
    - And document.
-
-- Make _really_ sure that .. won't access anything outside the website/ folder.
 
 File/directory names with spaces in them?
  - Document the behavior, whatever it is.

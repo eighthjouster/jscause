@@ -135,6 +135,8 @@ Or this:
   - If there is a file with the same name as a folder + the jscp extension (for example, file name hello.jscp and folder name hello), the file takes precedence for the /filename url (example: /hello.)  To specify the folder, add a '/', as in /hello/, or use /hello/index, or /hello/index.jscp
   - Files with .jscp extensions can be referred to without said extension.  For example, hello.jscp can be referred to both as /hello and /hello.jscp (but not /hello/ or /hello.jscp/, which will throw a 404 error.)  The file /myFolder/hello.jscp can be referred to as /myFolder/hello
   - '.' and '..' are not allowed.
+  - Files and folders starting with '.' (e.g. '.myFile.jscp') will be considered hidden, and thus, ignored by the JSCause server.  It's as if they're not there, and thus they won't be served.
+  - A file literally named '.jscp', while technically hidden, will still be parsed during server init.  So it must be a valid JSCP file.
 
 Symlinks:
 =========
