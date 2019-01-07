@@ -1049,8 +1049,6 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-const runningServers = {};
-
 function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
@@ -1830,75 +1828,6 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
   return compiledSource;
 }
 
-let atLeastOneSiteStarted = false;
-let readSuccess = false;
-
-let allSitesInServer;
-/* *****************************************************
- *
- * Reading and processing the server configuration file
- *
- *******************************************************/
-const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
-
-if (globalConfigJSON)
-{
-  const allAllowedKeys =
-  [
-    'sites'
-  ];
-
-  const requiredKeysNotFound = [];
-
-  let soFarSoGood = true;
-  
-  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME);
-  let configValue;
-  let configKeyName;
-
-  // sites
-  if (processedConfigJSON)
-  {
-    configKeyName = 'sites';
-    configValue = processedConfigJSON[configKeyName];
-
-    if (Array.isArray(configValue))
-    {
-      allSitesInServer = configValue;
-      if (Array.isArray(allSitesInServer))
-      {
-        if  (!allSitesInServer.length)
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Configuration:  sites cannot be empty.`);
-          soFarSoGood = false;
-        }
-      }
-      else
-      {
-        console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  sites must be an array.`);
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
-      soFarSoGood = false;
-    }
-  }
-  else {
-    soFarSoGood = false;
-  }
-
-  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
-
-  readSuccess = soFarSoGood && allRequiredKeys;
-}
-
-/* ***************************************************
- *
- * Reading and processing the site configuration file
- *
- *****************************************************/
 function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound)
 {
   let soFarSoGood = true;
@@ -2168,9 +2097,55 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
   return { soFarSoGood, directoriesToProcess, pushedFiles };
 }
 
-function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath)
 {
   const { name: siteName } = siteConfig;
+  let { soFarSoGood, cachedStaticFilesSoFar } = state;
+  fileEntry.fileType = 'static';
+
+  const extName = String(fsPath.extname(fileName)).toLowerCase();
+
+  const fileContentType = siteConfig.mimeTypes.list[extName] || 'application/octet-stream';
+
+  let fileContents;
+
+  const fileSize = stats.size;
+
+  if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
+  {
+    cachedStaticFilesSoFar++;
+    if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
+    {
+      try
+      {
+        fileContents = fs.readFileSync(fullPath);
+      }
+      catch(e)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
+        console.error(e);
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
+      {
+        console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+      }
+    }
+  }
+
+  if (soFarSoGood)
+  {
+    Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
+  }
+
+  return { soFarSoGood, cachedStaticFilesSoFar }
+}
+
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+{
   let
     {
       directoriesProcessedSoFar, soFarSoGood, directoriesToProcess,
@@ -2211,45 +2186,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     else
     {
       // Static files.
-      fileEntry.fileType = 'static';
-
-      const extName = String(fsPath.extname(fileName)).toLowerCase();
-
-      const fileContentType = siteConfig.mimeTypes.list[extName] || 'application/octet-stream';
-
-      let fileContents;
-
-      const fileSize = stats.size;
-
-      if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
-      {
-        cachedStaticFilesSoFar++;
-        if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
-        {
-          try
-          {
-            fileContents = fs.readFileSync(fullPath);
-          }
-          catch(e)
-          {
-            console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
-            console.error(e);
-            soFarSoGood = false;
-          }
-        }
-        else
-        {
-          if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
-          {
-            console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
-          }
-        }
-      }
-
-      if (soFarSoGood)
-      {
-        Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
-      }
+      Object.assign(state, processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath));
     }
 
     if (soFarSoGood)
@@ -2268,6 +2205,79 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     pushedFiles, cachedStaticFilesSoFar
   };
 }
+
+/* *****************************************************
+ *
+ * Reading and processing the server configuration file
+ *
+ *******************************************************/
+
+const runningServers = {};
+let atLeastOneSiteStarted = false;
+let readSuccess = false;
+let allSitesInServer;
+const serverConfig = {};
+
+const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
+
+if (globalConfigJSON)
+{
+  const allAllowedKeys =
+  [
+    'sites'
+  ];
+
+  const requiredKeysNotFound = [];
+
+  let soFarSoGood = true;
+  
+  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME);
+  let configValue;
+  let configKeyName;
+
+  // sites
+  if (processedConfigJSON)
+  {
+    configKeyName = 'sites';
+    configValue = processedConfigJSON[configKeyName];
+
+    if (Array.isArray(configValue))
+    {
+      allSitesInServer = configValue;
+      if (Array.isArray(allSitesInServer))
+      {
+        if  (!allSitesInServer.length)
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Configuration:  sites cannot be empty.`);
+          soFarSoGood = false;
+        }
+      }
+      else
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  sites must be an array.`);
+        soFarSoGood = false;
+      }
+    }
+    else
+    {
+      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
+      soFarSoGood = false;
+    }
+  }
+  else {
+    soFarSoGood = false;
+  }
+
+  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
+
+  readSuccess = soFarSoGood && allRequiredKeys;
+}
+
+/* *****************************************************
+ *
+ * Reading and processing the sites' configuration files
+ *
+ *******************************************************/
 
 const allSiteConfigs = [];
 let allReadySiteNames = [];
@@ -2595,8 +2605,6 @@ if (readSuccess)
 }
 
 allSiteNames = null;
-
-const serverConfig = {};
 
 serverConfig.sites = allSiteConfigs || [];
 serverConfig.sites.forEach((site) =>

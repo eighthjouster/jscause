@@ -2,11 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-+Refactor a bit.
- +- On it.
-   - Refactor the section under // Static files.
-     - Then stop refactoring and keep going with the rest of the notes.
-
 Ignore files starting with '.'.
  - And document.
 
