@@ -3,8 +3,10 @@ git bundle create jscause-.bundle devel
 =====
 
 With a setting, indicate if a url needs to hide the jscp extension (for security purposes).
+ - Per site.
  - And document.
 With a setting, indicate if the header 'X-Powered-By: jscause' should be included in the response (off by default)
+ - Per site.
  - And document.
 
 Serve files other than index.jscp
@@ -13,9 +15,6 @@ Serve files other than index.jscp
      - Report in modules? At least it should say the file the module was called from.
  - Call responder() only on jscp files.  The rest, treat as static downloads.
  - And _NEVER_ serve .jscm files.  Ever.
-   - A directive to blacklist/whitelist directories from which .js files can be served as static files.
-     - When absent, all .js is blacklisted.
-   - And document this restriction.
 Other files? (images, css, js).
  - Static files?
  - Files in assets/ directory?
@@ -23,9 +22,6 @@ Other files? (images, css, js).
  - Optional 4xx.jscp and 5xx.jscp files to run something when a 4xx or 5xx error occurs.
    - Same for 4xx.html and 5xx.html
    - And document.
-
-File/directory names with spaces in them?
- - Document the behavior, whatever it is.
 
 At this point, git tag and back up.
 
@@ -93,6 +89,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+- A configuration flag to indicate whether a file or directory with a name starting with a dot ('.') should be served or not.  Right now, such files are not being served.
 
 - Global settings (per-site defaults.)  Also, indicate if sites can override them in their own files.
   - And if they can't, and they attempt it, warn.

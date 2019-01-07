@@ -1263,7 +1263,15 @@ function incomingRequestHandler(req, res)
 
   let runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
 
+  // Because the filesystem and the browser may have encoded the same file name differently (UTF NFC vs NFD):
+  resourceName = encodeURI(decodeURI(resourceName).normalize('NFD'));
+  runFileName = encodeURI(decodeURI(runFileName).normalize('NFD'));
+  console.log(runFileName);//__RP
+
   const { name: siteName, canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
+
+  console.log(Object.keys(staticFiles));//__RP
+  console.log(Object.keys(compiledFiles));//__RP
 
   if (staticFiles[runFileName])
   {
@@ -2547,7 +2555,8 @@ if (readSuccess)
           {
             const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
 
-            const webPath = (simlinkSourceFilePath || filePath).join('/');
+            const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
+            console.log(webPath);//__RP
             if (fileType === 'jscp')
             {
               const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);

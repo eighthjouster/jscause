@@ -160,6 +160,11 @@ How files are mapped to url routes:
 6. If the extension is jscm, serve a 404.
 7. If none of the above applies, serve a 404.
 
+File names:
+===========
+
+- File and directory names are assumed UTF8-encoded.  If the file system allows spaces in names, JSCause will respect this.
+
 Mime types:
 ===========
 
@@ -202,6 +207,7 @@ Static files:
 - Files up to MAX_CACHEABLE_FILE_SIZE_BYTES (512 * 1024 = 512KBytes) will be cached.  Files larger than that will be read from the file system and served upon request.
 - Up to MAX_CACHED_FILES_PER_SITE (256) files will be cached in memory.  The rest will be read from the file system and served upon request.
 - While JSCause can handle static files, it is advised to serve them by other more efficient means, e.g. with nginx or a CDN.
+- Advise the reader to put all the .js files that will be served to the client in a single directory, to keep things tight and secure.  JS files that should be executed on the server should reside outside of the /website directory.
 
 On regards of 'this':
 =====================
