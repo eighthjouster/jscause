@@ -665,19 +665,22 @@ function doneWith(ctx, id, isCancellation)
         deleteUnhandledFiles(formFiles);
       }
 
-      const { runtimeException, runFileName } = ctx;
+      const { runtimeException, runFileName, resObject, compileTimeError, statusCode } = ctx;
+
       if (runtimeException)
       {
-        ctx.outputQueue = ['<br />Runtime error!<br />'];
+        ctx.outputQueue = [];
+        resObject.setHeader('Content-Type', 'application/octet-stream');
         console.error(`${TERMINAL_ERROR_STRING}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`);
         console.error(runtimeException);
       }
 
-      const { resObject, statusCode } = ctx;
-      resObject.statusCode = statusCode;
-      if (ctx.compileTimeError)
+      resObject.statusCode = (runtimeException || compileTimeError) ? 500 : statusCode;
+
+      if (compileTimeError)
       {
-        resObject.end('Compile time error!');
+        resObject.setHeader('Content-Type', 'application/octet-stream');
+        resObject.end();
       }
       else
       {
@@ -1147,7 +1150,6 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
       catch (e)
       {
         resContext.runtimeException = e;
-        resContext.statusCode = 500;
       }
 
       assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
@@ -1156,7 +1158,6 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     }
     else
     {
-      resContext.statusCode = 500;
       resContext.compileTimeError = true;
     }
   }
@@ -1266,12 +1267,8 @@ function incomingRequestHandler(req, res)
   // Because the filesystem and the browser may have encoded the same file name differently (UTF NFC vs NFD):
   resourceName = encodeURI(decodeURI(resourceName).normalize('NFD'));
   runFileName = encodeURI(decodeURI(runFileName).normalize('NFD'));
-  console.log(runFileName);//__RP
 
   const { name: siteName, canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
-
-  console.log(Object.keys(staticFiles));//__RP
-  console.log(Object.keys(compiledFiles));//__RP
 
   if (staticFiles[runFileName])
   {
@@ -1829,7 +1826,7 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code for ${sourceFilePath}.`);
+      console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code for ${fsPath.join(...sourceFilePath)}.`);
     }
   }
 
@@ -2556,7 +2553,6 @@ if (readSuccess)
             const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
 
             const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
-            console.log(webPath);//__RP
             if (fileType === 'jscp')
             {
               const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);

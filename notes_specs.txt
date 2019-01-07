@@ -8,10 +8,8 @@ With a hierarchy like the followng:
 
 sites/
 sites/mysite/
-sites/mysite/assets/*
 sites/mysite/configuration/custom.json
 sites/mysite/configuration/database.json
-sites/mysite/configuration/routes.json
 sites/mysite/configuration/site.json
 sites/mysite/website/
 sites/mysite/website/index.html
@@ -26,15 +24,11 @@ Each site contains:
       - Files with a JSCP extension (for example, index.jscp) will be executed first, with its output sent to the browser.  They can only live inside website/
       - Module files with a JSCM extension (for example, module.jscp) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
       - The file name is case-sensitive (if the file system allows it).  A file will be considered JSCP only if its extension is lower case (that is, .jscp is valid, but .JSCP is not.)  Same with JSCM.
-    - An assets/ folder, which will contain files that can only be accessed by server-side scripts.
     - The configuration/ folder may have extra configuration files:
       - database.json:  Database connection info.
-      - A routes.json (optional):  Will map files to routes, overriding whatever is on website/.
       - custom.json: Application-specific configuration.
 
 The ports of each site are configured in jscause.conf
-
-website/, configuration/ and assets/ must allow hot reloading.
 
 This is valid:
 <js rt.print('WHOA 4!'); /js>
