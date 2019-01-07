@@ -3,5 +3,6 @@
   "tempWorkDirectory": "./workbench",
   "canUpload": true,
   "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
-  "mimeTypes": {}
+  "mimeTypes": {},
+  "jscpExtensionRequired": "optional"
 }

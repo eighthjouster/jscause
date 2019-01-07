@@ -146,10 +146,10 @@ How files are mapped to url routes:
 ===================================
 
 1. If the url is '/', '/index.jscp' will be assumed (see #5.)
-2. If the url is '/name.jscp' (or '/directory/name.jscp'), JSCause will check for the file.  If it exists, it will run it (see #5.)  If it doesn't, or if the url ends in '/' (e.g. '/directory/name/' or '/directory/name.jscp/'), it will assume it's a directory (see #4.)
-3. If the url is '/name' (or '/directory/name'), JSCause will check for the file '/name.jscp' (or '/directory/name.jscp').  If it exists, it will run it (see #5.)  If the file name does not exist, or if the url ends in '/', it will assume it's a directory (see #4.)
-4. If the url refers to a directory (e.g. '/name' or '/name/'), check for '/name/index.jscp'.
-5. If the url is '/name.jscp' (or '/directory/name.jscp'), then JSCause will run the contents and serve its output.
+2. If the url is '/name.jscp' (or '/directory/name.jscp'), JSCause will check for the file.  If it exists, and jscpExtensionRequired is either 'optional' or 'always', it will run it (see #5.)  If it doesn't, or if the url ends in '/' (e.g. '/directory/name/' or, if jscpExtensionRequired is either 'optional' or 'always', '/directory/name.jscp/'), it will assume it's a directory (see #4.)
+3. If the url is '/name' (or '/directory/name'), and if jscpExtensionRequired is either 'never' or 'optional', JSCause will check for the file '/name.jscp' (or '/directory/name.jscp').  If it exists, it will run it (see #5.)  If the file name does not exist, or if the url ends in '/', it will assume it's a directory (see #4.)
+4. If the url refers to a directory (e.g. '/name' or '/name/'), check for '/name/index.jscp'.  This check happens regardless of the value of jscpExtensionRequired.
+5. If the url is '/name.jscp' (or '/directory/name.jscp'), and again, if jscpExtensionRequired is either 'optional' or 'always', then JSCause will run the contents and serve its output.
 6. If the url is '/name.extension', with the extension being neither jscp nor jscm (or not present), JSCause will check for the file.  If it exists, JSCause assumes it is static, and it will serve the contents of it.
 6. If the extension is jscm, serve a 404.
 7. If none of the above applies, serve a 404.
@@ -158,6 +158,10 @@ File names:
 ===========
 
 - File and directory names are assumed UTF8-encoded.  If the file system allows spaces in names, JSCause will respect this.
+- If the site config directive "jscpExtensionRequired" has the following value:
+  - "never": Then routes associated to jscp files must NEVER be specified with the jscp extension (e.g.: http://www.example.com/executable instead of http://www.example.com/executable.jscp).  Otherwise the server will throw a 404 error.  Notice that /index (with no extension), be it the root directory or any other directory, will also give a 404 error here.  Notice that directory names ending in '.jscp' will throw a 404 if addressed on their own (e.g. http://www.example.com/directory.jscp)
+  - "always": Then routes associated to jscp files must ALWAYS be specified with the jscp extension (e.g.: http://www.example.com/executable.jscp instead of http://www.example.com/executable).  Otherwise the server will throw a 404 error.  Naturally, /index (with no extension), be it the root directory or any other directory, will also give a 404 error here.
+  - "optional": Then routes associated to jscp files may omit the file extension (e.g.: both http://www.example.com/executable.jscp and http://www.example.com/executable refer to the same route).  Naturally, /index (with no extension), be it the root directory or any other directory, is also allowed.
 
 Mime types:
 ===========

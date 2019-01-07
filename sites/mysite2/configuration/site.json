@@ -3,5 +3,6 @@
   "tempWorkDirectory": ".",
   "canUpload": true,
   "maxPayloadSizeBytes": 0,
-  "mimeTypes": {}
+  "mimeTypes": {},
+  "jscpExtensionRequired": "optional"
 }

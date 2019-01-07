@@ -484,6 +484,7 @@ const defaultSiteConfig =
   tempWorkDirectory: null,
   canUpload: true,
   maxPayloadSizeBytes: undefined,
+  jscpExtensionRequired: 'optional',
   mimeTypes: {}
 };
 
@@ -1255,9 +1256,11 @@ function incomingRequestHandler(req, res)
   }
 
   let { pathname: resourceName } = urlUtils.parse(url, true);
+  let indexFileNameAutomaticallyAdded = false;
   if (resourceName.match(/\/$/))
   {
     resourceName += 'index.jscp';
+    indexFileNameAutomaticallyAdded = true;
   }
 
   const [ /* Deliberately empty */ , /* Deliberately empty */ , resourceFileExtension ] = resourceName.match(/(.*)\.([^./]+)$/) || [];
@@ -1268,9 +1271,29 @@ function incomingRequestHandler(req, res)
   resourceName = encodeURI(decodeURI(resourceName).normalize('NFD'));
   runFileName = encodeURI(decodeURI(runFileName).normalize('NFD'));
 
-  const { name: siteName, canUpload, maxPayloadSizeBytes, tempWorkDirectory, compiledFiles, staticFiles, fullSitePath } = identifiedSite;
+  const
+    {
+      name: siteName, canUpload, maxPayloadSizeBytes,
+      tempWorkDirectory, compiledFiles, staticFiles,
+      fullSitePath, jscpExtensionRequired
+    } = identifiedSite;
 
-  if (staticFiles[runFileName])
+  let compiledCode = compiledFiles[runFileName];
+  let compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+
+  const jscpExtensionDetected = (resourceFileExtension === 'jscp');
+  const indexWithNoExtensionDetected = (!resourceFileExtension && (resourceName.match(/\/index$/)));
+
+  if (!indexFileNameAutomaticallyAdded &&
+      ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
+      ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
+  {
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.end();
+    return;
+  }
+  else if (staticFiles[runFileName])
   {
     const { fileContents, fileContentType, fullPath, fileSize } = staticFiles[runFileName];
     if (typeof(fileContents) === 'undefined')
@@ -1285,14 +1308,14 @@ function incomingRequestHandler(req, res)
   }
   else
   {
-    let compiledCode = compiledFiles[runFileName];
-    if (typeof(compiledCode) === 'undefined')
+    if (!compiledCodeExists)
     {
       runFileName = `${resourceName}/index.jscp`;
       compiledCode = compiledFiles[runFileName];
+      compiledCodeExists = (typeof(compiledCode) !== 'undefined');
     }
 
-    if (typeof(compiledCode) === 'undefined')
+    if (!compiledCodeExists)
     {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/octet-stream');
@@ -2022,6 +2045,44 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
   return soFarSoGood;
 }
 
+function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'jscpextensionrequired';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    if (configValue)
+    {
+      const finalValue = configValue.toLowerCase();
+      switch(finalValue)
+      {
+        case 'never':
+        case 'optional':
+        case 'always':
+          siteConfig.jscpExtensionRequired = finalValue;
+          break;
+        default:
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid jscpExtensionRequired value.  Use 'never' (recommended), 'optional' or 'always'.`);
+          soFarSoGood = false;
+      }
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  jscpextensionrequired cannot be empty.  Use 'never' (recommended), 'optional' or 'always'.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid jscpextensionrequired.  String value expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
 
 function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements)
 {
@@ -2374,7 +2435,8 @@ if (readSuccess)
             'tempworkdirectory',
             'canupload',
             'maxpayloadsizebytes',
-            'mimetypes'
+            'mimetypes',
+            'jscpextensionrequired'
           ];
 
           const requiredKeysNotFound = [];
@@ -2391,6 +2453,7 @@ if (readSuccess)
             soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
           }
 
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
