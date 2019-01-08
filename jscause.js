@@ -10,16 +10,16 @@ const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 const http = require('http');
 const fs = require('fs');
 const fsPath = require('path');
+const urlUtils = require('url');
+const crypto = require('crypto');
+const formidable = require('./jscvendor/formidable');
+const sanitizeFilename = require('./jscvendor/sanitize-filename');
 
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
 const JSCAUSE_SITES_PATH = 'sites';
 const JSCAUSE_WEBSITE_PATH = 'website';
 const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
-const urlUtils = require('url');
-const crypto = require('crypto');
-const formidable = require('./jscvendor/formidable');
-const sanitizeFilename = require('./jscvendor/sanitize-filename');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
 
