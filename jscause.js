@@ -478,6 +478,7 @@ const defaultSiteConfig =
   name: '',
   rootDirectoryName: '',
   fullSitePath: '',
+  staticFiles: {},
   compiledFiles: {},
   hostName: undefined,
   port: undefined,
@@ -678,8 +679,8 @@ function doneWith(ctx, id, isCancellation)
 
       if (runtimeException || compileTimeError)
       {
-        const { reqObject, resObject, fullSitePath, compiledFiles } = ctx;
-        handleError5xx(reqObject, resObject, compiledFiles, fullSitePath);
+        const { reqObject, resObject, siteName, fullSitePath, compiledFiles, staticFiles } = ctx;
+        handleError5xx(reqObject, resObject, siteName, staticFiles, compiledFiles, fullSitePath);
         return;
       }
       else
@@ -1057,7 +1058,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted, responseStatusCode,
-    compiledFiles
+    staticFiles, compiledFiles
   })
 {
   let postParams;
@@ -1131,6 +1132,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     statusCode: responseStatusCode || 200,
     compileTimeError: false,
     runtimeException: undefined,
+    staticFiles,
     compiledFiles
   };
 
@@ -1169,7 +1171,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   doneWith(resContext);
 }
 
-function responderStatic(req, res, siteName, fullPath, contentType, fileSize, { fileContents: contents, readStream })
+function responderStatic(req, res, siteName, fullPath, contentType, fileSize, statusCode, { fileContents: contents, readStream })
 {
   const resObject = res;
   const resContext = {appHeaders: {}, resObject};
@@ -1177,7 +1179,7 @@ function responderStatic(req, res, siteName, fullPath, contentType, fileSize, { 
   assignAppHeaders(resContext, {'Content-Type': contentType, 'Content-Length': fileSize});
   finishUpHeaders(resContext);
   
-  resObject.statusCode = 200;
+  resObject.statusCode = statusCode;
 
   if (contents || !readStream)
   {
@@ -1234,49 +1236,85 @@ function sendUploadIsForbidden(res)
   res.end();
 }
 
-function handleError4xx(req, res, compiledFiles, fullSitePath, errorCode = 404)
+function handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath, errorCode = 404)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
   const contentType = (headers['content-type'] || '').toLowerCase();
 
-  const runFileName = '/error4xx.jscp';
-  const compiledCode = compiledFiles[runFileName];
-  const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+  let runFileName = '/error4xx.html';
+  const staticCode = staticFiles[runFileName];
+  const staticCodeExists = (typeof(staticCode) !== 'undefined');
 
-  if (compiledCodeExists)
+  if (staticCodeExists)
   {
-    const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
-    responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+    serveStaticContent(req, res, siteName, staticFiles[runFileName], 404)
   }
   else
   {
-    res.statusCode = errorCode;
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.end();
+    runFileName = '/error4xx.jscp';
+    const compiledCode = compiledFiles[runFileName];
+    const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+
+    if (compiledCodeExists)
+    {
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
+      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+    }
+    else
+    {
+      res.statusCode = errorCode;
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.end();
+    }
   }
 }
 
-function handleError5xx(req, res, compiledFiles, fullSitePath, errorCode = 500)
+function handleError5xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath, errorCode = 500)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
   const contentType = (headers['content-type'] || '').toLowerCase();
 
-  const runFileName = '/error5xx.jscp';
-  const compiledCode = compiledFiles && compiledFiles[runFileName];
-  const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+  let runFileName = '/error5xx.html';
+  const staticCode = staticFiles[runFileName];
+  const staticCodeExists = (typeof(staticCode) !== 'undefined');
 
-  if (compiledCodeExists)
+  if (staticCodeExists)
   {
-    const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
-    responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+    serveStaticContent(req, res, siteName, staticFiles[runFileName], 500)
   }
   else
   {
-    res.statusCode = errorCode;
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.end();
+    runFileName = '/error5xx.jscp';
+    const compiledCode = compiledFiles && compiledFiles[runFileName];
+    const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+  
+    if (compiledCodeExists)
+    {
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
+      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+    }
+    else
+    {
+      res.statusCode = errorCode;
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.end();
+    }
+  }
+}
+
+function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
+{
+  const { fileContents, fileContentType, fullPath, fileSize } = staticContent;
+  if (typeof(fileContents) === 'undefined')
+  {
+    const readStream = fs.createReadStream(fullPath);
+    responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, statusCode, { readStream });
+  }
+  else
+  {
+    responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, statusCode, { fileContents });
   }
 }
 
@@ -1333,9 +1371,12 @@ function incomingRequestHandler(req, res)
     res.setHeader('X-Powered-By', 'jscause');
   }
 
-  if ((runFileName === '/error4xx.jscp') || (runFileName === '/error5xx.jscp'))
+  if ((runFileName === '/error4xx.jscp') ||
+      (runFileName === '/error4xx.html') ||
+      (runFileName === '/error5xx.jscp') ||
+      (runFileName === '/error5xx.html'))
   {
-    handleError4xx(req, res, compiledFiles, fullSitePath);
+    handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
     return;
   }
 
@@ -1349,21 +1390,12 @@ function incomingRequestHandler(req, res)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    handleError4xx(req, res, compiledFiles, fullSitePath);
+    handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
     return;
   }
   else if (staticFiles[runFileName])
   {
-    const { fileContents, fileContentType, fullPath, fileSize } = staticFiles[runFileName];
-    if (typeof(fileContents) === 'undefined')
-    {
-      const readStream = fs.createReadStream(fullPath);
-      responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, { readStream });
-    }
-    else
-    {
-      responderStatic(req, res, siteName, fullPath, fileContentType, fileSize, { fileContents });
-    }
+    serveStaticContent(req, res, siteName, staticFiles[runFileName])
   }
   else
   {
@@ -1376,7 +1408,7 @@ function incomingRequestHandler(req, res)
 
     if (!compiledCodeExists)
     {
-      handleError4xx(req, res, compiledFiles, fullSitePath);
+      handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
       return;
     }
 
@@ -1529,7 +1561,7 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, compiledFiles };
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles };
         responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       });
     }

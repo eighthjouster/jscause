@@ -2,13 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Can handleError4xx() and handleError5xx() be unified?
+Check that the custom errors work with form uploads.
 
-Implement error4xx.html
-- If both error4xx.jscp and error4xx.html exist, HTML will prevail.
-
-On to error5xx.html
-  - And if error5xx.html is requested, return an error 404!!
+If error4xx.jscp/html or error5xx.jscp/html detected in another directory other than root, emit a warning.
 
 - Optional error4xx.jscp and error5xx.jscp files to run something when a 4xx or 5xx error occurs.
   - Same for error4xx.html and error5xx.html
@@ -21,10 +17,14 @@ On to error5xx.html
 Test with "jscpExtensionRequired": "never"
  - Change "jscpExtensionRequired": "never" back to "optional" when done.
 
-Document:
+Can handleError4xx() and handleError5xx() be unified?
+
+Document (look for "Custom errors 4xx and 5xx" section on the specs):
  - error4xx.jscp/html and error5xx.jscp/html
+ - html prevails over jscp.
  - Only the ones on the site's root will be taken into account.
  - Referring to them directly will throw a default error 404.
+ - If you name a directory error400/500.jscp/html, it will throw a 404 error unless a slack is added.  This is by design.
 
 At this point, git tag and back up.
 

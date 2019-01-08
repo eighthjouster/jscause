@@ -135,12 +135,13 @@ Or this:
 
 Custom errors 4xx and 5xx:
 =========================
- - Custom errors, if available, will be delivered only during a typical interaction in which a resource is not really available, or an error on a JSCP script.  In other cases, regular 4xx or 5xx will be delivered to the browser.  For instance:
+ - Custom errors, if available, will be delivered only during a typical interaction in which a resource is not really available, or an error on a JSCP script.  In other cases, generic 4xx or 5xx will be delivered to the browser.  For instance:
    - When attempting to use an unrecognized HTTP method.
    - When file uploads are not allowed, or the payload maximum is exceeded.
    - When the site (domain name) is not recognized.
    - When either a form upload or json body upload parsing fails.
    - Possibly others.
+- Note:  If either error4xx.jscp or error5xx.jscp have a compile/runtime error, a generic 5xx will be delivered to the browser.  So, if an error 400 happens, and the error4xx.jscp has an error, the browser will indicate error 500.
 
 Symlinks:
 =========
