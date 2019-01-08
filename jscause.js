@@ -1236,24 +1236,24 @@ function sendUploadIsForbidden(res)
   res.end();
 }
 
-function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
+function handleCustomError(staticFileName, compiledFileName, req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
   const contentType = (headers['content-type'] || '').toLowerCase();
 
-  let runFileName = '/error4xx.html';
+  let runFileName = staticFileName;
   const staticCode = staticFiles[runFileName];
   const staticCodeExists = (typeof(staticCode) !== 'undefined');
 
   if (staticCodeExists)
   {
-    serveStaticContent(req, res, siteName, staticFiles[runFileName], 404)
+    serveStaticContent(req, res, siteName, staticFiles[runFileName], errorCode)
   }
   else
   {
-    runFileName = '/error4xx.jscp';
-    const compiledCode = compiledFiles[runFileName];
+    runFileName = compiledFileName;
+    const compiledCode = compiledFiles && compiledFiles[runFileName];
     const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
 
     if (compiledCodeExists)
@@ -1270,38 +1270,14 @@ function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSite
   }
 }
 
+function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
+{
+  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
+}
+
 function handleError5xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 500)
 {
-  const { headers = {}, method } = req;
-  const requestMethod = (method || '').toLowerCase();
-  const contentType = (headers['content-type'] || '').toLowerCase();
-
-  let runFileName = '/error5xx.html';
-  const staticCode = staticFiles[runFileName];
-  const staticCodeExists = (typeof(staticCode) !== 'undefined');
-
-  if (staticCodeExists)
-  {
-    serveStaticContent(req, res, siteName, staticFiles[runFileName], 500)
-  }
-  else
-  {
-    runFileName = '/error5xx.jscp';
-    const compiledCode = compiledFiles && compiledFiles[runFileName];
-    const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
-  
-    if (compiledCodeExists)
-    {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
-      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
-    }
-    else
-    {
-      res.statusCode = errorCode;
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.end();
-    }
-  }
+  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
 }
 
 function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)

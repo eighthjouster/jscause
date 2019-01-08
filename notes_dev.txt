@@ -12,8 +12,6 @@ Test with "jscpExtensionRequired": "never"
  - Not done already?
  - Change "jscpExtensionRequired": "never" back to "optional" when done.
 
-Can handleError4xx() and handleError5xx() be unified?
-
 Document (look for "Custom errors 4xx and 5xx" section on the specs):
  - error4xx.jscp/html and error5xx.jscp/html
  - html prevails over jscp.
