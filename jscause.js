@@ -1333,6 +1333,12 @@ function incomingRequestHandler(req, res)
     res.setHeader('X-Powered-By', 'jscause');
   }
 
+  if ((runFileName === '/error4xx.jscp') || (runFileName === '/error5xx.jscp'))
+  {
+    handleError4xx(req, res, compiledFiles, fullSitePath);
+    return;
+  }
+
   let compiledCode = compiledFiles[runFileName];
   let compiledCodeExists = (typeof(compiledCode) !== 'undefined');
 

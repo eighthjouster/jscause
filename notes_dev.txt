@@ -2,15 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Done with error4xx.jscp.
-  - On to error5xx.jscp
-    - And if error5xx.jscp is requested, return an error 404!!
-
 Can handleError4xx() and handleError5xx() be unified?
 
 Implement error4xx.html
-
-If both error4xx.jscp and error4xx.html exist, HTML will prevail.
+- If both error4xx.jscp and error4xx.html exist, HTML will prevail.
 
 On to error5xx.html
   - And if error5xx.html is requested, return an error 404!!
@@ -18,14 +13,18 @@ On to error5xx.html
 - Optional error4xx.jscp and error5xx.jscp files to run something when a 4xx or 5xx error occurs.
   - Same for error4xx.html and error5xx.html
     - Don't serve these on their own.
-      - No matter the directory. Put this in the docs.
-        - Only the ones in the root will be taken into account.
-  - And document.
+      - Only the ones in the root will be taken into account.
 
 - Report runtime errors in modules? At least it should say the file the module was called from.
  - Not happening?
 
-Change "jscpExtensionRequired": "never" back to "optional" in the site config files.
+Test with "jscpExtensionRequired": "never"
+ - Change "jscpExtensionRequired": "never" back to "optional" when done.
+
+Document:
+ - error4xx.jscp/html and error5xx.jscp/html
+ - Only the ones on the site's root will be taken into account.
+ - Referring to them directly will throw a default error 404.
 
 At this point, git tag and back up.
 
