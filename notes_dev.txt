@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Check that the custom errors work with form uploads.
-
 If error4xx.jscp/html or error5xx.jscp/html detected in another directory other than root, emit a warning.
 
 - Optional error4xx.jscp and error5xx.jscp files to run something when a 4xx or 5xx error occurs.

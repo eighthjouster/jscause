@@ -1236,7 +1236,7 @@ function sendUploadIsForbidden(res)
   res.end();
 }
 
-function handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath, errorCode = 404)
+function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
@@ -1270,7 +1270,7 @@ function handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSite
   }
 }
 
-function handleError5xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath, errorCode = 500)
+function handleError5xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 500)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
@@ -1362,7 +1362,7 @@ function incomingRequestHandler(req, res)
   const
     {
       name: siteName, canUpload, maxPayloadSizeBytes,
-      tempWorkDirectory, compiledFiles, staticFiles,
+      tempWorkDirectory, staticFiles, compiledFiles,
       fullSitePath, jscpExtensionRequired, includeHttpPoweredByHeader
     } = identifiedSite;
 
@@ -1376,7 +1376,7 @@ function incomingRequestHandler(req, res)
       (runFileName === '/error5xx.jscp') ||
       (runFileName === '/error5xx.html'))
   {
-    handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
+    handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
     return;
   }
 
@@ -1390,7 +1390,7 @@ function incomingRequestHandler(req, res)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
+    handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
     return;
   }
   else if (staticFiles[runFileName])
@@ -1408,7 +1408,7 @@ function incomingRequestHandler(req, res)
 
     if (!compiledCodeExists)
     {
-      handleError4xx(req, res, siteName, compiledFiles, staticFiles, fullSitePath);
+      handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
       return;
     }
 
@@ -1494,7 +1494,9 @@ function incomingRequestHandler(req, res)
           formData,
           formFiles,
           maxSizeExceeded,
-          forbiddenUploadAttempted
+          forbiddenUploadAttempted,
+          staticFiles,
+          compiledFiles
         };
 
         let formFilesKeys;
