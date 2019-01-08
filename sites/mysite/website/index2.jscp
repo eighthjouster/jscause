@@ -1,4 +1,5 @@
 console.log('Let us do this.');
+console.log(blergh);//__RP
 const whatIsUp = rt.module('moduletest');
 whatIsUp(rt);
 

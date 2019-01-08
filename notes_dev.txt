@@ -6,6 +6,8 @@ git bundle create jscause-.bundle devel
   - On to error5xx.jscp
     - And if error5xx.jscp is requested, return an error 404!!
 
+Can handleError4xx() and handleError5xx() be unified?
+
 Implement error4xx.html
 
 If both error4xx.jscp and error4xx.html exist, HTML will prevail.
