@@ -2,6 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+- Done with error4xx.jscp.
+  - On to error5xx.jscp
+    - And if error5xx.jscp is requested, return an error 404!!
+
+Implement error4xx.html
+
+If both error4xx.jscp and error4xx.html exist, HTML will prevail.
+
+On to error5xx.html
+  - And if error5xx.html is requested, return an error 404!!
+
 - Optional error4xx.jscp and error5xx.jscp files to run something when a 4xx or 5xx error occurs.
   - Same for error4xx.html and error5xx.html
     - Don't serve these on their own.
@@ -11,6 +22,8 @@ git bundle create jscause-.bundle devel
 
 - Report runtime errors in modules? At least it should say the file the module was called from.
  - Not happening?
+
+Change "jscpExtensionRequired": "never" back to "optional" in the site config files.
 
 At this point, git tag and back up.
 

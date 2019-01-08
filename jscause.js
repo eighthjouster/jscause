@@ -1057,7 +1057,8 @@ function extractErrorFromRuntimeObject(e)
 function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
-    forbiddenUploadAttempted
+    forbiddenUploadAttempted,
+    responseStatusCode
   })
 {
   let postParams;
@@ -1127,7 +1128,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     uploadedFiles,
     additional,
     fullSitePath,
-    statusCode: 200,
+    statusCode: responseStatusCode || 200,
     compileTimeError: false,
     runtimeException: undefined
   };
@@ -1232,6 +1233,24 @@ function sendUploadIsForbidden(res)
   res.end();
 }
 
+function handleError4xx(req, res, compiledFiles, requestMethod, contentType, fullSitePath, errorCode = 404)
+{
+  const runFileName = '/error4xx.jscp';
+  const compiledCode = compiledFiles[runFileName];
+  const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+  if (compiledCodeExists)
+  {
+    const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
+    responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+  }
+  else
+  {
+    res.statusCode = errorCode;
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.end();
+  }
+}
+
 function incomingRequestHandler(req, res)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
@@ -1241,6 +1260,7 @@ function incomingRequestHandler(req, res)
   const reqPort = parseInt(preparsedReqPort, 10);
   const runningServer = runningServers[reqPort];
 
+  let contentType = (headers['content-type'] || '').toLowerCase();
   let identifiedSite;
 
   if (runningServer)
@@ -1294,9 +1314,7 @@ function incomingRequestHandler(req, res)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    res.statusCode = 404;
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.end();
+    handleError4xx(req, res, compiledFiles, requestMethod, contentType, fullSitePath);
     return;
   }
   else if (staticFiles[runFileName])
@@ -1323,13 +1341,10 @@ function incomingRequestHandler(req, res)
 
     if (!compiledCodeExists)
     {
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.end();
+      handleError4xx(req, res, compiledFiles, requestMethod, contentType, fullSitePath);
       return;
     }
 
-    let contentType = (headers['content-type'] || '').toLowerCase();
     const contentLength = parseInt(headers['content-length'] || 0, 10);
     const isUpload = FORMDATA_MULTIPART_RE.test(contentType);
     const incomingForm = ((requestMethod === 'post') &&
