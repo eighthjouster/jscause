@@ -2652,6 +2652,8 @@ if (readSuccess)
           readSuccess = false;
           filePathsList = [];
 
+          const websiteRoot = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
+
           do
           {
             let currentDirectoryPath;
@@ -2668,6 +2670,7 @@ if (readSuccess)
 
             state.soFarSoGood = false;
             let allFiles;
+            const isWebsiteRoot = (websiteRoot === currentDirectoryPath);
             try
             {
               allFiles = fs.readdirSync(currentDirectoryPath);
@@ -2699,6 +2702,14 @@ if (readSuccess)
                   continue;
                 }
 
+                if (!isWebsiteRoot && ((fileName === 'error4xx.jscp') ||
+                  (fileName === 'error4xx.html') ||
+                  (fileName === 'error5xx.jscp') ||
+                  (fileName === 'error5xx.html')))
+                {
+                  console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`);
+                }
+          
                 if (simlinkTarget)
                 {
                   fullPath = simlinkTarget;
