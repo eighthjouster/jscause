@@ -2318,7 +2318,16 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
   return { soFarSoGood, cachedStaticFilesSoFar }
 }
 
-function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+function prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+{
+  fileEntry.filePath = [...currentDirectoryElements, fileName];
+  if (currentSimlinkSourceDirectoryElements)
+  {
+    fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
+  }
+}
+
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
 {
   let
     {
@@ -2350,7 +2359,14 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   {
     Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements));
   }
-  else if (!fileName.match(/\.jscm$/)) // Ignore jscm files.
+  else if (fileName.match(/\.jscm$/)) // Ignore jscm files.
+  {
+    // But let's process them in case they have compile-time errors.
+    let fileEntry = {};
+    prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
+    jscmFilesList.push(fileEntry);
+  }
+  else
   {
     let fileEntry = {};
     if (fileName.match(/\.jscp$/))
@@ -2365,11 +2381,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
 
     if (soFarSoGood)
     {
-      fileEntry.filePath = [...currentDirectoryElements, fileName];
-      if (currentSimlinkSourceDirectoryElements)
-      {
-        fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
-      }
+      prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
       filePathsList.push(fileEntry);
     }
   }
@@ -2618,6 +2630,7 @@ if (readSuccess)
         }
 
         let filePathsList;
+        let jscmFilesList;
         if (readSuccess)
         {
           let state = {
@@ -2632,6 +2645,7 @@ if (readSuccess)
           // Let's read the files.
           readSuccess = false;
           filePathsList = [];
+          jscmFilesList = [];
 
           const websiteRoot = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
 
@@ -2713,7 +2727,7 @@ if (readSuccess)
 
                 if (state.soFarSoGood)
                 {
-                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
+                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
                 }
                 else
                 {
@@ -2732,28 +2746,41 @@ if (readSuccess)
           siteConfig.staticFiles = {};
           siteConfig.compiledFiles = {};
 
-          filePathsList.forEach((fileEntry) =>
+          // Make sure that modules compile. If we don't do this, then 
+          // the user would get a runtime error.  Better to fail as soon as possible instead.
+          jscmFilesList.every(({ filePath }) =>
           {
-            const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
-
-            const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
-            if (fileType === 'jscp')
-            {
-              const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
-              if (typeof(processedSourceFile) === 'undefined')
-              {
-                readSuccess = false;
-              }
-              else{
-                siteConfig.compiledFiles[webPath] = processedSourceFile;
-              }
-            }
-            else
-            {
-              // fileType assumed 'static'
-              siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath, fileSize };
-            }
+            readSuccess = (typeof(processSourceFile(filePath, siteJSONFilePath)) !== 'undefined');
+            return readSuccess;
           });
+
+          if (readSuccess)
+          {
+            filePathsList.every((fileEntry) =>
+            {
+              const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
+  
+              const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
+              if (fileType === 'jscp')
+              {
+                const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
+                if (typeof(processedSourceFile) === 'undefined')
+                {
+                  readSuccess = false;
+                }
+                else{
+                  siteConfig.compiledFiles[webPath] = processedSourceFile;
+                }
+              }
+              else
+              {
+                // fileType assumed 'static'
+                siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath, fileSize };
+              }
+  
+              return readSuccess;
+            });
+          }
         }
 
         if (readSuccess)

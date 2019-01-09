@@ -2,10 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Report compile time errors in modules.
-  - It seems like you'll need to compile them at the beginning, even if you discard the result, just to fail as soon as possible.
-  - Perhaps implement a site config keyword to control the above? 'checkModulesForCompileErrors'?
-
 Cookies?
  - Read/write?
 
@@ -49,8 +45,6 @@ At this point, divide up the engine into different files.
 Handling server termination gracefully? (with Ctrl+C and/or process TERM/KILL/etc signaling)
  - Perhaps it should indicate at least that the application/process was terminated?
 
-Shouldn't we check if a randomly generated upload file name exists previously before using?
-
 Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
  - Perhaps for future version.
    - Or outsource?
@@ -75,6 +69,10 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+We use jscmFilesList to check that modules compile.  Perhaps we can still use this during runtime as well?  Maybe the 'require' function prototype can be modified so it used the compiled code if available ("compiledCode.call({}, runTime)" just like it's used in responder(), try/catch and all.)
+
+Shouldn't we check if a randomly generated upload file name exists previously before using?
 
 - Optional routing configuration? (configuration/routes.js)
 
