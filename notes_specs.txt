@@ -141,6 +141,11 @@ Custom errors 4xx and 5xx:
    - When the site (domain name) is not recognized.
    - When either a form upload or json body upload parsing fails.
    - Possibly others.
+
+- error4xx.jscp/html and error5xx.jscp/html.  html prevails over jscp.
+- Only the ones on the site's root will be taken into account.
+- Referring to them directly (e.g. explicit '/error5xx.html' request from the browser) will throw a default error 404.
+- If you name a directory error400/500.jscp/html, it will throw a 404 error unless a slash is added.  This is by design.
 - Note:  If either error4xx.jscp or error5xx.jscp have a compile/runtime error, a generic 5xx will be delivered to the browser.  So, if an error 400 happens, and the error4xx.jscp has an error, the browser will indicate error 500.
 
 Symlinks:

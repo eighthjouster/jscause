@@ -1241,17 +1241,23 @@ function handleCustomError(staticFileName, compiledFileName, req, res, siteName,
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
   const contentType = (headers['content-type'] || '').toLowerCase();
+  const acceptedContent = (headers['accept'] || '').toLowerCase();
 
   let runFileName = staticFileName;
+
+  const isTextTypeExpected = !!(acceptedContent.match(/,?text\/.+,?/) || contentType.match(/^text\/.+/));
+
   const staticCode = staticFiles[runFileName];
   const staticCodeExists = (typeof(staticCode) !== 'undefined');
 
-  if (staticCodeExists)
+  if (isTextTypeExpected)
   {
-    serveStaticContent(req, res, siteName, staticFiles[runFileName], errorCode)
-  }
-  else
-  {
+    if (staticCodeExists)
+    {
+      serveStaticContent(req, res, siteName, staticFiles[runFileName], errorCode);
+      return;
+    }
+
     runFileName = compiledFileName;
     const compiledCode = compiledFiles && compiledFiles[runFileName];
     const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
@@ -1260,14 +1266,13 @@ function handleCustomError(staticFileName, compiledFileName, req, res, siteName,
     {
       const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
       responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
-    }
-    else
-    {
-      res.statusCode = errorCode;
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.end();
+      return;
     }
   }
+
+  res.statusCode = errorCode;
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.end();
 }
 
 function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)

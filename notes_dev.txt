@@ -2,24 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Check that custom errors work with POST, and also with JSON payloads.
- - They should, but you know... just in case.
-
-- Report runtime errors in modules? At least it should say the file the module was called from.
- - Not happening?
-
-Test with "jscpExtensionRequired": "never"
- - Not done already?
- - Change "jscpExtensionRequired": "never" back to "optional" when done.
-
-Document (look for "Custom errors 4xx and 5xx" section on the specs):
- - error4xx.jscp/html and error5xx.jscp/html
- - html prevails over jscp.
- - Only the ones on the site's root will be taken into account.
- - Referring to them directly will throw a default error 404.
- - If you name a directory error400/500.jscp/html, it will throw a 404 error unless a slack is added.  This is by design.
-
-At this point, git tag and back up.
+- Report compile time errors in modules.
+  - It seems like you'll need to compile them at the beginning, even if you discard the result, just to fail as soon as possible.
+  - Perhaps implement a site config keyword to control the above? 'checkModulesForCompileErrors'?
 
 Cookies?
  - Read/write?
