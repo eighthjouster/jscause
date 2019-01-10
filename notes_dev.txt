@@ -4,8 +4,24 @@ git bundle create jscause-.bundle devel
 
 Cookies?
  - Read/write?
-- Already added: const cookies = vendor_require('./jscvendor/cookies');
- - Now, implement.
+   - Ground work for reading done. Now:
+    - Implement the rest of the options:
+     - httponly
+     - secure
+     - expires
+     - maxAge
+     - path
+     - Sensible defaults?
+    - Writing.
+     - What options (and defaults) should this take?
+    - Deleting?
+     - What options (and defaults) should this take?
+ - And document:
+   - String names only.  No integers, objects, etc.
+
+Test thoroughly.  Esp. with forms and POSTs (with json).
+
+At this point, back up.
 
 Redirects?
 

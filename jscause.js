@@ -758,8 +758,8 @@ function doneWith(ctx, id, isCancellation)
 
       if (runtimeException || compileTimeError)
       {
-        const { reqObject, resObject, siteName, fullSitePath, compiledFiles, staticFiles } = ctx;
-        handleError5xx(reqObject, resObject, siteName, staticFiles, compiledFiles, fullSitePath);
+        const { reqObject, resObject, siteName, fullSitePath, compiledFiles, staticFiles, jsCookies } = ctx;
+        handleError5xx(reqObject, resObject, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath);
         return;
       }
       else
@@ -966,7 +966,7 @@ function makeRTPromise(rtContext, rtPromise)
 function createRunTime(rtContext)
 {
   const { getParams, postParams, contentType,
-    requestMethod, uploadedFiles, additional } = rtContext;
+    requestMethod, uploadedFiles, additional, jsCookies } = rtContext;
 
   return {
     unsafePrint(output = '') { rtContext.outputQueue.push(output); },
@@ -1100,6 +1100,10 @@ function createRunTime(rtContext)
         return require(modulePath);
       }
     },
+    getCookie(cookieName = '')
+    {
+      return (cookieName && (typeof(cookieName) === 'string')) ? jsCookies.get(cookieName || '') : '';
+    },
     getParams,
     postParams,
     contentType,
@@ -1137,7 +1141,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted, responseStatusCode,
-    staticFiles, compiledFiles
+    staticFiles, compiledFiles, jsCookies
   })
 {
   let postParams;
@@ -1212,7 +1216,8 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     compileTimeError: false,
     runtimeException: undefined,
     staticFiles,
-    compiledFiles
+    compiledFiles,
+    jsCookies
   };
 
   if (additional.jsonParseError)
@@ -1315,7 +1320,7 @@ function sendUploadIsForbidden(res)
   res.end();
 }
 
-function handleCustomError(staticFileName, compiledFileName, req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode)
+function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
@@ -1343,7 +1348,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, siteName,
 
     if (compiledCodeExists)
     {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode };
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies };
       responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       return;
     }
@@ -1354,14 +1359,14 @@ function handleCustomError(staticFileName, compiledFileName, req, res, siteName,
   res.end();
 }
 
-function handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
+function handleError4xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
 {
-  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
+  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
 }
 
-function handleError5xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 500)
+function handleError5xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 500)
 {
-  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
+  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode);
 }
 
 function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
@@ -1387,6 +1392,8 @@ function incomingRequestHandler(req, res)
   const reqPort = parseInt(preparsedReqPort, 10);
   const runningServer = runningServers[reqPort];
 
+  const jsCookies = new cookies(req, res);
+  
   let contentType = (headers['content-type'] || '').toLowerCase();
   let identifiedSite;
 
@@ -1436,7 +1443,7 @@ function incomingRequestHandler(req, res)
       (runFileName === '/error5xx.jscp') ||
       (runFileName === '/error5xx.html'))
   {
-    handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
+    handleError4xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath);
     return;
   }
 
@@ -1450,7 +1457,7 @@ function incomingRequestHandler(req, res)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
+    handleError4xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath);
     return;
   }
   else if (staticFiles[runFileName])
@@ -1468,7 +1475,7 @@ function incomingRequestHandler(req, res)
 
     if (!compiledCodeExists)
     {
-      handleError4xx(req, res, siteName, staticFiles, compiledFiles, fullSitePath);
+      handleError4xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath);
       return;
     }
 
@@ -1556,7 +1563,8 @@ function incomingRequestHandler(req, res)
           maxSizeExceeded,
           forbiddenUploadAttempted,
           staticFiles,
-          compiledFiles
+          compiledFiles,
+          jsCookies
         };
 
         let formFilesKeys;
@@ -1623,7 +1631,7 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles };
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies };
         responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       });
     }

@@ -31,6 +31,7 @@ if (rt.postParams['submitIt'])
 
 rt.runAfter(() => {
   rt.print('Love it.');
+  rt.print(rt.getCookie('aTest'));
 });
 
 /js>
