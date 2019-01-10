@@ -15,7 +15,7 @@ const crypto = require('crypto');
 
 const cookies = require('./jscvendor/cookies');
 const formidable = require('./jscvendor/formidable');
-const sanitizeFilename = require('./jscvendor/sanitize-filename');
+const sanitizeFilename = require('./jscvendor/node-sanitize-filename');
 
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';

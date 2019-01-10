@@ -1,4 +1,15 @@
 var thisModuleName = './jscvendor/cookies';
+function jsModuleSupport(thisModuleName, name) {
+  return ({
+    './jscvendor/cookies': {
+      'depd': () => Object.assign(() => {}, { property: () => {} }),
+      'keygrip': null,
+      'http': require('http')
+    }
+  })[thisModuleName][name];
+}
+var _jscause_require = function(moduleName) { return jsModuleSupport(thisModuleName, moduleName); }
+
 /*!
  * cookies
  * Copyright(c) 2014 Jed Schmidt, http://jed.is/
@@ -8,9 +19,9 @@ var thisModuleName = './jscvendor/cookies';
 
 'use strict'
 
-var deprecate = _jscause_require(thisModuleName).require('depd')('cookies')
-var Keygrip = _jscause_require(thisModuleName).require('keygrip')
-var http = _jscause_require(thisModuleName).require('http')
+var deprecate = _jscause_require('depd')('cookies')
+var Keygrip = _jscause_require('keygrip')
+var http = _jscause_require('http')
 var cache = {}
 
 /**
@@ -219,18 +230,3 @@ Cookies.connect = Cookies.express = function(keys) {
 Cookies.Cookie = Cookie
 
 module.exports = Cookies
-
-function jsModuleSupport(thisModuleName, name) {
-  return ({
-    './jscvendor/cookies': {
-      'depd': () => Object.assign(() => {}, { property: () => {} }),
-      'keygrip': null,
-      'http': require('http')
-    }
-  })[thisModuleName][name];
-}
-
-function _jscause_require(thisModuleName) {
-  return { require: (moduleName) => jsModuleSupport(thisModuleName, moduleName) };
-}
-  

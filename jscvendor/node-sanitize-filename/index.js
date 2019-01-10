@@ -1,3 +1,47 @@
+var thisModuleName = './jscvendor/node-sanitize-filename';
+
+// From npm: truncate-utf8-bytes by the same author.
+function originalTruncate(getLength, string, byteLength) {
+  if (typeof string !== "string") {
+    throw new Error("Input must be string");
+  }
+
+  var charLength = string.length;
+  var curByteLength = 0;
+  var codePoint;
+  var segment;
+
+  for (var i = 0; i < charLength; i += 1) {
+    codePoint = string.charCodeAt(i);
+    segment = string[i];
+
+    if (isHighSurrogate(codePoint) && isLowSurrogate(string.charCodeAt(i + 1))) {
+      i += 1;
+      segment += string[i];
+    }
+
+    curByteLength += getLength(segment);
+
+    if (curByteLength === byteLength) {
+      return string.slice(0, i + 1);
+    }
+    else if (curByteLength > byteLength) {
+      return string.slice(0, i - segment.length + 1);
+    }
+  }
+
+  return string;
+}
+
+function jsModuleSupport(thisModuleName, name) {
+  return ({
+    './jscvendor/node-sanitize-filename': {
+      'truncate-utf8-bytes': (string, len) => originalTruncate.call(null, Buffer.byteLength.bind(Buffer), string, len)
+    }
+  })[thisModuleName][name];
+}
+var _jscause_require = function(moduleName) { return jsModuleSupport(thisModuleName, moduleName); }
+
 /*jshint node:true*/
 // Modified from: https://github.com/parshap/node-sanitize-filename
 'use strict';
@@ -63,48 +107,3 @@ module.exports = function (input, options) {
   }
   return sanitize(output, '');
 };
-
-// My additions.
-// Depedency resolutions:
-// From npm: truncate-utf8-bytes by the same author.
-function originalTruncate(getLength, string, byteLength) {
-  if (typeof string !== "string") {
-    throw new Error("Input must be string");
-  }
-
-  var charLength = string.length;
-  var curByteLength = 0;
-  var codePoint;
-  var segment;
-
-  for (var i = 0; i < charLength; i += 1) {
-    codePoint = string.charCodeAt(i);
-    segment = string[i];
-
-    if (isHighSurrogate(codePoint) && isLowSurrogate(string.charCodeAt(i + 1))) {
-      i += 1;
-      segment += string[i];
-    }
-
-    curByteLength += getLength(segment);
-
-    if (curByteLength === byteLength) {
-      return string.slice(0, i + 1);
-    }
-    else if (curByteLength > byteLength) {
-      return string.slice(0, i - segment.length + 1);
-    }
-  }
-
-  return string;
-}
-
-function jsModuleSupport(name) {
-  return ({
-    'truncate-utf8-bytes': (string, len) => originalTruncate.call(null, Buffer.byteLength.bind(Buffer), string, len)
-  })[name];
-}
-
-function _jscause_require(moduleName) {
-  return jsModuleSupport(moduleName);
-}
