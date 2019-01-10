@@ -5,6 +5,9 @@ git bundle create jscause-.bundle devel
 Cookies?
  - Read/write?
 
+I think I have an idea for the jsvendor situation:
+Use a custom "jscvendor_require()" function in jscause, which will load the file and modify it according to our needs.
+
 Redirects?
 
 HTTPS?
@@ -15,6 +18,8 @@ Server logging?
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Publish alpha version here.
+ - Indicate what dependencies you're using (per MIT's license?).
+   - jscvendor folder.
 
 Databases.
  - Basic.
@@ -60,8 +65,9 @@ Remove these from /etc/hosts:
 Version 0.7b here!
  - Upload to https://github.com/eighthjouster/jscause
  - Thanks to:
-   - Formidable.
+   - https://github.com/felixge/node-formidable   
    - https://github.com/parshap/node-sanitize-filename
+   - https://github.com/pillarjs/cookies
 
  - Create a couple of sites with it.
  - Announce.
@@ -69,6 +75,8 @@ Version 0.7b here!
 ==========================
 
 Order by priority:
+
+JSCVendor folder: Use the original files, but hack them from your code.
 
 We use jscmFilesList to check that modules compile.  Perhaps we can still use this during runtime as well?  Maybe the 'require' function prototype can be modified so it used the compiled code if available ("compiledCode.call({}, runTime)" just like it's used in responder(), try/catch and all.)
 

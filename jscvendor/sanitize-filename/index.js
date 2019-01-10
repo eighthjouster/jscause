@@ -1,4 +1,5 @@
 /*jshint node:true*/
+// Modified from: https://github.com/parshap/node-sanitize-filename
 'use strict';
 
 /**
@@ -28,6 +29,8 @@
  * @return {String}         Sanitized filename
  */
 
+var truncate = _jscause_require("truncate-utf8-bytes");
+
 var illegalRe = /[\/\?<>\\:\*\|":]/g;
 var controlRe = /[\x00-\x1f\x80-\x9f]/g;
 var reservedRe = /^\.+$/;
@@ -52,7 +55,18 @@ function isLowSurrogate(codePoint) {
   return codePoint >= 0xdc00 && codePoint <= 0xdfff;
 }
 
-// Truncate string by size in bytes
+module.exports = function (input, options) {
+  var replacement = (options && options.replacement) || '';
+  var output = sanitize(input, replacement);
+  if (replacement === '') {
+    return output;
+  }
+  return sanitize(output, '');
+};
+
+// My additions.
+// Depedency resolutions:
+// From npm: truncate-utf8-bytes by the same author.
 function originalTruncate(getLength, string, byteLength) {
   if (typeof string !== "string") {
     throw new Error("Input must be string");
@@ -83,18 +97,14 @@ function originalTruncate(getLength, string, byteLength) {
   }
 
   return string;
-};
+}
 
-module.exports = function (input, options) {
-  var replacement = (options && options.replacement) || '';
-  var output = sanitize(input, replacement);
-  if (replacement === '') {
-    return output;
-  }
-  return sanitize(output, '');
-};
+function jsModuleSupport(name) {
+  return ({
+    'truncate-utf8-bytes': (string, len) => originalTruncate.call(null, Buffer.byteLength.bind(Buffer), string, len)
+  })[name];
+}
 
-// My additions.
-function truncate(string, len) {
-  return originalTruncate.call(null, Buffer.byteLength.bind(Buffer), string, len);
+function _jscause_require(moduleName) {
+  return jsModuleSupport(moduleName);
 }

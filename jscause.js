@@ -12,6 +12,8 @@ const fs = require('fs');
 const fsPath = require('path');
 const urlUtils = require('url');
 const crypto = require('crypto');
+
+const cookies = require('./jscvendor/cookies');
 const formidable = require('./jscvendor/formidable');
 const sanitizeFilename = require('./jscvendor/sanitize-filename');
 
