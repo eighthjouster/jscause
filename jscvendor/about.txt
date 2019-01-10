@@ -1,0 +1,7 @@
+This directory contains all the JSCause dependencies.
+
+Therefore, JSCause does not need to get anything else via NPM.
+
+These dependencies, and their dependencies, were retrieved from their respective repositories, untouched.  They are all glued together via the vendor_template.jsctpl file.
+
+For developers: If you plan to add more dependencies here, find options that have zero or one, maybe two MAXIMUM dependencies.  Let's keep JSCause lean.

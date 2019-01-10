@@ -13,10 +13,6 @@ const fsPath = require('path');
 const urlUtils = require('url');
 const crypto = require('crypto');
 
-const cookies = require('./jscvendor/cookies');
-const formidable = require('./jscvendor/formidable');
-const sanitizeFilename = require('./jscvendor/node-sanitize-filename');
-
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
 const JSCAUSE_SITES_PATH = 'sites';
@@ -57,6 +53,28 @@ const MIME_TYPES = {
   '.svg': 'application/image/svg+xml; charset=utf-8'
 };
 
+const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
+let templateFile;
+let allVendorModulesLoaded = true;
+
+const cookies = vendor_require('./jscvendor/cookies');
+allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
+
+const formidable = vendor_require('./jscvendor/formidable');
+allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
+
+const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
+allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
+
+if (!allVendorModulesLoaded)
+{
+  console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.`);
+  process.exit(1);
+}
+
+templateFile = undefined; // Done with all the vendor module loading.
+
+
 const RUNTIME_ROOT_DIR = process.cwd();
 
 console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
@@ -65,6 +83,61 @@ console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
  * Helper functions
  * 
  * *****************************************/
+
+function vendor_require(vendorModuleName)
+{
+  let moduleFile;
+  let compiledModule;
+  let hydratedFile;
+
+  if (typeof(templateFile) === 'undefined')
+  {
+    try
+    {
+      templateFile = fs.readFileSync(VENDOR_TEMPLATE_FILENAME, 'utf-8');
+    }
+    catch(e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`);
+      console.error(e);
+    }
+  }
+
+  if (typeof(templateFile) !== 'undefined')
+  {
+    const requireName = `${vendorModuleName}/index.js`;
+    try
+    {
+      moduleFile = fs.readFileSync(requireName, 'utf-8');
+    }
+    catch(e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`);
+      console.error(e);
+    }
+  }
+
+  if (typeof(moduleFile) !== 'undefined')
+  {
+    moduleFile = moduleFile.replace(/\s+require\((['"']{1})/g, ' _jscause_require($1');
+    hydratedFile = templateFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleName);
+    const Module = module.constructor;
+    Module._nodeModulePaths(fsPath.dirname(''));
+    try
+    {
+      const moduleToCompile = new Module();
+      moduleToCompile._compile(`${hydratedFile}\n${moduleFile}`, '');
+      compiledModule = moduleToCompile.exports;
+    }
+    catch (e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Could not compile vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
+      console.error(e);
+    }
+  }
+
+  return compiledModule;
+}
 
 function prepareConfigFileForParsing(readConfigFile)
 {

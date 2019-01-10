@@ -1,15 +1,3 @@
-var thisModuleName = './jscvendor/cookies';
-function jsModuleSupport(thisModuleName, name) {
-  return ({
-    './jscvendor/cookies': {
-      'depd': () => Object.assign(() => {}, { property: () => {} }),
-      'keygrip': null,
-      'http': require('http')
-    }
-  })[thisModuleName][name];
-}
-var _jscause_require = function(moduleName) { return jsModuleSupport(thisModuleName, moduleName); }
-
 /*!
  * cookies
  * Copyright(c) 2014 Jed Schmidt, http://jed.is/
@@ -19,9 +7,9 @@ var _jscause_require = function(moduleName) { return jsModuleSupport(thisModuleN
 
 'use strict'
 
-var deprecate = _jscause_require('depd')('cookies')
-var Keygrip = _jscause_require('keygrip')
-var http = _jscause_require('http')
+var deprecate = require('depd')('cookies')
+var Keygrip = require('keygrip')
+var http = require('http')
 var cache = {}
 
 /**

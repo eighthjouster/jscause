@@ -4,9 +4,8 @@ git bundle create jscause-.bundle devel
 
 Cookies?
  - Read/write?
-
-I think I have an idea for the jsvendor situation:
-Use a custom "jscvendor_require()" function in jscause, which will load the file and modify it according to our needs.
+- Already added: const cookies = vendor_require('./jscvendor/cookies');
+ - Now, implement.
 
 Redirects?
 
