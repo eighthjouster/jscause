@@ -2,6 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Keep handling set cookie errors:
+ *- With expires. - Done.
+ +- With secure. - The cookies module throws exception if secure is true but connection is http.  Handle this yourself so the line number is meaningful.
+ - What others?
+
 Cookies?
  - Read/write?
    - Ground work for reading done. Now:

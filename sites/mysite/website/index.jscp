@@ -1,4 +1,4 @@
-console.log('Let us do this.');
+
 const whatIsUp = rt.module('moduletest');
 whatIsUp(rt);
 if (rt.postParams['submitIt'])
@@ -32,6 +32,12 @@ if (rt.postParams['submitIt'])
 rt.runAfter(() => {
   rt.print('Love it.');
   rt.print(rt.getCookie('aTest'));
+  rt.setCookie('aTest', 'hello', {
+    expires: new Date('2019-01-12'),
+    maxAge: false,
+    httpOnly: true,
+    secure: false
+  });
 });
 
 /js>

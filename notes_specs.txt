@@ -52,6 +52,7 @@ Or this:
   - If you don't do this, then the response will be sent to the client without waiting.
   - rt.waitFor()'s can be nested.
   - rt.waitFor() will correctly pass down the arguments it receives to its callback parameter.
+  - If a runtime exception happens while a callback is still pending, JSCause will wait until the blocking call is happening.  When it comes back, it won't execute the callback.
 - rt.queryParams is an object containing the GET query parameters.
 - rt.postParams is an object containing the POST form parameters.
 - rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.
@@ -237,6 +238,19 @@ Static files:
 - Up to MAX_CACHED_FILES_PER_SITE (256) files will be cached in memory.  The rest will be read from the file system and served upon request.
 - While JSCause can handle static files, it is advised to serve them by other more efficient means, e.g. with nginx or a CDN.
 - Advise the reader to put all the .js files that will be served to the client in a single directory, to keep things tight and secure.  JS files that should be executed on the server should reside outside of the /website directory.
+
+Cookies:
+========
+
+rt.getCookies(name)
+rt.setCookies(name, value, options)
+options can be:
+ - expires: expiration date as a Date object. If a date is not passed, a runtime exception will be thrown.
+ - maxAge: expiration in milliseconds from date of creation (if both expires and maxAge are provided,  - expires is used.)
+ - secure (boolean.)
+ - httpOnly (boolean.)
+ - path (string.)
+ - domain (string.)
 
 On regards of 'this':
 =====================

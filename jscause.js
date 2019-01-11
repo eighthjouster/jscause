@@ -671,7 +671,7 @@ function doDeleteFile(thisFile)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
@@ -694,7 +694,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res,
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
+      responder(req, res, siteName, compiledCode, runFileName, fullSitePath, formContext);
     }
   });
 }
@@ -752,7 +752,7 @@ function doneWith(ctx, id, isCancellation)
       if (runtimeException)
       {
         ctx.outputQueue = [];
-        console.error(`${TERMINAL_ERROR_STRING}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site: ${ctx.siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`);
         console.error(runtimeException);
       }
 
@@ -783,13 +783,16 @@ function createWaitForCallback(rtContext, cb)
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
-    try
+    if (!rtContext.runtimeException)
     {
-      cb.call({}, ...params);
-    }
-    catch(e)
-    {
-      rtContext.runtimeException = e;
+      try
+      {
+        cb.call({}, ...params);
+      }
+      catch(e)
+      {
+        rtContext.runtimeException = e;
+      }
     }
 
     doneWith(rtContext, waitForId);
@@ -1104,6 +1107,39 @@ function createRunTime(rtContext)
     {
       return (cookieName && (typeof(cookieName) === 'string')) ? jsCookies.get(cookieName || '') : '';
     },
+    setCookie(cookieName = '', value = '', options)
+    {
+      let { expires, maxAge, httpOnly, secure, path, domain } = options;
+
+      if ((typeof(expires) !== 'object') || !(expires instanceof Date))
+      {
+        const rtError = new Error('Invalid expired value.  Date object expected.');
+        throw(rtError);
+      }
+
+      if (maxAge && expires)
+      {
+        expires = undefined;
+      }
+
+      try
+      {
+        jsCookies.set(cookieName, value, {
+          expires,
+          maxAge,
+          httpOnly,
+          secure,
+          path,
+          domain
+        });
+      }
+      catch(e)
+      {
+        // Throwing as new error, so the line number makes sense to the user.
+        // (Otherwise, the line number shown will be that of the cookies compiled module.)
+        throw(new Error(e));
+      }
+    },
     getParams,
     postParams,
     contentType,
@@ -1137,7 +1173,7 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(req, res, compiledCode, runFileName, fullSitePath,
+function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted, responseStatusCode,
@@ -1202,6 +1238,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     appHeaders: {},
     reqObject: req,
     resObject: res,
+    siteName,
     waitForNextId: 1,
     waitForQueue: {},
     getParams: urlUtils.parse(req.url, true).query,
@@ -1349,7 +1386,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
     if (compiledCodeExists)
     {
       const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies };
-      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+      responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
       return;
     }
   }
@@ -1581,12 +1618,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
               }
             });
           }
@@ -1594,7 +1631,7 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
-          responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
+          responder(req, res, siteName, compiledCode, runFileName, fullSitePath, formContext);
         }
       });
     }
@@ -1632,7 +1669,7 @@ function incomingRequestHandler(req, res)
         }
 
         const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies };
-        responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
+        responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
       });
     }
   }
