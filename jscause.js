@@ -568,7 +568,8 @@ const defaultSiteConfig =
   maxPayloadSizeBytes: undefined,
   jscpExtensionRequired: 'optional',
   includeHttpPoweredByHeader: true,
-  mimeTypes: {}
+  mimeTypes: {},
+  enableHTTPS: false
 };
 
 const symbolsToSanitize =
@@ -2273,6 +2274,24 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
   return soFarSoGood;
 }
 
+function enableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'enablehttps';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'boolean')
+  {
+    siteConfig.enableHTTPS = configValue;
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid enablehttps.  Boolean expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
 
 function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements)
 {
@@ -2639,7 +2658,8 @@ if (readSuccess)
             'maxpayloadsizebytes',
             'mimetypes',
             'jscpextensionrequired',
-            'httppoweredbyheader'
+            'httppoweredbyheader',
+            'enablehttps'
           ];
 
           const requiredKeysNotFound = [];
@@ -2658,6 +2678,7 @@ if (readSuccess)
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = enableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
           }
 
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');

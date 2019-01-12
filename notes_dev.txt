@@ -2,6 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Create unique servers based on port and https.
+ - Don't mix two protocols, http/https, with the same port.
+
 Make https work first.
  - //serverHttps = ?? //__RP
   Use the generated certs.

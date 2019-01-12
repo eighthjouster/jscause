@@ -5,5 +5,6 @@
   "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
   "mimeTypes": {},
   "jscpExtensionRequired": "optional",
-  "httpPoweredByHeader": "include"
+  "httpPoweredByHeader": "include",
+  "enableHTTPS": true
 }
