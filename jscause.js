@@ -1122,6 +1122,9 @@ function createRunTime(rtContext)
         expires = undefined;
       }
 
+      console.log(rtContext.reqObject.connection.secure);//__RP
+      console.log(rtContext.reqObject.connection.encrypted);//__RP
+
       try
       {
         jsCookies.set(cookieName, value, {
