@@ -7,7 +7,8 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
-const http = require('http');
+//const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const fsPath = require('path');
 const urlUtils = require('url');
@@ -73,6 +74,11 @@ if (!allVendorModulesLoaded)
 }
 
 templateFile = undefined; // Done with all the vendor module loading.
+
+const httpsOptions = {
+  key: fs.readFileSync('sites/mysite/configuration/certs/jscause-key.pem'),
+  cert: fs.readFileSync('sites/mysite/configuration/certs/jscause-cert.pem')
+};
 
 
 const RUNTIME_ROOT_DIR = process.cwd();
@@ -1637,7 +1643,7 @@ function startServer(siteConfig)
   const serverPort = siteConfig.port;
 
   let runningServer = runningServers[serverPort];
-  let httpServer;
+  let webServer;
   let serverName;
 
   if (runningServer)
@@ -1648,18 +1654,19 @@ function startServer(siteConfig)
   {
     serverName = Object.keys(runningServers).length.toString();
 
-    httpServer = http.createServer();
+    //webServer = http.createServer();
+    webServer = https.createServer(httpsOptions);
 
     runningServer =
     {
       serverName,
-      server: httpServer,
+      server: webServer,
       sites: {}
     };
 
-    httpServer.on('request', incomingRequestHandler);
+    webServer.on('request', incomingRequestHandler);
 
-    httpServer.on('error', (e) =>
+    webServer.on('error', (e) =>
     {
       console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} could not start listening on port ${serverPort}.`)
       console.error(`${TERMINAL_ERROR_STRING}: Error returned by the server follows:`)
@@ -1671,7 +1678,7 @@ function startServer(siteConfig)
       });
     });
 
-    httpServer.listen(serverPort, () =>
+    webServer.listen(serverPort, () =>
     {
       console.log(`${TERMINAL_INFO_STRING}: Server ${serverName} listening on port ${serverPort}`);
     });

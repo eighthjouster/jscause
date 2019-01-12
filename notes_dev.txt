@@ -2,6 +2,38 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Make https work first.
+ - //serverHttps = ?? //__RP
+  Use the generated certs.
+
+Laid out some ground work.  The configuration must be handled via jscause config to enable https first.  Then each site config to indicate whether it should support https or not (and in which port.)
+ - If a site requires http but no http is configured, error.
+ - Conversely, if a site requires https but no https is configured, error.
+ - Global certs? Per-site certs?  Error if no certs found?
+ - If all sites support http but not https, and https is enabled, emit a warning.  And shut down the unused server.
+   - Vice-versa.
+
+Document technical limitation of one server per HTTPS site.
+ - JSCause should probably emit a warning.
+
+What cert files can be removed without affecting anything?
+
+Documentation:
+  - Be _very_ clear that the certs provided should NOT be used in production.
+    - As the matter of fact, I wonder if there is a way to detect them when the server starts and emit a warning if they are attempted to be used (by comparing them with a hash?) And only if https is attempted to be used.
+    - Direct users to nodejs documentation on how to generate their own certs.
+  - Disclaimer: very basic https implementation.  Something more robust/more exhaustive might be implenented in a future version.
+
+HTTPS?
+ - Thorough documentation to do this.
+   - Options to run http only, https only, or both http and https.
+   - Step 1: Run https only.
+   - Step 2: Run both http and https.
+   - Step 3: Configuration option to choose what to run (one or both.)
+
+Once you're done with https, merge to master, create version tag.
+Then, merge (rebase) latest master changes with devel-cookies and continue developing cookies.
+
 Cookies?
  - Read/write?
 - Already added: const cookies = vendor_require('./jscvendor/cookies');
