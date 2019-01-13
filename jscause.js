@@ -1684,26 +1684,38 @@ function startServer(siteConfig)
     {
       const certsPath = fsPath.join(fullSitePath, JSCAUSE_CONF_PATH, JSCAUSE_CERTS_PATH);
       let sslKey;
-      let sslCert; //__RP
+      let sslCert;
 
-      const keyFileName = 'jscause-key.pem';
+      const keyFileName = 'jscause-key.pem'; //__RP
+      const certFileName = 'jscause-cert.pem'; //__RP
 
       try
       {
-        sslKey = fs.readFileSync(fsPath.join(certsPath, keyFileName)); //__RP
+        sslKey = fs.readFileSync(fsPath.join(certsPath, keyFileName));
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot find '${keyFileName}' SSL key file.`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot read '${keyFileName}' SSL key file.`);
         result = false;
       }
 
-      if (sslKey)
+      try
+      {
+        sslCert = fs.readFileSync(fsPath.join(certsPath, certFileName))
+      }
+      catch(e)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot read '${certFileName}' SSL cert file.`);
+        result = false;
+      }
+
+
+      if (sslKey && sslCert)
       {
         const httpsOptions =
         {
           key: sslKey,
-          cert: fs.readFileSync(fsPath.join(certsPath, 'jscause-cert.pem')), //__RP
+          cert: sslCert,
         };
         webServer = https.createServer(httpsOptions);
       }
