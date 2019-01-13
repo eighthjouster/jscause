@@ -6,5 +6,7 @@
   "mimeTypes": {},
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
-  "enableHTTPS": true
+  "enableHTTPS": true,
+  "httpsCertfile": "jscause-cert.pem",
+  "httpsKeyfile": "jscause-key.pem"
 }

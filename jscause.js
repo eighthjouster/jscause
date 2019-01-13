@@ -564,7 +564,9 @@ const defaultSiteConfig =
   jscpExtensionRequired: 'optional',
   includeHttpPoweredByHeader: true,
   mimeTypes: {},
-  enableHTTPS: false
+  enableHTTPS: false,
+  httpsCertFile: undefined,
+  httpsKeyFile: undefined
 };
 
 const symbolsToSanitize =
@@ -2325,7 +2327,7 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
   return soFarSoGood;
 }
 
-function enableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseEnableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound)
 {
   let soFarSoGood = true;
   const configKeyName = 'enablehttps';
@@ -2338,6 +2340,60 @@ function enableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound)
   else
   {
     checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid enablehttps.  Boolean expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'httpscertfile';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    if (configValue)
+    {
+      siteConfig.httpsCertFile = configValue;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httpscertfile cannot be empty.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpscertfile.  String value expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
+function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'httpskeyfile';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'string')
+  {
+    if (configValue)
+    {
+      siteConfig.httpsKeyfile = configValue;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httpskeyfile cannot be empty.`);
+      soFarSoGood = false;
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpskeyfile.  String value expected.');
     soFarSoGood = false;
   }
 
@@ -2710,7 +2766,9 @@ if (readSuccess)
             'mimetypes',
             'jscpextensionrequired',
             'httppoweredbyheader',
-            'enablehttps'
+            'enablehttps',
+            'httpscertfile',
+            'httpskeyfile'
           ];
 
           const requiredKeysNotFound = [];
@@ -2718,8 +2776,9 @@ if (readSuccess)
           let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
 
           let soFarSoGood = !!processedConfigJSON;
+          let parseHttpsCertResult = false;
+          let parseHttpsKeyResult = false;
 
-          // hostname
           if (soFarSoGood)
           {
             soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound);
@@ -2729,7 +2788,32 @@ if (readSuccess)
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = enableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parseEnableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            
+            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
+            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
+          }
+
+          let fileMissingIndex = requiredKeysNotFound.indexOf('httpscertfile');
+          if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
+          {
+            soFarSoGood = soFarSoGood && parseHttpsCertResult;
+          }
+          else
+          {
+            // Certs file entry does not exist, let's ignore this since https is not enabled.
+            requiredKeysNotFound.splice(fileMissingIndex, 1);
+          }
+
+          fileMissingIndex = requiredKeysNotFound.indexOf('httpskeyfile');
+          if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
+          {
+            soFarSoGood = soFarSoGood && parseHttpsKeyResult;
+          }
+          else
+          {
+            // Key file entry does not exist, let's ignore this since https is not enabled.
+            requiredKeysNotFound.splice(fileMissingIndex, 1);
           }
 
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
@@ -2987,7 +3071,7 @@ serverConfig.sites.forEach((site) =>
   else
   {
     const { name: siteName } = site;
-    delete allReadySiteNames[allReadySiteNames.indexOf(siteName)];
+    allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
 
     console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
     allFailedSiteNames.push(siteName);

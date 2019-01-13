@@ -8,6 +8,8 @@ Address the //__RP
 
 HTTPS on already assigned port? Throw warning.
 
+When starting the server, report whether HTTPS is enabled.
+
 Create unique servers based on port and https.
  - Don't mix two protocols, http/https, with the same port.
 
@@ -32,6 +34,7 @@ Documentation:
     - As the matter of fact, I wonder if there is a way to detect them when the server starts and emit a warning if they are attempted to be used (by comparing them with a hash?) And only if https is attempted to be used.
     - Direct users to nodejs documentation on how to generate their own certs.
   - Disclaimer: very basic https implementation.  Something more robust/more exhaustive might be implenented in a future version.
+  - httpsCertFile and httpsKeyFile are required if enableHTTPS is true.  Otherwise, they can be omited (BUT if included, their values must be valid; e.g., not empty string).
 
 HTTPS?
  - Thorough documentation to do this.
