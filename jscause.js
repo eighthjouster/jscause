@@ -7,7 +7,7 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
-//const http = require('http');
+const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const fsPath = require('path');
@@ -17,6 +17,7 @@ const crypto = require('crypto');
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
 const JSCAUSE_SITES_PATH = 'sites';
+const JSCAUSE_CERTS_PATH = 'certs';
 const JSCAUSE_WEBSITE_PATH = 'website';
 const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
@@ -74,12 +75,6 @@ if (!allVendorModulesLoaded)
 }
 
 templateFile = undefined; // Done with all the vendor module loading.
-
-const httpsOptions = {
-  key: fs.readFileSync('sites/mysite/configuration/certs/jscause-key.pem'),
-  cert: fs.readFileSync('sites/mysite/configuration/certs/jscause-cert.pem')
-};
-
 
 const RUNTIME_ROOT_DIR = process.cwd();
 
@@ -1639,9 +1634,33 @@ function incomingRequestHandler(req, res)
   })
 }
 
+function runWebServer(runningServer, serverPort)
+{
+  const { webServer, serverName, sites } = runningServer;
+  webServer.on('request', incomingRequestHandler);
+
+  webServer.on('error', (e) =>
+  {
+    console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} could not start listening on port ${serverPort}.`)
+    console.error(`${TERMINAL_ERROR_STRING}: Error returned by the server follows:`)
+    console.error(`${TERMINAL_ERROR_STRING}: ${e.message}`);
+    console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} (port: ${serverPort}) not started.`);
+    Object.values(sites).forEach((site) =>
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: - Site ${getSiteNameOrNoName(site.name)} not started.`);
+    });
+  });
+
+  webServer.listen(serverPort, () =>
+  {
+    console.log(`${TERMINAL_INFO_STRING}: Server ${serverName} listening on port ${serverPort}`);
+  });
+}
+
 function startServer(siteConfig)
 {
-  const serverPort = siteConfig.port;
+  const { port: serverPort, fullSitePath } = siteConfig;
+  let result = true;
 
   let runningServer = runningServers[serverPort];
   let webServer;
@@ -1655,41 +1674,61 @@ function startServer(siteConfig)
   {
     serverName = Object.keys(runningServers).length.toString();
 
-    //webServer = http.createServer();
-    webServer = https.createServer(httpsOptions);
-
     runningServer =
     {
       serverName,
-      server: webServer,
       sites: {}
     };
 
-    webServer.on('request', incomingRequestHandler);
-
-    webServer.on('error', (e) =>
+    if (siteConfig.enableHTTPS)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} could not start listening on port ${serverPort}.`)
-      console.error(`${TERMINAL_ERROR_STRING}: Error returned by the server follows:`)
-      console.error(`${TERMINAL_ERROR_STRING}: ${e.message}`);
-      console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} (port: ${serverPort}) not started.`);
-      Object.values(runningServer.sites).forEach((site) =>
+      const certsPath = fsPath.join(fullSitePath, JSCAUSE_CONF_PATH, JSCAUSE_CERTS_PATH);
+      let sslKey;
+      let sslCert; //__RP
+
+      const keyFileName = 'jscause-key.pem';
+
+      try
       {
-        console.error(`${TERMINAL_ERROR_STRING}: - Site ${getSiteNameOrNoName(site.name)} not started.`);
-      });
-    });
+        sslKey = fs.readFileSync(fsPath.join(certsPath, keyFileName)); //__RP
+      }
+      catch(e)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot find '${keyFileName}' SSL key file.`);
+        result = false;
+      }
 
-    webServer.listen(serverPort, () =>
+      if (sslKey)
+      {
+        const httpsOptions =
+        {
+          key: sslKey,
+          cert: fs.readFileSync(fsPath.join(certsPath, 'jscause-cert.pem')), //__RP
+        };
+        webServer = https.createServer(httpsOptions);
+      }
+    }
+    else
     {
-      console.log(`${TERMINAL_INFO_STRING}: Server ${serverName} listening on port ${serverPort}`);
-    });
-
-    runningServers[serverPort] = runningServer;
+      webServer = http.createServer();
+    }
+    
+    if (webServer)
+    {
+      runningServer.webServer = webServer;
+      runWebServer(runningServer, serverPort);
+      runningServers[serverPort] = runningServer;
+    }
   }
 
   runningServer.sites[siteConfig.hostName] = siteConfig;
 
-  console.log(`${TERMINAL_INFO_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
+  if (result)
+  {
+    console.log(`${TERMINAL_INFO_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
+  }
+
+  return result;
 }
 
 function readConfigurationFile(name, path = '.')
@@ -2929,8 +2968,18 @@ allSiteNames = null;
 serverConfig.sites = allSiteConfigs || [];
 serverConfig.sites.forEach((site) =>
 {
-  startServer(site);
-  atLeastOneSiteStarted = true;
+  if (startServer(site))
+  {
+    atLeastOneSiteStarted = true;
+  }
+  else
+  {
+    const { name: siteName } = site;
+    delete allReadySiteNames[allReadySiteNames.indexOf(siteName)];
+
+    console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
+    allFailedSiteNames.push(siteName);
+  }
 });
 
 console.log(`${TERMINAL_INFO_STRING}: ************ All sites' configuration read at this point ********************`);
