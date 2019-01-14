@@ -7,6 +7,6 @@
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
   "enableHTTPS": true,
-  "httpsCertfile": "jscause-cert.pem",
-  "httpsKeyfile": "jscause-key.pem"
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem"
 }

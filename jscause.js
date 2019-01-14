@@ -1661,7 +1661,7 @@ function runWebServer(runningServer, serverPort)
 
 function startServer(siteConfig)
 {
-  const { port: serverPort, fullSitePath } = siteConfig;
+  const { port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName } = siteConfig;
   let result = true;
 
   let runningServer = runningServers[serverPort];
@@ -1682,14 +1682,11 @@ function startServer(siteConfig)
       sites: {}
     };
 
-    if (siteConfig.enableHTTPS)
+    if (enableHTTPS)
     {
       const certsPath = fsPath.join(fullSitePath, JSCAUSE_CONF_PATH, JSCAUSE_CERTS_PATH);
       let sslKey;
       let sslCert;
-
-      const keyFileName = 'jscause-key.pem'; //__RP
-      const certFileName = 'jscause-cert.pem'; //__RP
 
       try
       {
@@ -2383,7 +2380,7 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
   {
     if (configValue)
     {
-      siteConfig.httpsKeyfile = configValue;
+      siteConfig.httpsKeyFile = configValue;
     }
     else
     {

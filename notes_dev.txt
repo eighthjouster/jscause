@@ -2,7 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Specify key and cert files on site config.
+Deal with:
+  const keyFileName = 'jscause-key.pem'; //__RP
+  const certFileName = 'jscause-cert.pem'; //__RP
 
 Address the //__RP
 
