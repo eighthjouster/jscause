@@ -1661,7 +1661,7 @@ function runWebServer(runningServer, serverPort)
 
 function startServer(siteConfig)
 {
-  const { port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName } = siteConfig;
+  const { name: siteName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName } = siteConfig;
   let result = true;
 
   let runningServer = runningServers[serverPort];
@@ -1694,7 +1694,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot read '${keyFileName}' SSL key file.`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot read '${keyFileName}' SSL key file.`);
         result = false;
       }
 
@@ -1704,7 +1704,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)}: Cannot read '${certFileName}' SSL cert file.`);
+        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot read '${certFileName}' SSL cert file.`);
         result = false;
       }
 
@@ -1736,7 +1736,7 @@ function startServer(siteConfig)
 
   if (result)
   {
-    console.log(`${TERMINAL_INFO_STRING}: Site ${getSiteNameOrNoName(siteConfig.name)} at http://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
+    console.log(`${TERMINAL_INFO_STRING}: Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
   }
 
   return result;
@@ -1850,8 +1850,8 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
 
 function createInitialSiteConfig(siteInfo)
 {
-  const { name, port, rootdirectoryname: rootDirectoryName } = siteInfo;
-  return Object.assign({}, defaultSiteConfig, { name, port, rootDirectoryName });
+  const { name, port, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS } = siteInfo;
+  return Object.assign({}, defaultSiteConfig, { name, port, rootDirectoryName, enableHTTPS });
 }
 
 function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound)
@@ -2324,25 +2324,6 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
   return soFarSoGood;
 }
 
-function parseEnableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound)
-{
-  let soFarSoGood = true;
-  const configKeyName = 'enablehttps';
-  const configValue = processedConfigJSON[configKeyName];
-
-  if (typeof(configValue) === 'boolean')
-  {
-    siteConfig.enableHTTPS = configValue;
-  }
-  else
-  {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid enablehttps.  Boolean expected.');
-    soFarSoGood = false;
-  }
-
-  return soFarSoGood;
-}
-
 function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
 {
   let soFarSoGood = true;
@@ -2682,7 +2663,8 @@ if (readSuccess)
   [
     'name',
     'port',
-    'rootdirectoryname'
+    'rootdirectoryname',
+    'enablehttps'
   ];
   
   const allSitesInServerLength = allSitesInServer.length;
@@ -2699,7 +2681,7 @@ if (readSuccess)
     {
       const siteConfig = createInitialSiteConfig(thisServerSite);
 
-      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
+      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
 
       if (siteName)
       {
@@ -2763,7 +2745,6 @@ if (readSuccess)
             'mimetypes',
             'jscpextensionrequired',
             'httppoweredbyheader',
-            'enablehttps',
             'httpscertfile',
             'httpskeyfile'
           ];
@@ -2785,7 +2766,6 @@ if (readSuccess)
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseEnableHTTPS(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             
             parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
             parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
@@ -2820,36 +2800,49 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          const currentSiteName = siteConfig.name;
-          const currentSiteHostName = siteConfig.hostName.toLowerCase();
-          const currentSitePort = siteConfig.port;
-          const currentRootDirectoryName = siteConfig.rootDirectoryName.toLowerCase();
-          const currentTempWorkDirectory = siteConfig.tempWorkDirectory;
-          
-          allConfigCombos.every((combo) =>
+          const
+            {
+              name: currentSiteName,
+              port: currentSitePort,
+              enableHTTPS: currentEnableHTTPS,
+              hostName,
+              rootDirectoryName
+            } = siteConfig;
+          const currentSiteHostName = hostName.toLowerCase();
+          const currentRootDirectoryName = rootDirectoryName.toLowerCase();
+          allConfigCombos.forEach((combo) =>
           {
             if (currentSitePort === combo.port)
             {
+              if (currentEnableHTTPS)
+              {
+                readSuccess = combo.enableHTTPS;
+                if (readSuccess)
+                {
+                  console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                }
+                else
+                {
+                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                }
+              }
+              else if (combo.enableHTTPS)
+              {
+                console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+              }
+              
               if (currentSiteHostName === combo.hostName.toLowerCase())
               {
                 console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
                 readSuccess = false;
               }
-              else if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
+              
+              if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
                 console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`);
                 readSuccess = false;
               }
             }
-
-            if ((currentTempWorkDirectory === combo.tempWorkDirectory) &&
-                (currentSiteHostName !== combo.hostName))
-            {
-              console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} share the same upload directory:`);
-              console.warn(`${TERMINAL_INFO_WARNING}: - ${currentTempWorkDirectory}`);
-            }
-
-            return readSuccess;
           });
 
           if (readSuccess)
@@ -2859,7 +2852,8 @@ if (readSuccess)
               port: siteConfig.port,
               name: siteConfig.name,
               rootDirectoryName: siteConfig.rootDirectoryName,
-              tempWorkDirectory: siteConfig.tempWorkDirectory
+              tempWorkDirectory: siteConfig.tempWorkDirectory,
+              enableHTTPS: siteConfig.enableHTTPS
             });
           }
         }
