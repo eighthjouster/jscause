@@ -122,6 +122,7 @@ Or this:
     - Notice that if overwrite is false and a file exists, the error thrown is not native, but it tries to mimmick what copyFile does as much as possible.  The 'errno' attribute won't be available.  This is because POSIX rename will always overwrite.  We had to check for file existence first.
   - rt.deleteFile(path).
   - rt.fileExists(path).  rtOnSuccess is called if file exists.  rtOnError otherwise.  It is advised that the error be examined.  Typically, err.code should be 'ENOENT'.
+  - rt.getCurrentPath() will yield the request's path without the resource (file name) portion.  So, if the request is /some/directory/hello.jscp, rt.getCurrentPath() will return '/some/directory'.
 - Notice that if there is an error inside .rtOnSuccess(), the code will not jump to .rtOnError(), as these only deal with the original corresponding operation.  JSCause will emit a typical error (you can trap it with try() catch{} though.)
 - Filesystem - URL mapping:
   - Folders (directories) are allowed.
@@ -247,10 +248,11 @@ rt.setCookies(name, value, options)
 options can be:
  - expires: expiration date as a Date object. If a date is not passed, a runtime exception will be thrown.
  - maxAge: expiration in milliseconds from date of creation (if both expires and maxAge are provided,  - expires is used.)
- - secure (boolean.)
- - httpOnly (boolean.)
- - path (string.)
+ - secure (boolean. Will throw exception if set to true in a non-HTTPS request.)
+ - httpOnly (boolean. True by default.)
+ - path (string. '/' by default.)
  - domain (string.)
+ - You could always wrap rt.setCookies() in a try/catch block if you don't want it to trigger error 500.  But do always check for exceptions!
 
 On regards of 'this':
 =====================

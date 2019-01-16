@@ -31,12 +31,13 @@ if (rt.postParams['submitIt'])
 
 rt.runAfter(() => {
   rt.print('Love it.');
+  rt.print(rt.getCurrentPath());
   rt.print(rt.getCookie('aTest'));
   rt.setCookie('aTest', 'hello', {
     expires: new Date('2020-01-15'),
     maxAge: false,
     httpOnly: true,
-    secure: false
+    secure: true
   });
 });
 

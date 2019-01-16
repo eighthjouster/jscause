@@ -968,10 +968,14 @@ function makeRTPromise(rtContext, rtPromise)
 
 function createRunTime(rtContext)
 {
-  const { getParams, postParams, contentType,
-    requestMethod, uploadedFiles, additional, jsCookies } = rtContext;
+  const { runFileName, getParams, postParams, contentType,
+    requestMethod, uploadedFiles, additional, jsCookies, reqObject = {} } = rtContext;
 
-  return {
+  const pathCheck = runFileName.match(/(.*)\/.*\.jscp$/);
+  const currentPath = pathCheck && pathCheck[1] || '/';
+
+  return Object.freeze({
+    getCurrentPath() { return currentPath; },
     unsafePrint(output = '') { rtContext.outputQueue.push(output); },
     print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); },
     header(nameOrObject, value)
@@ -1109,21 +1113,24 @@ function createRunTime(rtContext)
     },
     setCookie(cookieName = '', value = '', options)
     {
-      let { expires, maxAge, httpOnly, secure, path, domain } = options;
+      let { expires, maxAge, httpOnly = true, secure, path = '/', domain } = options;
+
+      const { encrypted: isEncryptedConnection } = reqObject.connection || {};
+
+      if (secure &!isEncryptedConnection)
+      {
+        throw(new Error('Cookie is secure but the connection is not HTTPS.'));
+      }
 
       if ((typeof(expires) !== 'object') || !(expires instanceof Date))
       {
-        const rtError = new Error('Invalid expired value.  Date object expected.');
-        throw(rtError);
+        throw(new Error('Invalid expired value.  Date object expected.'));
       }
 
       if (maxAge && expires)
       {
         expires = undefined;
       }
-
-      console.log(rtContext.reqObject.connection.secure);//__RP
-      console.log(rtContext.reqObject.connection.encrypted);//__RP
 
       try
       {
@@ -1149,7 +1156,7 @@ function createRunTime(rtContext)
     requestMethod,
     uploadedFiles,
     additional
-  };
+  });
 }
 
 function extractErrorFromCompileObject(e)
