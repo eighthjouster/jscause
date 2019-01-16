@@ -36,7 +36,8 @@ rt.runAfter(() => {
     expires: new Date('2020-01-15'),
     maxAge: false,
     httpOnly: true,
-    secure: false
+    secure: false,
+    sameSite: 'lax'
   });
 });
 

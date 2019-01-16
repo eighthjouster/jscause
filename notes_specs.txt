@@ -250,8 +250,9 @@ options can be:
  - maxAge: expiration in milliseconds from date of creation (if both expires and maxAge are provided,  - expires is used.)
  - secure (boolean. Will throw exception if set to true in a non-HTTPS request.)
  - httpOnly (boolean. True by default.)
- - path (string. '/' by default.)
+ - path (string. '/' by default. Use rt.getCurrentPath() if you want to set the cookie for the request (current) path.)
  - domain (string.)
+ - sameSite (string.) 'lax' (default) or 'strict'.  Any other value will throw an exception.
  - You could always wrap rt.setCookies() in a try/catch block if you don't want it to trigger error 500.  But do always check for exceptions!
 
 On regards of 'this':

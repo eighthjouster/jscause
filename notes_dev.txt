@@ -3,29 +3,23 @@ git bundle create jscause-.bundle devel
 =====
 
 Keep implementing and handling set cookie errors:
-  - sameSite? - experimental, but implement anyway.
-    - And document.  Document that is not well-tested.
   - Can these be optional?
     - Sensible defaults?
       - Check how the cookie is created with default (missing) options.
+      - Throw invalid value types and harden as necessary.
 
 Before continuing, check that the value types are valid for each option.
 And what about the value of the actual cookie?  It should error if something other than string.
 Max size?
  - What do the MDN docs say?
 
-To add to the Cookie documentation:
- - If you want to set path to the current path, (TO-DO: HOW TO DO THIS VIA JSCAUSE?)
-
 Cookies?
   - Deleting?
     - What options (and defaults) should this take?
  - And document:
-   - String names only.  No integers, objects, etc.
-   - Secure cookies over non-HTTPS are not allowed.  An exception will be thrown.
-   - The default cookie path is '/'.  Use rt.getCurrentPath() if you want to set the cookie for the request (current) path.
+   - String names only.  No integers, objects, etc. (Will this throw an exception otherwise?)
 
-Test thoroughly.  Esp. with forms and POSTs (with json).
+Test cookies thoroughly.  Esp. with forms and POSTs (with json).
 
 At this point, back up.
 

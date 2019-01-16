@@ -1113,23 +1113,28 @@ function createRunTime(rtContext)
     },
     setCookie(cookieName = '', value = '', options)
     {
-      let { expires, maxAge, httpOnly = true, secure, path = '/', domain } = options;
+      let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite = 'lax' } = options;
 
       const { encrypted: isEncryptedConnection } = reqObject.connection || {};
 
       if (secure &!isEncryptedConnection)
       {
-        throw(new Error('Cookie is secure but the connection is not HTTPS.'));
+        throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send'));
       }
 
       if ((typeof(expires) !== 'object') || !(expires instanceof Date))
       {
-        throw(new Error('Invalid expired value.  Date object expected.'));
+        throw(new Error('Invalid expired value.  Date object expected'));
       }
 
       if (maxAge && expires)
       {
         expires = undefined;
+      }
+
+      if ((sameSite !== 'strict') && (sameSite !== 'lax'))
+      {
+        throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected'));
       }
 
       try
@@ -1140,7 +1145,8 @@ function createRunTime(rtContext)
           httpOnly,
           secure,
           path,
-          domain
+          domain,
+          sameSite
         });
       }
       catch(e)
