@@ -3,11 +3,22 @@ git bundle create jscause-.bundle devel
 =====
 
 Keep implementing and handling set cookie errors:
-  - Can these be optional?
-    - Sensible defaults?
-      - Check how the cookie is created with default (missing) options.
-      - Throw invalid value types and harden as necessary.
-
+- Sensible defaults?
+  - Check how the cookie is created with default (missing) options.
+  - Throw invalid value types and harden as necessary:
+    - Done with names.  On to parameters (and revise documentation!):
+      *- expires - done.
+      +-httpOnly: Default value tested and documented.  Now test invalid values (and document.)
+      +-path: It can be optional.  What would be the default path, then? Test with browsers.
+      - maxAge
+        This is what the docs says in regards of maxAge and expires:
+        - (if both expires and maxAge are provided, expires is used.)
+          - But the code states the contrary.  Which one should be used?  Test with browsers again (both Firefox and Chrome.)
+      - secure
+      - domain: test with browsers.
+      - sameSite: I know it can be optional.  What else?
+      - Now test invalid values (and document.)
+ 
 Before continuing, check that the value types are valid for each option.
 And what about the value of the actual cookie?  It should error if something other than string.
 Max size?

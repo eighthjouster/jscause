@@ -1111,9 +1111,15 @@ function createRunTime(rtContext)
     {
       return (cookieName && (typeof(cookieName) === 'string')) ? jsCookies.get(cookieName || '') : '';
     },
-    setCookie(cookieName = '', value = '', options)
+    setCookie(cookieName = '', value = '', options = {})
     {
-      let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite = 'lax' } = options;
+      if (!cookieName && (cookieName !== '0'))
+      {
+        return false;
+      }
+
+      let result = false;
+      let { expires, maxAge, httpOnly = true, secure, path, domain, sameSite } = options;
 
       const { encrypted: isEncryptedConnection } = reqObject.connection || {};
 
@@ -1122,7 +1128,7 @@ function createRunTime(rtContext)
         throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send'));
       }
 
-      if ((typeof(expires) !== 'object') || !(expires instanceof Date))
+      if (expires && ((typeof(expires) !== 'object') || !(expires instanceof Date)))
       {
         throw(new Error('Invalid expired value.  Date object expected'));
       }
@@ -1132,14 +1138,14 @@ function createRunTime(rtContext)
         expires = undefined;
       }
 
-      if ((sameSite !== 'strict') && (sameSite !== 'lax'))
+      if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
       {
         throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected'));
       }
 
       try
       {
-        jsCookies.set(cookieName, value, {
+        jsCookies.set(cookieName, value || '', {
           expires,
           maxAge,
           httpOnly,
@@ -1148,6 +1154,7 @@ function createRunTime(rtContext)
           domain,
           sameSite
         });
+        result = true;
       }
       catch(e)
       {
@@ -1155,6 +1162,8 @@ function createRunTime(rtContext)
         // (Otherwise, the line number shown will be that of the cookies compiled module.)
         throw(new Error(e));
       }
+
+      return result;
     },
     getParams,
     postParams,
