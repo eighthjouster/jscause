@@ -1135,7 +1135,7 @@ function createRunTime(rtContext)
 
       if (maxAge && expires)
       {
-        expires = undefined;
+        maxAge = undefined;
       }
 
       if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
@@ -1148,7 +1148,7 @@ function createRunTime(rtContext)
         jsCookies.set(cookieName, value || '', {
           expires,
           maxAge,
-          httpOnly,
+          httpOnly: !!httpOnly,
           secure,
           path,
           domain,

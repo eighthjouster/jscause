@@ -34,13 +34,11 @@ rt.runAfter(() => {
   rt.print('Love it.');
   rt.print(rt.getCurrentPath());
   rt.print(rt.getCookie('42'));
- result = rt.setCookie('aTest2');
- result = rt.setCookie('aTest', 'hello', {
-  expires: new Date('2020-01-15'),
-  maxAge: false,
-  httpOnly: true,
-  secure: false
-});
+  result = rt.setCookie('aTest', 'hello', {
+    maxAge: 10000,
+    httpOnly: false,
+    secure: false
+  });
   rt.print(result ? 'cookie set!' : 'cookie not set');
 });
 
