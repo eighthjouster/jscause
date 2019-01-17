@@ -248,7 +248,7 @@ rt.setCookies(name, value, options) - returns true if successful.
 name and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its comma-separated values.
 options can be:
  - expires: expiration date as a Date object. Optional (if so, the cookie will last as long as the current browser session lasts).  If a value is passed, it must be a date object; otherwise a runtime exception will be thrown.
- - maxAge: expiration in milliseconds from date of creation. Optional.  If both 'expires' and 'maxAge' are provided, 'expires' is used.
+ - maxAge: expiration in milliseconds from date of creation. Optional.  Must be number or it will be ignored.  If both 'expires' and 'maxAge' are provided, 'expires' is used.
  - secure: Optional. Boolean. Will throw exception if set to true in a non-HTTPS request.
  - httpOnly: Optional. Boolean or equivalent truthy/falsy value. True by default.
  - path: Optional. String. Use rt.getCurrentPath() if you want to set the cookie for the request (current) path.

@@ -1133,7 +1133,7 @@ function createRunTime(rtContext)
         throw(new Error('Invalid expired value.  Date object expected'));
       }
 
-      if (maxAge && expires)
+      if (maxAge && (expires || (typeof(maxAge) !== 'number')))
       {
         maxAge = undefined;
       }

@@ -9,7 +9,7 @@ Keep implementing and handling set cookie errors:
     - Done with names.  On to parameters (and revise documentation!):
       *- expires - done.
       *-httpOnly - done.
-      +- maxAge: test invalid values.  Document.
+      *- maxAge - done.
       +-path: It can be optional.  What would be the default path, then? Test with browsers.
       - secure
       - domain: test with browsers.

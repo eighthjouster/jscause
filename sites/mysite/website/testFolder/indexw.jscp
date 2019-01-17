@@ -35,8 +35,7 @@ rt.runAfter(() => {
   rt.print(rt.getCurrentPath());
   rt.print(rt.getCookie('42'));
   result = rt.setCookie('aTest', 'hello', {
-    maxAge: 10000,
-    httpOnly: false,
+    path: 'perro',
     secure: false
   });
   rt.print(result ? 'cookie set!' : 'cookie not set');
