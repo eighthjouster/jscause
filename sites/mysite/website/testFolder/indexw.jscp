@@ -34,9 +34,8 @@ rt.runAfter(() => {
   rt.print('Love it.');
   rt.print(rt.getCurrentPath());
   rt.print(rt.getCookie('42'));
-  result = rt.setCookie('aTest', 'hello', {
-    path: 'perro',
-    secure: false
+  result = rt.setCookie('aTest', 'ñññ', {
+    sameSite: 'heh'
   });
   rt.print(result ? 'cookie set!' : 'cookie not set');
 });

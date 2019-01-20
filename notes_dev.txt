@@ -6,15 +6,8 @@ Keep implementing and handling set cookie errors:
 - Sensible defaults?
   - Check how the cookie is created with default (missing) options.
   - Throw invalid value types and harden as necessary:
-    - Done with names.  On to parameters (and revise documentation!):
-      *- expires - done.
-      *-httpOnly - done.
-      *- maxAge - done.
-      +-path: It can be optional.  What would be the default path, then? Test with browsers.
-      - secure
-      - domain: test with browsers.
-      - sameSite: I know it can be optional.  What else?
-      - Now test invalid values (and document.)
+    - Now test invalid values (and document.)
+      - Uh, oh, characters like ñ are not encoded correctly.  This happens in 'path' as well (what other options? domain and what else?).  Fix this.  Or read about it, at least.
  
 Before continuing, check that the value types are valid for each option.
 And what about the value of the actual cookie?  It should error if something other than string.
@@ -36,6 +29,8 @@ Redirects?
 Server logging?
  - Access and errors.
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
+
+Formalize the documentation.
 
 Publish alpha version here.
  - Indicate what dependencies you're using (per MIT's license?).

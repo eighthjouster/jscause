@@ -1119,7 +1119,7 @@ function createRunTime(rtContext)
       }
 
       let result = false;
-      let { expires, maxAge, httpOnly = true, secure, path, domain, sameSite } = options;
+      let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite } = options;
 
       const { encrypted: isEncryptedConnection } = reqObject.connection || {};
 
