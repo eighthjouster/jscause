@@ -2,21 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Keep implementing and handling set cookie errors:
-- Sensible defaults?
-  - Check how the cookie is created with default (missing) options.
-  - Throw invalid value types and harden as necessary:
-    - Now test invalid values (and document.)
-      - Uh, oh, characters like ñ are not encoded correctly.  This happens in 'path' as well (what other options? domain and what else?).  Fix this.  Or read about it, at least.
- 
-Before continuing, check that the value types are valid for each option.
-And what about the value of the actual cookie?  It should error if something other than string.
-Max size?
- - What do the MDN docs say?
-
 Cookies?
   - Deleting?
     - What options (and defaults) should this take?
+     - Remember to URI-encode the value.
  - And document:
    - String names only.  No integers, objects, etc. (Will this throw an exception otherwise?)
 

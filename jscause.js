@@ -1107,23 +1107,38 @@ function createRunTime(rtContext)
         return require(modulePath);
       }
     },
-    getCookie(cookieName = '')
+    getCookie(cookieName = '', options = {})
     {
-      return (cookieName && (typeof(cookieName) === 'string')) ? jsCookies.get(cookieName || '') : '';
+      const { decodeURIValue = true } = options;
+      let value = '';
+      if (typeof(cookieName) === 'string')
+      {
+        if (decodeURIValue)
+        {
+          value = decodeURIComponent(jsCookies.get(encodeURIComponent(cookieName)) || '');
+        }
+        else
+        {
+          value = jsCookies.get(encodeURIComponent(cookieName)) || '';
+        }
+      }
+
+      return value;
     },
     setCookie(cookieName = '', value = '', options = {})
     {
-      if (!cookieName && (cookieName !== '0'))
+      if (typeof(cookieName) !== 'string')
       {
         return false;
       }
 
       let result = false;
-      let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite } = options;
+      let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite, encodeURIValue = true } = options;
 
-      const { encrypted: isEncryptedConnection } = reqObject.connection || {};
+      const { connection = {}, protocol } = reqObject;
+      const { encrypted: isEncryptedConnection } = connection || {};
 
-      if (secure &!isEncryptedConnection)
+      if (secure && !((protocol === 'https') || isEncryptedConnection))
       {
         throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send'));
       }
@@ -1141,6 +1156,12 @@ function createRunTime(rtContext)
       if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
       {
         throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected'));
+      }
+
+      cookieName = encodeURIComponent(cookieName);
+      if (encodeURIValue)
+      {
+        value = encodeURIComponent(value);
       }
 
       try

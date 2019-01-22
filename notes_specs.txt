@@ -243,18 +243,21 @@ Static files:
 Cookies:
 ========
 
-rt.getCookies(name)
-rt.setCookies(name, value, options) - returns true if successful.
-name, path and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its values comma-separated.
+rt.getCookie(name, options)
+rt.setCookie(name, value, options) - returns true if successful.
+name, domain, path and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its values comma-separated.
+name is always URI-encoded before the cookie is stored.
 options can be:
  - expires: expiration date as a Date object. Optional (if so, the cookie will last as long as the current browser session lasts).  If a value is passed, it must be a date object; otherwise a runtime exception will be thrown.
  - maxAge: expiration in milliseconds from date of creation. Optional.  Must be number or it will be ignored.  If both 'expires' and 'maxAge' are provided, 'expires' is used.
  - secure: Optional. Boolean.  Accepts any value which is then converted to boolean.  Will throw exception if set to true in a non-HTTPS request.
  - httpOnly: Optional. Boolean or equivalent truthy/falsy value. True by default.
  - path: Optional. String. '/' by default.  Use rt.getCurrentPath() if you want to set the cookie for the request (current) path.  Use 'null' if you want to omit setting up a path completely (this could change in the future, though.)
- - domain: String. No default, per the cookies specs.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.
+ - domain: String. No default, per the cookies specs.
  - sameSite: Optional. String. 'lax' or 'strict'.  Any other value will throw an exception.
- - You could always wrap rt.setCookies() in a try/catch block if you don't want it to trigger error 500.  But do always check for exceptions!
+ - You could always wrap rt.setCookie() in a try/catch block if you don't want it to trigger error 500.  But do always check for exceptions!
+ - For setCookie:  encodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-encoded before being stored.
+ - For getCookie:  decodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-decoded before being returned.
 
 On regards of 'this':
 =====================

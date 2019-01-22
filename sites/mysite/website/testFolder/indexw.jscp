@@ -31,12 +31,10 @@ if (rt.postParams['submitIt'])
 
 rt.runAfter(() => {
   let result = false;
-  rt.print('Love it.');
-  rt.print(rt.getCurrentPath());
-  rt.print(rt.getCookie('42'));
-  result = rt.setCookie('aTest', 'ñññ', {
-    sameSite: 'heh'
-  });
+  rt.print('Love it.'); /js><br /><js
+  rt.print(rt.getCurrentPath()); /js><br /><js
+  rt.print(rt.getCookie('ño3')); /js><br /><js
+  result = rt.setCookie('ño3', 'español2', { path: '/testFolder/indexw' });
   rt.print(result ? 'cookie set!' : 'cookie not set');
 });
 
