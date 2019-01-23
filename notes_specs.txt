@@ -245,7 +245,9 @@ Cookies:
 
 rt.getCookie(name, options)
 rt.setCookie(name, value, options) - returns true if successful.
-name, domain, path and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its values comma-separated.
+rt.deleteCookie(name) - returns true if successful.
+name must be a string.  Otherwise getCookie() will return an empty string, and setCookie() and deleteCookie() will return false.
+domain, path and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its values comma-separated.
 name is always URI-encoded before the cookie is stored.
 options can be:
  - expires: expiration date as a Date object. Optional (if so, the cookie will last as long as the current browser session lasts).  If a value is passed, it must be a date object; otherwise a runtime exception will be thrown.

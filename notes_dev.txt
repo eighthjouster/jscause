@@ -2,17 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Cookies?
-  - Deleting?
-    - What options (and defaults) should this take?
-     - Remember to URI-encode the value.
- - And document:
-   - String names only.  No integers, objects, etc. (Will this throw an exception otherwise?)
-
-Test cookies thoroughly.  Esp. with forms and POSTs (with json).
-
-At this point, back up.
-
 Redirects?
 
 Server logging?

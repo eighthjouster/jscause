@@ -1186,6 +1186,31 @@ function createRunTime(rtContext)
 
       return result;
     },
+    deleteCookie(cookieName = '')
+    {
+      if (typeof(cookieName) !== 'string')
+      {
+        return false;
+      }
+
+      let result = false;
+
+      cookieName = encodeURIComponent(cookieName);
+
+      try
+      {
+        jsCookies.set(cookieName);
+        result = true;
+      }
+      catch(e)
+      {
+        // Throwing as new error, so the line number makes sense to the user.
+        // (Otherwise, the line number shown will be that of the cookies compiled module.)
+        throw(new Error(e));
+      }
+
+      return result;
+    },
     getParams,
     postParams,
     contentType,
