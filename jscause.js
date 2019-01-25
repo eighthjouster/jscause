@@ -1223,12 +1223,19 @@ function createRunTime(rtContext)
     },
     redirectTo(redirectUrl)
     {
-      Object.assign(rtContext.redirection,
-        {
-          willHappen: true,
-          httpStatusCode: 302,
-          location: redirectUrl
-        });
+      if (rtContext.runFileName === '/error4xx.jscp')
+      {
+        throw(new Error('Endless redirection detected.'));
+      }
+      else
+      {
+        Object.assign(rtContext.redirection,
+          {
+            willHappen: true,
+            httpStatusCode: 302,
+            location: redirectUrl
+          });
+      }
     },
     getParams,
     postParams,
@@ -1459,7 +1466,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
 
   const isTextTypeExpected = !!(acceptedContent.match(/,?text\/.+,?/) || contentType.match(/^text\/.+/));
 
-  const staticCode = staticFiles[runFileName];
+  const staticCode = staticFiles && staticFiles[runFileName];
   const staticCodeExists = (typeof(staticCode) !== 'undefined');
 
   if (isTextTypeExpected)

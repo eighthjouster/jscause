@@ -3,10 +3,13 @@ git bundle create jscause-.bundle devel
 =====
 
 Redirects?
+What about redirection wait time?
+ - A la location='2;url=http://example.com/'
+   - Is this valid?
+
  - Implemented via rt.redirectTo(), but test:
-   - How does it behave well in error 500?
-     - Should they happen in error4xx/error5xx.jscp?
      - Check for invalid values?
+
  - Implement rt.resetRedirectTo() (which just set rtContent.redirection.willHappen to false.)
    - And document.
 
