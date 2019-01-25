@@ -764,8 +764,18 @@ function doneWith(ctx, id, isCancellation)
       }
       else
       {
-        resObject.statusCode = statusCode;
-        resObject.end((ctx.outputQueue || []).join(''));
+        if (ctx.redirection.willHappen)
+        {
+          const { httpStatusCode, location } = ctx.redirection;
+          resObject.statusCode = httpStatusCode;
+          resObject.setHeader('Location', location);
+          resObject.end();
+        }
+        else
+        {
+          resObject.statusCode = statusCode;
+          resObject.end((ctx.outputQueue || []).join(''));
+        }
       }
     }
   }
@@ -1211,6 +1221,15 @@ function createRunTime(rtContext)
 
       return result;
     },
+    redirectTo(redirectUrl)
+    {
+      Object.assign(rtContext.redirection,
+        {
+          willHappen: true,
+          httpStatusCode: 302,
+          location: redirectUrl
+        });
+    },
     getParams,
     postParams,
     contentType,
@@ -1304,28 +1323,29 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
 
   const resContext =
   {
-    outputQueue: undefined,
-    runAfterQueue: undefined,
-    appHeaders: {},
-    reqObject: req,
-    resObject: res,
-    siteName,
-    waitForNextId: 1,
-    waitForQueue: {},
-    getParams: urlUtils.parse(req.url, true).query,
-    postParams,
-    runFileName,
-    requestMethod,
-    contentType,
-    uploadedFiles,
     additional,
-    fullSitePath,
-    statusCode: responseStatusCode || 200,
-    compileTimeError: false,
-    runtimeException: undefined,
-    staticFiles,
+    appHeaders: {},
     compiledFiles,
-    jsCookies
+    compileTimeError: false,
+    contentType,
+    fullSitePath,
+    getParams: urlUtils.parse(req.url, true).query,
+    jsCookies,
+    outputQueue: undefined,
+    postParams,
+    reqObject: req,
+    requestMethod,
+    resObject: res,
+    redirection: { willHappen: false },
+    runAfterQueue: undefined,
+    runFileName,
+    runtimeException: undefined,
+    siteName,
+    staticFiles,
+    statusCode: responseStatusCode || 200,
+    uploadedFiles,
+    waitForNextId: 1,
+    waitForQueue: {}
   };
 
   if (additional.jsonParseError)

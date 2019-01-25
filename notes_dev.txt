@@ -3,26 +3,28 @@ git bundle create jscause-.bundle devel
 =====
 
 Redirects?
+ - Implemented via rt.redirectTo(), but test:
+   - How does it behave well in error 500?
+     - Should they happen in error4xx/error5xx.jscp?
+     - Check for invalid values?
+ - Implement rt.resetRedirectTo() (which just set rtContent.redirection.willHappen to false.)
+   - And document.
+
+Redirect documentation so far:
+  - rt.redirectTo(url)
+  - The redirection will happen (be scheduled to run) when all the program gets executed (and all pending callbacks, e.g. from setTimeout and file operations, are run.)  If you don't like this, organize your code to avoid it.
+  - rt.resetRedirectTo() (no parameters.)
+    - No effect if no redirects are scheduled to happen.
 
 Server logging?
  - Access and errors.
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
-Formalize the documentation.
-
-Publish alpha version here.
- - Indicate what dependencies you're using (per MIT's license?).
-   - jscvendor folder.
-
 Databases.
  - Basic.
-
-Server-side rendering?
-  - For just-HTML-rendering: A way to render in-line before delivering HTML?
-    - If you consider the plugin model, this is where you lay the groundwork.
-  - For combined API calls: Deliver the state as a one-time payload?
-  - As a module/plugin?
-  - If this is too much, put it in the future version backlog.
+   - We'll use MariaDB.
+     - https://www.npmjs.com/package/mariadb
+       - Just 4 dependencies.
 
 Put in docs that a favicon.ico should be provided in the website root.
  - Put your own favicon.ico meanwhile.
@@ -49,6 +51,13 @@ At this point, divide up the engine into different files.
 Handling server termination gracefully? (with Ctrl+C and/or process TERM/KILL/etc signaling)
  - Perhaps it should indicate at least that the application/process was terminated?
 
+Formalize the documentation.
+ - Including some JSCause dev documentation (how to contribute, how to add new dependencies to JSCVendor, etc.)
+
+Publish 0.7.0a version here.
+ - Indicate what dependencies you're using (per MIT's license?).
+   - jscvendor folder.
+
 Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
  - Perhaps for future version.
    - Or outsource?
@@ -61,7 +70,7 @@ Remove these from /etc/hosts:
 127.0.0.1       jscausesite1
 127.0.0.1       jscausesite2
 
-Version 0.7b here!
+Version 0.7.1b here!
  - Upload to https://github.com/eighthjouster/jscause
  - Thanks to:
    - https://github.com/felixge/node-formidable   
@@ -75,9 +84,13 @@ Version 0.7b here!
 
 Order by priority:
 
-JSCVendor folder: Use the original files, but hack them from your code.
+rt.exit()? No waiting for setTimeouts and the like?
+ - Documentation:  If any callback-based operation scheduled, they will still happen but the JSCause won't wait for them. - Dangerous!
+   - Doable?  Consider it.  Future version.
+   - If you do this, maybe mention it in the redirection documentation (redirect then exit()).
 
 We use jscmFilesList to check that modules compile.  Perhaps we can still use this during runtime as well?  Maybe the 'require' function prototype can be modified so it used the compiled code if available ("compiledCode.call({}, runTime)" just like it's used in responder(), try/catch and all.)
+ - Isn't this happening already?
 
 Shouldn't we check if a randomly generated upload file name exists previously before using?
 
@@ -139,6 +152,12 @@ Uploading files:  When an upload form is submitted with no files specified, the 
   - Any way to avoid the creation of an unnecessary file?
 
 Plugins.  Something as easy as dropping as a folder in a /plugins folder.
+
+Server-side rendering?
+  - For just-HTML-rendering: A way to render in-line before delivering HTML?
+    - If you consider the plugin model, this is where you lay the groundwork.
+  - For combined API calls: Deliver the state as a one-time payload?
+  - As a module/plugin?
 
 JSCause modules.  They are regular npm modules, but certified with no external dependencies.
 
