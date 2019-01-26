@@ -2,26 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Redirects?
-What about redirection wait time?
- - A la location='2;url=http://example.com/'
-   - Is this valid?
-
- - Implemented via rt.redirectTo(), but test:
-     - Check for invalid values?
-
- - Implement rt.resetRedirectTo() (which just set rtContent.redirection.willHappen to false.)
-   - And document.
-
-Redirect documentation so far:
-  - rt.redirectTo(url)
-  - The redirection will happen (be scheduled to run) when all the program gets executed (and all pending callbacks, e.g. from setTimeout and file operations, are run.)  If you don't like this, organize your code to avoid it.
-  - rt.resetRedirectTo() (no parameters.)
-    - No effect if no redirects are scheduled to happen.
-
 Server logging?
  - Access and errors.
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
+
+At this point, back up.
 
 Databases.
  - Basic.

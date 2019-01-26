@@ -1,4 +1,5 @@
-rt.redirectTo('/');
+rt.redirectTo('/', 5);
+//rt.resetRedirectTo();
 setTimeout(rt.waitFor(() => { console.log('hello.'); }), 2000);
 const whatIsUp = rt.module('moduletest');
 whatIsUp(rt);
@@ -58,7 +59,7 @@ function doPost()
 }
 
 </script>
-<h1>COOOL 1</h1>
+<h1>COOOL W</h1>
 <a href="#" onclick="doPost()">Do post</a>.
 <p>This is a test.</p>
 <form method="post" enctype="multipart/form-data">

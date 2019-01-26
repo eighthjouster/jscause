@@ -261,7 +261,20 @@ options can be:
  - For setCookie:  encodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-encoded before being stored.
  - For getCookie:  decodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-decoded before being returned.
 
-On regards of 'this':
+Redirection:
+============
+
+- rt.redirectTo(url, [delayInSeconds])
+- The url should be a string.  Numbers will be interpreted as strings, and any other type will be converted to its .toString() equivalent.  undefined will be assumed as an empty string (notice that this could potentially create a infinite redirection loop!)
+- The redirection will happen (be scheduled to run) when all the program gets executed (and all pending callbacks, e.g. from setTimeout and file operations, are run.)  If you don't like this, organize your code to avoid it.
+- An optional delayInSeconds parameter can be provided.  In that case, the redirect will be delayed by that amount of seconds (counting from the time it is scheduled to run - see previous point.)  This value must be a number, otherwise it will be ignored.
+  - Notice that JSCause typically sets the Location header to do the redirect.  If delayInSeconds is provided and is valid, the 'Refresh' header will be used instead.  This is not a standard header, so not all browsers support it (most modern ones do, though.)
+- If more than one redirectTo() calls are made, only the last one will be taken into account.
+- rt.resetRedirectTo() (no parameters.)
+  - It will cancel any scheduled redirections.
+    - No effect if no redirects are scheduled to happen.
+
+In regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.
  - If you use setInterval(), you will see that the 'this' can be modified and its modified content will be available next time the callback is ran.  This is normal behavior.  That setInterval() is occurring inside the execution environment of the request that started it.

@@ -764,18 +764,26 @@ function doneWith(ctx, id, isCancellation)
       }
       else
       {
+        let showContents = true;
         if (ctx.redirection.willHappen)
         {
-          const { httpStatusCode, location } = ctx.redirection;
+          const { httpStatusCode, location, delay } = ctx.redirection;
           resObject.statusCode = httpStatusCode;
-          resObject.setHeader('Location', location);
-          resObject.end();
+          if (delay)
+          {
+            resObject.setHeader('Refresh', `${delay}; ${location}`);
+          }
+          else
+          {
+            resObject.setHeader('Location', location);
+            showContents = false;
+          }
         }
         else
         {
           resObject.statusCode = statusCode;
-          resObject.end((ctx.outputQueue || []).join(''));
         }
+        resObject.end(showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -1221,7 +1229,7 @@ function createRunTime(rtContext)
 
       return result;
     },
-    redirectTo(redirectUrl)
+    redirectTo(redirectUrl = '', delayInSeconds)
     {
       if (rtContext.runFileName === '/error4xx.jscp')
       {
@@ -1234,8 +1242,26 @@ function createRunTime(rtContext)
             willHappen: true,
             httpStatusCode: 302,
             location: redirectUrl
-          });
+          }
+        );
+
+        if (typeof(delayInSeconds) === 'number')
+        {
+          Object.assign(rtContext.redirection,
+            {
+              delay: delayInSeconds
+            }
+          );
+        }
       }
+    },
+    resetRedirectTo()
+    {
+      Object.assign(rtContext.redirection,
+        {
+          willHappen: false
+        }
+      );
     },
     getParams,
     postParams,
