@@ -4,6 +4,8 @@ git bundle create jscause-.bundle devel
 
 Server logging?
  - Access and errors.
+   - Must be a configuration.
+     - No configuration? No logging.  But a WARNING must be issued.
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 At this point, back up.
@@ -16,6 +18,7 @@ Databases.
 
 Put in docs that a favicon.ico should be provided in the website root.
  - Put your own favicon.ico meanwhile.
+   - Or at least test that it works as intended.
 
 Watch for and reload changes at this point (hot reloading.)
  - And only the site it's affected, leaving the rest intact. - If possible.

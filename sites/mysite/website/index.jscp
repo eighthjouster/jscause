@@ -1,4 +1,3 @@
-
 const whatIsUp = rt.module('moduletest');
 whatIsUp(rt);
 if (rt.postParams['submitIt'])

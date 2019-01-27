@@ -55,30 +55,39 @@ const MIME_TYPES = {
   '.svg': 'application/image/svg+xml; charset=utf-8'
 };
 
-const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
-let templateFile;
-let allVendorModulesLoaded = true;
-
-const cookies = vendor_require('./jscvendor/cookies');
-allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
-
-const formidable = vendor_require('./jscvendor/formidable');
-allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
-
-const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
-allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
-
-if (!allVendorModulesLoaded)
+const symbolsToSanitize =
 {
-  console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.`);
-  process.exit(1);
-}
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  '\'': '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
 
-templateFile = undefined; // Done with all the vendor module loading.
+const defaultSiteConfig =
+{
+  server: null,
+  name: '',
+  rootDirectoryName: '',
+  fullSitePath: '',
+  staticFiles: {},
+  compiledFiles: {},
+  hostName: undefined,
+  port: undefined,
+  tempWorkDirectory: null,
+  canUpload: true,
+  maxPayloadSizeBytes: undefined,
+  jscpExtensionRequired: 'optional',
+  includeHttpPoweredByHeader: true,
+  mimeTypes: {},
+  enableHTTPS: false,
+  httpsCertFile: undefined,
+  httpsKeyFile: undefined
+};
 
-const RUNTIME_ROOT_DIR = process.cwd();
-
-console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 /* *****************************************
  * 
  * Helper functions
@@ -548,39 +557,6 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
   return !state.parseError;
 }
 
-const defaultSiteConfig =
-{
-  server: null,
-  name: '',
-  rootDirectoryName: '',
-  fullSitePath: '',
-  staticFiles: {},
-  compiledFiles: {},
-  hostName: undefined,
-  port: undefined,
-  tempWorkDirectory: null,
-  canUpload: true,
-  maxPayloadSizeBytes: undefined,
-  jscpExtensionRequired: 'optional',
-  includeHttpPoweredByHeader: true,
-  mimeTypes: {},
-  enableHTTPS: false,
-  httpsCertFile: undefined,
-  httpsKeyFile: undefined
-};
-
-const symbolsToSanitize =
-{
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  '\'': '&#39;',
-  '/': '&#x2F;',
-  '`': '&#x60;',
-  '=': '&#x3D;'
-};
-
 function printInit(ctx)
 {
   ctx.outputQueue = [];
@@ -747,7 +723,7 @@ function doneWith(ctx, id, isCancellation)
         deleteUnhandledFiles(formFiles);
       }
 
-      const { runtimeException, runFileName, resObject, compileTimeError, statusCode } = ctx;
+      const { runtimeException, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
 
       if (runtimeException)
       {
@@ -758,7 +734,7 @@ function doneWith(ctx, id, isCancellation)
 
       if (runtimeException || compileTimeError)
       {
-        const { reqObject, resObject, siteName, fullSitePath, compiledFiles, staticFiles, jsCookies } = ctx;
+        const { siteName, fullSitePath, compiledFiles, staticFiles, jsCookies } = ctx;
         handleError5xx(reqObject, resObject, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath);
         return;
       }
@@ -783,7 +759,7 @@ function doneWith(ctx, id, isCancellation)
         {
           resObject.statusCode = statusCode;
         }
-        resObject.end(showContents ? (ctx.outputQueue || []).join('') : '');
+        resEnd(reqObject, resObject, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -1428,7 +1404,7 @@ function responderStatic(req, res, siteName, fullPath, contentType, fileSize, st
 
   if (contents || !readStream)
   {
-    resObject.end(contents);
+    resEnd(req, resObject, contents);
   }
   else
   {
@@ -1444,12 +1420,12 @@ function responderStatic(req, res, siteName, fullPath, contentType, fileSize, st
 
     readStream.on('end', () =>
     {
-      resObject.end();
+      resEnd(req, resObject);
     });
 
     readStream.on('close', () =>
     {
-      resObject.end();
+      resEnd(req, resObject);
     });
 
     readStream.on('error', (e) =>
@@ -1458,27 +1434,27 @@ function responderStatic(req, res, siteName, fullPath, contentType, fileSize, st
       console.error(e);
       resObject.statusCode = 404;
       resObject.setHeader('Content-Type', 'application/octet-stream');
-      resObject.end();
+      resEnd(req, resObject);
     });
   }
 }
 
-function sendPayLoadExceeded(res, maxPayloadSizeBytes)
+function sendPayLoadExceeded(req, res, maxPayloadSizeBytes)
 {
   console.error(`${TERMINAL_ERROR_STRING}: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  res.end();
+  resEnd(req, res);
 }
 
-function sendUploadIsForbidden(res)
+function sendUploadIsForbidden(req, res)
 {
   console.error(`${TERMINAL_ERROR_STRING}: Uploading is forbidden.`);
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  res.end();
+  resEnd(req, res);
 }
 
 function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode)
@@ -1517,7 +1493,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
 
   res.statusCode = errorCode;
   res.setHeader('Content-Type', 'application/octet-stream');
-  res.end();
+  resEnd(req, res);
 }
 
 function handleError4xx(req, res, jsCookies, siteName, staticFiles, compiledFiles, fullSitePath, errorCode = 404)
@@ -1544,6 +1520,14 @@ function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
   }
 }
 
+function resEnd(req, res, response)
+{
+  const { method, url } = req;
+  const { statusCode } = res;
+  console.log(`${method} ${url} - ${statusCode}`);//__RP
+  res.end(response);
+}
+
 function incomingRequestHandler(req, res)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
@@ -1567,7 +1551,7 @@ function incomingRequestHandler(req, res)
   {
     res.statusCode = 405;
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.end();
+    resEnd(req, res);
     return;
   }
 
@@ -1658,12 +1642,12 @@ function incomingRequestHandler(req, res)
     if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(res, maxPayloadSizeBytes);
+      sendPayLoadExceeded(req, res, maxPayloadSizeBytes);
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(res);
+      sendUploadIsForbidden(req, res);
     }
     else if (postedForm)
     {
@@ -1706,7 +1690,7 @@ function incomingRequestHandler(req, res)
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(res, maxPayloadSizeBytes);
+          sendPayLoadExceeded(req, res, maxPayloadSizeBytes);
         }
       });
 
@@ -1772,7 +1756,7 @@ function incomingRequestHandler(req, res)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(res, maxPayloadSizeBytes);
+            sendPayLoadExceeded(req, res, maxPayloadSizeBytes);
           }
           else
           {
@@ -1783,7 +1767,7 @@ function incomingRequestHandler(req, res)
         else
         {
           forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(res);
+          sendUploadIsForbidden(req, res);
         }
       }).on('end', () =>
       {
@@ -2752,6 +2736,30 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
  * Reading and processing the server configuration file
  *
  *******************************************************/
+const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
+let templateFile;
+let allVendorModulesLoaded = true;
+
+const cookies = vendor_require('./jscvendor/cookies');
+allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
+
+const formidable = vendor_require('./jscvendor/formidable');
+allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
+
+const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
+allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
+
+if (!allVendorModulesLoaded)
+{
+  console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.`);
+  process.exit(1);
+}
+
+templateFile = undefined; // Done with all the vendor module loading.
+
+const RUNTIME_ROOT_DIR = process.cwd();
+
+console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
 const runningServers = {};
 let atLeastOneSiteStarted = false;
