@@ -2731,6 +2731,37 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   };
 }
 
+function processSitesConfigJSON(configKeyName, processedConfigJSON, { requiredKeysNotFound })
+{
+  let allSitesInServer;
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (Array.isArray(configValue))
+  {
+    if (Array.isArray(configValue))
+    {
+      if  (configValue.length)
+      {
+        allSitesInServer = configValue;
+      }
+      else
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Configuration:  sites cannot be empty.`);
+      }
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  sites must be an array.`);
+    }
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
+  }
+
+  return allSitesInServer;
+}
+
 /* *****************************************************
  *
  * Reading and processing the server configuration file
@@ -2773,48 +2804,21 @@ if (globalConfigJSON)
 {
   const allAllowedKeys =
   [
-    'sites'
+    'sites',
+    'logging'
   ];
 
   const requiredKeysNotFound = [];
 
-  let soFarSoGood = true;
-  
   let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME);
-  let configValue;
-  let configKeyName;
 
+  let soFarSoGood = !!processedConfigJSON;
+  
   // sites
-  if (processedConfigJSON)
+  if (soFarSoGood)
   {
-    configKeyName = 'sites';
-    configValue = processedConfigJSON[configKeyName];
-
-    if (Array.isArray(configValue))
-    {
-      allSitesInServer = configValue;
-      if (Array.isArray(allSitesInServer))
-      {
-        if  (!allSitesInServer.length)
-        {
-          console.error(`${TERMINAL_ERROR_STRING}: Configuration:  sites cannot be empty.`);
-          soFarSoGood = false;
-        }
-      }
-      else
-      {
-        console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  sites must be an array.`);
-        soFarSoGood = false;
-      }
-    }
-    else
-    {
-      checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
-      soFarSoGood = false;
-    }
-  }
-  else {
-    soFarSoGood = false;
+    allSitesInServer = processSitesConfigJSON('sites', processedConfigJSON, { requiredKeysNotFound });
+    soFarSoGood = !!allSitesInServer;
   }
 
   const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
@@ -2858,7 +2862,7 @@ if (readSuccess)
     {
       const siteConfig = createInitialSiteConfig(thisServerSite);
 
-      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
+      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
 
       if (siteName)
       {
