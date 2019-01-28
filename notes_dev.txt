@@ -2,6 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Ok, implemented parsing the site-wide config values for logging.
+  - Test every case!!
+
+Next:  Enforce configuration.  Check that values are fine (e.g. file output path, enabled/disabled/per site values only, etc.)
+
 Some work has been put into place.
  - Next:  Config:
    - Site-wide:

@@ -2731,10 +2731,10 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   };
 }
 
-function processSitesConfigJSON(configKeyName, processedConfigJSON, { requiredKeysNotFound })
+function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
 {
   let allSitesInServer;
-  const configValue = processedConfigJSON[configKeyName];
+  const configValue = processedConfigJSON.sites;
 
   if (Array.isArray(configValue))
   {
@@ -2756,10 +2756,67 @@ function processSitesConfigJSON(configKeyName, processedConfigJSON, { requiredKe
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
+    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
   }
 
   return allSitesInServer;
+}
+
+function parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound })
+{
+  let loggingInfo = {};
+  let result = true;
+  const configValue = processedConfigJSON.logging;
+
+  if ((typeof(configValue) === 'object') && !Array.isArray(configValue))
+  {
+    Object.keys(configValue).every((configKey) =>
+    {
+      const keyValue = configValue[configKey];
+      const configKeyLowerCase = configKey.toLowerCase();
+      switch(configKeyLowerCase)
+      {
+        case 'general':
+        case 'persite':
+          Object.assign(loggingInfo, { [configKeyLowerCase]: {} });
+          if ((typeof(keyValue) === 'object') && !Array.isArray(keyValue))
+          {
+            Object.keys(keyValue).every((attributeKey) =>
+            {
+              const attributeKeyLowerCase = attributeKey.toLowerCase();
+              switch(attributeKeyLowerCase)
+              {
+                case 'fileoutput':
+                case 'consoleoutput':
+                  Object.assign(loggingInfo[configKeyLowerCase], { [attributeKey]: keyValue[attributeKey] });
+                  break;
+                default:
+                  console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`);
+                  result = false;
+              }
+
+              return result;
+            });
+          }
+          else
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging:  Invalid value for general.`);
+            result = false;
+          }
+          break;
+        default:
+          console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging:  ${configKey} is not a valid configuration key.`);
+          result = false;
+      }
+      return result;
+    });
+  }
+  else
+  {
+    checkForUndefinedConfigValue('logging', configValue, requiredKeysNotFound, 'Server configuration:  Expected a valid logging config value.');
+  }
+
+  return result && loggingInfo;
 }
 
 /* *****************************************************
@@ -2817,8 +2874,17 @@ if (globalConfigJSON)
   // sites
   if (soFarSoGood)
   {
-    allSitesInServer = processSitesConfigJSON('sites', processedConfigJSON, { requiredKeysNotFound });
+    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
     soFarSoGood = !!allSitesInServer;
+  }
+
+  // logging
+  if (soFarSoGood)
+  {
+    const loggingInfo = parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound });
+    console.log('LOGGING INFO PARSED!!');//__RP
+    console.log(loggingInfo);//__RP
+    soFarSoGood = !!loggingInfo;
   }
 
   const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
