@@ -2762,7 +2762,7 @@ function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
   return allSitesInServer;
 }
 
-function parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound })
+function parseLoggingConfigJSON(processedConfigJSON)
 {
   let loggingInfo = {};
   let result = true;
@@ -2787,8 +2787,9 @@ function parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound })
               switch(attributeKeyLowerCase)
               {
                 case 'fileoutput':
+                case 'directoryname':
                 case 'consoleoutput':
-                  Object.assign(loggingInfo[configKeyLowerCase], { [attributeKey]: keyValue[attributeKey] });
+                  Object.assign(loggingInfo[configKeyLowerCase], { [attributeKeyLowerCase]: keyValue[attributeKey] });
                   break;
                 default:
                   console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`);
@@ -2813,7 +2814,11 @@ function parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound })
   }
   else
   {
-    checkForUndefinedConfigValue('logging', configValue, requiredKeysNotFound, 'Server configuration:  Expected a valid logging config value.');
+    if (typeof(configValue) !== 'undefined')
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  Expected a valid logging configuration value.`);
+      result = false;
+    }
   }
 
   return result && loggingInfo;
@@ -2853,6 +2858,7 @@ const runningServers = {};
 let atLeastOneSiteStarted = false;
 let readSuccess = false;
 let allSitesInServer;
+let serverWideLoggingInfo;
 const serverConfig = {};
 
 const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
@@ -2881,16 +2887,27 @@ if (globalConfigJSON)
   // logging
   if (soFarSoGood)
   {
-    const loggingInfo = parseLoggingConfigJSON(processedConfigJSON, { requiredKeysNotFound });
-    console.log('LOGGING INFO PARSED!!');//__RP
-    console.log(loggingInfo);//__RP
-    soFarSoGood = !!loggingInfo;
+    serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON);
+    soFarSoGood = !!serverWideLoggingInfo;
   }
 
   const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
 
   readSuccess = soFarSoGood && allRequiredKeys;
 }
+
+/* *****************************************************
+ *
+ * Processing the server's logging configuration
+ *
+ *******************************************************/
+
+ if (readSuccess)
+ {
+   //__RP
+   //readSuccess = false;
+   console.log(serverWideLoggingInfo);//__RP
+ }
 
 /* *****************************************************
  *

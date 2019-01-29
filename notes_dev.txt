@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Ok, implemented parsing the site-wide config values for logging.
-  - Test every case!!
-
 Next:  Enforce configuration.  Check that values are fine (e.g. file output path, enabled/disabled/per site values only, etc.)
 
 Some work has been put into place.
@@ -12,18 +9,19 @@ Some work has been put into place.
    - Site-wide:
      - Logging type: {
          general: {
-           file: '', [no logging to file by default]
+           fileOutput: 'enabled|disabled', [enabled by default.]
+           directoryName: '', ['jscause/logs' by default.]
            consoleOutput: 'enabled|disabled' [enabled by default]
          },
          perSite: {
-           fileOutput: 'enabled|disabled|per site'
+           fileOutput: 'enabled|disabled|per site' [diabled by default.]
            consoleOutput: 'enabled|disabled|per site' enabled by default. (per site = let the site configuration decide)
          }
      - Per site:
       - Logging type:
         {
-          fileOutput: '', [no logging to file by default] [Might be overridden by site-wide config]
-            [if site-wide config is enabled, you MUST provide a file here.]
+          fileOutput: 'enabled|disabled', [disabled by default] [Might be overridden by site-wide config]
+          directoryName: '', ['website/logs' by default.] [if either fileOutput above or site-wide fileOutput perSite config is enabled, you MUST provide a name here.]
           consoleOutput: 'enabled|disabled' enabled by default. [Might be overridden by site-wide config]
         }
 
@@ -34,6 +32,7 @@ Documentation:
   - Overrides.
   - Site-wide allowances/prohibitions.
   - Mandatory values (e.g. logging output if site-wide mandates it.)
+  - logging key in jscause.conf is optional, unlike "sites".
 
 Server logging?
  - Access and errors.
