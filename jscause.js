@@ -2731,6 +2731,74 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   };
 }
 
+function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix)
+{
+  let finalDirectoryPath;
+  let stats;
+  let readSuccess = true;
+
+  try
+  {
+    stats = fs.statSync(directoryName);
+  }
+  catch (e)
+  {
+    console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find directory: ${directoryName}`);
+    console.error(e);
+    readSuccess = false;
+  }
+
+  let linkedPath;
+  if (readSuccess && stats.isSymbolicLink())
+  {
+    linkedPath = fs.readlinkSync(directoryName);
+    try
+    {
+      stats = fs.lstatSync(linkedPath);
+    }
+    catch (e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find link:`);
+      console.error(`${TERMINAL_ERROR_STRING}: - ${directoryName} --> ${linkedPath}`);
+      console.error(e);
+      readSuccess = false;
+    }
+  }
+
+  if (readSuccess)
+  {
+    if (stats.isDirectory())
+    {
+      finalDirectoryPath = linkedPath || directoryName;
+    }
+    else
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
+      readSuccess = false;
+    }
+  }
+
+  if (readSuccess)
+  {
+    try
+    {
+      fs.accessSync(finalDirectoryPath, fs.constants.W_OK);
+    }
+    catch (e)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
+      readSuccess = false;
+    }
+  }
+
+  if (!readSuccess)
+  {
+    finalDirectoryPath = undefined;
+  }
+
+  return finalDirectoryPath;
+}
+
 function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
 {
   let allSitesInServer;
@@ -2909,62 +2977,8 @@ if (readSuccess)
 
   // Let's check the specified directory.
   let { directoryName = 'logs' } = serverWideLoggingInfo;
-  let finalDirectoryPath;
-
-  let stats;
-  try
-  {
-    stats = fs.statSync(directoryName);
-  }
-  catch (e)
-  {
-    console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: Cannot find directory: ${directoryName}`);
-    console.error(e);
-    readSuccess = false;
-  }
-
-  let linkedPath;
-  if (readSuccess && stats.isSymbolicLink())
-  {
-    linkedPath = fs.readlinkSync(directoryName);
-    try
-    {
-      stats = fs.lstatSync(linkedPath);
-    }
-    catch (e)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: Cannot find link:`);
-      console.error(`${TERMINAL_ERROR_STRING}: - ${directoryName} --> ${linkedPath}`);
-      console.error(e);
-      readSuccess = false;
-    }
-  }
-
-  if (readSuccess)
-  {
-    if (stats.isDirectory())
-    {
-      finalDirectoryPath = linkedPath || directoryName;
-    }
-    else
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
-      readSuccess = false;
-    }
-  }
-
-  if (readSuccess)
-  {
-    try
-    {
-      fs.accessSync(finalDirectoryPath, fs.constants.W_OK);
-    }
-    catch (e)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
-      readSuccess = false;
-    }
-  }
+  let finalDirectoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging:');
+  readSuccess = (typeof(finalDirectoryPath) !== 'undefined');
 }
 
 /* *****************************************************

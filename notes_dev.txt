@@ -2,15 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Use getDirectoryPathAndCheckIfWritable() to check that other directories (e.g. temp work directory) are being checked that they are actually directories.
+ - What other directories?
+
 Next:  Enforce configuration.  Check that values are fine (e.g. file output path, enabled/disabled/per site values only, etc.)
  +- Let's start with directoryName.
   +- Done some work, but needs testing:
    *- Test with paths that aren't directories. - Done.
    *- Test with read-only directories. - Done.
    *- Test with symbolic links. - Done.
-
-Put the link checking/directory checking on its own, generic function.
- - Then use this to check that other directories (e.g. temp work directory) are being checked that they are actually directories.
 
 Some work has been put into place.
  - Next:  Config:
