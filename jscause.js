@@ -2918,7 +2918,7 @@ if (readSuccess)
   }
   catch (e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: Cannot find ${directoryName} directory.`);
+    console.error(`${TERMINAL_ERROR_STRING}: Server configuration: Logging: Cannot find directory: ${directoryName}`);
     console.error(e);
     readSuccess = false;
   }

@@ -7,9 +7,7 @@ Next:  Enforce configuration.  Check that values are fine (e.g. file output path
   +- Done some work, but needs testing:
    *- Test with paths that aren't directories. - Done.
    *- Test with read-only directories. - Done.
-   +- Test with symbolic links?
-     - Chain of simlinks?
-       - Break circular references, if applicable.
+   *- Test with symbolic links. - Done.
 
 Put the link checking/directory checking on its own, generic function.
  - Then use this to check that other directories (e.g. temp work directory) are being checked that they are actually directories.
