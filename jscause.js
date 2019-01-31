@@ -594,27 +594,8 @@ function setTempWorkDirectory(siteConfig)
   else
   {
     tempWorkDirectory = fsPath.join(siteConfig.fullSitePath, tempWorkDirectory);
-    if (fs.existsSync(tempWorkDirectory))
-    {
-      try
-      {
-        fs.accessSync(tempWorkDirectory, fs.constants.W_OK);
-        setupSuccess = true;
-      }
-      catch (e)
-      {
-        console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory ${tempWorkDirectory} is not writeable`);
-      }
-    }
-    else
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory ${tempWorkDirectory} not found`);
-    }
-
-    if (setupSuccess)
-    {
-      siteConfig.tempWorkDirectory = tempWorkDirectory.replace(/\/?$/,'');
-    }
+    siteConfig.tempWorkDirectory = getDirectoryPathAndCheckIfWritable(tempWorkDirectory);
+    setupSuccess = (typeof(siteConfig.tempWorkDirectory) !== 'undefined');
   }
 
   return setupSuccess;
@@ -1524,7 +1505,6 @@ function resEnd(req, res, response)
 {
   const { method, url } = req;
   const { statusCode } = res;
-  console.log(`${method} ${url} - ${statusCode}`);//__RP
   res.end(response);
 }
 
@@ -2731,7 +2711,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   };
 }
 
-function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix)
+function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
 {
   let finalDirectoryPath;
   let stats;
@@ -3059,10 +3039,15 @@ if (readSuccess)
         }
       }
 
+      let siteJSONFilePath;
       if (readSuccess && siteRootDirectoryName)
       {
-        let siteJSONFilePath = fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName);
+        siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName));
+        readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
+      }
 
+      if (readSuccess)
+      {
         siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
 
         console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
@@ -3359,7 +3344,10 @@ if (readSuccess)
             }
 
             allSiteConfigs.push(siteConfig);
-            readSuccess = true;
+          }
+          else
+          {
+            readSuccess = false;
           }
         }
       }

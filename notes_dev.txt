@@ -2,15 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Use getDirectoryPathAndCheckIfWritable() to check that other directories (e.g. temp work directory) are being checked that they are actually directories.
- - What other directories?
-
 Next:  Enforce configuration.  Check that values are fine (e.g. file output path, enabled/disabled/per site values only, etc.)
- +- Let's start with directoryName.
-  +- Done some work, but needs testing:
-   *- Test with paths that aren't directories. - Done.
-   *- Test with read-only directories. - Done.
-   *- Test with symbolic links. - Done.
+  - Next:  implement general/fileOutput.
+    - Two values, enabled/disabled.
+      - Throw error otherwise (give user a hint of valid values.)
+    - enabled by default.
 
 Some work has been put into place.
  - Next:  Config:
@@ -30,6 +26,10 @@ Some work has been put into place.
         {
           fileOutput: 'enabled|disabled', [disabled by default] [Might be overridden by site-wide config]
           directoryName: '', ['website/logs' by default.] [if either fileOutput above or site-wide fileOutput perSite config is enabled, you MUST provide a name here.]
+            - Remember:
+              - Test with paths that aren't directories. - Done.
+              - Test with read-only directories. - Done.
+              - Test with symbolic links. - Done.
           consoleOutput: 'enabled|disabled' enabled by default. [Might be overridden by site-wide config]
         }
 
