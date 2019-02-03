@@ -36,7 +36,8 @@ const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 const MAX_CACHED_FILES_PER_SITE = 256;
 const MAX_CACHEABLE_FILE_SIZE_BYTES = 1024 * 512;
 
-const MIME_TYPES = {
+const MIME_TYPES =
+{
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -879,7 +880,8 @@ function makeRTPromise(rtContext, rtPromise)
 {
   let defaultSuccessWaitForId;
   let defaultErrorWaitForId;
-  const promiseContext = {
+  const promiseContext =
+  {
     successWaitForId: undefined,
     errorWaitForId: undefined,
     customCallBack: undefined
@@ -1376,7 +1378,7 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
 function responderStatic(req, res, siteName, fullPath, contentType, fileSize, statusCode, { fileContents: contents, readStream })
 {
   const resObject = res;
-  const resContext = {appHeaders: {}, resObject};
+  const resContext = { appHeaders: {}, resObject };
 
   assignAppHeaders(resContext, {'Content-Type': contentType, 'Content-Length': fileSize});
   finishUpHeaders(resContext);
@@ -1503,8 +1505,8 @@ function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
 
 function resEnd(req, res, response)
 {
-  const { method, url } = req;
-  const { statusCode } = res;
+  const { method, url } = req; //__RP ???
+  const { statusCode } = res; //__RP ???
   res.end(response);
 }
 
@@ -2717,63 +2719,70 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
   let stats;
   let readSuccess = true;
 
-  try
+  if (typeof(directoryName) === 'string')
   {
-    stats = fs.statSync(directoryName);
-  }
-  catch (e)
-  {
-    console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find directory: ${directoryName}`);
-    console.error(e);
-    readSuccess = false;
-  }
-
-  let linkedPath;
-  if (readSuccess && stats.isSymbolicLink())
-  {
-    linkedPath = fs.readlinkSync(directoryName);
     try
     {
-      stats = fs.lstatSync(linkedPath);
+      stats = fs.statSync(directoryName);
     }
     catch (e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find link:`);
-      console.error(`${TERMINAL_ERROR_STRING}: - ${directoryName} --> ${linkedPath}`);
+      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find directory: ${directoryName}`);
       console.error(e);
       readSuccess = false;
     }
-  }
+  
+    let linkedPath;
+    if (readSuccess && stats.isSymbolicLink())
+    {
+      linkedPath = fs.readlinkSync(directoryName);
+      try
+      {
+        stats = fs.lstatSync(linkedPath);
+      }
+      catch (e)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find link:`);
+        console.error(`${TERMINAL_ERROR_STRING}: - ${directoryName} --> ${linkedPath}`);
+        console.error(e);
+        readSuccess = false;
+      }
+    }
+  
+    if (readSuccess)
+    {
+      if (stats.isDirectory())
+      {
+        finalDirectoryPath = linkedPath || directoryName;
+      }
+      else
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
+        readSuccess = false;
+      }
+    }
+  
+    if (readSuccess)
+    {
+      try
+      {
+        fs.accessSync(finalDirectoryPath, fs.constants.W_OK);
+      }
+      catch (e)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
+        readSuccess = false;
+      }
+    }
 
-  if (readSuccess)
-  {
-    if (stats.isDirectory())
+    if (!readSuccess)
     {
-      finalDirectoryPath = linkedPath || directoryName;
-    }
-    else
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
-      readSuccess = false;
+      finalDirectoryPath = undefined;
     }
   }
-
-  if (readSuccess)
+  else
   {
-    try
-    {
-      fs.accessSync(finalDirectoryPath, fs.constants.W_OK);
-    }
-    catch (e)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
-      readSuccess = false;
-    }
-  }
-
-  if (!readSuccess)
-  {
-    finalDirectoryPath = undefined;
+    console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`);
   }
 
   return finalDirectoryPath;
@@ -2955,10 +2964,45 @@ if (readSuccess)
   //__RP
   console.log(serverWideLoggingInfo);//__RP
 
+  let directoryPath;
+  let fileOutputEnabled;
+
   // Let's check the specified directory.
-  let { directoryName = 'logs' } = serverWideLoggingInfo;
-  let finalDirectoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging:');
-  readSuccess = (typeof(finalDirectoryPath) !== 'undefined');
+  let {
+    directoryname: directoryName = 'logs',
+    fileoutput: fileOutput = 'enabled'
+  } = serverWideLoggingInfo.general || {};
+
+  directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
+  
+  readSuccess = (typeof(directoryPath) !== 'undefined');
+
+  if (readSuccess)
+  {
+    readSuccess = false;
+    // Let's check if there is a fileOutput configuration value.
+    if (typeof(fileOutput) === 'string')
+    {
+      const fileOutputLowerCase = fileOutput.toLowerCase();
+      fileOutputEnabled = (fileOutputLowerCase === 'enabled');
+      readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+    }
+
+    if (!readSuccess)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileOutput must be either 'enabled' or 'disabled'.`);
+    }
+  }
+  
+  if (readSuccess)
+  {
+    serverConfig.logging =
+    {
+      directoryPath,
+      fileOutputEnabled
+    };
+  }
+ 
 }
 
 /* *****************************************************
@@ -3183,7 +3227,8 @@ if (readSuccess)
         let jscmFilesList;
         if (readSuccess)
         {
-          let state = {
+          let state =
+          {
             directoriesProcessedSoFar: 0,
             cachedStaticFilesSoFar: 0,
             directoriesToProcess: [ { dirElements: [''] } ],

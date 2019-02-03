@@ -3,10 +3,13 @@ git bundle create jscause-.bundle devel
 =====
 
 Next:  Enforce configuration.  Check that values are fine (e.g. file output path, enabled/disabled/per site values only, etc.)
-  - Next:  implement general/fileOutput.
+  +- Next:  implement general/consoleOutput.
     - Two values, enabled/disabled.
       - Throw error otherwise (give user a hint of valid values.)
     - enabled by default.
+
+Wait:  Is this not used?
+const { method, url } = req; //__RP ???
 
 Some work has been put into place.
  - Next:  Config:
