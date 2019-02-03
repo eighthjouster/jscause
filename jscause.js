@@ -1505,8 +1505,8 @@ function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
 
 function resEnd(req, res, response)
 {
-  const { method, url } = req; //__RP ???
-  const { statusCode } = res; //__RP ???
+  // const { method, url } = req; //__RP ???
+  // const { statusCode } = res; //__RP ???
   res.end(response);
 }
 
@@ -2881,6 +2881,76 @@ function parseLoggingConfigJSON(processedConfigJSON)
   return result && loggingInfo;
 }
 
+function validateGeneralLoggingConfig(generalLoggingInfo)
+{
+  let readSuccess;
+  let serverConfigLogging;
+
+  let directoryPath;
+  let fileOutputEnabled;
+  let consoleOutputEnabled;
+
+  // Let's check the specified directory.
+  let {
+    directoryname: directoryName = 'logs',
+    fileoutput: fileOutput = 'enabled',
+    consoleoutput: consoleOutput = 'enabled'
+  } = generalLoggingInfo || {};
+
+  directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
+  
+  readSuccess = (typeof(directoryPath) !== 'undefined');
+
+  if (readSuccess)
+  {
+    readSuccess = false;
+    // Let's check if there is a fileOutput configuration value.
+    if (typeof(fileOutput) === 'string')
+    {
+      const fileOutputLowerCase = fileOutput.toLowerCase();
+      fileOutputEnabled = (fileOutputLowerCase === 'enabled');
+      readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+    }
+
+    if (!readSuccess)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileOutput must be either 'enabled' or 'disabled'.`);
+    }
+  }
+  
+  if (readSuccess)
+  {
+    readSuccess = false;
+    // Let's check if there is a consoleOutput configuration value.
+    if (typeof(consoleOutput) === 'string')
+    {
+      const consoleOutputLowerCase = consoleOutput.toLowerCase();
+      consoleOutputEnabled = (consoleOutputLowerCase === 'enabled');
+      readSuccess = (consoleOutputEnabled || (consoleOutputLowerCase === 'disabled'));
+    }
+
+    if (!readSuccess)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: consoleOutput must be either 'enabled' or 'disabled'.`);
+    }
+  }
+  
+  if (readSuccess)
+  {
+    serverConfigLogging =
+    {
+      directoryPath,
+      fileOutputEnabled,
+      consoleOutputEnabled
+    };
+  }
+
+  console.log('serverConfig.logging:');//__RP
+  console.log(serverConfigLogging);//__RP
+
+  return serverConfigLogging;
+}
+
 /* *****************************************************
  *
  * Reading and processing the server configuration file
@@ -2958,74 +3028,12 @@ if (globalConfigJSON)
  * Processing the server's logging configuration
  *
  *******************************************************/
-
 if (readSuccess)
 {
-  //__RP
   console.log(serverWideLoggingInfo);//__RP
 
-  let directoryPath;
-  let fileOutputEnabled;
-  let consoleOutputEnabled;
-
-  // Let's check the specified directory.
-  let {
-    directoryname: directoryName = 'logs',
-    fileoutput: fileOutput = 'enabled',
-    consoleoutput: consoleOutput = 'enabled'
-  } = serverWideLoggingInfo.general || {};
-
-  directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
-  
-  readSuccess = (typeof(directoryPath) !== 'undefined');
-
-  if (readSuccess)
-  {
-    readSuccess = false;
-    // Let's check if there is a fileOutput configuration value.
-    if (typeof(fileOutput) === 'string')
-    {
-      const fileOutputLowerCase = fileOutput.toLowerCase();
-      fileOutputEnabled = (fileOutputLowerCase === 'enabled');
-      readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
-    }
-
-    if (!readSuccess)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileOutput must be either 'enabled' or 'disabled'.`);
-    }
-  }
-  
-  if (readSuccess)
-  {
-    readSuccess = false;
-    // Let's check if there is a consoleOutput configuration value.
-    if (typeof(consoleOutput) === 'string')
-    {
-      const consoleOutputLowerCase = consoleOutput.toLowerCase();
-      consoleOutputEnabled = (consoleOutputLowerCase === 'enabled');
-      readSuccess = (consoleOutputEnabled || (consoleOutputLowerCase === 'disabled'));
-    }
-
-    if (!readSuccess)
-    {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: consoleOutput must be either 'enabled' or 'disabled'.`);
-    }
-  }
-  
-  if (readSuccess)
-  {
-    serverConfig.logging =
-    {
-      directoryPath,
-      fileOutputEnabled,
-      consoleOutputEnabled
-    };
-  }
-
-  console.log('serverConfig.logging:');//__RP
-  console.log(serverConfig.logging);//__RP
- 
+  serverConfig.logging = validateGeneralLoggingConfig(serverWideLoggingInfo.general);
+  readSuccess = !!serverConfig.logging;
 }
 
 /* *****************************************************
