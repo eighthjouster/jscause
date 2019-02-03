@@ -2966,11 +2966,13 @@ if (readSuccess)
 
   let directoryPath;
   let fileOutputEnabled;
+  let consoleOutputEnabled;
 
   // Let's check the specified directory.
   let {
     directoryname: directoryName = 'logs',
-    fileoutput: fileOutput = 'enabled'
+    fileoutput: fileOutput = 'enabled',
+    consoleoutput: consoleOutput = 'enabled'
   } = serverWideLoggingInfo.general || {};
 
   directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
@@ -2996,12 +2998,33 @@ if (readSuccess)
   
   if (readSuccess)
   {
+    readSuccess = false;
+    // Let's check if there is a consoleOutput configuration value.
+    if (typeof(consoleOutput) === 'string')
+    {
+      const consoleOutputLowerCase = consoleOutput.toLowerCase();
+      consoleOutputEnabled = (consoleOutputLowerCase === 'enabled');
+      readSuccess = (consoleOutputEnabled || (consoleOutputLowerCase === 'disabled'));
+    }
+
+    if (!readSuccess)
+    {
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: consoleOutput must be either 'enabled' or 'disabled'.`);
+    }
+  }
+  
+  if (readSuccess)
+  {
     serverConfig.logging =
     {
       directoryPath,
-      fileOutputEnabled
+      fileOutputEnabled,
+      consoleOutputEnabled
     };
   }
+
+  console.log('serverConfig.logging:');//__RP
+  console.log(serverConfig.logging);//__RP
  
 }
 
