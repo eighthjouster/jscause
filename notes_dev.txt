@@ -3,14 +3,22 @@ git bundle create jscause-.bundle devel
 =====
 
 Now validate perSite values (in server-wide config).
+ - Done, but test.
+   - Actually, test the whole thing.
 
-Now, validate perSite site-local values.
+Now, parse validate perSite site-local values.
  - Remember to take into account that some values cannot override server-wide config.
    - Should we emit warnings? Errors? Errors _and_ warnings?
+ - You can probably use the parameters serverWide and perSite in validateLoggingConfigSection() for this.
+   - And actually, check if one of those is being unused or redundant.  If that's the case, get rid of it.
+
+At this point, back up.
 
 Now, on to logging:
  - Address: //__RP - For now.
    - Timestamp?
+   - And write to file in bulk (every 500ms or so) and deferred.
+     - Write the last batch on Ctrl+C?
 
 Some work has been put into place.
  - Next:  Config:

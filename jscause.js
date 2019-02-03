@@ -2882,7 +2882,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
   return result && loggingInfo;
 }
 
-function validateGeneralLoggingConfig(generalLoggingInfo)
+function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false } = {})
 {
   let readSuccess;
   let serverConfigLogging;
@@ -2896,7 +2896,9 @@ function validateGeneralLoggingConfig(generalLoggingInfo)
     directoryname: directoryName = 'logs',
     fileoutput: fileOutput = 'enabled',
     consoleoutput: consoleOutput = 'enabled'
-  } = generalLoggingInfo || {};
+  } = loggingInfo || {};
+  let perSiteFileOutputEnabled;
+  let perSiteConsoleOutputEnabled;
 
   directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
   
@@ -2909,8 +2911,18 @@ function validateGeneralLoggingConfig(generalLoggingInfo)
     if (typeof(fileOutput) === 'string')
     {
       const fileOutputLowerCase = fileOutput.toLowerCase();
-      fileOutputEnabled = (fileOutputLowerCase === 'enabled');
-      readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+
+      if (serverWide && perSite && (fileOutputLowerCase === 'per site'))
+      {
+        fileOutputEnabled = false;
+        perSiteFileOutputEnabled = true;
+        readSuccess = true;
+      }
+      else
+      {
+        fileOutputEnabled = (fileOutputLowerCase === 'enabled');
+        readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+      }
     }
 
     if (!readSuccess)
@@ -2926,8 +2938,18 @@ function validateGeneralLoggingConfig(generalLoggingInfo)
     if (typeof(consoleOutput) === 'string')
     {
       const consoleOutputLowerCase = consoleOutput.toLowerCase();
-      consoleOutputEnabled = (consoleOutputLowerCase === 'enabled');
-      readSuccess = (consoleOutputEnabled || (consoleOutputLowerCase === 'disabled'));
+
+      if (serverWide && perSite && (consoleOutputLowerCase === 'per site'))
+      {
+        consoleOutputEnabled = false;
+        perSiteConsoleOutputEnabled = true;
+        readSuccess = true;
+      }
+      else
+      {
+        consoleOutputEnabled = (consoleOutputLowerCase === 'enabled');
+        readSuccess = (consoleOutputEnabled || (consoleOutputLowerCase === 'disabled'));
+      }
     }
 
     if (!readSuccess)
@@ -2944,6 +2966,16 @@ function validateGeneralLoggingConfig(generalLoggingInfo)
       fileOutputEnabled,
       consoleOutputEnabled
     };
+
+    if (typeof(perSiteFileOutputEnabled) !== 'undefined')
+    {
+      serverConfigLogging.perSiteFileOutputEnabled = perSiteFileOutputEnabled;
+    }
+
+    if (typeof(perSiteConsoleOutputEnabled) !== 'undefined')
+    {
+      serverConfigLogging.perSiteConsoleOutputEnabled = perSiteConsoleOutputEnabled;
+    }
   }
 
   console.log('serverConfig.logging:');//__RP
@@ -3033,8 +3065,19 @@ if (readSuccess)
 {
   console.log(serverWideLoggingInfo);//__RP
 
-  serverConfig.logging = validateGeneralLoggingConfig(serverWideLoggingInfo.general);
-  readSuccess = !!serverConfig.logging;
+  readSuccess = false;
+  const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general);
+  const perSiteLogging = validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true });
+  
+  if (generalLogging && perSiteLogging)
+  {
+    serverConfig.logging =
+    {
+      general: generalLogging,
+      perSite: perSiteLogging
+    };
+    readSuccess = true;
+  }
 }
 
 /* *****************************************************
