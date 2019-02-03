@@ -2,8 +2,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Wait:  Is this not used?
-const { method, url } = req; //__RP ???
+Now validate perSite values (in server-wide config).
+
+Now, validate perSite site-local values.
+ - Remember to take into account that some values cannot override server-wide config.
+   - Should we emit warnings? Errors? Errors _and_ warnings?
+
+Now, on to logging:
+ - Address: //__RP - For now.
+   - Timestamp?
 
 Some work has been put into place.
  - Next:  Config:

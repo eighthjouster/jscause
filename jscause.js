@@ -1505,8 +1505,9 @@ function serveStaticContent(req, res, siteName, staticContent, statusCode = 200)
 
 function resEnd(req, res, response)
 {
-  // const { method, url } = req; //__RP ???
-  // const { statusCode } = res; //__RP ???
+  const { method, url } = req;
+  const { statusCode } = res;
+  console.log(`${method}: ${url} - ${statusCode}`);//__RP - For now.
   res.end(response);
 }
 
