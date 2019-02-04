@@ -2,6 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Next:
+ - In site.json, directoryName must be parsed/validated against the site's path.  Right now, it parses okay, but it's checking for the site-wide directory, not inside the site's directory.
+
 Parse and validate perSite site-local values.
  - Remember to take into account that some values cannot override server-wide config.
    - Should we emit warnings? Errors? Errors _and_ warnings?

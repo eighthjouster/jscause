@@ -2460,6 +2460,33 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
   return soFarSoGood;
 }
 
+function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'logging';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'object' && !Array.isArray(configValue))
+  {
+    const loggingConfigValues = {};
+    Object.keys(configValue).forEach((keyName) =>
+    {
+      loggingConfigValues[keyName.toLocaleLowerCase()] = configValue[keyName];
+    });
+    console.log(loggingConfigValues);//__RP
+    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false });
+    siteConfig.logging = loggingConfig;
+    soFarSoGood = !!loggingConfig;
+  }
+  else
+  {
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid logging.  Object expected.');
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
 function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
 {
   let soFarSoGood = true;
@@ -2884,7 +2911,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
 
 function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false } = {})
 {
-  let readSuccess;
+  let readSuccess = true;
   let loggingConfig;
 
   let directoryPath;
@@ -2900,9 +2927,9 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   let perSiteFileOutputEnabled;
   let perSiteConsoleOutputEnabled;
 
-  if (serverWide)
+  if (perSite)
   {
-    if (perSite)
+    if (serverWide)
     {
       readSuccess = (typeof(directoryName) === 'undefined');
 
@@ -2912,12 +2939,12 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
         readSuccess = false;
       }
     }
-    else
-    {
-      directoryName = directoryName || 'logs';
-      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryName: ');
-      readSuccess = (typeof(directoryPath) !== 'undefined');
-    }
+  }
+  else
+  {
+    directoryName = directoryName || 'logs';
+    directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryName: ');
+    readSuccess = (typeof(directoryPath) !== 'undefined');
   }
 
   if (readSuccess)
@@ -2928,11 +2955,14 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     {
       const fileOutputLowerCase = fileOutput.toLowerCase();
 
-      if (serverWide && perSite && (fileOutputLowerCase === 'per site'))
+      if (fileOutputLowerCase === 'per site')
       {
-        fileOutputEnabled = false;
-        perSiteFileOutputEnabled = true;
-        readSuccess = true;
+        if (serverWide && perSite)
+        {
+          fileOutputEnabled = false;
+          perSiteFileOutputEnabled = true;
+          readSuccess = true;
+        }
       }
       else
       {
@@ -2943,7 +2973,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
     if (!readSuccess)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileOutput must be either 'enabled' or 'disabled'.`);
+      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileoutput must be either 'enabled' or 'disabled'.`);
     }
   }
   
@@ -3083,8 +3113,6 @@ if (globalConfigJSON)
  *******************************************************/
 if (readSuccess)
 {
-  console.log(serverWideLoggingInfo);//__RP
-
   readSuccess = false;
   const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general);
   const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true });
@@ -3206,7 +3234,8 @@ if (readSuccess)
             'jscpextensionrequired',
             'httppoweredbyheader',
             'httpscertfile',
-            'httpskeyfile'
+            'httpskeyfile',
+            'logging'
           ];
 
           const requiredKeysNotFound = [];
@@ -3226,6 +3255,7 @@ if (readSuccess)
             soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
             
             parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
             parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound);

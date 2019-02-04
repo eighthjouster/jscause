@@ -7,5 +7,10 @@
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
   "httpsCertFile": "jscause-cert.pem",
-  "httpsKeyFile": "jscause-key.pem"
+  "httpsKeyFile": "jscause-key.pem",
+  "logging": {
+    "fileOutput": "enabled",
+    "directoryName": "logs",
+    "consoleOutput": "disabled"
+  }
 }
