@@ -2,11 +2,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Now validate perSite values (in server-wide config).
- - Done, but test.
-   - Actually, test the whole thing.
-
-Now, parse validate perSite site-local values.
+Parse and validate perSite site-local values.
  - Remember to take into account that some values cannot override server-wide config.
    - Should we emit warnings? Errors? Errors _and_ warnings?
  - You can probably use the parameters serverWide and perSite in validateLoggingConfigSection() for this.

@@ -2885,7 +2885,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
 function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false } = {})
 {
   let readSuccess;
-  let serverConfigLogging;
+  let loggingConfig;
 
   let directoryPath;
   let fileOutputEnabled;
@@ -2893,16 +2893,32 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
   // Let's check the specified directory.
   let {
-    directoryname: directoryName = 'logs',
+    directoryname: directoryName,
     fileoutput: fileOutput = 'enabled',
     consoleoutput: consoleOutput = 'enabled'
   } = loggingInfo || {};
   let perSiteFileOutputEnabled;
   let perSiteConsoleOutputEnabled;
 
-  directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryPath: ');
-  
-  readSuccess = (typeof(directoryPath) !== 'undefined');
+  if (serverWide)
+  {
+    if (perSite)
+    {
+      readSuccess = (typeof(directoryName) === 'undefined');
+
+      if (!readSuccess)
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: 'perSite' section must not have a 'directoryName' configuration key.`);
+        readSuccess = false;
+      }
+    }
+    else
+    {
+      directoryName = directoryName || 'logs';
+      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryName: ');
+      readSuccess = (typeof(directoryPath) !== 'undefined');
+    }
+  }
 
   if (readSuccess)
   {
@@ -2960,28 +2976,32 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   
   if (readSuccess)
   {
-    serverConfigLogging =
+    loggingConfig =
     {
-      directoryPath,
       fileOutputEnabled,
       consoleOutputEnabled
     };
 
+    if (serverWide && !perSite)
+    {
+      loggingConfig.directoryPath = directoryPath;
+    }
+
     if (typeof(perSiteFileOutputEnabled) !== 'undefined')
     {
-      serverConfigLogging.perSiteFileOutputEnabled = perSiteFileOutputEnabled;
+      loggingConfig.perSiteFileOutputEnabled = perSiteFileOutputEnabled;
     }
 
     if (typeof(perSiteConsoleOutputEnabled) !== 'undefined')
     {
-      serverConfigLogging.perSiteConsoleOutputEnabled = perSiteConsoleOutputEnabled;
+      loggingConfig.perSiteConsoleOutputEnabled = perSiteConsoleOutputEnabled;
     }
   }
 
-  console.log('serverConfig.logging:');//__RP
-  console.log(serverConfigLogging);//__RP
+  console.log('loggingConfig parsed:');//__RP
+  console.log(loggingConfig);//__RP
 
-  return serverConfigLogging;
+  return loggingConfig;
 }
 
 /* *****************************************************
@@ -3067,7 +3087,7 @@ if (readSuccess)
 
   readSuccess = false;
   const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general);
-  const perSiteLogging = validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true });
+  const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true });
   
   if (generalLogging && perSiteLogging)
   {
