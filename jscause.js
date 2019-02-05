@@ -2462,9 +2462,10 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
 
 function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound)
 {
-  let soFarSoGood = true;
+  const { name: siteName, fullSitePath } = siteConfig;
   const configKeyName = 'logging';
   const configValue = processedConfigJSON[configKeyName];
+  let soFarSoGood = true;
 
   if (typeof(configValue) === 'object' && !Array.isArray(configValue))
   {
@@ -2473,8 +2474,16 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
     {
       loggingConfigValues[keyName.toLocaleLowerCase()] = configValue[keyName];
     });
-    console.log(loggingConfigValues);//__RP
-    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false });
+    
+    const perSiteData =
+    {
+      siteName,
+      perSiteDirectoryName: loggingConfigValues.directoryname,
+      fullSitePath
+    };
+
+    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData });
+
     siteConfig.logging = loggingConfig;
     soFarSoGood = !!loggingConfig;
   }
@@ -2909,9 +2918,10 @@ function parseLoggingConfigJSON(processedConfigJSON)
   return result && loggingInfo;
 }
 
-function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false } = {})
+function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {})
 {
   let readSuccess = true;
+  let doDirectoryCheck = true;
   let loggingConfig;
 
   let directoryPath;
@@ -2942,9 +2952,48 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   }
   else
   {
-    directoryName = directoryName || 'logs';
-    directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryName: ');
-    readSuccess = (typeof(directoryPath) !== 'undefined');
+    if (serverWide)
+    {
+      directoryName = directoryName || 'logs';
+    }
+    else
+    {
+      let { siteName = '', perSiteDirectoryName = null, fullSitePath = '' } = perSiteData;
+      if (perSiteDirectoryName)
+      {
+        if (fsPath.isAbsolute(perSiteDirectoryName))
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname must be a relative path.`);
+          readSuccess = false;
+        }
+        else
+        {
+          directoryName = fsPath.join(fullSitePath, perSiteDirectoryName);
+        }
+      }
+      else
+      {
+        if (loggingInfo.fileoutput === 'enabled') // The actual value must be checked here, not fileOutput since it could hold a default value.
+        {
+          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
+          readSuccess = false;
+        }
+        else
+        {
+          doDirectoryCheck = false;
+        }
+      }
+    }
+
+    if (readSuccess && doDirectoryCheck)
+    {
+      if (!fsPath.isAbsolute(directoryName))
+      {
+        directoryName = fsPath.join(RUNTIME_ROOT_DIR, directoryName);
+      }
+      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName:`);
+      readSuccess = (typeof(directoryPath) !== 'undefined');
+    }
   }
 
   if (readSuccess)
@@ -2966,8 +3015,16 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       }
       else
       {
-        fileOutputEnabled = (fileOutputLowerCase === 'enabled');
-        readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+        if (doDirectoryCheck)
+        {
+          fileOutputEnabled = (fileOutputLowerCase === 'enabled');
+          readSuccess = (fileOutputEnabled || (fileOutputLowerCase === 'disabled'));
+        }
+        else
+        {
+          fileOutputEnabled = false;
+          readSuccess = true;
+        }
       }
     }
 
@@ -3012,9 +3069,9 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       consoleOutputEnabled
     };
 
-    if (serverWide && !perSite)
+    if (!(serverWide && perSite))
     {
-      loggingConfig.directoryPath = directoryPath;
+      loggingConfig.directoryPath = directoryPath || null;
     }
 
     if (typeof(perSiteFileOutputEnabled) !== 'undefined')
@@ -3027,9 +3084,6 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       loggingConfig.perSiteConsoleOutputEnabled = perSiteConsoleOutputEnabled;
     }
   }
-
-  console.log('loggingConfig parsed:');//__RP
-  console.log(loggingConfig);//__RP
 
   return loggingConfig;
 }
@@ -3288,6 +3342,12 @@ if (readSuccess)
           readSuccess = soFarSoGood && allRequiredKeys;
         }
 
+        console.log('Site logging config:');//__RP
+        console.log(siteConfig.logging);//__RP
+        console.log('Does it clash with server-wide config:');//__RP
+        console.log(serverConfig.logging);//__RP
+        // TODO: Check that these config values do not clash that of server-wide. //__RP
+    
         if (readSuccess)
         {
           const

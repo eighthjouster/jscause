@@ -3,13 +3,11 @@ git bundle create jscause-.bundle devel
 =====
 
 Next:
- - In site.json, directoryName must be parsed/validated against the site's path.  Right now, it parses okay, but it's checking for the site-wide directory, not inside the site's directory.
-
 Parse and validate perSite site-local values.
- - Remember to take into account that some values cannot override server-wide config.
-   - Should we emit warnings? Errors? Errors _and_ warnings?
- - You can probably use the parameters serverWide and perSite in validateLoggingConfigSection() for this.
-   - And actually, check if one of those is being unused or redundant.  If that's the case, get rid of it.
+ *- Done, but:
+   +- Remember to take into account that some values cannot override server-wide config.
+     - Look here: // TODO: Check that these config values do not clash that of server-wide. //__RP
+     - Should we emit warnings? Errors? Errors _and_ warnings?
 
 At this point, back up.
 
