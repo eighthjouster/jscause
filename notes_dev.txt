@@ -2,12 +2,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+If server logging prevails and activates per-site file logging, but the config had skipped the file name, what do?
+  - It should still validate it.
+
 Next:
 Parse and validate perSite site-local values.
  *- Done, but:
    +- Remember to take into account that some values cannot override server-wide config.
      - Look here: // TODO: Check that these config values do not clash that of server-wide. //__RP
      - Should we emit warnings? Errors? Errors _and_ warnings?
+
+If logging is disabled, bypass validating the directory path (both server and per-site.)
 
 At this point, back up.
 
@@ -50,6 +55,9 @@ Documentation:
   - Site-wide allowances/prohibitions.
   - Mandatory values (e.g. logging output if site-wide mandates it.)
   - logging key in jscause.conf is optional, unlike "sites".
+  - Per-site: Even if file logging is disabled, if a file name/path is provided, it must be valid.
+    - You can comment it out if you'd rather not provide one.  But logging MUST be disabled.
+  - General: A missing or empty directoryname will be assumed "logs".  A logging directory must exist regardless of whether logging is enabled or disabled.
 
 Server logging?
  - Access and errors.
@@ -58,6 +66,8 @@ Server logging?
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Get rid of __RP.
+
+Can two no-name sites exist?  In theory they share the same name, and the server should not start, just like it does with two sites with identical names.
 
 At this point, back up.
 

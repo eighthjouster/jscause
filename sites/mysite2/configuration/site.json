@@ -8,5 +8,9 @@
   "httpPoweredByHeader": "include",
   "httpsCertFile": "jscause-cert.pem",
   "httpsKeyFile": "jscause-key.pem",
-  "logging": {}
+  "logging": {
+    "fileOutput": "disabled",
+    "directoryName": "./localLogs2",
+    "consoleOutput": "enabled"
+  }
 }

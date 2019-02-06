@@ -2959,7 +2959,11 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     else
     {
       let { siteName = '', perSiteDirectoryName = null, fullSitePath = '' } = perSiteData;
-      if (perSiteDirectoryName)
+      if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
+      {
+        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`);
+      }
+      else if (perSiteDirectoryName)
       {
         if (fsPath.isAbsolute(perSiteDirectoryName))
         {
@@ -2975,7 +2979,14 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       {
         if (loggingInfo.fileoutput === 'enabled') // The actual value must be checked here, not fileOutput since it could hold a default value.
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
+          if (perSiteDirectoryName === null)
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname is missing.`);
+          }
+          else
+          {
+            console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
+          }
           readSuccess = false;
         }
         else
@@ -3342,12 +3353,33 @@ if (readSuccess)
           readSuccess = soFarSoGood && allRequiredKeys;
         }
 
-        console.log('Site logging config:');//__RP
-        console.log(siteConfig.logging);//__RP
-        console.log('Does it clash with server-wide config:');//__RP
-        console.log(serverConfig.logging);//__RP
-        // TODO: Check that these config values do not clash that of server-wide. //__RP
-    
+        const
+          {
+            perSite:
+            {
+              fileOutputEnabled: perSitePermanentFileOutputEnabled,
+              perSiteFileOutputEnabled: perSiteOptionalFileOutputEnabled,
+              consoleOutputEnabled: perSitePermanentConsoleOutputEnabled,
+              perSiteConsoleOutputEnabled: perSiteOptionalConsoleOutputEnabled
+            }
+          } = serverConfig.logging;
+
+        const { logging: currentSiteLogging } = siteConfig;
+
+        if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
+        {
+          console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`);
+          console.warn(`${TERMINAL_INFO_WARNING}: - Server configuration prevails.`);
+          currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
+        }
+
+        if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
+        {
+          console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`);
+          console.warn(`${TERMINAL_INFO_WARNING}: - Server configuration prevails.`);
+          currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
+        }
+
         if (readSuccess)
         {
           const
