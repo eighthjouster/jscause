@@ -2,28 +2,21 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-If server logging prevails and activates per-site file logging, but the config had skipped the file name, what do?
-  - It should still validate it.
+You will need to test every resEnd() call just to make sure that serverLogging and siteLogging are being correctly passed as parameters.
+ - And hostName.
 
-Next:
-Parse and validate perSite site-local values.
- *- Done, but:
-   +- Remember to take into account that some values cannot override server-wide config.
-     - Look here: // TODO: Check that these config values do not clash that of server-wide. //__RP
-     - Should we emit warnings? Errors? Errors _and_ warnings?
-
-If logging is disabled, bypass validating the directory path (both server and per-site.)
-
-At this point, back up.
-
-Now, on to logging:
+Now, on to actual logging:
  - Address: //__RP - For now.
-   - Timestamp?
-   - And write to file in bulk (every 500ms or so) and deferred.
-     - Write the last batch on Ctrl+C?
+  - Console output first.
+  - File output next (based on console output)
+    - Don't log terminal color codes.
+     - And write to file in bulk (every 500ms or so) and deferred.
+       - Write the last batch on Ctrl+C?
+    - Logging rotation?
+      - Use require('zlib'), which is built-in (nice!)
 
 Some work has been put into place.
- - Next:  Config:
+ - Document whatever is not documented below before deleting.
    - Site-wide:
      - Logging type: {
          general: {
@@ -46,9 +39,6 @@ Some work has been put into place.
               - Test with symbolic links. - Done.
           consoleOutput: 'enabled|disabled' enabled by default. [Might be overridden by site-wide config]
         }
-
-Logging rotation?
- - Use require('zlib'), which is built-in (nice!)
 
 Documentation:
   - Overrides.
