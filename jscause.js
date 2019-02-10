@@ -742,6 +742,7 @@ function doneWith(ctx, id, isCancellation)
           resObject.statusCode = statusCode;
         }
         const { serverLogging, siteLogging, hostName } = ctx;
+        console.log('======== RES END 1!!');//__RP
         resEnd(reqObject, resObject, { serverLogging, siteLogging, hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
@@ -771,7 +772,8 @@ function createWaitForCallback(rtContext, cb)
         rtContext.runtimeException = e;
       }
     }
-
+console.log('DONE WITH 1!');//__RP
+console.log(rtContext.hostName);//__RP
     doneWith(rtContext, waitForId);
   };
 
@@ -792,6 +794,8 @@ function makeRTPromiseHandler(rtContext, resolve, reject)
     }
   };
 
+  console.log('createWaitForCallback 2222!');//__RP
+  console.log(rtContext.hostName);//__RP
   const waitForId = createWaitForCallback(rtContext, resolverCallback);
   return rtContext.waitForQueue[waitForId];
 }
@@ -801,12 +805,16 @@ function cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErro
   let isErrorCancellation = isCancellation;
   if (defaultSuccessWaitForId)
   {
+    console.log('DONE WITH 2!');//__RP
+    console.log(rtContext.hostName);//__RP
     doneWith(rtContext, defaultSuccessWaitForId, isCancellation);
     isErrorCancellation = true;
   }
 
   if (defaultErrorWaitForId)
   {
+    console.log('DONE WITH 3!');//__RP
+    console.log(rtContext.hostName);//__RP
     doneWith(rtContext, defaultErrorWaitForId, isErrorCancellation);
   }
 }
@@ -818,6 +826,8 @@ function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType
     promiseContext.successWaitForId;
   if (counterActorId)
   {
+    console.log('DONE WITH 4!');//__RP
+    console.log(rtContext.hostName);//__RP
     doneWith(rtContext, counterActorId);
   }
 }
@@ -851,6 +861,8 @@ function makeRTOnSuccessOnErrorHandlers(rtContext, promiseContext, defaultSucces
   {
     const cb = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_SUCCESS, defaultSuccessWaitForId, defaultErrorWaitForId, successCallback);
 
+    console.log('createWaitForCallback 3333!');//__RP
+    console.log(rtContext.hostName);//__RP
     promiseContext.successWaitForId = createWaitForCallback(rtContext, cb);
 
     return {
@@ -868,6 +880,8 @@ function makeRTOnSuccessOnErrorHandlers(rtContext, promiseContext, defaultSucces
 
     promiseContext.customCallBack = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_ERROR, defaultSuccessWaitForId, defaultErrorWaitForId, errorCallback);
 
+    console.log('createWaitForCallback 4444!');//__RP
+    console.log(rtContext.hostName);//__RP
     promiseContext.errorWaitForId = createWaitForCallback(rtContext, promiseContext.customCallBack);
   };
 
@@ -888,17 +902,23 @@ function makeRTPromise(rtContext, rtPromise)
     customCallBack: undefined
   };
 
+  console.log('createWaitForCallback 5555!');//__RP
+  console.log(rtContext.hostName);//__RP
   defaultSuccessWaitForId = createWaitForCallback(rtContext, () =>
   {
     cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
   });
 
+  console.log('createWaitForCallback 6666!');//__RP
+  console.log(rtContext.hostName);//__RP
   defaultErrorWaitForId = createWaitForCallback(rtContext, (e) =>
   {
     rtContext.runtimeException = e;
     
     if (promiseContext.successWaitForId)
     {
+      console.log('DONE WITH 5!');//__RP
+      console.log(rtContext.hostName);//__RP
       doneWith(rtContext, promiseContext.successWaitForId, true);
     }
 
@@ -929,6 +949,8 @@ function makeRTPromise(rtContext, rtPromise)
 
           if (promiseContext.successWaitForId)
           {
+            console.log('DONE WITH 6!');//__RP
+            console.log(rtContext.hostName);//__RP
             doneWith(rtContext, promiseContext.successWaitForId);
           }
 
@@ -951,7 +973,8 @@ function createRunTime(rtContext)
 
   const pathCheck = runFileName.match(/(.*)\/.*\.jscp$/);
   const currentPath = pathCheck && pathCheck[1] || '/';
-
+console.log('RUNTIME CONTEXT!');//__RP
+console.log(rtContext.hostName);//__RP
   return Object.freeze({
     getCurrentPath() { return currentPath; },
     unsafePrint(output = '') { rtContext.outputQueue.push(output); },
@@ -1322,7 +1345,6 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
     contentType,
     fullSitePath,
     getParams: urlUtils.parse(req.url, true).query,
-    hostName,
     jsCookies,
     outputQueue: undefined,
     postParams,
@@ -1335,6 +1357,7 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
     runtimeException: undefined,
     serverLogging,
     siteLogging,
+    hostName,
     staticFiles,
     statusCode: responseStatusCode || 200,
     uploadedFiles,
@@ -1374,6 +1397,8 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
     }
   }
   
+  console.log('DONE WITH 1!');//__RP
+  console.log(resContext.hostName);//__RP
   doneWith(resContext);
 }
 
@@ -1389,6 +1414,7 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
   if (contents || !readStream)
   {
+    console.log('======== RES END 2!!');//__RP
     resEnd(req, resObject, { serverLogging, siteLogging, hostName }, contents);
   }
   else
@@ -1470,7 +1496,9 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
 
     if (compiledCodeExists)
     {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, serverLogging, siteLogging };
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, serverLogging, siteLogging, hostName };
+      console.log('RESPONDER 3?');//__RP
+      console.log(postContext.hostName);//__RP
       responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
       return;
     }
@@ -1703,7 +1731,9 @@ function incomingRequestHandler(req, res)
           staticFiles,
           compiledFiles,
           jsCookies,
-          serverLogging
+          serverLogging,
+          siteLogging,
+          hostName
         };
 
         let formFilesKeys;
@@ -1733,6 +1763,8 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
+          console.log('RESPONDER 1?');//__RP
+          console.log(formContext.hostName);//__RP
           responder(req, res, siteName, compiledCode, runFileName, fullSitePath, formContext);
         }
       });
@@ -1770,7 +1802,9 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies };
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies, serverLogging, siteLogging, hostName };
+        console.log('RESPONDER 2?');//__RP
+        console.log(postContext.serverLogging);//__RP
         responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
       });
     }

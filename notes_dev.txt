@@ -8,6 +8,7 @@ You will need to test every resEnd() call just to make sure that serverLogging a
 Now, on to actual logging:
  - Address: //__RP - For now.
   - Console output first.
+    - Should port and protocol (e.g. https) be logged too?
   - File output next (based on console output)
     - Don't log terminal color codes.
      - And write to file in bulk (every 500ms or so) and deferred.
@@ -60,6 +61,10 @@ Get rid of __RP.
 Can two no-name sites exist?  In theory they share the same name, and the server should not start, just like it does with two sites with identical names.
 
 At this point, back up.
+
+We'll need to put more code into functions.
+
+And back up again.
 
 Databases.
  - Basic.
