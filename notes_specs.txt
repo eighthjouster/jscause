@@ -157,6 +157,7 @@ Custom errors 4xx and 5xx:
    - When file uploads are not allowed, or the payload maximum is exceeded.
    - When the site (domain name) is not recognized.
    - When either a form upload or json body upload parsing fails.
+   - When delivering a non-cached static file produces an error (e.g., file was available during parsing, but became unavailable later.)
    - Possibly others.
 
 - error4xx.jscp/html and error5xx.jscp/html.  html prevails over jscp.

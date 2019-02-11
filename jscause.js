@@ -1402,7 +1402,18 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
   doneWith(resContext);
 }
 
-function responderStatic(req, res, siteName, hostName, fullPath, contentType, fileSize, serverLogging, siteLogging, statusCode, { fileContents: contents, readStream })
+function responderStaticFileError(e, req, res, siteName, hostName, fullPath, serverLogging, siteLogging)
+{
+  console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
+  console.error(e);
+  res.statusCode = 404;
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Length', 0);
+  console.log('======== RES END 5!!');//__RP
+  resEnd(req, res, { serverLogging, siteLogging, hostName });
+}
+
+function responderStatic(req, res, siteName, hostName, fullPath, contentType, fileSize, serverLogging, siteLogging, statusCode, { fileContents: contents, readStream, fileNotFoundException })
 {
   const resObject = res;
   const resContext = { appHeaders: {}, resObject };
@@ -1412,7 +1423,11 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
   
   resObject.statusCode = statusCode;
 
-  if (contents || !readStream)
+  if (fileNotFoundException)
+  {
+    responderStaticFileError(fileNotFoundException, req, resObject, siteName, hostName, fullPath, serverLogging, siteLogging);
+  }
+  else if (contents || !readStream)
   {
     console.log('======== RES END 2!!');//__RP
     resEnd(req, resObject, { serverLogging, siteLogging, hostName }, contents);
@@ -1431,21 +1446,13 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
     readStream.on('end', () =>
     {
-      resEnd(req, resObject, { serverLogging, siteLogging, hostName });
-    });
-
-    readStream.on('close', () =>
-    {
+      console.log('======== RES END 3!!');//__RP
       resEnd(req, resObject, { serverLogging, siteLogging, hostName });
     });
 
     readStream.on('error', (e) =>
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
-      console.error(e);
-      resObject.statusCode = 404;
-      resObject.setHeader('Content-Type', 'application/octet-stream');
-      resEnd(req, resObject, { serverLogging, siteLogging, hostName });
+      responderStaticFileError(e, req, resObject, siteName, hostName, fullPath, serverLogging, siteLogging);
     });
   }
 }
@@ -1524,8 +1531,11 @@ function serveStaticContent(req, res, siteName, hostName, staticContent, serverL
   const { fileContents, fileContentType, fullPath, fileSize } = staticContent;
   if (typeof(fileContents) === 'undefined')
   {
-    const readStream = fs.createReadStream(fullPath);
-    responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, serverLogging, siteLogging, statusCode, { readStream });
+    fs.stat(fullPath, (err) =>
+    {
+      const readStream = (err) ? null : fs.createReadStream(fullPath);
+      responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, serverLogging, siteLogging, statusCode, { readStream, fileNotFoundException: err });
+    });
   }
   else
   {

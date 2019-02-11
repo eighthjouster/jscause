@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Keep checking resEnd()'s.  Continue with those that don't have console.log('RES END WHATEVER');
+
 You will need to test every resEnd() call just to make sure that serverLogging and siteLogging are being correctly passed as parameters.
  - And hostName.
 
