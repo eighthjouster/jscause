@@ -1511,9 +1511,9 @@ function serveStaticContent(req, res, siteName, hostName, staticContent, serverL
   }
 }
 
-function doServerRequestLog(hostName, method, url, statusCode)
+function makeLogLine(hostName, method, url, statusCode)
 {
-  console.log(`${new Date().toUTCString()} - ${hostName} - ${method}: ${url} - ${statusCode}`);//__RP - For now.
+  return `${new Date().toUTCString()} - ${hostName} - ${method}: ${url} - ${statusCode}`;
 }
 
 function resEnd(req, res, { serverLogging, siteLogging, hostName, isRefusedConnection }, response)
@@ -1525,9 +1525,52 @@ console.log('serverLogging');//__RP
 console.log(serverLogging);//__RP
 console.log('siteLogging');//__RP
 console.log(siteLogging);//__RP
+  const
+    {
+      general:
+      {
+        consoleOutputEnabled: serverConsoleOutputEnabled,
+        fileOutputEnabled: doOutputToServerFile
+      },
+      perSite:
+      {
+        consoleOutputEnabled: serverSiteConsoleOutputEnabled,
+        perSiteConsoleOutputEnabled: serverPerSiteConsoleOutputEnabled,
+        fileOutputEnabled: serverSiteFileOutputEnabled,
+        perSiteFileOutputEnabled: serverPerSiteFileOutputEnabled
+      }
+    } = serverLogging;
+  const
+    {
+      consoleOutputEnabled: siteConsoleOutputEnabled,
+      fileOutputEnabled: siteFileOutputEnabled
+    } = siteLogging;
 
-  doServerRequestLog(hostName, method, url, statusCode);
+  const doOutputToConsole = (serverConsoleOutputEnabled ||
+      serverSiteConsoleOutputEnabled ||
+      (serverPerSiteConsoleOutputEnabled && siteConsoleOutputEnabled));
+  
+  const doOutputToSiteFile = serverSiteFileOutputEnabled ||
+    (serverPerSiteFileOutputEnabled && siteFileOutputEnabled);
 
+  const logLine = (doOutputToConsole || doOutputToServerFile || doOutputToSiteFile) ?
+    makeLogLine(hostName, method, url, statusCode) :
+    '';
+
+  if (doOutputToConsole)
+  {
+    console.log(logLine);
+  }
+
+  if (doOutputToServerFile)
+  {
+    console.log('WILL OUTPUT TO SERVER FILE!');//__RP
+  }
+
+  if (doOutputToSiteFile)
+  {
+    console.log('WILL OUTPUT TO SITE FILE!');//__RP
+  }
   res.end(response);
 }
 

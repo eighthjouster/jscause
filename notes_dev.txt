@@ -2,10 +2,13 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+All the output to the terminal should be "loggable".
+  - Create a function for this.
+
+All that logic to determine what to log on resEnd?  Yeah, that should happen at config reading time.
+
 Now, on to actual logging:
- - Address: //__RP - For now.
   - Console output first.
-    - Should port and protocol (e.g. https) be logged too?
   - File output next (based on console output)
     - Don't log terminal color codes.
      - And write to file in bulk (every 500ms or so) and deferred.
