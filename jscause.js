@@ -95,6 +95,43 @@ const defaultSiteConfig =
  * 
  * *****************************************/
 
+function JSCLog(type, message, { e } = {})
+{
+  if (type === 'raw')
+  {
+    console.log(message);
+    if (e)
+    {
+      console.log(e);
+    }
+  }
+  else if (type === 'error')
+  {
+    console.error(`${TERMINAL_ERROR_STRING}: ${message}`);
+    if (e)
+    {
+      console.error(e);
+    }
+  }
+  else if (type === 'warning')
+  {
+    console.warn(`${TERMINAL_INFO_WARNING}: ${message}`);
+    if (e)
+    {
+      console.warn(e);
+    }
+  }
+  else if (type === 'info')
+  {
+    // Assumed 'info'
+    console.log(`${TERMINAL_INFO_STRING}: ${message}`);
+    if (e)
+    {
+      console.log(e);
+    }
+  }
+}
+
 function vendor_require(vendorModuleName)
 {
   let moduleFile;
@@ -109,8 +146,7 @@ function vendor_require(vendorModuleName)
     }
     catch(e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`);
-      console.error(e);
+      JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e });
     }
   }
 
@@ -123,8 +159,7 @@ function vendor_require(vendorModuleName)
     }
     catch(e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`);
-      console.error(e);
+      JSCLog('error', `CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`, { e });
     }
   }
 
@@ -142,8 +177,7 @@ function vendor_require(vendorModuleName)
     }
     catch (e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: Could not compile vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
-      console.error(e);
+      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
     }
   }
 
@@ -168,8 +202,8 @@ function validateJSONFile(readConfigFile, fileName)
   }
   catch(e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Invalid ${fileName} file format.`);
-    console.error(`${TERMINAL_ERROR_STRING}: ${e.message}`);
+    JSCLog('error', `Invalid ${fileName} file format.`);
+    JSCLog('error', e.message);
     const positionExtract = e.message.match(/.+at position (\d+).*$/i);
     if (positionExtract)
     {
@@ -177,8 +211,8 @@ function validateJSONFile(readConfigFile, fileName)
       if (errorPosition)
       {
         const excerpt = (readConfigFile || '').substr(errorPosition - 20, 40).split(/\n/);
-        console.error(`${TERMINAL_ERROR_STRING}: Error is around the following section of the file:`);
-        console.error(`${TERMINAL_ERROR_STRING}: ${excerpt.join('')}`);
+        JSCLog('error', 'Error is around the following section of the file:');
+        JSCLog('error', excerpt.join(''));
       }
     }
   }
@@ -551,8 +585,8 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
 
   if (state.parseError)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Error parsing ${fileName}`);
-    console.error(`${TERMINAL_ERROR_STRING}: ${state.parseErrorDescription}`);
+    JSCLog('error', `Error parsing ${fileName}`);
+    JSCLog('error', state.parseErrorDescription);
   }
 
   return !state.parseError;
@@ -590,7 +624,7 @@ function setTempWorkDirectory(siteConfig)
   }
   if (fsPath.isAbsolute(tempWorkDirectory))
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Temporary work directory path ${tempWorkDirectory} must be specified as relative.`);
+    JSCLog('error', `Temporary work directory path ${tempWorkDirectory} must be specified as relative.`);
   }
   else
   {
@@ -610,9 +644,8 @@ function doDeleteFile(thisFile)
     {
       if (err.code !== 'ENOENT')
       {
-        console.warn(`${TERMINAL_INFO_WARNING}: Could not delete unhandled uploaded file: ${thisFile.name}`);
-        console.warn(`${TERMINAL_INFO_WARNING}: (CONT) On the file system as: ${thisFile.path}`);
-        console.warn(err);
+        JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`);
+        JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, { e: err });
       }
     }
     else {
@@ -620,9 +653,8 @@ function doDeleteFile(thisFile)
       {
         if (err)
         {
-          console.warn(`${TERMINAL_INFO_WARNING}: Could not delete unhandled uploaded file: ${thisFile.name}`);
-          console.warn(`${TERMINAL_INFO_WARNING}: (CONT) On the file system as: ${thisFile.path}`);
-          console.warn(err);
+          JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`);
+          JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, { e: err });
         }
       });
     }
@@ -640,10 +672,9 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName,
     pendingWork.pendingRenaming--;
     if (err)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Could not rename unhandled uploaded file: ${thisFile.name}`);
-      console.error(`${TERMINAL_ERROR_STRING}: (CONT) Renaming from: ${oldFilePath}`);
-      console.error(`${TERMINAL_ERROR_STRING}: (CONT) Renaming to: ${newFilePath}`);
-      console.error(err);
+      JSCLog('error', `Could not rename unhandled uploaded file: ${thisFile.name}`);
+      JSCLog('error', `(CONT) Renaming from: ${oldFilePath}`);
+      JSCLog('error', `(CONT) Renaming to: ${newFilePath}`, { e: err });
     }
     else
     {
@@ -710,8 +741,7 @@ function doneWith(ctx, id, isCancellation)
       if (runtimeException)
       {
         ctx.outputQueue = [];
-        console.error(`${TERMINAL_ERROR_STRING}: Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`);
-        console.error(runtimeException);
+        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, { e: runtimeException });
       }
 
       if (runtimeException || compileTimeError)
@@ -1075,7 +1105,7 @@ function createRunTime(rtContext)
     {
       if (fsPath.isAbsolute(moduleName))
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Module name and path ${moduleName} must be specified as relative.`);
+        JSCLog('error', `Module name and path ${moduleName} must be specified as relative.`);
       }
       else
       {
@@ -1377,8 +1407,7 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
 
 function responderStaticFileError(e, req, res, siteName, hostName, fullPath, serverLogging, siteLogging)
 {
-  console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`);
-  console.error(e);
+  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e });
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
@@ -1429,7 +1458,7 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
 function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverLogging, siteLogging, hostName)
 {
-  console.error(`${TERMINAL_ERROR_STRING}: Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
@@ -1438,7 +1467,7 @@ function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverLogging, siteL
 
 function sendUploadIsForbidden(req, res, serverLogging, siteLogging, hostName)
 {
-  console.error(`${TERMINAL_ERROR_STRING}: Uploading is forbidden.`);
+  JSCLog('error', 'Uploading is forbidden.');
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
@@ -1544,7 +1573,7 @@ console.log(siteLogging);//__RP
     {
       consoleOutputEnabled: siteConsoleOutputEnabled,
       fileOutputEnabled: siteFileOutputEnabled
-    } = siteLogging;
+    } = siteLogging || {};
 
   const doOutputToConsole = (serverConsoleOutputEnabled ||
       serverSiteConsoleOutputEnabled ||
@@ -1559,17 +1588,17 @@ console.log(siteLogging);//__RP
 
   if (doOutputToConsole)
   {
-    console.log(logLine);
+    JSCLog('raw', logLine);
   }
 
   if (doOutputToServerFile)
   {
-    console.log('WILL OUTPUT TO SERVER FILE!');//__RP
+    JSCLog('raw', 'WILL OUTPUT TO SERVER FILE!');//__RP
   }
 
   if (doOutputToSiteFile)
   {
-    console.log('WILL OUTPUT TO SITE FILE!');//__RP
+    JSCLog('raw', 'WILL OUTPUT TO SITE FILE!');//__RP
   }
   res.end(response);
 }
@@ -1705,8 +1734,7 @@ function incomingRequestHandler(req, res)
 
       postedForm.on('error', (err) =>
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Form upload related error.`);
-        console.error(err);
+        JSCLog('error', 'Form upload related error.', { e: err });
       });
 
       postedForm.on('field', (name, value) =>
@@ -1835,8 +1863,7 @@ function incomingRequestHandler(req, res)
 
   req.on('error', (err) =>
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Request related error.`);
-    console.error(err);
+    JSCLog('error', 'Request related error.', { e: err });
   })
 }
 
@@ -1847,19 +1874,19 @@ function runWebServer(runningServer, serverPort)
 
   webServer.on('error', (e) =>
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} could not start listening on port ${serverPort}.`)
-    console.error(`${TERMINAL_ERROR_STRING}: Error returned by the server follows:`)
-    console.error(`${TERMINAL_ERROR_STRING}: ${e.message}`);
-    console.error(`${TERMINAL_ERROR_STRING}: Server ${serverName} (port: ${serverPort}) not started.`);
+    JSCLog('error', `Server ${serverName} could not start listening on port ${serverPort}.`);
+    JSCLog('error', 'Error returned by the server follows:');
+    JSCLog('error', e.message);
+    JSCLog('error', `Server ${serverName} (port: ${serverPort}) not started.`);
     Object.values(sites).forEach((site) =>
     {
-      console.error(`${TERMINAL_ERROR_STRING}: - Site ${getSiteNameOrNoName(site.name)} not started.`);
+      JSCLog('error', `- Site ${getSiteNameOrNoName(site.name)} not started.`);
     });
   });
 
   webServer.listen(serverPort, () =>
   {
-    console.log(`${TERMINAL_INFO_STRING}: Server ${serverName} listening on port ${serverPort}`);
+    JSCLog('info', `Server ${serverName} listening on port ${serverPort}`);
   });
 }
 
@@ -1898,7 +1925,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot read '${keyFileName}' SSL key file.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${keyFileName}' SSL key file.`);
         result = false;
       }
 
@@ -1908,7 +1935,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot read '${certFileName}' SSL cert file.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${certFileName}' SSL cert file.`);
         result = false;
       }
 
@@ -1940,7 +1967,7 @@ function startServer(siteConfig)
 
   if (result)
   {
-    console.log(`${TERMINAL_INFO_STRING}: Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
+    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
   }
 
   return result;
@@ -1960,8 +1987,7 @@ function readConfigurationFile(name, path = '.')
   }
   catch (e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Cannot find ${name} file.`);
-    console.error(e);
+    JSCLog('error', `Cannot find ${name} file.`, { e });
   }
 
   if (readSuccess)
@@ -1970,7 +1996,7 @@ function readConfigurationFile(name, path = '.')
 
     if (stats.isDirectory())
     {
-      console.error(`${TERMINAL_ERROR_STRING}: ${name} is a directory.`);
+      JSCLog('error', `${name} is a directory.`);
     }
     else
     {
@@ -1981,8 +2007,7 @@ function readConfigurationFile(name, path = '.')
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Cannot load ${name} file.`);
-        console.error(e);
+        JSCLog('error', `Cannot load ${name} file.`, { e });
       }
     }
   }
@@ -2031,7 +2056,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
     {
       const emptyValueReport = (configKey) ? '': ' (empty value)';
       const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-      console.error(`${TERMINAL_ERROR_STRING}: "${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
+      JSCLog('error', `"${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
       invalidKeysFound = true;
     }
     else
@@ -2042,7 +2067,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
 
   if (invalidKeysFound)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Check that all the keys and values in ${fileName} are valid.`);
+    JSCLog('error', `Check that all the keys and values in ${fileName} are valid.`);
   }
   else
   {
@@ -2066,7 +2091,7 @@ function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNo
   }
   else
   {
-    console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgIfFound}`);
+    JSCLog('error', `${errorMsgIfFound}`);
   }
 }
 
@@ -2077,15 +2102,15 @@ function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
   {
     if (requiredKeysNotFound.length === 1)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: ${configName}:  The following configuration attribute was not found:`);
+      JSCLog('error', `${configName}:  The following configuration attribute was not found:`);
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: ${configName}:  The following configuration attributes were not found:`);
+      JSCLog('error', `${configName}:  The following configuration attributes were not found:`);
     }
     requiredKeysNotFound.forEach((keyName) =>
     {
-      console.error(`${TERMINAL_ERROR_STRING}: - ${keyName}`);
+      JSCLog('error', `- ${keyName}`);
     });
 
     soFarSoGood = false;
@@ -2173,7 +2198,7 @@ function compileSource(sourceData)
 
         if (processBefore.match(/<html\s*\//i))
         {
-          console.warn(`${TERMINAL_INFO_WARNING}: Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?`);
+          JSCLog('warning', 'Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
         }
 
         processedDataArray.push(processBefore);
@@ -2194,14 +2219,12 @@ function compileSource(sourceData)
     }
     catch (e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site: Compile error: ${extractErrorFromCompileObject(e)}`);
-      console.error(e);
+      JSCLog('error', `Site: Compile error: ${extractErrorFromCompileObject(e)}`, { e });
     }
   }
   catch (e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Site: Parsing error, possibly internal.`);
-    console.error(e);
+    JSCLog('error', 'Site: Parsing error, possibly internal.', { e });
   }
 
   return compiledModule;
@@ -2224,15 +2247,14 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
   }
   catch (e)
   {
-    console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot find source file: ${sourcePath}`);
-    console.error(e);
+    JSCLog('error', `Site: Cannot find source file: ${sourcePath}`, { e });
   }
 
   if (stats)
   {
     if (stats.isDirectory())
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site: Entry point is a directory: ${sourcePath}`);
+      JSCLog('error', `Site: Entry point is a directory: ${sourcePath}`);
     }
     else
     {
@@ -2242,8 +2264,7 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site: Cannot load source file: ${sourcePath}`);
-        console.error(e);
+        JSCLog('error', `Site: Cannot load source file: ${sourcePath}`, { e });
       }
     }
   }
@@ -2257,7 +2278,7 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site: Could not compile code for ${fsPath.join(...sourceFilePath)}.`);
+      JSCLog('error', `Site: Could not compile code for ${fsPath.join(...sourceFilePath)}.`);
     }
   }
 
@@ -2278,7 +2299,7 @@ function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound)
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  hostname cannot be empty.`);
+      JSCLog('error', 'Site configuration:  hostname cannot be empty.');
       soFarSoGood = false;
     }
   }
@@ -2325,7 +2346,7 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.`);
+      JSCLog('error', 'Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.');
       soFarSoGood = false;
     }
   }
@@ -2354,17 +2375,17 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
       const allowdNames = ['include', 'exclude'];
       if (allowdNames.indexOf(valueName) === -1)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
+        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
         soFarSoGood = false;
       }
       else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.`);
+        JSCLog('error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.');
         soFarSoGood = false;
       }
       else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid 'exclude' attribute value. Array expected.`);
+        JSCLog('error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.');
         soFarSoGood = false;
       }
       else
@@ -2379,7 +2400,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
               {
                 if (!includeValue && (valueName === 'include'))
                 {
-                  console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
+                  JSCLog('warning', `Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
                 }
 
                 switch(valueName)
@@ -2395,19 +2416,19 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
               }
               else
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
+                JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
                 soFarSoGood = false;
               }
             }
             else
             {
-              console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype name cannot be empty.`);
+              JSCLog('error', 'Site configuration:  mimetype name cannot be empty.');
               soFarSoGood = false;
             }
           }
           else
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
+            JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
             soFarSoGood = false;
           }
           return soFarSoGood;
@@ -2440,7 +2461,7 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  tempworkdirectory cannot be empty.`);
+      JSCLog('error', 'Site configuration:  tempworkdirectory cannot be empty.');
       soFarSoGood = false;
     }
   }
@@ -2472,13 +2493,13 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
           siteConfig.jscpExtensionRequired = finalValue;
           break;
         default:
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid jscpextensionrequired value.  Use 'never' (recommended), 'optional' or 'always'.`);
+          JSCLog('error', 'Site configuration:  invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.');
           soFarSoGood = false;
       }
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  jscpextensionrequired cannot be empty.  Use 'never' (recommended), 'optional' or 'always'.`);
+      JSCLog('error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.');
       soFarSoGood = false;
     }
   }
@@ -2509,13 +2530,13 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
           siteConfig.includeHttpPoweredByHeader = (finalValue === 'include');
           break;
         default:
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  invalid httppoweredbyheader value.  Use 'include' or 'exclude'.`);
+          JSCLog('error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.');
           soFarSoGood = false;
       }
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httppoweredbyheader cannot be empty.  Use 'include' or 'exclude'.`);
+      JSCLog('error', 'Site configuration:  httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.');
       soFarSoGood = false;
     }
   }
@@ -2578,7 +2599,7 @@ function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFoun
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httpscertfile cannot be empty.`);
+      JSCLog('error', 'Site configuration:  httpscertfile cannot be empty.');
       soFarSoGood = false;
     }
   }
@@ -2605,7 +2626,7 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  httpskeyfile cannot be empty.`);
+      JSCLog('error', 'Site configuration:  httpskeyfile cannot be empty.');
       soFarSoGood = false;
     }
   }
@@ -2646,9 +2667,8 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
     catch (e)
     {
       soFarSoGood = false;
-      console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
-      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath} --> ${linkedFileName}`);
-      console.error(e);
+      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
+      JSCLog('error', `- ${fullPath} --> ${linkedFileName}`, { e });
     }
 
     if (soFarSoGood)
@@ -2668,10 +2688,10 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
         }
         else
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
           symlinkList.forEach(symlinkPath =>
           {
-            console.error(`${TERMINAL_ERROR_STRING}: - ${symlinkPath}`);
+            JSCLog('error', `- ${symlinkPath}`);
           });
           soFarSoGood = false;
         }
@@ -2685,8 +2705,8 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
         }
         else
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
-          console.error(`${TERMINAL_ERROR_STRING}: - ${currentDirectoryPath}`);
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
+          JSCLog('error', `- ${currentDirectoryPath}`);
           soFarSoGood = false;
         }
       }
@@ -2722,8 +2742,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
       }
       catch(e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`);
-        console.error(e);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, { e });
         soFarSoGood = false;
       }
     }
@@ -2731,7 +2750,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
     {
       if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
       {
-        console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
       }
     }
   }
@@ -2765,14 +2784,14 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
     {
       soFarSoGood = false;
-      console.error(`${TERMINAL_ERROR_STRING}: Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
-      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+      JSCLog('error', `Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
+      JSCLog('error', `- ${fullPath}`);
     }
     else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
     {
       soFarSoGood = false;
-      console.error(`${TERMINAL_ERROR_STRING}: Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
-      console.error(`${TERMINAL_ERROR_STRING}: - ${fullPath}`);
+      JSCLog('error', `Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
+      JSCLog('error', `- ${fullPath}`);
     }
     else
     {
@@ -2832,8 +2851,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
     }
     catch (e)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find directory: ${directoryName}`);
-      console.error(e);
+      JSCLog('error', `${errorMsgPrefix} Cannot find directory: ${directoryName}`, { e });
       readSuccess = false;
     }
   
@@ -2847,9 +2865,8 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       catch (e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} Cannot find link:`);
-        console.error(`${TERMINAL_ERROR_STRING}: - ${directoryName} --> ${linkedPath}`);
-        console.error(e);
+        JSCLog('error', `${errorMsgPrefix} Cannot find link:`);
+        JSCLog('error', `- ${directoryName} --> ${linkedPath}`, { e });
         readSuccess = false;
       }
     }
@@ -2862,7 +2879,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       else
       {
-        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
+        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
         readSuccess = false;
       }
     }
@@ -2875,7 +2892,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       catch (e)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
+        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
         readSuccess = false;
       }
     }
@@ -2887,7 +2904,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
   }
   else
   {
-    console.error(`${TERMINAL_ERROR_STRING}: ${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`);
+    JSCLog('error', `${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`);
   }
 
   return finalDirectoryPath;
@@ -2908,12 +2925,12 @@ function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
       }
       else
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Configuration:  sites cannot be empty.`);
+        JSCLog('error', 'Configuration:  sites cannot be empty.');
       }
     }
     else
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  sites must be an array.`);
+      JSCLog('error', 'Server configuration:  sites must be an array.');
     }
   }
   else
@@ -2954,7 +2971,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
                   Object.assign(loggingInfo[configKeyLowerCase], { [attributeKeyLowerCase]: keyValue[attributeKey] });
                   break;
                 default:
-                  console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`);
+                  JSCLog('error', `Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`);
                   result = false;
               }
 
@@ -2963,12 +2980,12 @@ function parseLoggingConfigJSON(processedConfigJSON)
           }
           else
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging:  Invalid value for general.`);
+            JSCLog('error', 'Configuration: logging:  Invalid value for general.');
             result = false;
           }
           break;
         default:
-          console.error(`${TERMINAL_ERROR_STRING}: Configuration: logging:  ${configKey} is not a valid configuration key.`);
+          JSCLog('error', `Configuration: logging:  ${configKey} is not a valid configuration key.`);
           result = false;
       }
       return result;
@@ -2978,7 +2995,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
   {
     if (typeof(configValue) !== 'undefined')
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Server configuration:  Expected a valid logging configuration value.`);
+      JSCLog('error', 'Server configuration:  Expected a valid logging configuration value.');
       result = false;
     }
   }
@@ -3013,7 +3030,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
       if (!readSuccess)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: 'perSite' section must not have a 'directoryName' configuration key.`);
+        JSCLog('error', 'Site configuration: Logging: \'perSite\' section must not have a \'directoryName\' configuration key.');
         readSuccess = false;
       }
     }
@@ -3029,13 +3046,13 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       let { siteName = '', perSiteDirectoryName = null, fullSitePath = '' } = perSiteData;
       if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`);
+        JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`);
       }
       else if (perSiteDirectoryName)
       {
         if (fsPath.isAbsolute(perSiteDirectoryName))
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname must be a relative path.`);
+          JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname must be a relative path.`);
           readSuccess = false;
         }
         else
@@ -3049,11 +3066,11 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
         {
           if (perSiteDirectoryName === null)
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname is missing.`);
+            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname is missing.`);
           }
           else
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
+            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
           }
           readSuccess = false;
         }
@@ -3109,7 +3126,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
     if (!readSuccess)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: fileoutput must be either 'enabled' or 'disabled'.`);
+      JSCLog('error', 'Site configuration: Logging: fileoutput must be either \'enabled\' or \'disabled\'.');
     }
   }
   
@@ -3136,7 +3153,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
     if (!readSuccess)
     {
-      console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Logging: consoleOutput must be either 'enabled' or 'disabled'.`);
+      JSCLog('error', 'Site configuration: Logging: consoleOutput must be either \'enabled\' or \'disabled\'.');
     }
   }
   
@@ -3187,7 +3204,7 @@ allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
 
 if (!allVendorModulesLoaded)
 {
-  console.error(`${TERMINAL_ERROR_STRING}: CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.`);
+  JSCLog('error', 'CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
   process.exit(1);
 }
 
@@ -3195,7 +3212,7 @@ templateFile = undefined; // Done with all the vendor module loading.
 
 const RUNTIME_ROOT_DIR = process.cwd();
 
-console.log(`*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
+JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
 const runningServers = {};
 let atLeastOneSiteStarted = false;
@@ -3307,13 +3324,13 @@ if (readSuccess)
         }
         else
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name '${siteName}' is not unique.`);
+          JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`);
           readSuccess = false;
         }
       }
       else
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Missing name.`);
+        JSCLog('error', 'Site configuration: Missing name.');
         readSuccess = false;
       }
 
@@ -3328,13 +3345,13 @@ if (readSuccess)
           }
           else
           {
-            console.error(`${TERMINAL_ERROR_STRING}: Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`);
+            JSCLog('error', `Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`);
             readSuccess = false;
           }
         }
         else
         {
-          console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`);
+          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`);
           readSuccess = false;
         }
       }
@@ -3350,7 +3367,7 @@ if (readSuccess)
       {
         siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
 
-        console.log(`${TERMINAL_INFO_STRING}: Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
+        JSCLog('info', `Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
         const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
         
         readSuccess = !!siteConfigJSON;
@@ -3421,41 +3438,41 @@ if (readSuccess)
           readSuccess = soFarSoGood && allRequiredKeys;
         }
 
-        const
-          {
-            perSite:
-            {
-              fileOutputEnabled: perSitePermanentFileOutputEnabled,
-              perSiteFileOutputEnabled: perSiteOptionalFileOutputEnabled,
-              consoleOutputEnabled: perSitePermanentConsoleOutputEnabled,
-              perSiteConsoleOutputEnabled: perSiteOptionalConsoleOutputEnabled
-            }
-          } = serverConfig.logging;
-
-        const { logging: currentSiteLogging } = siteConfig;
-
-        if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
-        {
-          console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`);
-          console.warn(`${TERMINAL_INFO_WARNING}: - Server configuration prevails.`);
-          currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
-
-          if (!siteConfig.logging.directoryPath)
-          {
-            console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`);
-            readSuccess = false;
-          }
-        }
-
-        if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
-        {
-          console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`);
-          console.warn(`${TERMINAL_INFO_WARNING}: - Server configuration prevails.`);
-          currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
-        }
-
         if (readSuccess)
         {
+          const
+            {
+              perSite:
+              {
+                fileOutputEnabled: perSitePermanentFileOutputEnabled,
+                perSiteFileOutputEnabled: perSiteOptionalFileOutputEnabled,
+                consoleOutputEnabled: perSitePermanentConsoleOutputEnabled,
+                perSiteConsoleOutputEnabled: perSiteOptionalConsoleOutputEnabled
+              }
+            } = serverConfig.logging;
+
+          const { logging: currentSiteLogging } = siteConfig;
+
+          if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
+          {
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`);
+            JSCLog('warning', '- Server configuration prevails.');
+            currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
+
+            if (!siteConfig.logging.directoryPath)
+            {
+              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`);
+              readSuccess = false;
+            }
+          }
+
+          if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
+          {
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`);
+            JSCLog('warning', '- Server configuration prevails.');
+            currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
+          }
+
           const
             {
               name: currentSiteName,
@@ -3475,27 +3492,27 @@ if (readSuccess)
                 readSuccess = combo.enableHTTPS;
                 if (readSuccess)
                 {
-                  console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
                 }
                 else
                 {
-                  console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
                 }
               }
               else if (combo.enableHTTPS)
               {
-                console.warn(`${TERMINAL_INFO_WARNING}: Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
               }
               
               if (currentSiteHostName === combo.hostName.toLowerCase())
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
                 readSuccess = false;
               }
               
               if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
-                console.error(`${TERMINAL_ERROR_STRING}: Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`);
                 readSuccess = false;
               }
             }
@@ -3559,8 +3576,7 @@ if (readSuccess)
             }
             catch(e)
             {
-              console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`);
-              console.error(e);
+              JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`, { e });
             }
 
             if (state.soFarSoGood)
@@ -3588,7 +3604,7 @@ if (readSuccess)
                   (fileName === 'error5xx.jscp') ||
                   (fileName === 'error5xx.html')))
                 {
-                  console.warn(`${TERMINAL_INFO_WARNING}: Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`);
+                  JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`);
                 }
           
                 if (simlinkTarget)
@@ -3607,8 +3623,7 @@ if (readSuccess)
                 catch (e)
                 {
                   state.soFarSoGood = false;
-                  console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`);
-                  console.error(e);
+                  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`, { e });
                 }
 
                 if (state.soFarSoGood)
@@ -3689,7 +3704,7 @@ if (readSuccess)
       }
       else if (readSuccess)
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site configuration: invalid or missing rootDirectoryName.`);
+        JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.');
         readSuccess = false;
       }
 
@@ -3699,7 +3714,7 @@ if (readSuccess)
       }
       else
       {
-        console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`);
         allFailedSiteNames.push(siteName);
       }
     }
@@ -3724,36 +3739,36 @@ serverConfig.sites.forEach((site) =>
     const { name: siteName } = site;
     allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
 
-    console.error(`${TERMINAL_ERROR_STRING}: Site ${getSiteNameOrNoName(siteName)} not started.`);
+    JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`);
     allFailedSiteNames.push(siteName);
   }
 });
 
-console.log(`${TERMINAL_INFO_STRING}: ************ All sites' configuration read at this point ********************`);
+JSCLog('info', '************ All sites\' configuration read at this point ********************');
 
 if (allReadySiteNames.length)
 {
-  console.log(`${TERMINAL_INFO_STRING}: The following sites were set up successfully:`);
+  JSCLog('info', 'The following sites were set up successfully:');
   allReadySiteNames.forEach((name) =>
   {
-    console.log(`${TERMINAL_INFO_STRING}: - ${getSiteNameOrNoName(name)}`);
+    JSCLog('info', getSiteNameOrNoName(name));
   });
 }
 
 if (allFailedSiteNames.length)
 {
-  console.error(`${TERMINAL_ERROR_STRING}: The following sites failed to run:`);
+  JSCLog('error', 'The following sites failed to run:');
   allFailedSiteNames.forEach((name) =>
   {
-    console.error(`${TERMINAL_ERROR_STRING}: - ${getSiteNameOrNoName(name)}`);
+    JSCLog('error', `- ${getSiteNameOrNoName(name)}`);
   });
 }
 
 if (atLeastOneSiteStarted)
 {
-  console.log(`${TERMINAL_INFO_STRING}: Will start listening.`);
+  JSCLog('info', 'Will start listening.');
 }
 else
 {
-  console.error(`${TERMINAL_ERROR_STRING}: Server not started.  No sites are running.`);
+  JSCLog('error', 'Server not started.  No sites are running.');
 }

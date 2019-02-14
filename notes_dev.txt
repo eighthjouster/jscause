@@ -2,8 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-All the output to the terminal should be "loggable".
-  - Create a function for this.
+JSCLog() has been created.  Now:
+ - It should have server and site config logging parameters passed in.
+   - Some calls don't need it.  They just log to the server.  But what about sites?  And for files?
 
 All that logic to determine what to log on resEnd?  Yeah, that should happen at config reading time.
 
