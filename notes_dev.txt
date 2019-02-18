@@ -2,11 +2,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Ok, JSCLog is not logging the server's startup messages.  Fix.
+ - And test WARNING/INFO/ERROR.
+
 JSCLog() has been created.  Now:
  - It should have server and site config logging parameters passed in.
    - Some calls don't need it.  They just log to the server.  But what about sites?  And for files?
 
-All that logic to determine what to log on resEnd?  Yeah, that should happen at config reading time.
+Alright, you must test every resEnd() again.
+
+And _every_ JSCLog() as well! Goog luck.
 
 Now, on to actual logging:
   - Console output first.
