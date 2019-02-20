@@ -2,16 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Ok, JSCLog is not logging the server's startup messages.  Fix.
- - And test WARNING/INFO/ERROR.
+Alright, you must test every resEnd() again.  Just nine entries.
 
-JSCLog() has been created.  Now:
- - It should have server and site config logging parameters passed in.
-   - Some calls don't need it.  They just log to the server.  But what about sites?  And for files?
-
-Alright, you must test every resEnd() again.
-
-And _every_ JSCLog() as well! Goog luck.
+And _every_ JSCLog() as well! 133 entries.  Good luck.
 
 Perhaps you should try to finish processing the logging context right after:
   soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound);
@@ -41,7 +34,7 @@ Now, on to actual logging:
   - Console output first.
   - File output next (based on console output)
     - Don't log terminal color codes.
-     - And write to file in bulk (every 500ms or so) and deferred.
+     - And write to file in bulk (every 500ms or so) and deferred (throttle/debounce).
        - Write the last batch on Ctrl+C?
     - Logging rotation?
       - Use require('zlib'), which is built-in (nice!)
@@ -87,6 +80,9 @@ Server logging?
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Get rid of __RP.
+
+Hmmm, site.json accepts a hostName that's already being used in another site's site.json.
+ - Shouldn't you at least issue a warning?
 
 Can two no-name sites exist?  In theory they share the same name, and the server should not start, just like it does with two sites with identical names.
 
