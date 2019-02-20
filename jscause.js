@@ -133,7 +133,7 @@ function outputLogToFile(filePath, message)
   console.log(message);//__RP
 }
 
-function JSCLog(type, message, { e, toConsole, toServerFile, toSiteFile } = {})
+function JSCLog(type, message, { e, toConsole = true, toServerFile, toSiteFile } = {})
 {
   const { outputToConsole, consolePrefix, filePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
@@ -242,7 +242,7 @@ function prepareConfigFileForParsing(readConfigFile)
     .replace(/^\s*/g, '');  // Strip leading white space at the beginning of file.
 }
 
-function validateJSONFile(readConfigFile, fileName)
+function validateJSONFile(readConfigFile, fileName, jscLogConfig)
 {
   let readConfigJSON;
 
@@ -252,8 +252,8 @@ function validateJSONFile(readConfigFile, fileName)
   }
   catch(e)
   {
-    JSCLog('error', `Invalid ${fileName} file format.`);
-    JSCLog('error', e.message);
+    JSCLog('error', `Invalid ${fileName} file format.`, jscLogConfig);
+    JSCLog('error', e.message, jscLogConfig);
     const positionExtract = e.message.match(/.+at position (\d+).*$/i);
     if (positionExtract)
     {
@@ -261,8 +261,8 @@ function validateJSONFile(readConfigFile, fileName)
       if (errorPosition)
       {
         const excerpt = (readConfigFile || '').substr(errorPosition - 20, 40).split(/\n/);
-        JSCLog('error', 'Error is around the following section of the file:');
-        JSCLog('error', excerpt.join(''));
+        JSCLog('error', 'Error is around the following section of the file:', jscLogConfig);
+        JSCLog('error', excerpt.join(''), jscLogConfig);
       }
     }
   }
@@ -545,7 +545,7 @@ function parseNextInConfigFile(state)
   };
 }
 
-function configFileFreeOfDuplicates(readConfigFile, fileName)
+function configFileFreeOfDuplicates(readConfigFile, fileName, jscLogConfig)
 {
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
@@ -635,8 +635,8 @@ function configFileFreeOfDuplicates(readConfigFile, fileName)
 
   if (state.parseError)
   {
-    JSCLog('error', `Error parsing ${fileName}`);
-    JSCLog('error', state.parseErrorDescription);
+    JSCLog('error', `Error parsing ${fileName}`, jscLogConfig);
+    JSCLog('error', state.parseErrorDescription, jscLogConfig);
   }
 
   return !state.parseError;
@@ -662,7 +662,7 @@ function sanitizeForHTMLOutput(inputText)
   return String(inputText).replace(/[&<>"'`=/]/g, (s) => symbolsToSanitize[s]);
 }
 
-function setTempWorkDirectory(siteConfig)
+function setTempWorkDirectory(siteConfig, jscLogConfig)
 {
   let  { tempWorkDirectory } = siteConfig;
 
@@ -674,19 +674,19 @@ function setTempWorkDirectory(siteConfig)
   }
   if (fsPath.isAbsolute(tempWorkDirectory))
   {
-    JSCLog('error', `Temporary work directory path ${tempWorkDirectory} must be specified as relative.`);
+    JSCLog('error', `Temporary work directory path ${tempWorkDirectory} must be specified as relative.`, jscLogConfig);
   }
   else
   {
     tempWorkDirectory = fsPath.join(siteConfig.fullSitePath, tempWorkDirectory);
-    siteConfig.tempWorkDirectory = getDirectoryPathAndCheckIfWritable(tempWorkDirectory);
+    siteConfig.tempWorkDirectory = getDirectoryPathAndCheckIfWritable(tempWorkDirectory, '', jscLogConfig);
     setupSuccess = (typeof(siteConfig.tempWorkDirectory) !== 'undefined');
   }
 
   return setupSuccess;
 }
 
-function doDeleteFile(thisFile)
+function doDeleteFile(thisFile, jscLogConfig)
 {
   fs.stat(thisFile.path, (err) =>
   {
@@ -694,8 +694,8 @@ function doDeleteFile(thisFile)
     {
       if (err.code !== 'ENOENT')
       {
-        JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`);
-        JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, { e: err });
+        JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
+        JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
       }
     }
     else {
@@ -703,8 +703,8 @@ function doDeleteFile(thisFile)
       {
         if (err)
         {
-          JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`);
-          JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, { e: err });
+          JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
+          JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
         }
       });
     }
@@ -716,15 +716,21 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName,
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
   const newFilePath = fsPath.join(tempWorkDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
+  const jscLogConfig =
+  {
+    toConsole: formContext.doLogToConsole,
+    toServerFile: formContext.serverLogFile,
+    toSiteFile: formContext.siteLogFile
+  };
   
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
     pendingWork.pendingRenaming--;
     if (err)
     {
-      JSCLog('error', `Could not rename unhandled uploaded file: ${thisFile.name}`);
-      JSCLog('error', `(CONT) Renaming from: ${oldFilePath}`);
-      JSCLog('error', `(CONT) Renaming to: ${newFilePath}`, { e: err });
+      JSCLog('error', `Could not rename unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
+      JSCLog('error', `(CONT) Renaming from: ${oldFilePath}`, jscLogConfig);
+      JSCLog('error', `(CONT) Renaming to: ${newFilePath}`, Object.assign({ e: err }, jscLogConfig));
     }
     else
     {
@@ -738,7 +744,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName,
   });
 }
 
-function deleteUnhandledFiles(unhandledFiles)
+function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
 {
   Object.keys(unhandledFiles).forEach((name) =>
   {
@@ -747,13 +753,13 @@ function deleteUnhandledFiles(unhandledFiles)
     {
       fileInfo.forEach((thisFile) =>
       {
-        doDeleteFile(thisFile);
+        doDeleteFile(thisFile, jscLogConfig);
       });
 
     }
     else
     {
-      doDeleteFile(fileInfo);
+      doDeleteFile(fileInfo, jscLogConfig);
     }
   });
 }
@@ -769,7 +775,9 @@ function doneWith(ctx, id, isCancellation)
   {
     return;
   }
-  
+
+  const { doLogToConsole, serverLogFile, siteLogFile } = ctx;
+
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
     if (ctx.runAfterQueue && ctx.runAfterQueue.length)
@@ -783,7 +791,7 @@ function doneWith(ctx, id, isCancellation)
       const formFiles = ctx.uploadedFiles;
       if (formFiles)
       {
-        deleteUnhandledFiles(formFiles);
+        deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogFile, siteLogFile });
       }
 
       const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
@@ -791,12 +799,12 @@ function doneWith(ctx, id, isCancellation)
       if (runtimeException)
       {
         ctx.outputQueue = [];
-        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, { e: runtimeException });
+        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, { e: runtimeException, doLogToConsole, serverLogFile, siteLogFile });
       }
 
       if (runtimeException || compileTimeError)
       {
-        const { hostName, fullSitePath, compiledFiles, staticFiles, jsCookies, doLogToConsole, serverLogFile, siteLogFile } = ctx;
+        const { hostName, fullSitePath, compiledFiles, staticFiles, jsCookies } = ctx;
         handleError5xx(reqObject, resObject, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile);
         return;
       }
@@ -1030,6 +1038,14 @@ function createRunTime(rtContext)
 
   const pathCheck = runFileName.match(/(.*)\/.*\.jscp$/);
   const currentPath = pathCheck && pathCheck[1] || '/';
+
+  const jscLogConfig =
+  {
+    toConsole: rtContext.doLogToConsole,
+    toServerFile: rtContext.serverLogFile,
+    toSiteFile: rtContext.siteLogFile
+  };
+
   return Object.freeze({
     getCurrentPath() { return currentPath; },
     unsafePrint(output = '') { rtContext.outputQueue.push(output); },
@@ -1155,7 +1171,7 @@ function createRunTime(rtContext)
     {
       if (fsPath.isAbsolute(moduleName))
       {
-        JSCLog('error', `Module name and path ${moduleName} must be specified as relative.`);
+        JSCLog('error', `Module name and path ${moduleName} must be specified as relative.`, jscLogConfig);
       }
       else
       {
@@ -1458,7 +1474,8 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
 
 function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogFile, siteLogFile)
 {
-  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e });
+  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+  //{ toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile }
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
@@ -1509,7 +1526,7 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
 function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogFile, siteLogFile, hostName)
 {
-  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`);
+  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`, { toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
@@ -1518,7 +1535,7 @@ function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serv
 
 function sendUploadIsForbidden(req, res, doLogToConsole, serverLogFile, siteLogFile, hostName)
 {
-  JSCLog('error', 'Uploading is forbidden.');
+  JSCLog('error', 'Uploading is forbidden.', { toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
@@ -1743,7 +1760,7 @@ function incomingRequestHandler(req, res)
 
       postedForm.on('error', (err) =>
       {
-        JSCLog('error', 'Form upload related error.', { e: err });
+        JSCLog('error', 'Form upload related error.', { e: err, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
       });
 
       postedForm.on('field', (name, value) =>
@@ -1873,37 +1890,43 @@ function incomingRequestHandler(req, res)
 
   req.on('error', (err) =>
   {
-    JSCLog('error', 'Request related error.', { e: err });
+    JSCLog('error', 'Request related error.', { e: err, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
   })
 }
 
-function runWebServer(runningServer, serverPort)
+function runWebServer(runningServer, serverPort, jscLogConfig)
 {
   const { webServer, serverName, sites } = runningServer;
   webServer.on('request', incomingRequestHandler);
 
   webServer.on('error', (e) =>
   {
-    JSCLog('error', `Server ${serverName} could not start listening on port ${serverPort}.`);
-    JSCLog('error', 'Error returned by the server follows:');
-    JSCLog('error', e.message);
-    JSCLog('error', `Server ${serverName} (port: ${serverPort}) not started.`);
+    JSCLog('error', `Server ${serverName} could not start listening on port ${serverPort}.`, jscLogConfig);
+    JSCLog('error', 'Error returned by the server follows:', jscLogConfig);
+    JSCLog('error', e.message, jscLogConfig);
+    JSCLog('error', `Server ${serverName} (port: ${serverPort}) not started.`, jscLogConfig);
     Object.values(sites).forEach((site) =>
     {
-      JSCLog('error', `- Site ${getSiteNameOrNoName(site.name)} not started.`);
+      JSCLog('error', `- Site ${getSiteNameOrNoName(site.name)} not started.`, jscLogConfig);
     });
   });
 
   webServer.listen(serverPort, () =>
   {
-    JSCLog('info', `Server ${serverName} listening on port ${serverPort}`);
+    JSCLog('info', `Server ${serverName} listening on port ${serverPort}`, jscLogConfig);
   });
 }
 
-function startServer(siteConfig)
+function startServer(siteConfig, jscLogConfigBase)
 {
-  const { name: siteName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName } = siteConfig;
+  const { name: siteName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
+
+  const jscLogConfig = Object.assign({}, jscLogConfigBase,
+    {
+      toConsole: siteLogging.doLogToConsole,
+      toSiteFile: siteLogging.siteLogFile
+    });
 
   let runningServer = runningServers[serverPort];
   let webServer;
@@ -1935,7 +1958,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${keyFileName}' SSL key file.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${keyFileName}' SSL key file.`, jscLogConfig);
         result = false;
       }
 
@@ -1945,7 +1968,7 @@ function startServer(siteConfig)
       }
       catch(e)
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${certFileName}' SSL cert file.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot read '${certFileName}' SSL cert file.`, jscLogConfig);
         result = false;
       }
 
@@ -1968,7 +1991,7 @@ function startServer(siteConfig)
     if (webServer)
     {
       runningServer.webServer = webServer;
-      runWebServer(runningServer, serverPort);
+      runWebServer(runningServer, serverPort, jscLogConfig);
       runningServers[serverPort] = runningServer;
     }
   }
@@ -1977,13 +2000,13 @@ function startServer(siteConfig)
 
   if (result)
   {
-    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`);
+    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
   return result;
 }
 
-function readConfigurationFile(name, path = '.')
+function readConfigurationFile(name, path = '.', jscLogConfig = {})
 {
   let stats;
   let readConfigFile;
@@ -1997,7 +2020,7 @@ function readConfigurationFile(name, path = '.')
   }
   catch (e)
   {
-    JSCLog('error', `Cannot find ${name} file.`, { e });
+    JSCLog('error', `Cannot find ${name} file.`, Object.assign({ e }, jscLogConfig));
   }
 
   if (readSuccess)
@@ -2006,7 +2029,7 @@ function readConfigurationFile(name, path = '.')
 
     if (stats.isDirectory())
     {
-      JSCLog('error', `${name} is a directory.`);
+      JSCLog('error', `${name} is a directory.`, jscLogConfig);
     }
     else
     {
@@ -2017,7 +2040,7 @@ function readConfigurationFile(name, path = '.')
       }
       catch(e)
       {
-        JSCLog('error', `Cannot load ${name} file.`, { e });
+        JSCLog('error', `Cannot load ${name} file.`, Object.assign({ e }, jscLogConfig));
       }
     }
   }
@@ -2030,18 +2053,18 @@ function readConfigurationFile(name, path = '.')
   return readConfigFile;
 }
 
-function readAndProcessJSONFile(jsonFileName, jsonFilePath)
+function readAndProcessJSONFile(jsonFileName, jsonFilePath, jscLogConfig)
 {
   let readConfigJSON;
   let finalConfigJSON;
 
-  let readConfigFile = readConfigurationFile(jsonFileName, jsonFilePath);
+  let readConfigFile = readConfigurationFile(jsonFileName, jsonFilePath, jscLogConfig);
 
   if (readConfigFile)
   {
     readConfigFile = prepareConfigFileForParsing(readConfigFile);
     readConfigJSON = validateJSONFile(readConfigFile, jsonFileName);
-    if (readConfigJSON && configFileFreeOfDuplicates(readConfigFile, jsonFileName))
+    if (readConfigJSON && configFileFreeOfDuplicates(readConfigFile, jsonFileName, jscLogConfig))
     {
       finalConfigJSON = readConfigJSON;
     }
@@ -2050,7 +2073,7 @@ function readAndProcessJSONFile(jsonFileName, jsonFilePath)
   return finalConfigJSON;
 }
 
-function prepareConfiguration(configJSON, allowedKeys, fileName)
+function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = {})
 {
   const configKeys = Object.keys(configJSON);
   const configKeysLength = configKeys.length;
@@ -2066,7 +2089,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
     {
       const emptyValueReport = (configKey) ? '': ' (empty value)';
       const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-      JSCLog('error', `"${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`);
+      JSCLog('error', `"${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`, jscLogConfig);
       invalidKeysFound = true;
     }
     else
@@ -2077,7 +2100,7 @@ function prepareConfiguration(configJSON, allowedKeys, fileName)
 
   if (invalidKeysFound)
   {
-    JSCLog('error', `Check that all the keys and values in ${fileName} are valid.`);
+    JSCLog('error', `Check that all the keys and values in ${fileName} are valid.`, jscLogConfig);
   }
   else
   {
@@ -2093,7 +2116,7 @@ function createInitialSiteConfig(siteInfo)
   return Object.assign({}, defaultSiteConfig, { name, port, rootDirectoryName, enableHTTPS });
 }
 
-function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound)
+function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound, jscLogConfig)
 {
   if (typeof(configValue) === 'undefined')
   {
@@ -2101,26 +2124,26 @@ function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNo
   }
   else
   {
-    JSCLog('error', `${errorMsgIfFound}`);
+    JSCLog('error', `${errorMsgIfFound}`, jscLogConfig);
   }
 }
 
-function checkForRequiredKeysNotFound(requiredKeysNotFound, configName)
+function checkForRequiredKeysNotFound(requiredKeysNotFound, configName, jscLogConfig)
 {
   let soFarSoGood = true;
   if (requiredKeysNotFound.length)
   {
     if (requiredKeysNotFound.length === 1)
     {
-      JSCLog('error', `${configName}:  The following configuration attribute was not found:`);
+      JSCLog('error', `${configName}:  The following configuration attribute was not found:`, jscLogConfig);
     }
     else
     {
-      JSCLog('error', `${configName}:  The following configuration attributes were not found:`);
+      JSCLog('error', `${configName}:  The following configuration attributes were not found:`, jscLogConfig);
     }
     requiredKeysNotFound.forEach((keyName) =>
     {
-      JSCLog('error', `- ${keyName}`);
+      JSCLog('error', `- ${keyName}`, jscLogConfig);
     });
 
     soFarSoGood = false;
@@ -2134,7 +2157,7 @@ function getSiteNameOrNoName(name)
   return name ? `'${name}'` : '(no name)';
 }
 
-function compileSource(sourceData)
+function compileSource(sourceData, jscLogConfig)
 {
   const Module = module.constructor;
   Module._nodeModulePaths(fsPath.dirname(''));
@@ -2208,7 +2231,7 @@ function compileSource(sourceData)
 
         if (processBefore.match(/<html\s*\//i))
         {
-          JSCLog('warning', 'Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?');
+          JSCLog('warning', 'Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?', jscLogConfig);
         }
 
         processedDataArray.push(processBefore);
@@ -2229,18 +2252,18 @@ function compileSource(sourceData)
     }
     catch (e)
     {
-      JSCLog('error', `Site: Compile error: ${extractErrorFromCompileObject(e)}`, { e });
+      JSCLog('error', `Site: Compile error: ${extractErrorFromCompileObject(e)}`, Object.assign({ e }, jscLogConfig));
     }
   }
   catch (e)
   {
-    JSCLog('error', 'Site: Parsing error, possibly internal.', { e });
+    JSCLog('error', 'Site: Parsing error, possibly internal.', Object.assign({ e }, jscLogConfig));
   }
 
   return compiledModule;
 }
 
-function processSourceFile(sourceFilePath, siteJSONFilePath)
+function processSourceFile(sourceFilePath, siteJSONFilePath, jscLogConfig)
 {
   let sourcePath = fsPath.join(...sourceFilePath);
   if (!fsPath.isAbsolute(sourcePath))
@@ -2257,14 +2280,14 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
   }
   catch (e)
   {
-    JSCLog('error', `Site: Cannot find source file: ${sourcePath}`, { e });
+    JSCLog('error', `Site: Cannot find source file: ${sourcePath}`, Object.assign({ e }, jscLogConfig));
   }
 
   if (stats)
   {
     if (stats.isDirectory())
     {
-      JSCLog('error', `Site: Entry point is a directory: ${sourcePath}`);
+      JSCLog('error', `Site: Entry point is a directory: ${sourcePath}`, jscLogConfig);
     }
     else
     {
@@ -2274,28 +2297,28 @@ function processSourceFile(sourceFilePath, siteJSONFilePath)
       }
       catch(e)
       {
-        JSCLog('error', `Site: Cannot load source file: ${sourcePath}`, { e });
+        JSCLog('error', `Site: Cannot load source file: ${sourcePath}`, Object.assign({ e }, jscLogConfig));
       }
     }
   }
 
   if (typeof(compileData) !== 'undefined')
   {
-    const possiblyCompiledSource = compileSource(compileData);
+    const possiblyCompiledSource = compileSource(compileData, jscLogConfig);
     if (typeof(possiblyCompiledSource) === 'function')
     {
       compiledSource = possiblyCompiledSource;
     }
     else
     {
-      JSCLog('error', `Site: Could not compile code for ${fsPath.join(...sourceFilePath)}.`);
+      JSCLog('error', `Site: Could not compile code for ${fsPath.join(...sourceFilePath)}.`, jscLogConfig);
     }
   }
 
   return compiledSource;
 }
 
-function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'hostname';
@@ -2309,20 +2332,20 @@ function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound)
     }
     else
     {
-      JSCLog('error', 'Site configuration:  hostname cannot be empty.');
+      JSCLog('error', 'Site configuration:  hostname cannot be empty.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'canupload';
@@ -2334,14 +2357,14 @@ function parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound)
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'maxpayloadsizebytes';
@@ -2356,20 +2379,20 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
     }
     else
     {
-      JSCLog('error', 'Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.');
+      JSCLog('error', 'Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'mimetypes';
@@ -2385,17 +2408,17 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
       const allowdNames = ['include', 'exclude'];
       if (allowdNames.indexOf(valueName) === -1)
       {
-        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`);
+        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`, jscLogConfig);
         soFarSoGood = false;
       }
       else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
       {
-        JSCLog('error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.');
+        JSCLog('error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.', jscLogConfig);
         soFarSoGood = false;
       }
       else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
       {
-        JSCLog('error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.');
+        JSCLog('error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.', jscLogConfig);
         soFarSoGood = false;
       }
       else
@@ -2410,7 +2433,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
               {
                 if (!includeValue && (valueName === 'include'))
                 {
-                  JSCLog('warning', `Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`);
+                  JSCLog('warning', `Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`, jscLogConfig);
                 }
 
                 switch(valueName)
@@ -2426,19 +2449,19 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
               }
               else
               {
-                JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`);
+                JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`, jscLogConfig);
                 soFarSoGood = false;
               }
             }
             else
             {
-              JSCLog('error', 'Site configuration:  mimetype name cannot be empty.');
+              JSCLog('error', 'Site configuration:  mimetype name cannot be empty.', jscLogConfig);
               soFarSoGood = false;
             }
           }
           else
           {
-            JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`);
+            JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`, jscLogConfig);
             soFarSoGood = false;
           }
           return soFarSoGood;
@@ -2449,14 +2472,14 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound)
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid mimetypes.  Object expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid mimetypes.  Object expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'tempworkdirectory';
@@ -2471,20 +2494,20 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
     }
     else
     {
-      JSCLog('error', 'Site configuration:  tempworkdirectory cannot be empty.');
+      JSCLog('error', 'Site configuration:  tempworkdirectory cannot be empty.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'jscpextensionrequired';
@@ -2503,26 +2526,26 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
           siteConfig.jscpExtensionRequired = finalValue;
           break;
         default:
-          JSCLog('error', 'Site configuration:  invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.');
+          JSCLog('error', 'Site configuration:  invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
           soFarSoGood = false;
       }
     }
     else
     {
-      JSCLog('error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.');
+      JSCLog('error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid jscpextensionrequired.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid jscpextensionrequired.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'httppoweredbyheader';
@@ -2540,26 +2563,26 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
           siteConfig.includeHttpPoweredByHeader = (finalValue === 'include');
           break;
         default:
-          JSCLog('error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.');
+          JSCLog('error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.', jscLogConfig);
           soFarSoGood = false;
       }
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.');
+      JSCLog('error', 'Site configuration:  httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httppoweredbyheader.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httppoweredbyheader.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   const { name: siteName, fullSitePath } = siteConfig;
   const configKeyName = 'logging';
@@ -2581,21 +2604,21 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
       fullSitePath
     };
 
-    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData });
+    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData }, jscLogConfig);
 
     siteConfig.logging = loggingConfig;
     soFarSoGood = !!loggingConfig;
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid logging.  Object expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid logging.  Object expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'httpscertfile';
@@ -2609,20 +2632,20 @@ function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFoun
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httpscertfile cannot be empty.');
+      JSCLog('error', 'Site configuration:  httpscertfile cannot be empty.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpscertfile.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpscertfile.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound)
+function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'httpskeyfile';
@@ -2636,20 +2659,20 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httpskeyfile cannot be empty.');
+      JSCLog('error', 'Site configuration:  httpskeyfile cannot be empty.', jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpskeyfile.  String value expected.');
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpskeyfile.  String value expected.', jscLogConfig);
     soFarSoGood = false;
   }
 
   return soFarSoGood;
 }
 
-function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements)
+function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, jscLogConfig)
 {
   let { soFarSoGood, directoriesToProcess, pushedFiles } = state;
   const { name: siteName } = siteConfig;
@@ -2677,8 +2700,8 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
     catch (e)
     {
       soFarSoGood = false;
-      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`);
-      JSCLog('error', `- ${fullPath} --> ${linkedFileName}`, { e });
+      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find link:`, jscLogConfig);
+      JSCLog('error', `- ${fullPath} --> ${linkedFileName}`, Object.assign({ e }, jscLogConfig));
     }
 
     if (soFarSoGood)
@@ -2698,10 +2721,10 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
         }
         else
         {
-          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`);
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Circular symbolic link reference:`, jscLogConfig);
           symlinkList.forEach(symlinkPath =>
           {
-            JSCLog('error', `- ${symlinkPath}`);
+            JSCLog('error', `- ${symlinkPath}`, jscLogConfig);
           });
           soFarSoGood = false;
         }
@@ -2715,8 +2738,8 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
         }
         else
         {
-          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`);
-          JSCLog('error', `- ${currentDirectoryPath}`);
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`, jscLogConfig);
+          JSCLog('error', `- ${currentDirectoryPath}`, jscLogConfig);
           soFarSoGood = false;
         }
       }
@@ -2727,7 +2750,7 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
   return { soFarSoGood, directoriesToProcess, pushedFiles };
 }
 
-function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath)
+function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig)
 {
   const { name: siteName } = siteConfig;
   let { soFarSoGood, cachedStaticFilesSoFar } = state;
@@ -2752,7 +2775,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
       }
       catch(e)
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, { e });
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
         soFarSoGood = false;
       }
     }
@@ -2760,7 +2783,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
     {
       if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
       {
-        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`);
+        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
       }
     }
   }
@@ -2782,7 +2805,7 @@ function prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, cur
   }
 }
 
-function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogConfig)
 {
   let
     {
@@ -2794,14 +2817,14 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
     {
       soFarSoGood = false;
-      JSCLog('error', `Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`);
-      JSCLog('error', `- ${fullPath}`);
+      JSCLog('error', `Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`, jscLogConfig);
+      JSCLog('error', `- ${fullPath}`, jscLogConfig);
     }
     else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
     {
       soFarSoGood = false;
-      JSCLog('error', `Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`);
-      JSCLog('error', `- ${fullPath}`);
+      JSCLog('error', `Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`, jscLogConfig);
+      JSCLog('error', `- ${fullPath}`,jscLogConfig);
     }
     else
     {
@@ -2812,7 +2835,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   }
   else if (stats.isSymbolicLink())
   {
-    Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements));
+    Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, jscLogConfig));
   }
   else if (fileName.match(/\.jscm$/)) // Ignore jscm files.
   {
@@ -2831,7 +2854,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     else
     {
       // Static files.
-      Object.assign(state, processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath));
+      Object.assign(state, processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig));
     }
 
     if (soFarSoGood)
@@ -2847,7 +2870,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   };
 }
 
-function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
+function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', jscLogConfig)
 {
   let finalDirectoryPath;
   let stats;
@@ -2861,7 +2884,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
     }
     catch (e)
     {
-      JSCLog('error', `${errorMsgPrefix} Cannot find directory: ${directoryName}`, { e });
+      JSCLog('error', `${errorMsgPrefix} Cannot find directory: ${directoryName}`, Object.assign({ e }, jscLogConfig));
       readSuccess = false;
     }
   
@@ -2875,8 +2898,8 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       catch (e)
       {
-        JSCLog('error', `${errorMsgPrefix} Cannot find link:`);
-        JSCLog('error', `- ${directoryName} --> ${linkedPath}`, { e });
+        JSCLog('error', `${errorMsgPrefix} Cannot find link:`, jscLogConfig);
+        JSCLog('error', `- ${directoryName} --> ${linkedPath}`, Object.assign({ e }, jscLogConfig));
         readSuccess = false;
       }
     }
@@ -2889,7 +2912,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       else
       {
-        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`);
+        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`, jscLogConfig);
         readSuccess = false;
       }
     }
@@ -2902,7 +2925,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
       }
       catch (e)
       {
-        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`);
+        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`, jscLogConfig);
         readSuccess = false;
       }
     }
@@ -2914,13 +2937,13 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '')
   }
   else
   {
-    JSCLog('error', `${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`);
+    JSCLog('error', `${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`, jscLogConfig);
   }
 
   return finalDirectoryPath;
 }
 
-function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
+function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jscLogConfig = {})
 {
   let allSitesInServer;
   const configValue = processedConfigJSON.sites;
@@ -2935,17 +2958,17 @@ function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound })
       }
       else
       {
-        JSCLog('error', 'Configuration:  sites cannot be empty.');
+        JSCLog('error', 'Configuration:  sites cannot be empty.', jscLogConfig);
       }
     }
     else
     {
-      JSCLog('error', 'Server configuration:  sites must be an array.');
+      JSCLog('error', 'Server configuration:  sites must be an array.', jscLogConfig);
     }
   }
   else
   {
-    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.');
+    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration:  Expected an array of sites.', jscLogConfig);
   }
 
   return allSitesInServer;
@@ -3013,7 +3036,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
   return result && loggingInfo;
 }
 
-function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {})
+function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {}, jscLogConfig = {})
 {
   let readSuccess = true;
   let doDirectoryCheck = true;
@@ -3040,7 +3063,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
       if (!readSuccess)
       {
-        JSCLog('error', 'Site configuration: Logging: \'perSite\' section must not have a \'directoryName\' configuration key.');
+        JSCLog('error', 'Site configuration: Logging: \'perSite\' section must not have a \'directoryName\' configuration key.', jscLogConfig);
         readSuccess = false;
       }
     }
@@ -3056,13 +3079,13 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       let { siteName = '', perSiteDirectoryName = null, fullSitePath = '' } = perSiteData;
       if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
       {
-        JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`);
+        JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`, jscLogConfig);
       }
       else if (perSiteDirectoryName)
       {
         if (fsPath.isAbsolute(perSiteDirectoryName))
         {
-          JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname must be a relative path.`);
+          JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname must be a relative path.`, jscLogConfig);
           readSuccess = false;
         }
         else
@@ -3076,11 +3099,11 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
         {
           if (perSiteDirectoryName === null)
           {
-            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname is missing.`);
+            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname is missing.`, jscLogConfig);
           }
           else
           {
-            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname cannot be empty.`);
+            JSCLog('error', `Site configuration: '${siteName}' site logging: directoryname cannot be empty.`, jscLogConfig);
           }
           readSuccess = false;
         }
@@ -3097,7 +3120,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       {
         directoryName = fsPath.join(RUNTIME_ROOT_DIR, directoryName);
       }
-      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName:`);
+      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName:`, jscLogConfig);
       readSuccess = (typeof(directoryPath) !== 'undefined');
     }
   }
@@ -3136,7 +3159,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
     if (!readSuccess)
     {
-      JSCLog('error', 'Site configuration: Logging: fileoutput must be either \'enabled\' or \'disabled\'.');
+      JSCLog('error', 'Site configuration: Logging: fileoutput must be either \'enabled\' or \'disabled\'.', jscLogConfig);
     }
   }
   
@@ -3163,7 +3186,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
     if (!readSuccess)
     {
-      JSCLog('error', 'Site configuration: Logging: consoleOutput must be either \'enabled\' or \'disabled\'.');
+      JSCLog('error', 'Site configuration: Logging: consoleOutput must be either \'enabled\' or \'disabled\'.', jscLogConfig);
     }
   }
   
@@ -3247,18 +3270,18 @@ if (globalConfigJSON)
 
   let soFarSoGood = !!processedConfigJSON;
   
-  // sites
-  if (soFarSoGood)
-  {
-    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
-    soFarSoGood = !!allSitesInServer;
-  }
-
   // logging
   if (soFarSoGood)
   {
     serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON);
     soFarSoGood = !!serverWideLoggingInfo;
+  }
+
+  // sites
+  if (soFarSoGood)
+  {
+    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
+    soFarSoGood = !!allSitesInServer;
   }
 
   const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
@@ -3271,22 +3294,37 @@ if (globalConfigJSON)
  * Processing the server's logging configuration
  *
  *******************************************************/
+let jscLogBase =
+{
+  toConsole: true
+};
+
 if (readSuccess)
 {
   readSuccess = false;
-  const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general);
-  const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true });
+  const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase);
   
-  if (generalLogging && perSiteLogging)
+  if (generalLogging)
   {
     const { fileOutputEnabled: doOutputToServerFile, directoryPath: serverLogFile } = generalLogging;
     serverConfig.logging =
     {
       general: generalLogging,
-      perSite: perSiteLogging,
       serverLogFile: doOutputToServerFile && serverLogFile
     };
     
+    jscLogBase =
+    {
+      toConsole: serverConfig.logging.general.consoleOutputEnabled,
+      toServerFile: serverConfig.logging.serverLogFile
+    };
+  }
+
+  const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase);
+  
+  if (generalLogging && perSiteLogging)
+  {
+    serverConfig.logging.perSite = perSiteLogging;
     readSuccess = true;
   }
 }
@@ -3305,6 +3343,8 @@ let allConfigCombos = [];
 
 if (readSuccess)
 {
+  let jscLogBaseWithSite = Object.assign({}, jscLogBase);
+
   const allAllowedSiteKeys =
   [
     'name',
@@ -3321,7 +3361,7 @@ if (readSuccess)
 
     const thisUnprocessedServerSite = allSitesInServer[i];
 
-    let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, JSCAUSE_CONF_FILENAME);
+    let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
 
     if (thisServerSite)
     {
@@ -3337,13 +3377,13 @@ if (readSuccess)
         }
         else
         {
-          JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`);
+          JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`, jscLogBase);
           readSuccess = false;
         }
       }
       else
       {
-        JSCLog('error', 'Site configuration: Missing name.');
+        JSCLog('error', 'Site configuration: Missing name.', jscLogBase);
         readSuccess = false;
       }
 
@@ -3358,13 +3398,13 @@ if (readSuccess)
           }
           else
           {
-            JSCLog('error', `Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`);
+            JSCLog('error', `Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`, jscLogBase);
             readSuccess = false;
           }
         }
         else
         {
-          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`);
+          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`, jscLogBase);
           readSuccess = false;
         }
       }
@@ -3372,7 +3412,7 @@ if (readSuccess)
       let siteJSONFilePath;
       if (readSuccess && siteRootDirectoryName)
       {
-        siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName));
+        siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
         readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
       }
 
@@ -3380,8 +3420,8 @@ if (readSuccess)
       {
         siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
 
-        JSCLog('info', `Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`);
-        const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath);
+        JSCLog('info', `Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`, jscLogBase);
+        const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath, jscLogBase);
         
         readSuccess = !!siteConfigJSON;
 
@@ -3403,7 +3443,7 @@ if (readSuccess)
 
           const requiredKeysNotFound = [];
 
-          let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME);
+          let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME, jscLogBase);
 
           let soFarSoGood = !!processedConfigJSON;
           let parseHttpsCertResult = false;
@@ -3411,17 +3451,17 @@ if (readSuccess)
 
           if (soFarSoGood)
           {
-            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound);
-            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
-            soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound) && soFarSoGood;
+            soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
+            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
             
-            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
-            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound);
+            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
+            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
           }
 
           let fileMissingIndex = requiredKeysNotFound.indexOf('httpscertfile');
@@ -3446,7 +3486,7 @@ if (readSuccess)
             requiredKeysNotFound.splice(fileMissingIndex, 1);
           }
 
-          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration');
+          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
 
           readSuccess = soFarSoGood && allRequiredKeys;
         }
@@ -3472,21 +3512,21 @@ if (readSuccess)
 
           if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
           {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`);
-            JSCLog('warning', '- Server configuration prevails.');
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBaseWithSite);
+            JSCLog('warning', '- Server configuration prevails.', jscLogBaseWithSite);
             currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
 
             if (!currentSiteLogging.directoryPath)
             {
-              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`);
+              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`, jscLogBaseWithSite);
               readSuccess = false;
             }
           }
 
           if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
           {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`);
-            JSCLog('warning', '- Server configuration prevails.');
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBaseWithSite);
+            JSCLog('warning', '- Server configuration prevails.', jscLogBaseWithSite);
             currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
           }
 
@@ -3497,6 +3537,13 @@ if (readSuccess)
           const doOutputToSiteFile = perSitePermanentFileOutputEnabled ||
             (perSiteOptionalFileOutputEnabled && currentSiteLogging.fileOutputEnabled);
           currentSiteLogging.siteLogFile = doOutputToSiteFile && currentSiteLogging.directoryPath;
+
+          const jscLogSite =
+            {
+              toConsole: currentSiteLogging.doLogToConsole,
+              toSiteFile: currentSiteLogging.siteLogFile
+            };
+          jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
 
           const
             {
@@ -3517,27 +3564,32 @@ if (readSuccess)
                 readSuccess = combo.enableHTTPS;
                 if (readSuccess)
                 {
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is using HTTPS in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
                 }
                 else
                 {
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is attempting to use HTTPS in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
                 }
               }
               else if (combo.enableHTTPS)
               {
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is using HTTP in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
               }
               
               if (currentSiteHostName === combo.hostName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(currentSiteName)}, ${currentSitePort} is already in use`, jscLogSite);
                 readSuccess = false;
               }
               
               if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(currentSiteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`, jscLogSite);
                 readSuccess = false;
               }
             }
@@ -3601,7 +3653,7 @@ if (readSuccess)
             }
             catch(e)
             {
-              JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`, { e });
+              JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`, Object.assign({ e }, jscLogBaseWithSite));
             }
 
             if (state.soFarSoGood)
@@ -3629,7 +3681,7 @@ if (readSuccess)
                   (fileName === 'error5xx.jscp') ||
                   (fileName === 'error5xx.html')))
                 {
-                  JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`);
+                  JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`, jscLogBaseWithSite);
                 }
           
                 if (simlinkTarget)
@@ -3648,12 +3700,12 @@ if (readSuccess)
                 catch (e)
                 {
                   state.soFarSoGood = false;
-                  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`, { e });
+                  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`, Object.assign({ e }, jscLogBaseWithSite));
                 }
 
                 if (state.soFarSoGood)
                 {
-                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements));
+                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogBaseWithSite));
                 }
                 else
                 {
@@ -3676,7 +3728,7 @@ if (readSuccess)
           // the user would get a runtime error.  Better to fail as soon as possible instead.
           jscmFilesList.every(({ filePath }) =>
           {
-            readSuccess = (typeof(processSourceFile(filePath, siteJSONFilePath)) !== 'undefined');
+            readSuccess = (typeof(processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite)) !== 'undefined');
             return readSuccess;
           });
 
@@ -3689,7 +3741,7 @@ if (readSuccess)
               const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
               if (fileType === 'jscp')
               {
-                const processedSourceFile = processSourceFile(filePath, siteJSONFilePath);
+                const processedSourceFile = processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite);
                 if (typeof(processedSourceFile) === 'undefined')
                 {
                   readSuccess = false;
@@ -3711,7 +3763,7 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          if (setTempWorkDirectory(siteConfig))
+          if (setTempWorkDirectory(siteConfig, jscLogBase))
           {
             // All is well so far.
             if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
@@ -3729,7 +3781,7 @@ if (readSuccess)
       }
       else if (readSuccess)
       {
-        JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.');
+        JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.', jscLogBaseWithSite);
         readSuccess = false;
       }
 
@@ -3739,7 +3791,7 @@ if (readSuccess)
       }
       else
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBaseWithSite);
         allFailedSiteNames.push(siteName);
       }
     }
@@ -3755,7 +3807,7 @@ allSiteNames = null;
 serverConfig.sites = allSiteConfigs || [];
 serverConfig.sites.forEach((site) =>
 {
-  if (startServer(site))
+  if (startServer(site, jscLogBase))
   {
     atLeastOneSiteStarted = true;
   }
@@ -3764,36 +3816,36 @@ serverConfig.sites.forEach((site) =>
     const { name: siteName } = site;
     allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
 
-    JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`);
+    JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
     allFailedSiteNames.push(siteName);
   }
 });
 
-JSCLog('info', '************ All sites\' configuration read at this point ********************');
+JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
 
 if (allReadySiteNames.length)
 {
-  JSCLog('info', 'The following sites were set up successfully:');
+  JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
   allReadySiteNames.forEach((name) =>
   {
-    JSCLog('info', getSiteNameOrNoName(name));
+    JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
   });
 }
 
 if (allFailedSiteNames.length)
 {
-  JSCLog('error', 'The following sites failed to run:');
+  JSCLog('error', 'The following sites failed to run:', jscLogBase);
   allFailedSiteNames.forEach((name) =>
   {
-    JSCLog('error', `- ${getSiteNameOrNoName(name)}`);
+    JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
   });
 }
 
 if (atLeastOneSiteStarted)
 {
-  JSCLog('info', 'Will start listening.');
+  JSCLog('info', 'Will start listening.', jscLogBase);
 }
 else
 {
-  JSCLog('error', 'Server not started.  No sites are running.');
+  JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
 }

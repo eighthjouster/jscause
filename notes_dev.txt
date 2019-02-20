@@ -13,6 +13,30 @@ Alright, you must test every resEnd() again.
 
 And _every_ JSCLog() as well! Goog luck.
 
+Perhaps you should try to finish processing the logging context right after:
+  soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound);
+    - Hint: jscLogBaseWithSite
+so the site has as much information as possible about errors.
+  - Same with:
+    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
+      - parseSitesConfigJSON takes a jscLogConfig parameter, but see how the call provides none?  It should if you implement the above.
+  - Same with:
+    const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
+
+Shouldn't all JSCLog('error', etc) yield an error 5xx?
+ - I'm specifically referring to module(moduleName), but there might be others.
+
+Hmmm:
+const
+  {
+    name: currentSiteName,
+    port: currentSitePort,
+    enableHTTPS: currentEnableHTTPS,
+    hostName,
+    rootDirectoryName
+  } = siteConfig;
+ - This is reading something that has been already read.  For instance, currentSiteName has the same value as siteName at that point.
+
 Now, on to actual logging:
   - Console output first.
   - File output next (based on console output)
