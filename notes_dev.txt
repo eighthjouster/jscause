@@ -2,9 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Alright, you must test every resEnd() again.  Just nine entries.
-
 And _every_ JSCLog() as well! 133 entries.  Good luck.
+ - Or at least, sample-test it.  Skip those that are obvious will work the same (same block, for example?)
+
+Gotta test logging overrides thoroughly.
 
 Perhaps you should try to finish processing the logging context right after:
   soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound);

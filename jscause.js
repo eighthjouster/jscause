@@ -1475,7 +1475,6 @@ function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
 function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogFile, siteLogFile)
 {
   JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
-  //{ toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile }
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
