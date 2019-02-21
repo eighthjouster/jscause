@@ -227,8 +227,13 @@ function vendor_require(vendorModuleName)
     }
     catch (e)
     {
-      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
+      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}.`);
     }
+  }
+
+  if (!compiledModule)
+  {
+    JSCLog('error', `CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
   }
 
   return compiledModule;
