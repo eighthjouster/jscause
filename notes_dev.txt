@@ -4,10 +4,10 @@ git bundle create jscause-.bundle devel
 
 And _every_ JSCLog() as well! 133 entries.  Good luck.
  - Or at least, sample-test it.  Skip those that are obvious will work the same (same block, for example?)
-   - 1 JSCLog() in vendor_require() (any one will do.)
-   - 1 in readAndProcessJSONFile(), per call.
-   - 1 in setTempWorkDirectory() - see how the config is jscLogBase?
-   - 1 in doneWith() - per call.  Yikes.
+   *- 1 JSCLog() in vendor_require() (any one will do.) - Done.
+   *- 1 in readAndProcessJSONFile(), per call. - Done.
+   *- 1 in setTempWorkDirectory()
+   *- 1 in doneWith() - per call.  Yikes.
    - 2 in incomingRequestHandler():  When the site is identified, and when it isn't. 
    - 1 in createRunTime()
    - 1 in startServer()

@@ -133,7 +133,7 @@ function outputLogToFile(filePath, message)
   console.log(message);//__RP
 }
 
-function JSCLog(type, message, { e, toConsole = true, toServerFile, toSiteFile } = {})
+function JSCLog(type, message, { e, toConsole = false, toServerFile, toSiteFile } = {})
 {
   const { outputToConsole, consolePrefix, filePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
@@ -3534,7 +3534,7 @@ if (readSuccess)
             currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
           }
 
-          currentSiteLogging.doLogToConsole = (serverConsoleOutputEnabled ||
+          currentSiteLogging.doLogToConsole = !!(serverConsoleOutputEnabled ||
             perSitePermanentConsoleOutputEnabled ||
             (perSiteOptionalConsoleOutputEnabled && currentSiteLogging.consoleOutputEnabled));
         
@@ -3767,7 +3767,7 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          if (setTempWorkDirectory(siteConfig, jscLogBase))
+          if (setTempWorkDirectory(siteConfig, jscLogBaseWithSite))
           {
             // All is well so far.
             if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
