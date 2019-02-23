@@ -3214,6 +3214,57 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   return loggingConfig;
 }
 
+function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLogging, jscLogConfig)
+{
+  let readSuccess = true;
+  const updatedConfigLogging = Object.assign({}, siteConfigLogging);
+  const
+    {
+      general:
+      {
+        consoleOutputEnabled: serverConsoleOutputEnabled
+      },
+      perSite:
+      {
+        fileOutputEnabled: perSitePermanentFileOutputEnabled,
+        perSiteFileOutputEnabled: perSiteOptionalFileOutputEnabled,
+        consoleOutputEnabled: perSitePermanentConsoleOutputEnabled,
+        perSiteConsoleOutputEnabled: perSiteOptionalConsoleOutputEnabled
+      }
+    } = serverConfigLogging;
+
+  if ((updatedConfigLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
+  {
+    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${updatedConfigLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogConfig);
+    JSCLog('warning', '- Server configuration prevails.', jscLogConfig);
+    updatedConfigLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
+
+    if (!updatedConfigLogging.directoryPath)
+    {
+      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid directoryname.`, jscLogConfig);
+      readSuccess = false;
+    }
+  }
+
+  if ((updatedConfigLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
+  {
+    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${updatedConfigLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogConfig);
+    JSCLog('warning', '- Server configuration prevails.', jscLogConfig);
+    updatedConfigLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
+  }
+
+  updatedConfigLogging.doLogToConsole = !!(serverConsoleOutputEnabled ||
+    perSitePermanentConsoleOutputEnabled ||
+    (perSiteOptionalConsoleOutputEnabled && updatedConfigLogging.consoleOutputEnabled));
+
+  const doOutputToSiteFile = perSitePermanentFileOutputEnabled ||
+    (perSiteOptionalFileOutputEnabled && updatedConfigLogging.fileOutputEnabled);
+  
+  updatedConfigLogging.siteLogFile = doOutputToSiteFile && updatedConfigLogging.directoryPath;
+
+  return readSuccess && updatedConfigLogging;
+}
+
 /* *****************************************************
  *
  * Reading and processing the server configuration file
@@ -3341,6 +3392,7 @@ let allConfigCombos = [];
 if (readSuccess)
 {
   let jscLogBaseWithSite = Object.assign({}, jscLogBase);
+  let jscLogSite;
 
   const allAllowedSiteKeys =
   [
@@ -3449,16 +3501,30 @@ if (readSuccess)
           if (soFarSoGood)
           {
             soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
-            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
-            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase) && soFarSoGood;
+
+            const updatedConfigLogging = setupSiteLoggingForRequests(siteName, siteConfig.logging, serverConfig.logging, jscLogBase);
+            soFarSoGood = !!updatedConfigLogging;
+
+            if (soFarSoGood)
+            {
+              siteConfig.logging = updatedConfigLogging;
+              const { doLogToConsole: toConsole, siteLogFile: toSiteFile } = siteConfig.logging;
+
+              jscLogSite = { toConsole, toSiteFile };
+  
+              jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
+            }
+
+            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
             
-            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
-            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
+            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
+            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
           }
 
           let fileMissingIndex = requiredKeysNotFound.indexOf('httpscertfile');
@@ -3483,65 +3549,13 @@ if (readSuccess)
             requiredKeysNotFound.splice(fileMissingIndex, 1);
           }
 
-          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBase);
+          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
 
           readSuccess = soFarSoGood && allRequiredKeys;
         }
 
         if (readSuccess)
         {
-          const
-            {
-              general:
-              {
-                consoleOutputEnabled: serverConsoleOutputEnabled
-              },
-              perSite:
-              {
-                fileOutputEnabled: perSitePermanentFileOutputEnabled,
-                perSiteFileOutputEnabled: perSiteOptionalFileOutputEnabled,
-                consoleOutputEnabled: perSitePermanentConsoleOutputEnabled,
-                perSiteConsoleOutputEnabled: perSiteOptionalConsoleOutputEnabled
-              }
-            } = serverConfig.logging;
-
-          const { logging: currentSiteLogging } = siteConfig;
-
-          if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
-          {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBase);
-            JSCLog('warning', '- Server configuration prevails.', jscLogBase);
-            currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
-
-            if (!currentSiteLogging.directoryPath)
-            {
-              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`, jscLogBase);
-              readSuccess = false;
-            }
-          }
-
-          if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
-          {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBase);
-            JSCLog('warning', '- Server configuration prevails.', jscLogBase);
-            currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
-          }
-
-          currentSiteLogging.doLogToConsole = !!(serverConsoleOutputEnabled ||
-            perSitePermanentConsoleOutputEnabled ||
-            (perSiteOptionalConsoleOutputEnabled && currentSiteLogging.consoleOutputEnabled));
-        
-          const doOutputToSiteFile = perSitePermanentFileOutputEnabled ||
-            (perSiteOptionalFileOutputEnabled && currentSiteLogging.fileOutputEnabled);
-          currentSiteLogging.siteLogFile = doOutputToSiteFile && currentSiteLogging.directoryPath;
-
-          const jscLogSite =
-            {
-              toConsole: currentSiteLogging.doLogToConsole,
-              toSiteFile: currentSiteLogging.siteLogFile
-            };
-          jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
-
           const
             {
               name: currentSiteName,

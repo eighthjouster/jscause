@@ -2,18 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Perhaps you should try to finish processing the logging context right after:
-  soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound);
-    - Hint: jscLogBaseWithSite
-so the site has as much information as possible about errors.
-  - Same with:
-    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
-      - parseSitesConfigJSON takes a jscLogConfig parameter, but see how the call provides none?  It should if you implement the above.
-  - Same with:
-    const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
-
-Back up at this point.
-
 Shouldn't all JSCLog('error', etc) yield an error 5xx?
  - I'm specifically referring to module(moduleName), but there might be others.
    - Only the ones generated during an incoming request.
