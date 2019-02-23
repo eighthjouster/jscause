@@ -2,30 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Shouldn't all JSCLog('error', etc) yield an error 5xx?
- - I'm specifically referring to module(moduleName), but there might be others.
-   - Only the ones generated during an incoming request.
-     - I think this is taken care of already.  But check again just in case.
-
-Hmmm:
-const
-  {
-    name: currentSiteName,
-    port: currentSitePort,
-    enableHTTPS: currentEnableHTTPS,
-    hostName,
-    rootDirectoryName
-  } = siteConfig;
- - This is reading something that has been already read.  For instance, currentSiteName has the same value as siteName at that point.
-
 Now, on to actual logging:
-  - Console output first.
-  - File output next (based on console output)
-    - Don't log terminal color codes.
-     - And write to file in bulk (every 500ms or so) and deferred (throttle/debounce).
-       - Write the last batch on Ctrl+C?
-    - Logging rotation?
-      - Use require('zlib'), which is built-in (nice!)
+  - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
+    - Write the last batch on Ctrl+C?
+  - Logging rotation?
+    - Use require('zlib'), which is built-in (nice!)
 
 Some work has been put into place.
  - Document whatever is not documented below before deleting.
@@ -68,9 +49,6 @@ Server logging?
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
 
 Get rid of __RP.
-
-Hmmm, site.json accepts a hostName that's already being used in another site's site.json.
- - Shouldn't you at least issue a warning?
 
 Can two no-name sites exist?  In theory they share the same name, and the server should not start, just like it does with two sites with identical names.
 

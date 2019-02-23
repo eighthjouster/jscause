@@ -196,7 +196,7 @@ function vendor_require(vendorModuleName)
     }
     catch(e)
     {
-      JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e });
+      JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
     }
   }
 
@@ -209,7 +209,7 @@ function vendor_require(vendorModuleName)
     }
     catch(e)
     {
-      JSCLog('error', `CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`, { e });
+      JSCLog('error', `CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
     }
   }
 
@@ -227,13 +227,13 @@ function vendor_require(vendorModuleName)
     }
     catch (e)
     {
-      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}.`);
+      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}.`, { toConsole: true });
     }
   }
 
   if (!compiledModule)
   {
-    JSCLog('error', `CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
+    JSCLog('error', `CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`, { toConsole: true });
   }
 
   return compiledModule;
@@ -3556,51 +3556,45 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          const
-            {
-              name: currentSiteName,
-              port: currentSitePort,
-              enableHTTPS: currentEnableHTTPS,
-              hostName,
-              rootDirectoryName
-            } = siteConfig;
-          const currentSiteHostName = hostName.toLowerCase();
-          const currentRootDirectoryName = rootDirectoryName.toLowerCase();
+          const currentSiteHostName = siteConfig.hostName.toLowerCase();
+          const currentEnableHTTPS = siteConfig.enableHTTPS;
+          const currentRootDirectoryName = siteRootDirectoryName.toLowerCase();
+
           allConfigCombos.forEach((combo) =>
           {
-            if (currentSitePort === combo.port)
+            if (sitePort === combo.port)
             {
               if (currentEnableHTTPS)
               {
                 readSuccess = combo.enableHTTPS;
                 if (readSuccess)
                 {
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is using HTTPS in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
                 }
                 else
                 {
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTPS, and would be sharing HTTP port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is attempting to use HTTPS in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
                 }
               }
               else if (combo.enableHTTPS)
               {
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is HTTP, and is sharing HTTPS port ${currentSitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(currentSiteName)} is using HTTP in an already assigned HTTPS port, ${currentSitePort}`, jscLogSite);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
               }
               
               if (currentSiteHostName === combo.hostName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same hostName and port combination - '${currentSiteHostName}', ${currentSitePort}`, jscLogBase);
-                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(currentSiteName)}, ${currentSitePort} is already in use`, jscLogSite);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same hostName and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
                 readSuccess = false;
               }
               
               if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(currentSiteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`, jscLogBase);
-                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(currentSiteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${currentSitePort}`, jscLogSite);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogSite);
                 readSuccess = false;
               }
             }

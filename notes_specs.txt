@@ -150,6 +150,10 @@ HTTPS:
     - The site is HTTPS but is sharing the port with another HTTPS site which has valid httpsCertFile and httpsKeyFile.
 - Each HTTPS site should use its own port.  Warnings will be emitted if two HTTPS sites share the same port, or if an HTTP site shares the port with an already configured HTTPS site.  If an HTTPS site tries to share the port of an already configured HTTP site, an error will be emitted instead for security purposes.
 
+ - FAQ: site.json accepts a hostName that could already be being used in another site's site.json.  Is this a bug?
+ - This is fine as long as both sites use different ports.
+
+
 Custom errors 4xx and 5xx:
 =========================
  - Custom errors, if available, will be delivered only during a typical interaction in which a resource is not really available, or an error on a JSCP script.  In other cases, generic 4xx or 5xx will be delivered to the browser.  For instance:
