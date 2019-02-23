@@ -716,7 +716,7 @@ function doDeleteFile(thisFile, jscLogConfig)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
@@ -744,7 +744,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName,
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, siteName, compiledCode, runFileName, fullSitePath, formContext);
+      responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
     }
   });
 }
@@ -1355,7 +1355,7 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(req, res, siteName, compiledCode, runFileName, fullSitePath,
+function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted, responseStatusCode,
@@ -1575,7 +1575,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
     if (compiledCodeExists)
     {
       const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, doLogToConsole, serverLogFile, siteLogFile, hostName };
-      responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
+      responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       return;
     }
   }
@@ -1836,12 +1836,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, siteName, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
               }
             });
           }
@@ -1849,7 +1849,7 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
-          responder(req, res, siteName, compiledCode, runFileName, fullSitePath, formContext);
+          responder(req, res, compiledCode, runFileName, fullSitePath, formContext);
         }
       });
     }
@@ -1887,7 +1887,7 @@ function incomingRequestHandler(req, res)
         }
 
         const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogFile, siteLogFile, hostName };
-        responder(req, res, siteName, compiledCode, runFileName, fullSitePath, postContext);
+        responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       });
     }
   }

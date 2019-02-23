@@ -2,8 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-It seems like the siteName parameter in responder() is never read.  Get rid of it, if that's the case.
-
 Perhaps you should try to finish processing the logging context right after:
   soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound);
     - Hint: jscLogBaseWithSite
@@ -13,6 +11,8 @@ so the site has as much information as possible about errors.
       - parseSitesConfigJSON takes a jscLogConfig parameter, but see how the call provides none?  It should if you implement the above.
   - Same with:
     const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
+
+Back up at this point.
 
 Shouldn't all JSCLog('error', etc) yield an error 5xx?
  - I'm specifically referring to module(moduleName), but there might be others.
