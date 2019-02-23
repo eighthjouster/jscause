@@ -2954,20 +2954,13 @@ function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jsc
 
   if (Array.isArray(configValue))
   {
-    if (Array.isArray(configValue))
+    if  (configValue.length)
     {
-      if  (configValue.length)
-      {
-        allSitesInServer = configValue;
-      }
-      else
-      {
-        JSCLog('error', 'Configuration:  sites cannot be empty.', jscLogConfig);
-      }
+      allSitesInServer = configValue;
     }
     else
     {
-      JSCLog('error', 'Server configuration:  sites must be an array.', jscLogConfig);
+      JSCLog('error', 'Configuration:  sites cannot be empty.', jscLogConfig);
     }
   }
   else
@@ -2978,7 +2971,7 @@ function parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jsc
   return allSitesInServer;
 }
 
-function parseLoggingConfigJSON(processedConfigJSON)
+function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
 {
   let loggingInfo = {};
   let result = true;
@@ -3008,7 +3001,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
                   Object.assign(loggingInfo[configKeyLowerCase], { [attributeKeyLowerCase]: keyValue[attributeKey] });
                   break;
                 default:
-                  JSCLog('error', `Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`);
+                  JSCLog('error', `Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`, jscLogConfig);
                   result = false;
               }
 
@@ -3017,12 +3010,12 @@ function parseLoggingConfigJSON(processedConfigJSON)
           }
           else
           {
-            JSCLog('error', 'Configuration: logging:  Invalid value for general.');
+            JSCLog('error', 'Configuration: logging:  Invalid value for general.', jscLogConfig);
             result = false;
           }
           break;
         default:
-          JSCLog('error', `Configuration: logging:  ${configKey} is not a valid configuration key.`);
+          JSCLog('error', `Configuration: logging:  ${configKey} is not a valid configuration key.`, jscLogConfig);
           result = false;
       }
       return result;
@@ -3032,7 +3025,7 @@ function parseLoggingConfigJSON(processedConfigJSON)
   {
     if (typeof(configValue) !== 'undefined')
     {
-      JSCLog('error', 'Server configuration:  Expected a valid logging configuration value.');
+      JSCLog('error', 'Server configuration:  Expected a valid logging configuration value.', jscLogConfig);
       result = false;
     }
   }
@@ -3258,7 +3251,12 @@ let allSitesInServer;
 let serverWideLoggingInfo;
 const serverConfig = {};
 
-const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME);
+let jscLogBase =
+{
+  toConsole: true
+};
+
+const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME, undefined, jscLogBase);
 
 if (globalConfigJSON)
 {
@@ -3270,25 +3268,25 @@ if (globalConfigJSON)
 
   const requiredKeysNotFound = [];
 
-  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME);
+  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
 
   let soFarSoGood = !!processedConfigJSON;
   
-  // logging
-  if (soFarSoGood)
-  {
-    serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON);
-    soFarSoGood = !!serverWideLoggingInfo;
-  }
-
   // sites
   if (soFarSoGood)
   {
-    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound });
+    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jscLogBase);
     soFarSoGood = !!allSitesInServer;
   }
 
-  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration');
+  // logging
+  if (soFarSoGood)
+  {
+    serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON, jscLogBase);
+    soFarSoGood = !!serverWideLoggingInfo;
+  }
+
+  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration', jscLogBase);
 
   readSuccess = soFarSoGood && allRequiredKeys;
 }
@@ -3298,11 +3296,6 @@ if (globalConfigJSON)
  * Processing the server's logging configuration
  *
  *******************************************************/
-let jscLogBase =
-{
-  toConsole: true
-};
-
 if (readSuccess)
 {
   readSuccess = false;
@@ -3490,7 +3483,7 @@ if (readSuccess)
             requiredKeysNotFound.splice(fileMissingIndex, 1);
           }
 
-          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
+          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBase);
 
           readSuccess = soFarSoGood && allRequiredKeys;
         }
@@ -3516,21 +3509,21 @@ if (readSuccess)
 
           if ((currentSiteLogging.fileOutputEnabled !== perSitePermanentFileOutputEnabled) && !perSiteOptionalFileOutputEnabled)
           {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBaseWithSite);
-            JSCLog('warning', '- Server configuration prevails.', jscLogBaseWithSite);
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has file logging ${currentSiteLogging.fileOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site file logging ${(perSitePermanentFileOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBase);
+            JSCLog('warning', '- Server configuration prevails.', jscLogBase);
             currentSiteLogging.fileOutputEnabled = perSitePermanentFileOutputEnabled;
 
             if (!currentSiteLogging.directoryPath)
             {
-              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`, jscLogBaseWithSite);
+              JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is missing directoryname.`, jscLogBase);
               readSuccess = false;
             }
           }
 
           if ((currentSiteLogging.consoleOutputEnabled !== perSitePermanentConsoleOutputEnabled) && !perSiteOptionalConsoleOutputEnabled)
           {
-            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBaseWithSite);
-            JSCLog('warning', '- Server configuration prevails.', jscLogBaseWithSite);
+            JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has console logging ${currentSiteLogging.consoleOutputEnabled ? 'enabled' : 'disabled'} while the server has per-site console logging ${(perSitePermanentConsoleOutputEnabled) ? 'enabled' : 'disabled'}.`, jscLogBase);
+            JSCLog('warning', '- Server configuration prevails.', jscLogBase);
             currentSiteLogging.consoleOutputEnabled = perSitePermanentConsoleOutputEnabled;
           }
 

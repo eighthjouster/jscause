@@ -2,28 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-And _every_ JSCLog() as well! 133 entries.  Good luck.
- - Or at least, sample-test it.  Skip those that are obvious will work the same (same block, for example?)
-   *- 1 JSCLog() in vendor_require() (any one will do.) - Done.
-   *- 1 in readAndProcessJSONFile(), per call. - Done.
-   *- 1 in setTempWorkDirectory()
-   *- 1 in doneWith() - per call.  Yikes.
-   - 2 in incomingRequestHandler():  When the site is identified, and when it isn't. 
-   - 1 in createRunTime()
-   - 1 in startServer()
-   - Test at least one that does the Object.assign() with { e }.
-   - parsePerSiteLogging() - this one will be interesting.
-   - What's the deal with parseSitesConfigJSON()?  It seems like it has a logging-related parameter, which is not being used (by the caller.)
-   - Check parseLoggingConfigJSON().
-   - And careful! We don't want validateLoggingConfigSection() to be logging to sites if logging config is malformed or not finished (don't log to site if server forbids it)
-   - And taken into account that some JSCLog() calls can have: jscLogBase, jscLogSite or jscLogBaseWithSite:
-      - A few in section after comment: Reading and processing the server configuration file
-      - One or two in section after comment: Processing the server's logging configuration
-      - Several in section after comment: Reading and processing the sites' configuration files
-        - Which includes 1 in prepareConfiguration() in two calls.
-
-Gotta test logging overrides thoroughly.
-
 It seems like the siteName parameter in responder() is never read.  Get rid of it, if that's the case.
 
 Perhaps you should try to finish processing the logging context right after:
@@ -38,6 +16,8 @@ so the site has as much information as possible about errors.
 
 Shouldn't all JSCLog('error', etc) yield an error 5xx?
  - I'm specifically referring to module(moduleName), but there might be others.
+   - Only the ones generated during an incoming request.
+     - I think this is taken care of already.  But check again just in case.
 
 Hmmm:
 const
