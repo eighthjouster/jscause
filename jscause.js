@@ -45,25 +45,25 @@ const JSCLOG_DATA =
     {
       outputToConsole: console.error,
       consolePrefix: TERMINAL_ERROR_STRING,
-      filePrefix: LOGFILE_ERROR_STRING
+      messagePrefix: LOGFILE_ERROR_STRING
     },
   'warning':
     {
       outputToConsole: console.warn,
       consolePrefix: TERMINAL_WARNING_STRING,
-      filePrefix: LOGFILE_WARNING_STRING
+      messagePrefix: LOGFILE_WARNING_STRING
     },
   'raw':
     {
       outputToConsole: console.info,
       consolePrefix: '',
-      filePrefix: '',
+      messagePrefix: '',
     },
   'info':
     {
       outputToConsole: console.info,
       consolePrefix: TERMINAL_INFO_STRING,
-      filePrefix: LOGFILE_INFO_STRING
+      messagePrefix: LOGFILE_INFO_STRING
     }
 };
 
@@ -128,20 +128,20 @@ const allOpenLogFiles = {};
  * 
  * *****************************************/
 
-function outputLogToFile(filePath, message)
+function outputLogToDir(logDir, message)
 {
   let isSuccess = false;
-  if (!allOpenLogFiles[filePath])
+  if (!allOpenLogFiles[logDir])
   {
     //__RP DO WE NEED A TRY/CATCH HERE?
     //__RP allOpenLogFiles[filePath] = { fd: fs.openSync(filePath, 'a') };
   }
 
   console.log('WILL WRITE TO FILE!');//__RP
-  console.log(filePath);//__RP
+  console.log(logDir);//__RP
   console.log(message);//__RP
 
-  const logFileFd = allOpenLogFiles[filePath].fd;
+  const logFileFd = allOpenLogFiles[logDir].fd;
 
   if (logFileFd)
   {
@@ -152,8 +152,8 @@ function outputLogToFile(filePath, message)
         // Dropping the message.  We'll set things up so that the next message
         // attempts to reopen the file again.
         //__RP DO WE NEED A TRY/CATCH HERE?
-        fs.closeSync(allOpenLogFiles[filePath].fd);
-        allOpenLogFiles[filePath] = null;
+        fs.closeSync(allOpenLogFiles[logDir].fd);
+        allOpenLogFiles[logDir] = null;
       }
     });
     isSuccess = true;
@@ -164,7 +164,7 @@ function outputLogToFile(filePath, message)
 
 function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } = {})
 {
-  const { outputToConsole, consolePrefix, filePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
+  const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
   {
     console.log('WILL NOW PROCEED TO OUTPUT TO CONSOLE!');//__RP
@@ -186,26 +186,26 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
     console.log('NO CONSOLE OUTPUT!');//__RP
   }
 
-  console.log(`Server file: ${toServerDir}`);//__RP
-  console.log(`Site file: ${toSiteDir}`);//__RP
+  console.log(`Server dir: ${toServerDir}`);//__RP
+  console.log(`Site dir: ${toSiteDir}`);//__RP
 
   if (toServerDir || toSiteDir)
   {
-    const finalFilePrefix = `${(filePrefix) ? `${filePrefix}: ` : ''}`;
+    const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
     if (toServerDir)
     {
-      outputLogToFile(toServerDir, `${finalFilePrefix}${message}`);
+      outputLogToDir(toServerDir, `${finalMessagePrefix}${message}`);
       if (e)
       {
-        outputLogToFile(toServerDir, e);
+        outputLogToDir(toServerDir, e);
       }
     }
     if (toSiteDir)
     {
-      outputLogToFile(toSiteDir, `${finalFilePrefix}${message}`);
+      outputLogToDir(toSiteDir, `${finalMessagePrefix}${message}`);
       if (e)
       {
-        outputLogToFile(toSiteDir, e);
+        outputLogToDir(toSiteDir, e);
       }
     }
   }
