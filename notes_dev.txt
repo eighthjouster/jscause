@@ -4,8 +4,13 @@ git bundle create jscause-.bundle devel
 
 Now, on to actual logging:
   - Write to actual files now.
+    - Take a look at:
+      - outputLogToFile()
+      - JSCLogTerminate()
   - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
     - Write the last batch on Ctrl+C?
+  - How to deal with errors?
+    - Re-open logs?
   - Logging rotation?
     - Use require('zlib'), which is built-in (nice!)
 
@@ -58,6 +63,11 @@ At this point, back up.
 We'll need to put more code into functions.
 
 And back up again.
+
+Ability to write to files?
+  - Text and binary.
+
+Back up.
 
 Databases.
  - Basic.
@@ -123,6 +133,12 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+As it is now, if writing a log message to file fails, the file will be closed, the attempt will be dropped (so the message is lost), and for next time, another openSync() attempt is made.  This means that performance can degrade if constant logging failures happen.  How to address this?  And how to let the user/sysadmin know?
+
+async/await approach instead of callbacks? Co-routine approach?
+
+More filesystem functions? We have readFile, deleteFile, possibly writeFile... but no more granular options, like opening/closing files and writing to them whenever the developer wants.
 
 rt.exit()? No waiting for setTimeouts and the like?
  - Documentation:  If any callback-based operation scheduled, they will still happen but the JSCause won't wait for them. - Dangerous!

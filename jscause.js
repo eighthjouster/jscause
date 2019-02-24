@@ -130,21 +130,39 @@ const allOpenLogFiles = {};
 
 function outputLogToFile(filePath, message)
 {
+  let isSuccess = false;
   if (!allOpenLogFiles[filePath])
   {
-    //__RP create file here.
-    allOpenLogFiles[filePath] = filePath;
+    //__RP DO WE NEED A TRY/CATCH HERE?
+    //__RP allOpenLogFiles[filePath] = { fd: fs.openSync(filePath, 'a') };
   }
 
   console.log('WILL WRITE TO FILE!');//__RP
   console.log(filePath);//__RP
   console.log(message);//__RP
 
-  const logFile = allOpenLogFiles[filePath];
+  const logFileFd = allOpenLogFiles[filePath].fd;
+
+  if (logFileFd)
+  {
+    fs.write(logFileFd, new Buffer(message), (error) =>
+    {
+      if (error)
+      {
+        // Dropping the message.  We'll set things up so that the next message
+        // attempts to reopen the file again.
+        //__RP DO WE NEED A TRY/CATCH HERE?
+        fs.closeSync(allOpenLogFiles[filePath].fd);
+        allOpenLogFiles[filePath] = null;
+      }
+    });
+    isSuccess = true;
+  }
   
+  return isSuccess;
 }
 
-function JSCLog(type, message, { e, toConsole = false, toServerFile, toSiteFile } = {})
+function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } = {})
 {
   const { outputToConsole, consolePrefix, filePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
@@ -168,26 +186,26 @@ function JSCLog(type, message, { e, toConsole = false, toServerFile, toSiteFile 
     console.log('NO CONSOLE OUTPUT!');//__RP
   }
 
-  console.log(`Server file: ${toServerFile}`);//__RP
-  console.log(`Site file: ${toSiteFile}`);//__RP
+  console.log(`Server file: ${toServerDir}`);//__RP
+  console.log(`Site file: ${toSiteDir}`);//__RP
 
-  if (toServerFile || toSiteFile)
+  if (toServerDir || toSiteDir)
   {
     const finalFilePrefix = `${(filePrefix) ? `${filePrefix}: ` : ''}`;
-    if (toServerFile)
+    if (toServerDir)
     {
-      outputLogToFile(toServerFile, `${finalFilePrefix}${message}`);
+      outputLogToFile(toServerDir, `${finalFilePrefix}${message}`);
       if (e)
       {
-        outputLogToFile(toServerFile, e);
+        outputLogToFile(toServerDir, e);
       }
     }
-    if (toSiteFile)
+    if (toSiteDir)
     {
-      outputLogToFile(toSiteFile, `${finalFilePrefix}${message}`);
+      outputLogToFile(toSiteDir, `${finalFilePrefix}${message}`);
       if (e)
       {
-        outputLogToFile(toSiteFile, e);
+        outputLogToFile(toSiteDir, e);
       }
     }
   }
@@ -745,8 +763,8 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, { responder, req, res,
   const jscLogConfig =
   {
     toConsole: formContext.doLogToConsole,
-    toServerFile: formContext.serverLogFile,
-    toSiteFile: formContext.siteLogFile
+    toServerDir: formContext.serverLogDir,
+    toSiteDir: formContext.siteLogDir
   };
   
   fs.rename(oldFilePath, newFilePath, (err) =>
@@ -802,7 +820,7 @@ function doneWith(ctx, id, isCancellation)
     return;
   }
 
-  const { doLogToConsole, serverLogFile, siteLogFile } = ctx;
+  const { doLogToConsole, serverLogDir, siteLogDir } = ctx;
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
@@ -817,7 +835,7 @@ function doneWith(ctx, id, isCancellation)
       const formFiles = ctx.uploadedFiles;
       if (formFiles)
       {
-        deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogFile, siteLogFile });
+        deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogDir, siteLogDir });
       }
 
       const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
@@ -825,13 +843,13 @@ function doneWith(ctx, id, isCancellation)
       if (runtimeException)
       {
         ctx.outputQueue = [];
-        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, { e: runtimeException, doLogToConsole, serverLogFile, siteLogFile });
+        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, { e: runtimeException, doLogToConsole, serverLogDir, siteLogDir });
       }
 
       if (runtimeException || compileTimeError)
       {
         const { hostName, fullSitePath, compiledFiles, staticFiles, jsCookies } = ctx;
-        handleError5xx(reqObject, resObject, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile);
+        handleError5xx(reqObject, resObject, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir);
         return;
       }
       else
@@ -855,8 +873,8 @@ function doneWith(ctx, id, isCancellation)
         {
           resObject.statusCode = statusCode;
         }
-        const { doLogToConsole, serverLogFile, siteLogFile, hostName } = ctx;
-        resEnd(reqObject, resObject, { doLogToConsole, serverLogFile, siteLogFile, hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
+        const { doLogToConsole, serverLogDir, siteLogDir, hostName } = ctx;
+        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -1068,8 +1086,8 @@ function createRunTime(rtContext)
   const jscLogConfig =
   {
     toConsole: rtContext.doLogToConsole,
-    toServerFile: rtContext.serverLogFile,
-    toSiteFile: rtContext.siteLogFile
+    toServerDir: rtContext.serverLogDir,
+    toSiteDir: rtContext.siteLogDir
   };
 
   return Object.freeze({
@@ -1380,7 +1398,7 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   { requestMethod, contentType, requestBody,
     formData, formFiles, maxSizeExceeded,
     forbiddenUploadAttempted, responseStatusCode,
-    staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogFile, siteLogFile, hostName })
+    staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogDir, siteLogDir, hostName })
 {
   let postParams;
   let uploadedFiles = {};
@@ -1453,8 +1471,8 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
     runFileName,
     runtimeException: undefined,
     doLogToConsole,
-    serverLogFile,
-    siteLogFile,
+    serverLogDir,
+    siteLogDir,
     hostName,
     staticFiles,
     statusCode: responseStatusCode || 200,
@@ -1498,16 +1516,16 @@ function responder(req, res, compiledCode, runFileName, fullSitePath,
   doneWith(resContext);
 }
 
-function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogFile, siteLogFile)
+function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir)
 {
-  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`, { e, toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
-  resEnd(req, res, { doLogToConsole, serverLogFile, siteLogFile, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, hostName });
 }
 
-function responderStatic(req, res, siteName, hostName, fullPath, contentType, fileSize, doLogToConsole, serverLogFile, siteLogFile, statusCode, { fileContents: contents, readStream, fileNotFoundException })
+function responderStatic(req, res, siteName, hostName, fullPath, contentType, fileSize, doLogToConsole, serverLogDir, siteLogDir, statusCode, { fileContents: contents, readStream, fileNotFoundException })
 {
   const resObject = res;
   const resContext = { appHeaders: {}, resObject };
@@ -1519,11 +1537,11 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
   if (fileNotFoundException)
   {
-    responderStaticFileError(fileNotFoundException, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogFile, siteLogFile);
+    responderStaticFileError(fileNotFoundException, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir);
   }
   else if (contents || !readStream)
   {
-    resEnd(req, resObject, { doLogToConsole, serverLogFile, siteLogFile, hostName }, contents);
+    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, hostName }, contents);
   }
   else
   {
@@ -1539,35 +1557,35 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
     readStream.on('end', () =>
     {
-      resEnd(req, resObject, { doLogToConsole, serverLogFile, siteLogFile, hostName });
+      resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, hostName });
     });
 
     readStream.on('error', (e) =>
     {
-      responderStaticFileError(e, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogFile, siteLogFile);
+      responderStaticFileError(e, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir);
     });
   }
 }
 
-function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogFile, siteLogFile, hostName)
+function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, hostName)
 {
-  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`, { toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`, { toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogFile, siteLogFile, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, hostName });
 }
 
-function sendUploadIsForbidden(req, res, doLogToConsole, serverLogFile, siteLogFile, hostName)
+function sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, hostName)
 {
-  JSCLog('error', 'Uploading is forbidden.', { toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+  JSCLog('error', 'Uploading is forbidden.', { toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogFile, siteLogFile, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, hostName });
 }
 
-function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile, errorCode)
+function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir, errorCode)
 {
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
@@ -1585,7 +1603,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
   {
     if (staticCodeExists)
     {
-      serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogFile, siteLogFile, errorCode);
+      serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogDir, siteLogDir, errorCode);
       return;
     }
 
@@ -1595,7 +1613,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
 
     if (compiledCodeExists)
     {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, doLogToConsole, serverLogFile, siteLogFile, hostName };
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, doLogToConsole, serverLogDir, siteLogDir, hostName };
       responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       return;
     }
@@ -1603,20 +1621,20 @@ function handleCustomError(staticFileName, compiledFileName, req, res, jsCookies
 
   res.statusCode = errorCode;
   res.setHeader('Content-Type', 'application/octet-stream');
-  resEnd(req, res, { doLogToConsole, serverLogFile, siteLogFile, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, hostName });
 }
 
-function handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile, errorCode = 404)
+function handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir, errorCode = 404)
 {
-  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile, errorCode);
+  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir, errorCode);
 }
 
-function handleError5xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile, errorCode = 500)
+function handleError5xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir, errorCode = 500)
 {
-  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile, errorCode);
+  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir, errorCode);
 }
 
-function serveStaticContent(req, res, siteName, hostName, staticContent, doLogToConsole, serverLogFile, siteLogFile, statusCode = 200)
+function serveStaticContent(req, res, siteName, hostName, staticContent, doLogToConsole, serverLogDir, siteLogDir, statusCode = 200)
 {
   const { fileContents, fileContentType, fullPath, fileSize } = staticContent;
   if (typeof(fileContents) === 'undefined')
@@ -1624,12 +1642,12 @@ function serveStaticContent(req, res, siteName, hostName, staticContent, doLogTo
     fs.stat(fullPath, (err) =>
     {
       const readStream = (err) ? null : fs.createReadStream(fullPath);
-      responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogFile, siteLogFile, statusCode, { readStream, fileNotFoundException: err });
+      responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogDir, siteLogDir, statusCode, { readStream, fileNotFoundException: err });
     });
   }
   else
   {
-    responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogFile, siteLogFile, statusCode, { fileContents });
+    responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogDir, siteLogDir, statusCode, { fileContents });
   }
 }
 
@@ -1638,14 +1656,14 @@ function makeLogLine(hostName, method, url, statusCode)
   return `${new Date().toUTCString()} - ${hostName} - ${method}: ${url} - ${statusCode}`;
 }
 
-function resEnd(req, res, { hostName, isRefusedConnection, doLogToConsole, serverLogFile, siteLogFile }, response)
+function resEnd(req, res, { hostName, isRefusedConnection, doLogToConsole, serverLogDir, siteLogDir }, response)
 {
   const { method, url } = req;
   const statusCode = `${res.statusCode}${isRefusedConnection && ' (REFUSED)' || ''}`;
 
-  if (doLogToConsole || serverLogFile || siteLogFile)
+  if (doLogToConsole || serverLogDir || siteLogDir)
   {
-    JSCLog('raw', makeLogLine(hostName, method, url, statusCode), { toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+    JSCLog('raw', makeLogLine(hostName, method, url, statusCode), { toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
   }
 
   res.end(response);
@@ -1660,7 +1678,7 @@ function incomingRequestHandler(req, res)
   const reqPort = parseInt(preparsedReqPort, 10);
   const runningServer = runningServers[reqPort];
   const serverLogging = serverConfig.logging;
-  const { serverLogFile, general: { consoleOutputEnabled: serverConsoleOutputEnabled} } = serverLogging;
+  const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled} } = serverLogging;
 
   const jsCookies = new cookies(req, res);
   
@@ -1676,7 +1694,7 @@ function incomingRequestHandler(req, res)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');
-    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogFile, hostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true })
+    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, hostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true })
     return;
   }
 
@@ -1704,7 +1722,7 @@ function incomingRequestHandler(req, res)
       logging: siteLogging
     } = identifiedSite;
 
-  const { siteLogFile, doLogToConsole } = siteLogging;
+  const { siteLogDir, doLogToConsole } = siteLogging;
 
   if (includeHttpPoweredByHeader)
   {
@@ -1716,7 +1734,7 @@ function incomingRequestHandler(req, res)
       (runFileName === '/error5xx.jscp') ||
       (runFileName === '/error5xx.html'))
   {
-    handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile);
+    handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir);
     return;
   }
 
@@ -1730,12 +1748,12 @@ function incomingRequestHandler(req, res)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile);
+    handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir);
     return;
   }
   else if (staticFiles[runFileName])
   {
-    serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogFile, siteLogFile)
+    serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogDir, siteLogDir)
   }
   else
   {
@@ -1748,7 +1766,7 @@ function incomingRequestHandler(req, res)
 
     if (!compiledCodeExists)
     {
-      handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogFile, siteLogFile);
+      handleError4xx(req, res, jsCookies, siteName, hostName, staticFiles, compiledFiles, fullSitePath, doLogToConsole, serverLogDir, siteLogDir);
       return;
     }
 
@@ -1770,12 +1788,12 @@ function incomingRequestHandler(req, res)
     if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogFile, siteLogFile, hostName);
+      sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, hostName);
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(req, res, doLogToConsole, serverLogFile, siteLogFile, hostName);
+      sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, hostName);
     }
     else if (postedForm)
     {
@@ -1785,7 +1803,7 @@ function incomingRequestHandler(req, res)
 
       postedForm.on('error', (err) =>
       {
-        JSCLog('error', 'Form upload related error.', { e: err, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+        JSCLog('error', 'Form upload related error.', { e: err, toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
       });
 
       postedForm.on('field', (name, value) =>
@@ -1817,7 +1835,7 @@ function incomingRequestHandler(req, res)
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogFile, siteLogFile, hostName);
+          sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, hostName);
         }
       });
 
@@ -1838,8 +1856,8 @@ function incomingRequestHandler(req, res)
           compiledFiles,
           jsCookies,
           doLogToConsole,
-          serverLogFile,
-          siteLogFile,
+          serverLogDir,
+          siteLogDir,
           hostName
         };
 
@@ -1887,7 +1905,7 @@ function incomingRequestHandler(req, res)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogFile, siteLogFile, hostName);
+            sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, hostName);
           }
           else
           {
@@ -1898,7 +1916,7 @@ function incomingRequestHandler(req, res)
         else
         {
           forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(req, res, doLogToConsole, serverLogFile, siteLogFile, hostName);
+          sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, hostName);
         }
       }).on('end', () =>
       {
@@ -1907,7 +1925,7 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogFile, siteLogFile, hostName };
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogDir, siteLogDir, hostName };
         responder(req, res, compiledCode, runFileName, fullSitePath, postContext);
       });
     }
@@ -1915,7 +1933,7 @@ function incomingRequestHandler(req, res)
 
   req.on('error', (err) =>
   {
-    JSCLog('error', 'Request related error.', { e: err, toConsole: doLogToConsole, toServerFile: serverLogFile, toSiteFile: siteLogFile });
+    JSCLog('error', 'Request related error.', { e: err, toConsole: doLogToConsole, toServerDir: serverLogDir, toSiteDir: siteLogDir });
   })
 }
 
@@ -1950,7 +1968,7 @@ function startServer(siteConfig, jscLogConfigBase)
   const jscLogConfig = Object.assign({}, jscLogConfigBase,
     {
       toConsole: siteLogging.doLogToConsole,
-      toSiteFile: siteLogging.siteLogFile
+      toSiteDir: siteLogging.siteLogDir
     });
 
   let runningServer = runningServers[serverPort];
@@ -3278,10 +3296,10 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
     perSitePermanentConsoleOutputEnabled ||
     (perSiteOptionalConsoleOutputEnabled && updatedConfigLogging.consoleOutputEnabled));
 
-  const doOutputToSiteFile = perSitePermanentFileOutputEnabled ||
+  const doOutputToSiteDir = perSitePermanentFileOutputEnabled ||
     (perSiteOptionalFileOutputEnabled && updatedConfigLogging.fileOutputEnabled);
   
-  updatedConfigLogging.siteLogFile = doOutputToSiteFile && updatedConfigLogging.directoryPath;
+  updatedConfigLogging.siteLogDir = doOutputToSiteDir && updatedConfigLogging.directoryPath;
 
   return readSuccess && updatedConfigLogging;
 }
@@ -3375,17 +3393,17 @@ if (readSuccess)
   
   if (generalLogging)
   {
-    const { fileOutputEnabled: doOutputToServerFile, directoryPath: serverLogFile } = generalLogging;
+    const { fileOutputEnabled: doOutputToServerDir, directoryPath: serverLogDir } = generalLogging;
     serverConfig.logging =
     {
       general: generalLogging,
-      serverLogFile: doOutputToServerFile && serverLogFile
+      serverLogDir: doOutputToServerDir && serverLogDir
     };
     
     jscLogBase =
     {
       toConsole: serverConfig.logging.general.consoleOutputEnabled,
-      toServerFile: serverConfig.logging.serverLogFile
+      toServerDir: serverConfig.logging.serverLogDir
     };
   }
 
@@ -3529,9 +3547,9 @@ if (readSuccess)
             if (soFarSoGood)
             {
               siteConfig.logging = updatedConfigLogging;
-              const { doLogToConsole: toConsole, siteLogFile: toSiteFile } = siteConfig.logging;
+              const { doLogToConsole: toConsole, siteLogDir: toSiteDir } = siteConfig.logging;
 
-              jscLogSite = { toConsole, toSiteFile };
+              jscLogSite = { toConsole, toSiteDir };
   
               jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
             }
