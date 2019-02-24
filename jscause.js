@@ -120,6 +120,8 @@ const defaultSiteConfig =
   httpsKeyFile: undefined
 };
 
+const allOpenLogFiles = {};
+
 /* *****************************************
  * 
  * Helper functions
@@ -128,9 +130,18 @@ const defaultSiteConfig =
 
 function outputLogToFile(filePath, message)
 {
+  if (!allOpenLogFiles[filePath])
+  {
+    //__RP create file here.
+    allOpenLogFiles[filePath] = filePath;
+  }
+
   console.log('WILL WRITE TO FILE!');//__RP
   console.log(filePath);//__RP
   console.log(message);//__RP
+
+  const logFile = allOpenLogFiles[filePath];
+  
 }
 
 function JSCLog(type, message, { e, toConsole = false, toServerFile, toSiteFile } = {})
@@ -180,6 +191,16 @@ function JSCLog(type, message, { e, toConsole = false, toServerFile, toSiteFile 
       }
     }
   }
+}
+
+function JSCLogTerminate()
+{
+  //__RP
+  Object.values(allOpenLogFiles).forEach((file) =>{
+    //__RP
+    console.log('CLOSING LOG FILE:');//__RP
+    console.log(file);//__RP
+  });
 }
 
 function vendor_require(vendorModuleName)
@@ -3797,7 +3818,6 @@ if (readSuccess)
       else
       {
         JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBaseWithSite);
-        allFailedSiteNames.push(siteName);
       }
     }
     else
@@ -3853,4 +3873,27 @@ if (atLeastOneSiteStarted)
 else
 {
   JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
+  JSCLogTerminate();
 }
+
+let processExitAttempts = 0;
+process.on('SIGINT', function()
+{
+  processExitAttempts++;
+  if (processExitAttempts === 1)
+  {
+    console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
+    JSCLogTerminate();
+    console.log('Terminated.');
+    process.exit();
+  }
+  else if (processExitAttempts === 2)
+  {
+    console.log('\nStill cleaning on exit.  Try again to exit right away...');
+  }
+  else
+  {
+    console.log('\nTerminated.');
+    process.exit();
+  }
+});

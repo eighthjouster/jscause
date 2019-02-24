@@ -3,6 +3,7 @@ git bundle create jscause-.bundle devel
 =====
 
 Now, on to actual logging:
+  - Write to actual files now.
   - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
     - Write the last batch on Ctrl+C?
   - Logging rotation?
