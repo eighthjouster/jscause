@@ -120,6 +120,9 @@ const defaultSiteConfig =
   httpsKeyFile: undefined
 };
 
+const LOGEXTENSION_FILENAME_RE = /\.log$/;
+let latestFileNameForLogging = getCurrentLogFileName();
+const allLogDirs = {};
 const allOpenLogFiles = {};
 
 /* *****************************************
@@ -128,20 +131,98 @@ const allOpenLogFiles = {};
  * 
  * *****************************************/
 
-function outputLogToDir(logDir, message)
+function dateToYYYMMDD_HH0000(date)
+{
+  const d = date && new Date(date) || new Date();
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = (d.getDate()).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = d.getHours();
+
+  return `${year}-${month}-${day}_${hours}-00-00`;
+}
+
+function getCurrentLogFileName()
+{
+  return `jsc_${dateToYYYMMDD_HH0000()}.log`;
+}
+
+function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 {
   let isSuccess = false;
-  if (!allOpenLogFiles[logDir])
+
+  let doScanDir = false;
+  doScanDir = true; //__RP for now.
+
+  if (allLogDirs[logDir])
   {
-    //__RP DO WE NEED A TRY/CATCH HERE?
-    //__RP allOpenLogFiles[filePath] = { fd: fs.openSync(filePath, 'a') };
+    //__RP Check that the current log file here corresponds to the current date.
+    // If it doesn't, delete allLogDirs[logDirs] and let the following block 
+    // handle it.
+    // You'll have to delete an entry from allOpenLogFiles here as well.
+    // And close any files that are open too.
+    // check that such file corresponds to: latestFileNameForLogging
+    //  doScanDir = true|false;
   }
 
-  console.log('WILL WRITE TO FILE!');//__RP
-  console.log(logDir);//__RP
+  const currentFileNameForLogging = getCurrentLogFileName();
+  //__RP doScanDir = doScanDir || (latestFileNameForLogging != currentFileNameForLogging);
+  //__RP doScanDir = doScanDir || !allLogDirs[logDir];
+  if (doScanDir)
+  {
+    let allFiles;
+    try
+    {
+      allFiles = fs.readdirSync(logDir);
+    }
+    catch(e)
+    {
+      //__RP what to do here?
+      // Use canOutputErrorsToConsole if there is an error. //__RP
+    }
+
+    latestFileNameForLogging = currentFileNameForLogging;
+    if (allFiles)
+    {
+      allFiles.forEach((fileName) =>
+      {
+        if (LOGEXTENSION_FILENAME_RE.test(fileName))
+        {
+          if (latestFileNameForLogging !== fileName)
+          {
+            console.log(`WE WILL ARCHIVE ${fileName}`);//__RP
+            //__RP archive the file here.
+            //__RP require('zlib')
+
+            fs.renameSync(fileName, `${fileName}.ARCHIVED`); //__RP for now...
+            // Use canOutputErrorsToConsole if there is an error. //__RP
+          }
+        }
+      });
+      isSuccess = true; //__RP for now.
+    }
+
+    allLogDirs[logDir] =
+    {
+      filePath: fsPath.join(logDir, latestFileNameForLogging)
+    };
+  }
+
+  //__RP TODO: make sure that allLogDirs[logDir] is valid at this point.
+  const { filePath } = allLogDirs[logDir];
+
+  if (!allOpenLogFiles[filePath])
+  {
+    //__RP DO WE NEED A TRY/CATCH HERE?
+    allOpenLogFiles[filePath] = { fd: fs.openSync(filePath, 'a') };
+    // Use canOutputErrorsToConsole if there is an error. //__RP
+  }
+
+  console.log(`WILL WRITE TO FILE: ${filePath}`);//__RP
   console.log(message);//__RP
 
-  const logFileFd = allOpenLogFiles[logDir].fd;
+  //__RP make sure that allOpenLogFiles[filePath] is valid here.
+  const { fd: logFileFd } = allOpenLogFiles[filePath];
 
   if (logFileFd)
   {
@@ -152,8 +233,9 @@ function outputLogToDir(logDir, message)
         // Dropping the message.  We'll set things up so that the next message
         // attempts to reopen the file again.
         //__RP DO WE NEED A TRY/CATCH HERE?
-        fs.closeSync(allOpenLogFiles[logDir].fd);
-        allOpenLogFiles[logDir] = null;
+        fs.closeSync(logFileFd);
+        allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
+        // Use canOutputErrorsToConsole if there is an error. //__RP
       }
     });
     isSuccess = true;
@@ -194,18 +276,18 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
     const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
     if (toServerDir)
     {
-      outputLogToDir(toServerDir, `${finalMessagePrefix}${message}`);
+      outputLogToDir(toServerDir, `${finalMessagePrefix}${message}`, toConsole);
       if (e)
       {
-        outputLogToDir(toServerDir, e);
+        outputLogToDir(toServerDir, e, toConsole);
       }
     }
     if (toSiteDir)
     {
-      outputLogToDir(toSiteDir, `${finalMessagePrefix}${message}`);
+      outputLogToDir(toSiteDir, `${finalMessagePrefix}${message}`, toConsole);
       if (e)
       {
-        outputLogToDir(toSiteDir, e);
+        outputLogToDir(toSiteDir, e, toConsole);
       }
     }
   }
@@ -213,11 +295,13 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
 
 function JSCLogTerminate()
 {
-  //__RP
-  Object.values(allOpenLogFiles).forEach((file) =>{
-    //__RP
-    console.log('CLOSING LOG FILE:');//__RP
-    console.log(file);//__RP
+  Object.keys(allOpenLogFiles).forEach((key) =>
+  {
+    const fileObj = allOpenLogFiles[key];
+    console.log('CLOSING LOG FILE');//__RP
+    //__RP do we need try/catch here?
+    fs.closeSync(fileObj.fd);
+    // If error.... make reference to ${key} //__RP
   });
 }
 

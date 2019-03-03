@@ -2,17 +2,33 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+For testing, add a 5-second rounding value to the files.
+
+Check that the latest file to write agrees with the "current file name with the hour."
+
 Now, on to actual logging:
   - Write to actual files now.
     - Take a look at:
       - outputLogToFile()
+        - Ok, we have the directory, but we need to determine which file to write to!
+          - On it.  Address all those //__RPs.
+          - Symlink to dir?
+            - Maybe this was taken care of by this point?
+        - Test thoroughly.
       - JSCLogTerminate()
   - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
+    - That check about whether we're on the right file to log? Do it _before_ debouncing.
+      - Same with archiving checks.
     - Write the last batch on Ctrl+C?
   - How to deal with errors?
     - Re-open logs?
   - Logging rotation?
     - Use require('zlib'), which is built-in (nice!)
+
+If outputLogToDir() fails, and toConsole is true, note it in the console.
+
+Maybe those *Sync() calls can be made async?
+ - Be careful with race conditions.
 
 Some work has been put into place.
  - Document whatever is not documented below before deleting.
@@ -68,6 +84,7 @@ Ability to write to files?
   - Text and binary.
 
 Back up.
+Update Mac.
 
 Databases.
  - Basic.
@@ -133,6 +150,8 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+Do we ever use allOpenLogFiles[filePath].errorStatus?  At least mention it somewhere in a "dev doc"?
 
 As it is now, if writing a log message to file fails, the file will be closed, the attempt will be dropped (so the message is lost), and for next time, another openSync() attempt is made.  This means that performance can degrade if constant logging failures happen.  How to address this?  And how to let the user/sysadmin know?
 
