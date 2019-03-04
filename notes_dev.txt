@@ -2,18 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-For testing, add a 5-second rounding value to the files.
-
-Check that the latest file to write agrees with the "current file name with the hour."
-
 Now, on to actual logging:
   - Write to actual files now.
     - Take a look at:
       - outputLogToFile()
         - Ok, we have the directory, but we need to determine which file to write to!
           - On it.  Address all those //__RPs.
-          - Symlink to dir?
-            - Maybe this was taken care of by this point?
         - Test thoroughly.
       - JSCLogTerminate()
   - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
@@ -29,6 +23,8 @@ If outputLogToDir() fails, and toConsole is true, note it in the console.
 
 Maybe those *Sync() calls can be made async?
  - Be careful with race conditions.
+
+You may need to break down outputLogToDir()
 
 Some work has been put into place.
  - Document whatever is not documented below before deleting.

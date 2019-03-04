@@ -139,7 +139,10 @@ function dateToYYYMMDD_HH0000(date)
   const year = d.getFullYear();
   const hours = d.getHours();
 
-  return `${year}-${month}-${day}_${hours}-00-00`;
+  const secondsRound10 = Math.ceil(d.getSeconds() * .1) * 10;//__RP
+
+  //__RP return `${year}-${month}-${day}_${hours}-00-00`;
+  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound10}`; //__RP for now.
 }
 
 function getCurrentLogFileName()
@@ -152,22 +155,37 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
   let isSuccess = false;
 
   let doScanDir = false;
-  doScanDir = true; //__RP for now.
+
+  const currentFileNameForLogging = getCurrentLogFileName();
+  if (latestFileNameForLogging != currentFileNameForLogging)
+  {
+    latestFileNameForLogging = currentFileNameForLogging;
+    doScanDir = true;
+  }
 
   if (allLogDirs[logDir])
   {
-    //__RP Check that the current log file here corresponds to the current date.
-    // If it doesn't, delete allLogDirs[logDirs] and let the following block 
-    // handle it.
-    // You'll have to delete an entry from allOpenLogFiles here as well.
-    // And close any files that are open too.
-    // check that such file corresponds to: latestFileNameForLogging
-    //  doScanDir = true|false;
+    const { fileName, filePath } = allLogDirs[logDir];
+    if (doScanDir || (fileName !== latestFileNameForLogging))
+    {
+      const { fd: logFileFd } = allOpenLogFiles[filePath] || {};
+
+      if (logFileFd)
+      {
+        fs.closeSync(logFileFd); //__RP should this be sync? Shouldn't we be handling errors here?
+      }
+      
+      delete allOpenLogFiles[filePath];
+      delete allLogDirs[logDir];
+      
+      doScanDir = true;
+    }
+  }
+  else
+  {
+    doScanDir = true;
   }
 
-  const currentFileNameForLogging = getCurrentLogFileName();
-  //__RP doScanDir = doScanDir || (latestFileNameForLogging != currentFileNameForLogging);
-  //__RP doScanDir = doScanDir || !allLogDirs[logDir];
   if (doScanDir)
   {
     let allFiles;
@@ -181,7 +199,6 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
       // Use canOutputErrorsToConsole if there is an error. //__RP
     }
 
-    latestFileNameForLogging = currentFileNameForLogging;
     if (allFiles)
     {
       allFiles.forEach((fileName) =>
@@ -194,7 +211,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
             //__RP archive the file here.
             //__RP require('zlib')
 
-            fs.renameSync(fileName, `${fileName}.ARCHIVED`); //__RP for now...
+            fs.renameSync(fsPath.join(logDir, fileName), fsPath.join(logDir, `${fileName}.ARCHIVED`)); //__RP for now...
             // Use canOutputErrorsToConsole if there is an error. //__RP
           }
         }
@@ -204,6 +221,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 
     allLogDirs[logDir] =
     {
+      fileName: latestFileNameForLogging,
       filePath: fsPath.join(logDir, latestFileNameForLogging)
     };
   }
@@ -226,7 +244,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 
   if (logFileFd)
   {
-    fs.write(logFileFd, new Buffer(message), (error) =>
+    fs.write(logFileFd, new Buffer(`${message}\n`), (error) =>
     {
       if (error)
       {
