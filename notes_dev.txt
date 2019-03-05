@@ -2,6 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Put console.warn() where we need them (look for //__RP).
+
+Don't initiate the process of compressing files twice.
+ - Don't set doCompressLogs to true if the compressing process is already ongoing.
+
 Now, on to actual logging:
   - Write to actual files now.
     - Take a look at:
@@ -9,6 +14,7 @@ Now, on to actual logging:
         - Ok, we have the directory, but we need to determine which file to write to!
           - On it.  Address all those //__RPs.
         - Test thoroughly.
+          - Simulate and test all the errors.
       - JSCLogTerminate()
   - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
     - That check about whether we're on the right file to log? Do it _before_ debouncing.

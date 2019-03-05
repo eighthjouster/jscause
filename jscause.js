@@ -13,6 +13,7 @@ const fs = require('fs');
 const fsPath = require('path');
 const urlUtils = require('url');
 const crypto = require('crypto');
+const zlib = require('zlib');
 
 const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
@@ -150,98 +151,10 @@ function getCurrentLogFileName()
   return `jsc_${dateToYYYMMDD_HH0000()}.log`;
 }
 
-function outputLogToDir(logDir, message, canOutputErrorsToConsole)
+function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
-  let isSuccess = false;
-
-  let doScanDir = false;
-
-  const currentFileNameForLogging = getCurrentLogFileName();
-  if (latestFileNameForLogging != currentFileNameForLogging)
-  {
-    latestFileNameForLogging = currentFileNameForLogging;
-    doScanDir = true;
-  }
-
-  if (allLogDirs[logDir])
-  {
-    const { fileName, filePath } = allLogDirs[logDir];
-    if (doScanDir || (fileName !== latestFileNameForLogging))
-    {
-      const { fd: logFileFd } = allOpenLogFiles[filePath] || {};
-
-      if (logFileFd)
-      {
-        fs.closeSync(logFileFd); //__RP should this be sync? Shouldn't we be handling errors here?
-      }
-      
-      delete allOpenLogFiles[filePath];
-      delete allLogDirs[logDir];
-      
-      doScanDir = true;
-    }
-  }
-  else
-  {
-    doScanDir = true;
-  }
-
-  if (doScanDir)
-  {
-    let allFiles;
-    try
-    {
-      allFiles = fs.readdirSync(logDir);
-    }
-    catch(e)
-    {
-      //__RP what to do here?
-      // Use canOutputErrorsToConsole if there is an error. //__RP
-    }
-
-    if (allFiles)
-    {
-      allFiles.forEach((fileName) =>
-      {
-        if (LOGEXTENSION_FILENAME_RE.test(fileName))
-        {
-          if (latestFileNameForLogging !== fileName)
-          {
-            console.log(`WE WILL ARCHIVE ${fileName}`);//__RP
-            //__RP archive the file here.
-            //__RP require('zlib')
-
-            fs.renameSync(fsPath.join(logDir, fileName), fsPath.join(logDir, `${fileName}.ARCHIVED`)); //__RP for now...
-            // Use canOutputErrorsToConsole if there is an error. //__RP
-          }
-        }
-      });
-      isSuccess = true; //__RP for now.
-    }
-
-    allLogDirs[logDir] =
-    {
-      fileName: latestFileNameForLogging,
-      filePath: fsPath.join(logDir, latestFileNameForLogging)
-    };
-  }
-
-  //__RP TODO: make sure that allLogDirs[logDir] is valid at this point.
-  const { filePath } = allLogDirs[logDir];
-
-  if (!allOpenLogFiles[filePath])
-  {
-    //__RP DO WE NEED A TRY/CATCH HERE?
-    allOpenLogFiles[filePath] = { fd: fs.openSync(filePath, 'a') };
-    // Use canOutputErrorsToConsole if there is an error. //__RP
-  }
-
   console.log(`WILL WRITE TO FILE: ${filePath}`);//__RP
   console.log(message);//__RP
-
-  //__RP make sure that allOpenLogFiles[filePath] is valid here.
-  const { fd: logFileFd } = allOpenLogFiles[filePath];
-
   if (logFileFd)
   {
     fs.write(logFileFd, new Buffer(`${message}\n`), (error) =>
@@ -249,17 +162,138 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
       if (error)
       {
         // Dropping the message.  We'll set things up so that the next message
-        // attempts to reopen the file again.
-        //__RP DO WE NEED A TRY/CATCH HERE?
-        fs.closeSync(logFileFd);
+        // will not attempt to reopen the file.
+        fs.close(logFileFd, (err) =>
+        {
+          if (err && canOutputErrorsToConsole)
+          {
+            console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file after write error: ${filePath}`);
+          }
+        });
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
         // Use canOutputErrorsToConsole if there is an error. //__RP
       }
     });
-    isSuccess = true;
   }
+}
+
+function outputLogToDir(logDir, message, canOutputErrorsToConsole)
+{
+  let doCompressLogs = false;
+
+  const currentFileNameForLogging = getCurrentLogFileName();
+  if (latestFileNameForLogging != currentFileNameForLogging)
+  {
+    latestFileNameForLogging = currentFileNameForLogging;
+    doCompressLogs = true;
+  }
+
+  if (allLogDirs[logDir])
+  {
+    const { fileName, filePath } = allLogDirs[logDir];
+    if (doCompressLogs || (fileName !== latestFileNameForLogging))
+    {
+      const { fd: logFileFd } = allOpenLogFiles[filePath] || {};
+
+      if (logFileFd)
+      {
+        fs.close(logFileFd, (err) =>
+        {
+          if (err && canOutputErrorsToConsole)
+          {
+            console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`);
+          }
+        });
+      }
+      
+      delete allOpenLogFiles[filePath];
+      delete allLogDirs[logDir];
+      
+      doCompressLogs = true;
+    }
+  }
+  else
+  {
+    doCompressLogs = true;
+  }
+
+  if (doCompressLogs)
+  {
+    allLogDirs[logDir] =
+    {
+      fileName: latestFileNameForLogging,
+      filePath: fsPath.join(logDir, latestFileNameForLogging)
+    };
+    
+    fs.readdir(logDir, (error, allFiles) =>
+    {
+      if (error)
+      {
+        // Use canOutputErrorsToConsole if there is an error. //__RP
+      }
+      else
+      {
+        allFiles.forEach((fileName) =>
+        {
+          if (LOGEXTENSION_FILENAME_RE.test(fileName))
+          {
+            if (latestFileNameForLogging !== fileName)
+            {
+              console.log(`WE WILL ARCHIVE ${fileName}`);//__RP
+              const gzip = zlib.createGzip();
+              const fileToCompressStream = fs.createReadStream(fsPath.join(logDir, fileName));
+              const compressedFileStram = fs.createWriteStream(fsPath.join(logDir, `${fileName}.gz`));
   
-  return isSuccess;
+              if (!fileToCompressStream)
+              {
+                // Use canOutputErrorsToConsole if there is an error. //__RP
+              }
+              else if (!compressedFileStram)
+              {
+                // Use canOutputErrorsToConsole if there is an error. //__RP
+              }
+              else
+              {
+                fileToCompressStream.pipe(gzip).pipe(compressedFileStram);
+                // Use canOutputErrorsToConsole if there is an error. //__RP
+              }
+  
+              if (compressedFileStram)
+              {
+                compressedFileStram.close();
+              }
+              if (fileToCompressStream)
+              {
+                fileToCompressStream.close();
+              }
+            }
+          }
+        });
+      }
+    });
+  }
+
+  const { filePath } = allLogDirs[logDir];
+
+  if (allOpenLogFiles[filePath])
+  {
+    writeLogToFile(filePath, allOpenLogFiles[filePath].fd, message, canOutputErrorsToConsole);
+  }
+  else
+  {
+    fs.open(filePath, 'a', (error, fd) =>
+    {
+      if (error)
+      {
+        // Use canOutputErrorsToConsole if there is an error. //__RP
+      }
+      else
+      {
+        allOpenLogFiles[filePath] = { fd };
+        writeLogToFile(filePath, fd, message, canOutputErrorsToConsole);
+      }
+    })
+  }
 }
 
 function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } = {})
