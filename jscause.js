@@ -245,7 +245,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
           {
             if (latestFileNameForLogging !== fileName)
             {
-              const gzip = zlib.createGzip();
+              const dataCompressor = zlib.createGzip();
               const fileToCompressPath = fsPath.join(logDir, fileName);
               const compressedFileName = `${fileName}.gz`;
               const fileToCompressStream = fs.createReadStream(fileToCompressPath);
@@ -258,7 +258,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
                   console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
                 }
               }
-              else if (!gzip)
+              else if (!dataCompressor)
               {
                 if (canOutputErrorsToConsole)
                 {
@@ -283,10 +283,10 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
                       console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
                     }
                     compressedFileStram.end();
-                    gzip.end();
+                    dataCompressor.end();
                     fileToCompressStream.end();
                   })
-                  .pipe(gzip)
+                  .pipe(dataCompressor)
                   .on('error', (error) =>
                   {
                     if (canOutputErrorsToConsole)
@@ -295,7 +295,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
                       console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
                     }
                     fileToCompressStream.end();
-                    gzip.end();
+                    dataCompressor.end();
                     compressedFileStram.end();
                   })
                   .pipe(compressedFileStram)
@@ -307,7 +307,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
                       console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
                     }
                     compressedFileStram.end();
-                    gzip.end();
+                    dataCompressor.end();
                     fileToCompressStream.end();
                   })
                   .on('finish', () =>

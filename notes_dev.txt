@@ -2,19 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Better name for gzip.
- - Check whether gzip was created (and report error if it wasn't.)
-
-on't initiate the process of compressing files twice.
+Don't initiate the process of compressing files twice.
  - Don't set doCompressLogs to true if the compressing process is already ongoing.
    - Flag in allLogDirs[]
      - Set to false when done, during errors, etc.
-
-If I put on site.json:
-"fileOutput": "disbled",
-(notice that there is a typo),
-the server will emit an error, but will allow the listening to continue.
-  - The server shouldn't allow the listening, correct?
 
 Now, on to actual logging:
   - Write to actual files now.
@@ -31,13 +22,17 @@ Now, on to actual logging:
       - Same with archiving checks.
     - Write the last batch on Ctrl+C?
   - Logging rotation?
-    - Use require('zlib'), which is built-in (nice!)
     - Keep the last N files? (0 for keep everything).
+    - Max size of uncompressed log files? (default: 1 MB).
+      - -1, -2, -3 for the same date.
+        - That 10-second mod debug mode? Up it to 30 seconds.
+          - And document.
 
-If outputLogToDir() fails, and toConsole is true, note it in the console.
-
-Maybe those *Sync() calls can be made async?
- - Be careful with race conditions.
+If I put on site.json:
+"fileOutput": "disbled",
+(notice that there is a typo),
+the server will emit an error, but will allow the listening to continue.
+  - The server shouldn't allow the listening, correct?
 
 You may need to break down outputLogToDir()
 
@@ -162,6 +157,8 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+Server side compression?
 
 Do we ever use allOpenLogFiles[filePath].errorStatus?  At least mention it somewhere in a "dev doc"?
 
@@ -311,6 +308,7 @@ Create a test to ensure all the opening/closing/<html/> tag rules according to t
 
 Security.
  - How to avoid, or at least warn or give control to the site, of DDOS by uploading large files or having too many requests?
+ - SSL cypher downgrade attacks?
 
 Docs?
 
