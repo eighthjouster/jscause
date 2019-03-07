@@ -2,10 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Once the gz ends, unlink the uncompressed log files.
-gz files are being written empty.  Why?
+Better name for gzip.
+ - Check whether gzip was created (and report error if it wasn't.)
 
-Don't initiate the process of compressing files twice.
+on't initiate the process of compressing files twice.
  - Don't set doCompressLogs to true if the compressing process is already ongoing.
    - Flag in allLogDirs[]
      - Set to false when done, during errors, etc.

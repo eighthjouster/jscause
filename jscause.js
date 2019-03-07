@@ -153,8 +153,8 @@ function getCurrentLogFileName()
 
 function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
-  console.log(`WILL WRITE TO FILE: ${filePath}`);//__RP
-  console.log(message);//__RP
+  //console.log(`WILL WRITE TO FILE: ${filePath}`);//__RP
+  //console.log(message);//__RP
   if (logFileFd)
   {
     fs.write(logFileFd, new Buffer(`${message}\n`), (error) =>
@@ -163,15 +163,18 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
       {
         // Dropping the message.  We'll set things up so that the next message
         // will not attempt to reopen the file.
-        fs.close(logFileFd, (err) =>
+        fs.close(logFileFd, (error) =>
         {
-          if (err && canOutputErrorsToConsole)
+          if (error && canOutputErrorsToConsole)
           {
             console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file after write error: ${filePath}`);
           }
         });
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
-        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`);
+        if (canOutputErrorsToConsole)
+        {
+          console.warn(`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`);
+        }
       }
     });
   }
@@ -197,9 +200,9 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 
       if (logFileFd)
       {
-        fs.close(logFileFd, (err) =>
+        fs.close(logFileFd, (error) =>
         {
-          if (err && canOutputErrorsToConsole)
+          if (error && canOutputErrorsToConsole)
           {
             console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`);
           }
@@ -229,7 +232,10 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
     {
       if (error)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
+        if (canOutputErrorsToConsole)
+        {
+          console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
+        }
       }
       else
       {
@@ -239,52 +245,83 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
           {
             if (latestFileNameForLogging !== fileName)
             {
-              console.log(`WE WILL ARCHIVE ${fileName}`);//__RP
               const gzip = zlib.createGzip();
+              const fileToCompressPath = fsPath.join(logDir, fileName);
               const compressedFileName = `${fileName}.gz`;
-              const fileToCompressStream = fs.createReadStream(fsPath.join(logDir, fileName));
+              const fileToCompressStream = fs.createReadStream(fileToCompressPath);
               const compressedFileStram = fs.createWriteStream(fsPath.join(logDir, compressedFileName));
   
               if (!fileToCompressStream)
               {
-                console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
+                if (canOutputErrorsToConsole)
+                {
+                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
+                }
+              }
+              else if (!gzip)
+              {
+                if (canOutputErrorsToConsole)
+                {
+                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressing stream to compress file: ${fileName}`);
+                }
               }
               else if (!compressedFileStram)
               {
-                console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
+                if (canOutputErrorsToConsole)
+                {
+                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
+                }
               }
               else
               {
                 fileToCompressStream
-                  .on('error', (error) => {
-                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
-                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                    fileToCompressStream.end();
+                  .on('error', (error) =>
+                  {
+                    if (canOutputErrorsToConsole)
+                    {
+                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
+                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    }
                     compressedFileStram.end();
+                    gzip.end();
+                    fileToCompressStream.end();
                   })
                   .pipe(gzip)
-                  .on('error', (error) => {
-                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${compressedFileName}`);
-                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                  .on('error', (error) =>
+                  {
+                    if (canOutputErrorsToConsole)
+                    {
+                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`);
+                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    }
                     fileToCompressStream.end();
+                    gzip.end();
                     compressedFileStram.end();
                   })
                   .pipe(compressedFileStram)
-                  .on('error', (error) => {
-                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
-                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                    fileToCompressStream.end();
+                  .on('error', (error) =>
+                  {
+                    if (canOutputErrorsToConsole)
+                    {
+                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
+                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    }
                     compressedFileStram.end();
+                    gzip.end();
+                    fileToCompressStream.end();
                   })
-              }
-  
-              if (compressedFileStram)
-              {
-                compressedFileStram.close();
-              }
-              if (fileToCompressStream)
-              {
-                fileToCompressStream.close();
+                  .on('finish', () =>
+                  {
+                    console.log('WE HAVE FINISHED');//__RP
+                    fs.unlink(fileToCompressPath, (error) =>
+                    {
+                      if (error && canOutputErrorsToConsole)
+                      {
+                        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`);
+                        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                      }
+                    });
+                  });
               }
             }
           }
@@ -305,7 +342,10 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
     {
       if (error)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
+        if (canOutputErrorsToConsole)
+        {
+          console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
+        }
       }
       else
       {
@@ -1109,7 +1149,8 @@ function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType
   }
 }
 
-const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback) => {
+const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback) =>
+{
   return (actorCallback) ?
     (...params) =>
     {
@@ -1193,7 +1234,8 @@ function makeRTPromise(rtContext, rtPromise)
   });
 
   new Promise(rtPromise)
-    .then(() => {
+    .then(() =>
+    {
       if (promiseContext.successWaitForId)
       {
         rtContext.waitForQueue[promiseContext.successWaitForId]();
@@ -2622,7 +2664,8 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
       }
       else
       {
-        (Array.isArray(mimeTypeList) ? mimeTypeList : Object.keys(mimeTypeList)).every((mimeTypeName) => {
+        (Array.isArray(mimeTypeList) ? mimeTypeList : Object.keys(mimeTypeList)).every((mimeTypeName) =>
+        {
           if (typeof(mimeTypeName) === 'string')
           {
             if (mimeTypeName)
