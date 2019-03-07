@@ -171,7 +171,7 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
           }
         });
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
-        // Use canOutputErrorsToConsole if there is an error. //__RP
+        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`);
       }
     });
   }
@@ -229,7 +229,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
     {
       if (error)
       {
-        // Use canOutputErrorsToConsole if there is an error. //__RP
+        console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
       }
       else
       {
@@ -241,21 +241,41 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
             {
               console.log(`WE WILL ARCHIVE ${fileName}`);//__RP
               const gzip = zlib.createGzip();
+              const compressedFileName = `${fileName}.gz`;
               const fileToCompressStream = fs.createReadStream(fsPath.join(logDir, fileName));
-              const compressedFileStram = fs.createWriteStream(fsPath.join(logDir, `${fileName}.gz`));
+              const compressedFileStram = fs.createWriteStream(fsPath.join(logDir, compressedFileName));
   
               if (!fileToCompressStream)
               {
-                // Use canOutputErrorsToConsole if there is an error. //__RP
+                console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
               }
               else if (!compressedFileStram)
               {
-                // Use canOutputErrorsToConsole if there is an error. //__RP
+                console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
               }
               else
               {
-                fileToCompressStream.pipe(gzip).pipe(compressedFileStram);
-                // Use canOutputErrorsToConsole if there is an error. //__RP
+                fileToCompressStream
+                  .on('error', (error) => {
+                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
+                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    fileToCompressStream.end();
+                    compressedFileStram.end();
+                  })
+                  .pipe(gzip)
+                  .on('error', (error) => {
+                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${compressedFileName}`);
+                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    fileToCompressStream.end();
+                    compressedFileStram.end();
+                  })
+                  .pipe(compressedFileStram)
+                  .on('error', (error) => {
+                    console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
+                    console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+                    fileToCompressStream.end();
+                    compressedFileStram.end();
+                  })
               }
   
               if (compressedFileStram)
@@ -285,7 +305,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
     {
       if (error)
       {
-        // Use canOutputErrorsToConsole if there is an error. //__RP
+        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
       }
       else
       {
