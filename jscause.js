@@ -122,7 +122,6 @@ const defaultSiteConfig =
 };
 
 const LOGEXTENSION_FILENAME_RE = /\.log$/;
-let latestFileNameForLogging = getCurrentLogFileName();
 const allLogDirs = {};
 const allOpenLogFiles = {};
 
@@ -180,154 +179,183 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
   }
 }
 
-function outputLogToDir(logDir, message, canOutputErrorsToConsole)
+function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole)
 {
-  let doCompressLogs = false;
-
-  const currentFileNameForLogging = getCurrentLogFileName();
-  if (latestFileNameForLogging != currentFileNameForLogging)
-  {
-    latestFileNameForLogging = currentFileNameForLogging;
-    doCompressLogs = true;
-  }
-
-  if (allLogDirs[logDir])
-  {
-    const { fileName, filePath } = allLogDirs[logDir];
-    if (doCompressLogs || (fileName !== latestFileNameForLogging))
+  fileToCompressStream
+    .on('error', (error) =>
     {
-      const { fd: logFileFd } = allOpenLogFiles[filePath] || {};
-
-      if (logFileFd)
+      if (canOutputErrorsToConsole)
       {
-        fs.close(logFileFd, (error) =>
-        {
-          if (error && canOutputErrorsToConsole)
-          {
-            console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`);
-          }
-        });
+        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
+        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
       }
-      
-      delete allOpenLogFiles[filePath];
-      delete allLogDirs[logDir];
-      
-      doCompressLogs = true;
+      compressedFileStream.end();
+      dataCompressor.end();
+      fileToCompressStream.end();
+    })
+    .pipe(dataCompressor)
+    .on('error', (error) =>
+    {
+      if (canOutputErrorsToConsole)
+      {
+        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`);
+        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+      }
+      fileToCompressStream.end();
+      dataCompressor.end();
+      compressedFileStream.end();
+    })
+    .pipe(compressedFileStream)
+    .on('error', (error) =>
+    {
+      if (canOutputErrorsToConsole)
+      {
+        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
+        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+      }
+      compressedFileStream.end();
+      dataCompressor.end();
+      fileToCompressStream.end();
+    })
+    .on('finish', () =>
+    {
+      console.log('WE HAVE FINISHED');//__RP
+      fs.unlink(fileToCompressPath, (error) =>
+      {
+        if (error && canOutputErrorsToConsole)
+        {
+          console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`);
+          console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+        }
+      });
+    });
+}
+
+function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole)
+{
+  const dataCompressor = zlib.createGzip();
+  const fileToCompressPath = fsPath.join(logDir, fileName);
+  const compressedFileName = `${fileName}.gz`;
+  const fileToCompressStream = fs.createReadStream(fileToCompressPath);
+  const compressedFileStream = fs.createWriteStream(fsPath.join(logDir, compressedFileName));
+
+  if (!fileToCompressStream)
+  {
+    if (canOutputErrorsToConsole)
+    {
+      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
+    }
+  }
+  else if (!dataCompressor)
+  {
+    if (canOutputErrorsToConsole)
+    {
+      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressing stream to compress file: ${fileName}`);
+    }
+  }
+  else if (!compressedFileStream)
+  {
+    if (canOutputErrorsToConsole)
+    {
+      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
     }
   }
   else
   {
-    doCompressLogs = true;
+    setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole)
   }
+}
 
-  if (doCompressLogs)
+function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
+{
+  const { fd: logFileFd } = allOpenLogFiles[filePath] || {};
+
+  if (logFileFd)
   {
-    allLogDirs[logDir] =
+    fs.close(logFileFd, (error) =>
     {
-      fileName: latestFileNameForLogging,
-      filePath: fsPath.join(logDir, latestFileNameForLogging)
-    };
-    
-    fs.readdir(logDir, (error, allFiles) =>
-    {
-      if (error)
+      if (error && canOutputErrorsToConsole)
       {
-        if (canOutputErrorsToConsole)
-        {
-          console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
-        }
-      }
-      else
-      {
-        allFiles.forEach((fileName) =>
-        {
-          if (LOGEXTENSION_FILENAME_RE.test(fileName))
-          {
-            if (latestFileNameForLogging !== fileName)
-            {
-              const dataCompressor = zlib.createGzip();
-              const fileToCompressPath = fsPath.join(logDir, fileName);
-              const compressedFileName = `${fileName}.gz`;
-              const fileToCompressStream = fs.createReadStream(fileToCompressPath);
-              const compressedFileStram = fs.createWriteStream(fsPath.join(logDir, compressedFileName));
-  
-              if (!fileToCompressStream)
-              {
-                if (canOutputErrorsToConsole)
-                {
-                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
-                }
-              }
-              else if (!dataCompressor)
-              {
-                if (canOutputErrorsToConsole)
-                {
-                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressing stream to compress file: ${fileName}`);
-                }
-              }
-              else if (!compressedFileStram)
-              {
-                if (canOutputErrorsToConsole)
-                {
-                  console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
-                }
-              }
-              else
-              {
-                fileToCompressStream
-                  .on('error', (error) =>
-                  {
-                    if (canOutputErrorsToConsole)
-                    {
-                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
-                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                    }
-                    compressedFileStram.end();
-                    dataCompressor.end();
-                    fileToCompressStream.end();
-                  })
-                  .pipe(dataCompressor)
-                  .on('error', (error) =>
-                  {
-                    if (canOutputErrorsToConsole)
-                    {
-                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`);
-                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                    }
-                    fileToCompressStream.end();
-                    dataCompressor.end();
-                    compressedFileStram.end();
-                  })
-                  .pipe(compressedFileStram)
-                  .on('error', (error) =>
-                  {
-                    if (canOutputErrorsToConsole)
-                    {
-                      console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
-                      console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                    }
-                    compressedFileStram.end();
-                    dataCompressor.end();
-                    fileToCompressStream.end();
-                  })
-                  .on('finish', () =>
-                  {
-                    console.log('WE HAVE FINISHED');//__RP
-                    fs.unlink(fileToCompressPath, (error) =>
-                    {
-                      if (error && canOutputErrorsToConsole)
-                      {
-                        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`);
-                        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
-                      }
-                    });
-                  });
-              }
-            }
-          }
-        });
+        console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`);
       }
     });
+  }
+
+  delete allOpenLogFiles[filePath];
+  delete allLogDirs[logDir];
+}
+
+function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
+{
+  fs.open(filePath, 'a', (error, fd) =>
+  {
+    if (error)
+    {
+      if (canOutputErrorsToConsole)
+      {
+        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
+      }
+    }
+    else
+    {
+      allOpenLogFiles[filePath] = { fd };
+      writeLogToFile(filePath, fd, message, canOutputErrorsToConsole);
+    }
+  });
+}
+
+function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
+{
+  allLogDirs[logDir] =
+  {
+    fileName: fileNameForLogging,
+    filePath: fsPath.join(logDir, fileNameForLogging)
+  };
+
+  fs.readdir(logDir, (error, allFiles) =>
+  {
+    if (error)
+    {
+      if (canOutputErrorsToConsole)
+      {
+        console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
+      }
+    }
+    else
+    {
+      allFiles.forEach((fileName) =>
+      {
+        if (LOGEXTENSION_FILENAME_RE.test(fileName))
+        {
+          if (fileNameForLogging !== fileName)
+          {
+            initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole);
+          }
+        }
+      });
+    }
+  });
+}
+
+function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
+{
+  const { fileName, filePath } = allLogDirs[logDir] || {};
+  let shouldCompressLogs = (fileName !== fileNameForLogging);
+
+  if (shouldCompressLogs && filePath)
+  {
+    closeLogFile(logDir, filePath, canOutputErrorsToConsole)
+  }
+
+  return shouldCompressLogs;
+}
+
+function outputLogToDir(logDir, message, canOutputErrorsToConsole)
+{
+  const latestFileNameForLogging = getCurrentLogFileName();
+  if (checkAndPrepareIfShouldCompressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole))
+  {
+    compressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole);
   }
 
   const { filePath } = allLogDirs[logDir];
@@ -338,21 +366,7 @@ function outputLogToDir(logDir, message, canOutputErrorsToConsole)
   }
   else
   {
-    fs.open(filePath, 'a', (error, fd) =>
-    {
-      if (error)
-      {
-        if (canOutputErrorsToConsole)
-        {
-          console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
-        }
-      }
-      else
-      {
-        allOpenLogFiles[filePath] = { fd };
-        writeLogToFile(filePath, fd, message, canOutputErrorsToConsole);
-      }
-    })
+    openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole);
   }
 }
 
