@@ -179,7 +179,7 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
   }
 }
 
-function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole)
+function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole, onCompressionEnd)
 {
   fileToCompressStream
     .on('error', (error) =>
@@ -192,6 +192,7 @@ function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompr
       compressedFileStream.end();
       dataCompressor.end();
       fileToCompressStream.end();
+      onCompressionEnd && onCompressionEnd(logDir, fileName);
     })
     .pipe(dataCompressor)
     .on('error', (error) =>
@@ -204,6 +205,7 @@ function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompr
       fileToCompressStream.end();
       dataCompressor.end();
       compressedFileStream.end();
+      onCompressionEnd && onCompressionEnd(logDir, fileName);
     })
     .pipe(compressedFileStream)
     .on('error', (error) =>
@@ -216,6 +218,7 @@ function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompr
       compressedFileStream.end();
       dataCompressor.end();
       fileToCompressStream.end();
+      onCompressionEnd && onCompressionEnd(logDir, fileName);
     })
     .on('finish', () =>
     {
@@ -227,17 +230,20 @@ function setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompr
           console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`);
           console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
         }
+
+        onCompressionEnd && onCompressionEnd(logDir, fileName);
       });
     });
 }
 
-function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole)
+function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd)
 {
   const dataCompressor = zlib.createGzip();
   const fileToCompressPath = fsPath.join(logDir, fileName);
   const compressedFileName = `${fileName}.gz`;
   const fileToCompressStream = fs.createReadStream(fileToCompressPath);
   const compressedFileStream = fs.createWriteStream(fsPath.join(logDir, compressedFileName));
+  let compressionInitiated = false;
 
   if (!fileToCompressStream)
   {
@@ -262,7 +268,13 @@ function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole)
   }
   else
   {
-    setUpLogFileCompressionEvents(fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole)
+    setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole, onCompressionEnd)
+    compressionInitiated = true;
+  }
+
+  if (!compressionInitiated)
+  {
+    onCompressionEnd && onCompressionEnd(logDir, fileName);
   }
 }
 
@@ -304,12 +316,38 @@ function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
   });
 }
 
+function onCompressionEnd(logDir, fileName)
+{
+  const { currentlyCompressingFileNameList } = allLogDirs[logDir] || {};
+  let allCompressionEnded = false;
+
+  allCompressionEnded = !currentlyCompressingFileNameList;
+
+  if (!allCompressionEnded && Array.isArray(currentlyCompressingFileNameList))
+  {
+    const position = currentlyCompressingFileNameList.indexOf(fileName);
+    if (position > -1)
+    {
+      currentlyCompressingFileNameList.splice(position, 1);
+    }
+
+    allCompressionEnded = (currentlyCompressingFileNameList.length === 0);
+  }
+
+  if (allCompressionEnded)
+  {
+    console.log('ALL COMPRESSION ENDED!');//__RP
+  }
+}
+
 function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
 {
+  const currentlyCompressingFileNameList = [];
   allLogDirs[logDir] =
   {
     fileName: fileNameForLogging,
-    filePath: fsPath.join(logDir, fileNameForLogging)
+    filePath: fsPath.join(logDir, fileNameForLogging),
+    currentlyCompressingFileNameList
   };
 
   fs.readdir(logDir, (error, allFiles) =>
@@ -329,7 +367,8 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
         {
           if (fileNameForLogging !== fileName)
           {
-            initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole);
+            currentlyCompressingFileNameList.push(fileName);
+            initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd);
           }
         }
       });
@@ -339,12 +378,18 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
 
 function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
 {
-  const { fileName, filePath } = allLogDirs[logDir] || {};
-  let shouldCompressLogs = (fileName !== fileNameForLogging);
+  const { fileName, filePath, currentlyCompressingFileNameList } = allLogDirs[logDir] || {};
+  const isCompressingAlreadyGoingOn = currentlyCompressingFileNameList && currentlyCompressingFileNameList.length;
+  let shouldCompressLogs = (fileName !== fileNameForLogging) && !isCompressingAlreadyGoingOn;
 
   if (shouldCompressLogs && filePath)
   {
     closeLogFile(logDir, filePath, canOutputErrorsToConsole)
+  }
+
+  if (isCompressingAlreadyGoingOn)
+  {
+    console.log('CANNOT COMPRESS JUST YET. COMPRESSING IS ALREADY GOING ON!');//__RP
   }
 
   return shouldCompressLogs;
