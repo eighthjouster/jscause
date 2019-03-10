@@ -142,10 +142,10 @@ function dateToYYYMMDD_HH0000(date)
   const year = d.getFullYear();
   const hours = d.getHours();
 
-  const secondsRound10 = Math.ceil(d.getSeconds() * .1) * 10;//__RP
+  const secondsRound30 = Math.ceil(d.getSeconds() * .3) * 30;//__RP
 
   //__RP return `${year}-${month}-${day}_${hours}-00-00`;
-  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound10}`; //__RP for now.
+  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30}`; //__RP for now.
 }
 
 function getCurrentLogFileName()
@@ -223,7 +223,6 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
     })
     .on('finish', () =>
     {
-      console.log('WE HAVE FINISHED');//__RP
       fs.unlink(fileToCompressPath, (error) =>
       {
         if (error && canOutputErrorsToConsole)
@@ -239,7 +238,6 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
 
 function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd)
 {
-  console.log(`INITIATING COMPRESSION OF ${fileName}`);//__RP
   const dataCompressor = zlib.createGzip();
   const fileToCompressPath = fsPath.join(logDir, fileName);
   const compressedFileName = `${fileName}.gz`;
@@ -332,7 +330,7 @@ function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
     if (position > -1)
     {
       currentlyCompressingFileNameList.splice(position, 1);
-      if (pendingToCompressingFileNameList && pendingToCompressingFileNameList.length)
+      if (pendingToCompressingFileNameList && pendingToCompressingFileNameList.length && !processExitAttempts)
       {
         const fileName = pendingToCompressingFileNameList.shift();
         currentlyCompressingFileNameList.push(fileName)
@@ -345,8 +343,7 @@ function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
 
   if (allCompressionEnded)
   {
-    console.log(`ALL COMPRESSION FOR ${logDir} ENDED!`);//__RP
-    if (compressLogsDirQueue.length)
+    if (compressLogsDirQueue.length && !processExitAttempts)
     {
       initiateLogDirCompression(canOutputErrorsToConsole);
     }
@@ -361,7 +358,6 @@ function initiateLogDirCompression(canOutputErrorsToConsole)
 {
   const logDir = compressLogsDirQueue.shift();
   isCurrentlyLogDirCompressing = true;
-  console.log(`INITIATING COMPRESSION FOR ${logDir}`);//__RP
 
   const { fileName: fileNameForLogging, currentlyCompressingFileNameList, pendingToCompressingFileNameList } = allLogDirs[logDir];
 
@@ -441,11 +437,6 @@ function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutp
     assignLogFileToLogDir(logDir, fileNameForLogging);
   }
 
-  if (isCompressingAlreadyGoingOn)
-  {
-    console.log('CANNOT COMPRESS JUST YET. COMPRESSING IS ALREADY GOING ON!');//__RP
-  }
-
   return shouldCompressLogs;
 }
 
@@ -515,6 +506,23 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
   }
 }
 
+function waitForLogFileCompressionBeforeTerminate()
+{
+  if (isCurrentlyLogDirCompressing)
+  {
+    console.log('Waiting for the current log file compression file to terminate...');
+    setTimeout(waitForLogFileCompressionBeforeTerminate, 5000);
+  }
+  else
+  {
+    if (processExitAttempts)
+    {
+      console.log('Terminated.');
+      process.exit();
+    }
+  }
+}
+
 function JSCLogTerminate()
 {
   Object.keys(allOpenLogFiles).forEach((key) =>
@@ -525,6 +533,8 @@ function JSCLogTerminate()
     fs.closeSync(fileObj.fd);
     // If error.... make reference to ${key} //__RP
   });
+
+  setTimeout(waitForLogFileCompressionBeforeTerminate, 0);
 }
 
 function vendor_require(vendorModuleName)
@@ -4211,8 +4221,6 @@ process.on('SIGINT', function()
   {
     console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
     JSCLogTerminate();
-    console.log('Terminated.');
-    process.exit();
   }
   else if (processExitAttempts === 2)
   {

@@ -2,32 +2,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-When we are compressing, and we hit Ctrl+C, the last compressed file should finish...
-  - Or at least it should cancel the compression and delete the half-compressed file, if possible.
- (and double Ctrl+C to quit anyway.)
+- Logging rotation?
+  - Keep the last N files? (0 for keep everything).
+  - Max size of uncompressed log files? (default: 1 MB).
+    - -1, -2, -3 for the same date.
+      *- 30-second mod debug mode for file names already enabled.
+        - And document.
 
-Remove the __RP
-
-Now, on to actual logging:
-  - Write to actual files now.
-    - Take a look at:
-      - outputLogToFile()
-        - Ok, we have the directory, but we need to determine which file to write to!
-          - On it.  Address all those //__RPs.
-        - Test thoroughly.
-          - Simulate and test all the errors.
-            - Including the console.warn()
-      - JSCLogTerminate()
-  - Write to file in bulk (every 500ms or so) and async (throttle/debounce).
+- Output to log file in bulk (every 500ms or so) and async (throttle/debounce).
     - That check about whether we're on the right file to log? Do it _before_ debouncing.
       - Same with archiving checks.
-    - Write the last batch on Ctrl+C?
-  - Logging rotation?
-    - Keep the last N files? (0 for keep everything).
-    - Max size of uncompressed log files? (default: 1 MB).
-      - -1, -2, -3 for the same date.
-        - That 10-second mod debug mode? Up it to 30 seconds.
-          - And document.
 
 If I put on site.json:
 "fileOutput": "disbled",
@@ -35,7 +19,9 @@ If I put on site.json:
 the server will emit an error, but will allow the listening to continue.
   - The server shouldn't allow the listening, correct?
 
-You may need to break down outputLogToDir()
+- Test thoroughly.
+  - Simulate and test all the errors.
+    - Including the console.warn()
 
 Some work has been put into place.
  - Document whatever is not documented below before deleting.
@@ -71,6 +57,14 @@ Documentation:
   - Per-site: Even if file logging is disabled, if a file name/path is provided, it must be valid.
     - You can comment it out if you'd rather not provide one.  But logging MUST be disabled.
   - General: A missing or empty directoryname will be assumed "logs".  A logging directory must exist regardless of whether logging is enabled or disabled.
+  - Compression of log files will happen four at a time.  The rest will be queued.
+    - The process of determining log compressing on a specific site will happen only when there is something to log.  If there are uncompressed log files, and the site is never accessed, or nothing is logged, the files will remain uncompressed.
+
+Documentation: Ctrl+C or SIGINT will terminate the server gracefully:
+  - It will close the log files.
+  - If there are any log files being compressed at that very moment, it will wait until the operation completes.  Any pending log files to compress will be ignored after that.
+  - A second Ctrl+C during cleanup will let the user know that cleanup is still happening.
+  - A third Ctrl+C will terminate the program immediately, even if cleanup was happening.
 
 Server logging?
  - Access and errors.
@@ -123,9 +117,6 @@ At this point, divide up the engine into different files.
  - Make it one file using gulp or something, for prod.
    - Or just use your own setup file.
 
-Handling server termination gracefully? (with Ctrl+C and/or process TERM/KILL/etc signaling)
- - Perhaps it should indicate at least that the application/process was terminated?
-
 Formalize the documentation.
  - Including some JSCause dev documentation (how to contribute, how to add new dependencies to JSCVendor, etc.)
 
@@ -159,7 +150,7 @@ Version 0.7.1b here!
 
 Order by priority:
 
-Server side compression?
+Server side HTTP transfer compression?
 
 Do we ever use allOpenLogFiles[filePath].errorStatus?  At least mention it somewhere in a "dev doc"?
 
