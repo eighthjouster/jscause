@@ -9,7 +9,7 @@
   "httpsCertFile": "jscause-cert.pem",
   "httpsKeyFile": "jscause-key.pem",
   "logging": {
-    "fileOutput": "disabled",
+    "fileOutput": "enabled",
     "directoryName": "./localLogs2",
     "consoleOutput": "enabled"
   }

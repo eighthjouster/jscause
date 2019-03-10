@@ -126,6 +126,7 @@ const LOGEXTENSION_FILENAME_RE = /\.log$/;
 const allLogDirs = {};
 const allOpenLogFiles = {};
 const compressLogsDirQueue = [];
+let isCurrentlyLogDirCompressing = false;
 
 /* *****************************************
  * 
@@ -154,8 +155,6 @@ function getCurrentLogFileName()
 
 function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
-  //console.log(`WILL WRITE TO FILE: ${filePath}`);//__RP
-  //console.log(message);//__RP
   if (logFileFd)
   {
     fs.write(logFileFd, new Buffer(`${message}\n`), (error) =>
@@ -297,7 +296,8 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
   }
 
   delete allOpenLogFiles[filePath];
-  delete allLogDirs[logDir];
+  delete allLogDirs[logDir].fileName;
+  delete allLogDirs[logDir].filePath;
 }
 
 function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
@@ -350,12 +350,17 @@ function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
     {
       initiateLogDirCompression(canOutputErrorsToConsole);
     }
+    else
+    {
+      isCurrentlyLogDirCompressing = false;
+    }
   }
 }
 
 function initiateLogDirCompression(canOutputErrorsToConsole)
 {
   const logDir = compressLogsDirQueue.shift();
+  isCurrentlyLogDirCompressing = true;
   console.log(`INITIATING COMPRESSION FOR ${logDir}`);//__RP
 
   const { fileName: fileNameForLogging, currentlyCompressingFileNameList, pendingToCompressingFileNameList } = allLogDirs[logDir];
@@ -401,19 +406,27 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
     return;
   }
 
-  allLogDirs[logDir] =
-  {
-    fileName: fileNameForLogging,
-    filePath: fsPath.join(logDir, fileNameForLogging),
-    currentlyCompressingFileNameList: [],
-    pendingToCompressingFileNameList: []
-  };
+  allLogDirs[logDir] = Object.assign(allLogDirs[logDir],
+    {
+      currentlyCompressingFileNameList: [],
+      pendingToCompressingFileNameList: []
+    });
 
   compressLogsDirQueue.push(logDir);
-  if (compressLogsDirQueue.length === 1)
+
+  if (!isCurrentlyLogDirCompressing)
   {
     initiateLogDirCompression(canOutputErrorsToConsole);
   }
+}
+
+function assignLogFileToLogDir(logDir, fileNameForLogging)
+{
+  allLogDirs[logDir] = Object.assign(allLogDirs[logDir] || {},
+    {
+      fileName: fileNameForLogging,
+      filePath: fsPath.join(logDir, fileNameForLogging)
+    });
 }
 
 function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
@@ -424,7 +437,8 @@ function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutp
 
   if (shouldCompressLogs && filePath)
   {
-    closeLogFile(logDir, filePath, canOutputErrorsToConsole)
+    closeLogFile(logDir, filePath, canOutputErrorsToConsole);
+    assignLogFileToLogDir(logDir, fileNameForLogging);
   }
 
   if (isCompressingAlreadyGoingOn)
@@ -438,6 +452,11 @@ function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutp
 function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 {
   const latestFileNameForLogging = getCurrentLogFileName();
+  if (!allLogDirs[logDir] || !allLogDirs[logDir].fileName)
+  {
+    assignLogFileToLogDir(logDir, latestFileNameForLogging);
+  }
+
   if (checkAndPrepareIfShouldCompressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole))
   {
     compressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole);
@@ -460,7 +479,6 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
   {
-    console.log('WILL NOW PROCEED TO OUTPUT TO CONSOLE!');//__RP
     if (outputToConsole)
     {
       outputToConsole(`${(consolePrefix) ? `${consolePrefix}: ` : ''}${message}`);
@@ -474,13 +492,6 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } 
       console.log('WEIRD! NO CONSOLE FUNCTION! THIS SHOULD NEVER HAPPEN.');//__RP
     }
   }
-  else
-  {
-    console.log('NO CONSOLE OUTPUT!');//__RP
-  }
-
-  console.log(`Server dir: ${toServerDir}`);//__RP
-  console.log(`Site dir: ${toSiteDir}`);//__RP
 
   if (toServerDir || toSiteDir)
   {

@@ -2,9 +2,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-If there are tons of files to compress *ACROSS SITES*, don't initiate compression all at once.
-  - Two, maybe three, and when they're done, then re-apply the cycle.
-
 When we are compressing, and we hit Ctrl+C, the last compressed file should finish...
   - Or at least it should cancel the compression and delete the half-compressed file, if possible.
  (and double Ctrl+C to quit anyway.)
