@@ -125,6 +125,7 @@ const defaultSiteConfig =
 const LOGEXTENSION_FILENAME_RE = /\.log$/;
 const allLogDirs = {};
 const allOpenLogFiles = {};
+const compressLogsDirQueue = [];
 
 /* *****************************************
  * 
@@ -344,21 +345,20 @@ function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
 
   if (allCompressionEnded)
   {
-    console.log('ALL COMPRESSION ENDED!');//__RP
+    console.log(`ALL COMPRESSION FOR ${logDir} ENDED!`);//__RP
+    if (compressLogsDirQueue.length)
+    {
+      initiateLogDirCompression(canOutputErrorsToConsole);
+    }
   }
 }
 
-function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
+function initiateLogDirCompression(canOutputErrorsToConsole)
 {
-  const currentlyCompressingFileNameList = [];
-  const pendingToCompressingFileNameList = [];
-  allLogDirs[logDir] =
-  {
-    fileName: fileNameForLogging,
-    filePath: fsPath.join(logDir, fileNameForLogging),
-    currentlyCompressingFileNameList,
-    pendingToCompressingFileNameList
-  };
+  const logDir = compressLogsDirQueue.shift();
+  console.log(`INITIATING COMPRESSION FOR ${logDir}`);//__RP
+
+  const { fileName: fileNameForLogging, currentlyCompressingFileNameList, pendingToCompressingFileNameList } = allLogDirs[logDir];
 
   fs.readdir(logDir, (error, allFiles) =>
   {
@@ -391,6 +391,29 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
       });
     }
   });
+}
+
+function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
+{
+  if (compressLogsDirQueue.indexOf(logDir) > -1)
+  {
+    console.log(`${logDir} IS ALREADY QUEUED FOR COMPRESSION!`);
+    return;
+  }
+
+  allLogDirs[logDir] =
+  {
+    fileName: fileNameForLogging,
+    filePath: fsPath.join(logDir, fileNameForLogging),
+    currentlyCompressingFileNameList: [],
+    pendingToCompressingFileNameList: []
+  };
+
+  compressLogsDirQueue.push(logDir);
+  if (compressLogsDirQueue.length === 1)
+  {
+    initiateLogDirCompression(canOutputErrorsToConsole);
+  }
 }
 
 function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
