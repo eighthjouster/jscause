@@ -39,6 +39,7 @@ const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 const MAX_CACHED_FILES_PER_SITE = 256;
 const MAX_CACHEABLE_FILE_SIZE_BYTES = 1024 * 512;
+const MAX_COMPRESSION_JOBS_PER_SITE = 4;
 
 const JSCLOG_DATA =
 {
@@ -192,7 +193,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       compressedFileStream.end();
       dataCompressor.end();
       fileToCompressStream.end();
-      onCompressionEnd && onCompressionEnd(logDir, fileName);
+      onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
     })
     .pipe(dataCompressor)
     .on('error', (error) =>
@@ -205,7 +206,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       fileToCompressStream.end();
       dataCompressor.end();
       compressedFileStream.end();
-      onCompressionEnd && onCompressionEnd(logDir, fileName);
+      onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
     })
     .pipe(compressedFileStream)
     .on('error', (error) =>
@@ -218,7 +219,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       compressedFileStream.end();
       dataCompressor.end();
       fileToCompressStream.end();
-      onCompressionEnd && onCompressionEnd(logDir, fileName);
+      onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
     })
     .on('finish', () =>
     {
@@ -231,13 +232,14 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
           console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
         }
 
-        onCompressionEnd && onCompressionEnd(logDir, fileName);
+        onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
       });
     });
 }
 
 function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd)
 {
+  console.log(`INITIATING COMPRESSION OF ${fileName}`);//__RP
   const dataCompressor = zlib.createGzip();
   const fileToCompressPath = fsPath.join(logDir, fileName);
   const compressedFileName = `${fileName}.gz`;
@@ -274,7 +276,7 @@ function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, 
 
   if (!compressionInitiated)
   {
-    onCompressionEnd && onCompressionEnd(logDir, fileName);
+    onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
   }
 }
 
@@ -316,9 +318,9 @@ function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
   });
 }
 
-function onCompressionEnd(logDir, fileName)
+function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
 {
-  const { currentlyCompressingFileNameList } = allLogDirs[logDir] || {};
+  const { currentlyCompressingFileNameList, pendingToCompressingFileNameList } = allLogDirs[logDir] || {};
   let allCompressionEnded = false;
 
   allCompressionEnded = !currentlyCompressingFileNameList;
@@ -329,6 +331,12 @@ function onCompressionEnd(logDir, fileName)
     if (position > -1)
     {
       currentlyCompressingFileNameList.splice(position, 1);
+      if (pendingToCompressingFileNameList && pendingToCompressingFileNameList.length)
+      {
+        const fileName = pendingToCompressingFileNameList.shift();
+        currentlyCompressingFileNameList.push(fileName)
+        initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd);
+      }
     }
 
     allCompressionEnded = (currentlyCompressingFileNameList.length === 0);
@@ -343,11 +351,13 @@ function onCompressionEnd(logDir, fileName)
 function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
 {
   const currentlyCompressingFileNameList = [];
+  const pendingToCompressingFileNameList = [];
   allLogDirs[logDir] =
   {
     fileName: fileNameForLogging,
     filePath: fsPath.join(logDir, fileNameForLogging),
-    currentlyCompressingFileNameList
+    currentlyCompressingFileNameList,
+    pendingToCompressingFileNameList
   };
 
   fs.readdir(logDir, (error, allFiles) =>
@@ -367,8 +377,15 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
         {
           if (fileNameForLogging !== fileName)
           {
-            currentlyCompressingFileNameList.push(fileName);
-            initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd);
+            if (currentlyCompressingFileNameList.length < MAX_COMPRESSION_JOBS_PER_SITE)
+            {
+              currentlyCompressingFileNameList.push(fileName);
+              initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, onCompressionEnd);
+            }
+            else
+            {
+              pendingToCompressingFileNameList.push(fileName);
+            }
           }
         }
       });
