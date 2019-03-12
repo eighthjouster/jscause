@@ -134,7 +134,12 @@ let isCurrentlyLogDirCompressing = false;
  * 
  * *****************************************/
 
-function dateToYYYMMDD_HH0000(date)
+function determineLogFileSuffix(suffix)
+{
+  return (suffix) ? `--${suffix}` : '';
+}
+
+function dateToYYYMMDD_HH0000({ date, suffix = 0 })
 {
   const d = date && new Date(date) || new Date();
   const month = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -142,15 +147,81 @@ function dateToYYYMMDD_HH0000(date)
   const year = d.getFullYear();
   const hours = d.getHours();
 
-  const secondsRound30 = Math.ceil(d.getSeconds() * .3) * 30;//__RP
+  const secondsRound30 = Math.ceil(d.getSeconds() / 30) * 30;//__RP
 
-  //__RP return `${year}-${month}-${day}_${hours}-00-00`;
-  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30}`; //__RP for now.
+  //__RP return `${year}-${month}-${day}_${hours}-00-00${determineLogFileSuffix(suffix)}`;
+  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30/* __RP for now */}${determineLogFileSuffix(suffix)}`; //__RP check the comment inside this line.
 }
 
-function getCurrentLogFileName()
+function retrieveNextAvailableLogName(logDir, resolve, reject, suffix = 0, postExtension = '')
 {
-  return `jsc_${dateToYYYMMDD_HH0000()}.log`;
+  // Typically, this function is used this way:
+  // Provide an initial suffix of 0 and a postExtension of '.gz'.
+  // That signals the function that we're looking for names that have already been
+  // used (files are compressed with this name).
+  // If the name exists, recursively call this file with a different suffix (e.g. 1).
+  // Once a name has not been used in a compressed file, recursively call this function again,
+  // this time with no postExtension.
+  // That signals the functin that we're looking for names for files that either:
+  // 1. are not being used, or 2. are being used and under a certain file size threshold.
+  //
+  // Example:  Look for a name such as 'jsc_name'.
+  // 1. Does jsc_name.log.gz exists? Look for jsc_name--1.log.gz, then jsc_name--2.log.gz, etc.
+  // 2. Found that jsc_name--3.log.gz does not exist? Ok.
+  // 3. Check if jsc_name--3.log exists.  It does not?  Cool.  Let's use this name for logging.  The end.
+  // 4. It exists?  Check if its size is no larger than the threshold.
+  // 5. Otherwise, check for jsc_name--4.log, jsc_name--5.log, etc, going back to step 3.
+  const currentFileNameStem = `jsc_${dateToYYYMMDD_HH0000({ suffix })}`;
+  const currentFileName = `${currentFileNameStem}.log${postExtension}`;
+  const currentFilePath = fsPath.join(logDir, currentFileName);
+
+  if (suffix <= 10) // __RP arbitrary number.
+  {
+    fs.stat(currentFilePath, (error, stats) =>
+    {
+      if (error)
+      {
+        if (error.code === 'ENOENT')
+        {
+          if (postExtension)
+          {
+            retrieveNextAvailableLogName(logDir, resolve, reject, suffix, '');
+          }
+          else
+          {
+            resolve(currentFileName);
+          }
+        }
+        else
+        {
+          reject(error);
+        }
+      }
+      else
+      {
+        if (postExtension || (stats.size > 1000)) //__RP ARBITRARY NUMBER. MUST BE IN CONFIG.
+        {
+          retrieveNextAvailableLogName(logDir, resolve, reject, suffix + 1, postExtension);
+        }
+        else
+        {
+          resolve(currentFileName);
+        }
+      }
+    });
+  }
+  else
+  {
+    reject(`Too many segment files (>${10})`);// __RP ARBITRARY NUMBER AGAIN.
+  }
+}
+
+function getCurrentLogFileName(logDir)
+{
+  return new Promise((resolve, reject) =>
+  {
+    retrieveNextAvailableLogName(logDir, resolve, reject, 0, '.gz');
+  });
 }
 
 function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
@@ -442,27 +513,38 @@ function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutp
 
 function outputLogToDir(logDir, message, canOutputErrorsToConsole)
 {
-  const latestFileNameForLogging = getCurrentLogFileName();
-  if (!allLogDirs[logDir] || !allLogDirs[logDir].fileName)
-  {
-    assignLogFileToLogDir(logDir, latestFileNameForLogging);
-  }
-
-  if (checkAndPrepareIfShouldCompressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole))
-  {
-    compressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole);
-  }
-
-  const { filePath } = allLogDirs[logDir];
-
-  if (allOpenLogFiles[filePath])
-  {
-    writeLogToFile(filePath, allOpenLogFiles[filePath].fd, message, canOutputErrorsToConsole);
-  }
-  else
-  {
-    openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole);
-  }
+  getCurrentLogFileName(logDir)
+    .then((latestFileNameForLogging) =>
+    {
+      if (!allLogDirs[logDir] || !allLogDirs[logDir].fileName)
+      {
+        assignLogFileToLogDir(logDir, latestFileNameForLogging);
+      }
+  
+      if (checkAndPrepareIfShouldCompressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole))
+      {
+        compressLogs(logDir, latestFileNameForLogging, canOutputErrorsToConsole);
+      }
+  
+      const { filePath } = allLogDirs[logDir];
+  
+      if (allOpenLogFiles[filePath])
+      {
+        writeLogToFile(filePath, allOpenLogFiles[filePath].fd, message, canOutputErrorsToConsole);
+      }
+      else
+      {
+        openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole);
+      }
+    })
+    .catch(((error) =>
+    {
+      if (canOutputErrorsToConsole)
+      {
+        console.warn(`${TERMINAL_WARNING_STRING}:  Could not get the current log file name`);
+        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+      }
+    }));
 }
 
 function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir } = {})

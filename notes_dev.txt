@@ -3,15 +3,20 @@ git bundle create jscause-.bundle devel
 =====
 
 - Logging rotation?
-  - Keep the last N files? (0 for keep everything).
   - Max size of uncompressed log files? (default: 1 MB).
-    - -1, -2, -3 for the same date.
+    *- -1, -2, -3 for the same date. - Done.
       *- 30-second mod debug mode for file names already enabled.
-        - And document.
+        +- And document. - on it.
+  - Keep the last N files? (0 for keep everything).
+
+In the docs so far:
+  - Log files can be limited by size.  When the limit is reached, a new log file will be created, with identical name as the previous one, but with a numeric suffix (e.g. --1, --2, etc).  The previous file will be compressed.
+  - If you move compressed log files to another location, and JSCause is writing to a suffixed file, then it will reset writing to a non-suffixed file.  This will cause log entries that will appear as out of sync with the files they're in.  Worse, next time a move occurs, the newly created log file will overwrite the one previously existing in the destination.  To avoid this, your move procedure should leave all the compressed suffixed files associated with the current (non-compressed) log file.
 
 - Output to log file in bulk (every 500ms or so) and async (throttle/debounce).
     - That check about whether we're on the right file to log? Do it _before_ debouncing.
       - Same with archiving checks.
+    - Document this behavior.
 
 If I put on site.json:
 "fileOutput": "disbled",
@@ -149,6 +154,8 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+During compression, the final file should not be .gz but something like .gz.tmp, then renamed to .gz when the compression is done.
 
 Server side HTTP transfer compression?
 
