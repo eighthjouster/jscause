@@ -1207,7 +1207,7 @@ function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
   });
 }
 
-function doneWith(serverConfig, identifiedSite, /* ctx, */id, isCancellation)
+function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
 {
   if (id)
   {
@@ -1332,7 +1332,7 @@ function makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, 
   return rtContext.waitForQueue[waitForId];
 }
 
-function cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, isCancellation)
+function cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, isCancellation)
 {
   let isErrorCancellation = isCancellation;
   if (defaultSuccessWaitForId)
@@ -1347,7 +1347,7 @@ function cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErro
   }
 }
 
-function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType)
+function doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType)
 {
   const counterActorId = (promiseActorType === PROMISE_ACTOR_TYPE_SUCCESS) ?
     promiseContext.errorWaitForId :
@@ -1358,7 +1358,7 @@ function doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType
   }
 }
 
-const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback) =>
+const makeCustomRtPromiseActor = (serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback) =>
 {
   return (actorCallback) ?
     (...params) =>
@@ -1372,13 +1372,13 @@ const makeCustomRtPromiseActor = (rtContext, promiseContext, promiseActorType, d
         rtContext.runtimeException = e;
       }
 
-      doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType);
-      cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
+      doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType);
+      cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
     } :
     () =>
     {
-      doneWithPromiseCounterActor(rtContext, promiseContext, promiseActorType);
-      cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
+      doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType);
+      cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
     };
 };
 
@@ -1386,7 +1386,7 @@ function makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext,
 {
   const rtOnSuccess = (successCallback) =>
   {
-    const cb = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_SUCCESS, defaultSuccessWaitForId, defaultErrorWaitForId, successCallback);
+    const cb = makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promiseContext, PROMISE_ACTOR_TYPE_SUCCESS, defaultSuccessWaitForId, defaultErrorWaitForId, successCallback);
 
     promiseContext.successWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, cb);
 
@@ -1403,7 +1403,7 @@ function makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext,
         .rtOnError(errorCallback);
     }
 
-    promiseContext.customCallBack = makeCustomRtPromiseActor(rtContext, promiseContext, PROMISE_ACTOR_TYPE_ERROR, defaultSuccessWaitForId, defaultErrorWaitForId, errorCallback);
+    promiseContext.customCallBack = makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promiseContext, PROMISE_ACTOR_TYPE_ERROR, defaultSuccessWaitForId, defaultErrorWaitForId, errorCallback);
 
     promiseContext.errorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, promiseContext.customCallBack);
   };
@@ -1427,7 +1427,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
 
   defaultSuccessWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, () =>
   {
-    cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
+    cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
   });
 
   defaultErrorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, (e) =>
@@ -1439,7 +1439,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
       doneWith(serverConfig, identifiedSite, rtContext, promiseContext.successWaitForId, true);
     }
 
-    cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
+    cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
   });
 
   new Promise(rtPromise)
@@ -1470,7 +1470,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
             doneWith(serverConfig, identifiedSite, rtContext, promiseContext.successWaitForId);
           }
 
-          cancelDefaultRTPromises(rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
+          cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
         }
       }
       else
@@ -1924,7 +1924,7 @@ function responder(req, res, serverConfig, identifiedSite, compiledCode, runFile
     }
   }
   
-  doneWith(serverConfig, identifiedSite, rtContext);
+  doneWith(serverConfig, identifiedSite, resContext);
 }
 
 function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold)
