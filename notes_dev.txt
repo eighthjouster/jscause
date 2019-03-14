@@ -2,12 +2,38 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Refactor these parameter calls, plus rtContext, resContent, formContext, ctx, etc.
+doneWith(finish parameters)
+responder(excess parameters)
+makeRTOnSuccessOnErrorHandlers(may have excess parameters)
+doMoveToTempWorkDir(excess parameters?)
+
+
+const jsCookies = new cookies(req, res);
+ - It should be in the caller, maybe.
+ There's a lot about rtContext that can be removed if we include serverConfig and identifiedSite.
+  - On it.
+
+Well, this is quite an adventure:
+ - Check every JSCLog() call to make sure that fileSizeThreshold is included in its parameters.
+   - Almost there:
+     - Check jscLogConfig and related (jscLogBase? jscLogSite? jscLogBaseWithSite?).
+
 - Logging rotation?
   - Max size of uncompressed log files? (default: 1 MB).
     *- -1, -2, -3 for the same date. - Done.
       *- 30-second mod debug mode for file names already enabled.
         +- And document. - on it.
   - Keep the last N files? (0 for keep everything).
+    - Do the configuration first.  Follow the fileSizeThreshold route.
+      - Actually, see if you can convert parameters to context object in certain situations first.
+        - Example: handleError4xx(()
+          - Yeah, why don't you pass identifiedSite directly to those?
+
+The following line:
+JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`, jscLogConfig);
+ - Shouldn't it be followed by readSuccess = false;?
+  - And test.
 
 In the docs so far:
   - Log files can be limited by size.  When the limit is reached, a new log file will be created, with identical name as the previous one, but with a numeric suffix (e.g. --1, --2, etc).  The previous file will be compressed.
@@ -23,6 +49,7 @@ If I put on site.json:
 (notice that there is a typo),
 the server will emit an error, but will allow the listening to continue.
   - The server shouldn't allow the listening, correct?
+  - Still happening?
 
 - Test thoroughly.
   - Simulate and test all the errors.
