@@ -3,7 +3,7 @@ git bundle create jscause-.bundle devel
 =====
 
 True rsContext attributes:
-  additional
+  *additional - addressed.
   appHeaders
   compileTimeError
   contentType
@@ -44,9 +44,6 @@ doMoveToTempWorkDir(excess parameters?)
 resEnd()... maybe.
 cancelDefaultRTPromises() maybe?
 makeCustomRtPromiseActor() maybe?
-responderStatic(), maybe? And similar, like responderStaticFileError().
-Some others, like sendUploadIsForbidden() could just have the ctx passed.
- And sendPayLoadExceeded(), sendUploadIsForbidden(), serveStaticContent(), what else?
 
 const jsCookies = new cookies(req, res);
  - It should be in the caller, maybe.

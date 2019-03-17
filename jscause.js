@@ -1496,7 +1496,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
   const { siteLogDir, doLogToConsole } = identifiedSite.logging;
-  
+
   const jscLogConfig =
   {
     toConsole: doLogToConsole,
@@ -1924,8 +1924,12 @@ function responder(req, res, serverConfig, identifiedSite, compiledCode, runFile
   doneWith(serverConfig, identifiedSite, resContext);
 }
 
-function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold)
+function responderStaticFileError(e, req, res, serverConfig, identifiedSite, runFileName)
 {
+  const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
+  const { name: siteName, hostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { fullPath } = staticFiles[runFileName];
+
   JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`,
     {
       e,
@@ -1940,23 +1944,28 @@ function responderStaticFileError(e, req, res, siteName, hostName, fullPath, doL
   resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
 }
 
-function responderStatic(req, res, siteName, hostName, fullPath, contentType, fileSize, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, statusCode, { fileContents: contents, readStream, fileNotFoundException })
+function responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents, readStream, fileNotFoundException })
 {
+  const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
+  const { hostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+
   const resObject = res;
   const resContext = { appHeaders: {}, resObject };
 
-  assignAppHeaders(resContext, {'Content-Type': contentType, 'Content-Length': fileSize});
+  const { fileContents, fileContentType, fileSize } = staticFiles[runFileName];
+
+  assignAppHeaders(resContext, {'Content-Type': fileContentType, 'Content-Length': fileSize});
   finishUpHeaders(resContext);
   
   resObject.statusCode = statusCode;
 
   if (fileNotFoundException)
   {
-    responderStaticFileError(fileNotFoundException, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold);
+    responderStaticFileError(fileNotFoundException, req, resObject, serverConfig, identifiedSite, runFileName);
   }
-  else if (contents || !readStream)
+  else if (shouldUseFileContents || !readStream)
   {
-    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName }, contents);
+    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName }, fileContents);
   }
   else
   {
@@ -1977,13 +1986,16 @@ function responderStatic(req, res, siteName, hostName, fullPath, contentType, fi
 
     readStream.on('error', (e) =>
     {
-      responderStaticFileError(e, req, resObject, siteName, hostName, fullPath, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold);
+      responderStaticFileError(e, req, resObject, serverConfig, identifiedSite, runFileName);
     });
   }
 }
 
-function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName)
+function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite)
 {
+  const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
+  const { hostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+
   JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`,
     {
       toConsole: doLogToConsole,
@@ -1997,8 +2009,11 @@ function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serv
   resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
 }
 
-function sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName)
+function sendUploadIsForbidden(req, res, serverConfig, identifiedSite)
 {
+  const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
+  const { hostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+
   JSCLog('error', 'Uploading is forbidden.',
     {
       toConsole: doLogToConsole,
@@ -2014,7 +2029,7 @@ function sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDi
 
 function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, errorCode)
 {
-  const { name: siteName, hostName, staticFiles, compiledFiles,
+  const { hostName, staticFiles, compiledFiles,
     logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const jsCookies = new cookies(req, res);
@@ -2035,7 +2050,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
   {
     if (staticCodeExists)
     {
-      serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, errorCode);
+      serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, errorCode);
       return;
     }
 
@@ -2066,20 +2081,22 @@ function handleError5xx(req, res, serverConfig, identifiedSite, errorCode = 500)
   handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, serverConfig, identifiedSite, errorCode);
 }
 
-function serveStaticContent(req, res, siteName, hostName, staticContent, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, statusCode = 200)
+function serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, statusCode = 200)
 {
-  const { fileContents, fileContentType, fullPath, fileSize } = staticContent;
+  const staticContent = identifiedSite.staticFiles[runFileName];
+  const { fileContents, fullPath } = staticContent;
+  
   if (typeof(fileContents) === 'undefined')
   {
     fs.stat(fullPath, (err) =>
     {
       const readStream = (err) ? null : fs.createReadStream(fullPath);
-      responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogDir, logFileSizeThreshold, siteLogDir, statusCode, { readStream, fileNotFoundException: err });
+      responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { readStream, fileNotFoundException: err });
     });
   }
   else
   {
-    responderStatic(req, res, siteName, hostName, fullPath, fileContentType, fileSize, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, statusCode, { fileContents });
+    responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents: true });
   }
 }
 
@@ -2154,7 +2171,7 @@ function incomingRequestHandler(req, res)
 
   const
     {
-      name: siteName, hostName, canUpload, maxPayloadSizeBytes,
+      hostName, canUpload, maxPayloadSizeBytes,
       tempWorkDirectory, staticFiles, compiledFiles,
       jscpExtensionRequired, includeHttpPoweredByHeader,
       logging: siteLogging
@@ -2191,7 +2208,7 @@ function incomingRequestHandler(req, res)
   }
   else if (staticFiles[runFileName])
   {
-    serveStaticContent(req, res, siteName, hostName, staticFiles[runFileName], doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold);
+    serveStaticContent(req, res, serverConfig, identifiedSite, runFileName);
   }
   else
   {
@@ -2226,12 +2243,12 @@ function incomingRequestHandler(req, res)
     if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName);
+      sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName);
+      sendUploadIsForbidden(req, res, serverConfig, identifiedSite);
     }
     else if (postedForm)
     {
@@ -2280,7 +2297,7 @@ function incomingRequestHandler(req, res)
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName);
+          sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
         }
       });
 
@@ -2345,7 +2362,7 @@ function incomingRequestHandler(req, res)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(req, res, maxPayloadSizeBytes, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName);
+            sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
           }
           else
           {
@@ -2356,7 +2373,7 @@ function incomingRequestHandler(req, res)
         else
         {
           forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName);
+          sendUploadIsForbidden(req, res, serverConfig, identifiedSite);
         }
       }).on('end', () =>
       {
