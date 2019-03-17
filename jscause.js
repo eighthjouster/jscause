@@ -1153,17 +1153,21 @@ function doDeleteFile(thisFile, jscLogConfig)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork })
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
   const newFilePath = fsPath.join(tempWorkDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
+
+  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
+  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
+
   const jscLogConfig =
   {
-    toConsole: formContext.doLogToConsole,
-    toServerDir: formContext.serverLogDir,
-    toSiteDir: formContext.siteLogDir,
-    fileSizeThreshold: formContext.logFileSizeThreshold
+    toConsole: doLogToConsole,
+    toServerDir: serverLogDir,
+    toSiteDir: siteLogDir,
+    fileSizeThreshold: logFileSizeThreshold
   };
   
   fs.rename(oldFilePath, newFilePath, (err) =>
@@ -1182,7 +1186,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifi
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, fullSitePath, formContext);
+      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, formContext);
     }
   });
 }
@@ -1219,7 +1223,8 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
     return;
   }
 
-  const { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold } = ctx;
+  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
+  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
@@ -1278,8 +1283,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         {
           resObject.statusCode = statusCode;
         }
-        const { doLogToConsole, serverLogDir, siteLogDir, hostName } = ctx;
-        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
+        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName: ctx.hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -1490,12 +1494,15 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   const pathCheck = runFileName.match(/(.*)\/.*\.jscp$/);
   const currentPath = pathCheck && pathCheck[1] || '/';
 
+  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
+  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
+  
   const jscLogConfig =
   {
-    toConsole: rtContext.doLogToConsole,
-    toServerDir: rtContext.serverLogDir,
-    toSiteDir: rtContext.siteLogDir,
-    fileSizeThreshold: rtContext.logFileSizeThreshold
+    toConsole: doLogToConsole,
+    toServerDir: serverLogDir,
+    toSiteDir: siteLogDir,
+    fileSizeThreshold: logFileSizeThreshold
   };
 
   return Object.freeze({
@@ -1802,13 +1809,10 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, fullSitePath,
-  { requestMethod, contentType, requestBody,
-    formData, formFiles, maxSizeExceeded,
-    forbiddenUploadAttempted, responseStatusCode,
-    staticFiles, compiledFiles, jsCookies,
-    doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold,
-    hostName })
+function responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName,
+  { requestMethod, contentType, requestBody, formData,
+    formFiles, maxSizeExceeded, forbiddenUploadAttempted, responseStatusCode,
+    jsCookies, hostName })
 {
   let postParams;
   let uploadedFiles = {};
@@ -1865,10 +1869,8 @@ function responder(req, res, serverConfig, identifiedSite, compiledCode, runFile
   {
     additional,
     appHeaders: {},
-    compiledFiles,
     compileTimeError: false,
     contentType,
-    fullSitePath,
     getParams: urlUtils.parse(req.url, true).query,
     jsCookies,
     outputQueue: undefined,
@@ -1880,12 +1882,7 @@ function responder(req, res, serverConfig, identifiedSite, compiledCode, runFile
     runAfterQueue: undefined,
     runFileName,
     runtimeException: undefined,
-    doLogToConsole,
-    serverLogDir,
-    siteLogDir,
-    logFileSizeThreshold,
     hostName,
-    staticFiles,
     statusCode: responseStatusCode || 200,
     uploadedFiles,
     waitForNextId: 1,
@@ -2017,7 +2014,7 @@ function sendUploadIsForbidden(req, res, doLogToConsole, serverLogDir, siteLogDi
 
 function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, errorCode)
 {
-  const { name: siteName, hostName, staticFiles, compiledFiles, fullSitePath,
+  const { name: siteName, hostName, staticFiles, compiledFiles,
     logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const jsCookies = new cookies(req, res);
@@ -2048,8 +2045,8 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
     if (compiledCodeExists)
     {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName };
-      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, fullSitePath, postContext);
+      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, hostName };
+      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, postContext);
       return;
     }
   }
@@ -2159,7 +2156,7 @@ function incomingRequestHandler(req, res)
     {
       name: siteName, hostName, canUpload, maxPayloadSizeBytes,
       tempWorkDirectory, staticFiles, compiledFiles,
-      fullSitePath, jscpExtensionRequired, includeHttpPoweredByHeader,
+      jscpExtensionRequired, includeHttpPoweredByHeader,
       logging: siteLogging
     } = identifiedSite;
 
@@ -2300,13 +2297,7 @@ function incomingRequestHandler(req, res)
           formFiles,
           maxSizeExceeded,
           forbiddenUploadAttempted,
-          staticFiles,
-          compiledFiles,
           jsCookies,
-          doLogToConsole,
-          serverLogDir,
-          siteLogDir,
-          logFileSizeThreshold,
           hostName
         };
 
@@ -2324,12 +2315,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork });
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork, fullSitePath });
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork });
               }
             });
           }
@@ -2337,7 +2328,7 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
-          responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, fullSitePath, formContext);
+          responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, formContext);
         }
       });
     }
@@ -2374,8 +2365,8 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, staticFiles, compiledFiles, jsCookies, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName };
-        responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, fullSitePath, postContext);
+        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, jsCookies, hostName };
+        responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, postContext);
       });
     }
   }

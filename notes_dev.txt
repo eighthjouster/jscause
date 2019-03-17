@@ -2,6 +2,37 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+True rsContext attributes:
+  additional
+  appHeaders
+  compileTimeError
+  contentType
+  getParams
+  hostName
+  jsCookies
+  outputQueue
+  postParams
+  redirection
+  reqObject
+  requestMethod
+  resObject
+  runAfterQueue
+  runFileName
+  runtimeException
+  statusCode
+  uploadedFiles
+  waitForNextId
+  waitForQueue
+
+Must be removed from rsContext and extracted from elsewhere (e.g. identifiedSite or serverConfig):
+  *compiledFiles - addressed.
+  *doLogToConsole - addressed.
+  *fullSitePath - addressed.
+  *logFileSizeThreshold - addressed.
+  *serverLogDir - addressed.
+  *siteLogDir - addressed.
+  *staticFiles - addressed.
+
 Refactor these parameter calls, plus rtContext, resContent, formContext, ctx, etc.
 +doneWith(finish parameters) - Done, I think?
 I think the best course of action would be to list the parameters that resContext, formContext, etc, list, and see where they're being used on.
@@ -10,8 +41,12 @@ I think the best course of action would be to list the parameters that resContex
 responder(excess parameters)
 makeRTOnSuccessOnErrorHandlers(may have excess parameters)
 doMoveToTempWorkDir(excess parameters?)
+resEnd()... maybe.
 cancelDefaultRTPromises() maybe?
 makeCustomRtPromiseActor() maybe?
+responderStatic(), maybe? And similar, like responderStaticFileError().
+Some others, like sendUploadIsForbidden() could just have the ctx passed.
+ And sendPayLoadExceeded(), sendUploadIsForbidden(), serveStaticContent(), what else?
 
 const jsCookies = new cookies(req, res);
  - It should be in the caller, maybe.
@@ -25,6 +60,8 @@ Well, this is quite an adventure:
 
 Check what other functions have too many parameters.
  - Proably none else.
+
+Consider deepFreezing both serverConfig and identifiedSite?
 
 And you'll need to do exhaustive testing at this point.
 
