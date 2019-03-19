@@ -60,7 +60,12 @@ Check what other functions have too many parameters.
 
 Consider deepFreezing both serverConfig and identifiedSite?
 
+ - Back up, please.
+
 And you'll need to do exhaustive testing at this point.
+  We started setting up the testing framework.  Finish it here.
+  - Documentation:  nodejs jscause.js runtests
+    - If the tests are not present, do not even try to run them.
 
  - Back up, please.
 
@@ -99,6 +104,7 @@ the server will emit an error, but will allow the listening to continue.
 - Test thoroughly.
   - Simulate and test all the errors.
     - Including the console.warn()
+    - Tests should only run in dev mode.
 
 Some work has been put into place.
  - Document whatever is not documented below before deleting.

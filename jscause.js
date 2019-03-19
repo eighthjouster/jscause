@@ -7,6 +7,13 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
+const jscLib = getAllElementsToSupportTesting();
+
+if (process.argv[2] === 'runtests')
+{
+  runTesting();
+}
+
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -4373,7 +4380,7 @@ else
 }
 
 let processExitAttempts = 0;
-process.on('SIGINT', function()
+function exitApplication()
 {
   processExitAttempts++;
   if (processExitAttempts === 1)
@@ -4390,4 +4397,46 @@ process.on('SIGINT', function()
     console.log('\nTerminated.');
     process.exit();
   }
+}
+
+process.on('SIGINT', function()
+{
+  exitApplication();
 });
+
+function getAllElementsToSupportTesting()
+{
+  const allElementsToSupportTesting =
+  {
+  };
+  return allElementsToSupportTesting;
+}
+
+function runTesting()
+{
+  console.log('JSCause - Testing mode');
+
+  let jscTest;
+  try
+  {
+    jscTest = require('./jsctest/jsctest.js');
+  }
+  catch(e)
+  {
+    console.error('Could not initiate testing.');
+    console.error(e);
+  }
+
+  if (jscTest)
+  {
+    jscTest.start(jscLib, () =>
+    {
+      console.log('Testing ended.');
+      process.exit();
+    });
+  }
+  else {
+    console.error('Testing did not run.');
+    process.exit();
+  }
+}
