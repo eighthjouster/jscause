@@ -4,25 +4,32 @@ git bundle create jscause-.bundle devel
 
 True rsContext attributes:
   *additional - addressed.
-  appHeaders
-  compileTimeError
-  contentType
-  getParams
-  hostName
-  jsCookies
-  outputQueue
-  postParams
-  redirection
-  reqObject
-  requestMethod
-  resObject
-  runAfterQueue
-  runFileName
-  runtimeException
-  statusCode
-  uploadedFiles
-  waitForNextId
-  waitForQueue
+  *appHeaders - addressed.
+  *compileTimeError - addressed.
+  *contentType - addressed.
+  *getParams - addressed.
+  *jsCookies - addressed.
+  *outputQueue - addressed.
+  *postParams - addressed.
+  *redirection - addressed.
+  *requestMethod - addressed.
+  *runAfterQueue - addressed.
+  *runtimeException - addressed.
+  *statusCode - addressed.
+  *uploadedFiles - addressed.
+  *waitForNextId - addressed.
+  *waitForQueue - addressed.
+  *reqObject - addressed.
+  *resObject - addressed.
+  *runFileName - addressed.
+  hostName - uh oh... they seem to legitimately appear in both identifiedSite and resContext.
+    - Rename one of them?
+
+Check for other identifiedSites attributes, esp. those that are renamed when declared before using:
+ - Like siteName (what others?)
+ - Do the same with serverConfig.
+
+ - compiledCode doesn't need to be a function parameter at all.
 
 Must be removed from rsContext and extracted from elsewhere (e.g. identifiedSite or serverConfig):
   *compiledFiles - addressed.
@@ -33,14 +40,19 @@ Must be removed from rsContext and extracted from elsewhere (e.g. identifiedSite
   *siteLogDir - addressed.
   *staticFiles - addressed.
 
-Refactor these parameter calls, plus rtContext, resContent, formContext, ctx, etc.
+Perhaps responderStatic() should use a ctx parameter instead of two individual runFileName, statusCode parameters.
+ - And serveStaticContent() and similar, like responderStaticFileError()
+ - And handleError5xx()
+ - And resEnd()
+
+Refactor these parameter calls, plus rtContext, resContent, formContext, postContext, ctx, etc.
 +doneWith(finish parameters) - Done, I think?
 I think the best course of action would be to list the parameters that resContext, formContext, etc, list, and see where they're being used on.
   - In those instances, move their declarations from the context to either the serverConfig parameter, or the identifiedSite parameter.
     - And take note of it to remove it from that resContext, formContext, etc, definition.
-responder(excess parameters)
+responder(excess parameters) - also, check for that responseStatusCode parameter.  We don't want calls to be passing statusCode instead (I mean, they should rename it responseStatusCode.  Or can we... refactor the name and use statusCode directly?) - I think most parameters have been refactored by now.
 makeRTOnSuccessOnErrorHandlers(may have excess parameters)
-doMoveToTempWorkDir(excess parameters?)
+doMoveToTempWorkDir(excess parameters?) Yes, like tempWorkDirectory.
 resEnd()... maybe.
 cancelDefaultRTPromises() maybe?
 makeCustomRtPromiseActor() maybe?
@@ -160,6 +172,8 @@ Get rid of __RP.
 Can two no-name sites exist?  In theory they share the same name, and the server should not start, just like it does with two sites with identical names.
 
 At this point, back up.
+
+Put regex literals outside of functions (like in handleCustomError).
 
 We'll need to put more code into functions.
 

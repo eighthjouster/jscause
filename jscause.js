@@ -1160,7 +1160,7 @@ function doDeleteFile(thisFile, jscLogConfig)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork })
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext)
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
@@ -1193,7 +1193,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifi
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, formContext);
+      responder(serverConfig, identifiedSite, compiledCode, resContext, { formContext });
     }
   });
 }
@@ -1816,85 +1816,83 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName,
-  { requestMethod, contentType, requestBody, formData,
-    formFiles, maxSizeExceeded, forbiddenUploadAttempted, responseStatusCode,
-    jsCookies, hostName })
+function responder(serverConfig, identifiedSite, compiledCode, baseResContext, { formContext, postContext } = {})
 {
+  const {
+    formFiles,
+    formData,
+    maxSizeExceeded: formMaxSizeExceeded = false,
+    forbiddenUploadAttempted: formForbiddenUploadAttempted = false
+  } = formContext || {};
+  
+  const {
+    requestBody,
+    responseStatusCode,
+    maxSizeExceeded = formMaxSizeExceeded,
+    forbiddenUploadAttempted = formForbiddenUploadAttempted
+  } = postContext || {};
+
   let postParams;
   let uploadedFiles = {};
   const additional = {};
-
-  if (contentType === 'formDataWithUpload')
+  
+  switch(baseResContext.contentType)
   {
-    postParams = formData;
-    Object.keys(formFiles).forEach((keyName) =>
-    {
-      const file = formFiles[keyName];
-      uploadedFiles[keyName] =
+    case 'formDataWithUpload':
+      postParams = formData;
+      Object.keys(formFiles).forEach((keyName) =>
       {
-        lastModifiedDate: file.lastModifiedDate,
-        name: file.name,
-        path: file.path,
-        size: file.size,
-        type: file.type,
-        unsafeName: file.unsafeName
+        const file = formFiles[keyName];
+        uploadedFiles[keyName] =
+        {
+          lastModifiedDate: file.lastModifiedDate,
+          name: file.name,
+          path: file.path,
+          size: file.size,
+          type: file.type,
+          unsafeName: file.unsafeName
+        }
+      });
+      break;
+  
+    case 'formData':
+      postParams = formData;
+      break;
+    
+    case 'jsonData':
+      try
+      {
+        postParams = JSON.parse(Buffer.concat(requestBody).toString());
       }
-    });
-  }
-  else if (contentType === 'formData')
-  {
-    postParams = formData;
-  }
-  else if (contentType === 'jsonData')
-  {
-    const postBody = Buffer.concat(requestBody).toString();
-    let parseSuccess = true;
-    try
-    {
-      postParams = JSON.parse(postBody);
-    }
-    catch(e)
-    {
-      parseSuccess = false;
-    }
+      catch(e)
+      {
+        additional.jsonParseError = true;
+        postParams = {};
+      }
+      break;
 
-    if (!parseSuccess)
-    {
-      postParams = {};
-      additional.jsonParseError = true;
-    }
-  }
-  else
-  {
-    // Assumed postData (text/plain).  Pass it raw.
-    const postBody = Buffer.concat(requestBody);
-    postParams = { data: postBody };
+    default:
+      // Assumed postData (text/plain).  Pass it raw.
+      postParams = { data: Buffer.concat(requestBody) };
   }
 
-  const resContext =
-  {
-    additional,
-    appHeaders: {},
-    compileTimeError: false,
-    contentType,
-    getParams: urlUtils.parse(req.url, true).query,
-    jsCookies,
-    outputQueue: undefined,
-    postParams,
-    reqObject: req,
-    requestMethod,
-    resObject: res,
-    redirection: { willHappen: false },
-    runAfterQueue: undefined,
-    runFileName,
-    runtimeException: undefined,
-    hostName,
-    statusCode: responseStatusCode || 200,
-    uploadedFiles,
-    waitForNextId: 1,
-    waitForQueue: {}
-  };
+  const resContext = Object.assign({}, baseResContext,
+    {
+      additional,
+      appHeaders: {},
+      compileTimeError: false,
+      outputQueue: undefined,
+      getParams: urlUtils.parse(baseResContext.reqObject.url, true).query,
+      postParams,
+      redirection: { willHappen: false },
+      runAfterQueue: undefined,
+      runtimeException: undefined,
+      statusCode: responseStatusCode || 200,
+      uploadedFiles,
+      waitForNextId: 1,
+      waitForQueue: {}
+    }
+  );
 
   if (additional.jsonParseError)
   {
@@ -2067,8 +2065,20 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
     if (compiledCodeExists)
     {
-      const postContext = { requestMethod, contentType, requestBody: [], responseStatusCode: errorCode, jsCookies, hostName };
-      responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, postContext);
+      const resContext =
+      {
+        reqObject: req,
+        resObject: res,
+        requestMethod,
+        contentType,
+        jsCookies,
+        hostName,
+        runFileName
+      };
+
+      const postContext = { requestBody: [], responseStatusCode: errorCode };
+
+      responder(serverConfig, identifiedSite, compiledCode, resContext, { postContext });
       return;
     }
   }
@@ -2313,16 +2323,23 @@ function incomingRequestHandler(req, res)
         const { params: formData, files: formFiles, pendingWork } = postedFormData;
         const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
 
-        const formContext =
+        const resContext =
         {
+          reqObject: req,
+          resObject: res,
           requestMethod,
           contentType: postType,
-          formData,
-          formFiles,
-          maxSizeExceeded,
-          forbiddenUploadAttempted,
           jsCookies,
-          hostName
+          hostName,
+          runFileName
+        };
+
+        const formContext =
+        {
+          formFiles,
+          formData,
+          maxSizeExceeded,
+          forbiddenUploadAttempted
         };
 
         let formFilesKeys;
@@ -2339,12 +2356,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork });
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext);
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, { responder, req, res, compiledCode, runFileName, formContext, pendingWork });
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext);
               }
             });
           }
@@ -2352,7 +2369,7 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
-          responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, formContext);
+          responder(serverConfig, identifiedSite, compiledCode, resContext, { formContext });
         }
       });
     }
@@ -2389,8 +2406,20 @@ function incomingRequestHandler(req, res)
           contentType = 'jsonData';
         }
 
-        const postContext = { requestMethod, contentType, requestBody, maxSizeExceeded, forbiddenUploadAttempted, jsCookies, hostName };
-        responder(req, res, serverConfig, identifiedSite, compiledCode, runFileName, postContext);
+        const resContext =
+        {
+          reqObject: req,
+          resObject: res,
+          requestMethod,
+          contentType,
+          jsCookies,
+          hostName,
+          runFileName
+        };
+  
+        const postContext = { requestBody, maxSizeExceeded, forbiddenUploadAttempted };
+
+        responder(serverConfig, identifiedSite, compiledCode, resContext, { postContext });
       });
     }
   }
