@@ -22,8 +22,7 @@ True rsContext attributes:
   *reqObject - addressed.
   *resObject - addressed.
   *runFileName - addressed.
-  hostName - uh oh... they seem to legitimately appear in both identifiedSite and resContext.
-    - Rename one of them?
+  *hostName - addressed.
 
 Check for other identifiedSites attributes, esp. those that are renamed when declared before using:
  - Like siteName (what others?)
@@ -246,6 +245,8 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+Use nightwatchjs for end-to-end testing.
 
 During compression, the final file should not be .gz but something like .gz.tmp, then renamed to .gz when the compression is done.
 

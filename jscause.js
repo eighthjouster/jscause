@@ -116,7 +116,7 @@ const defaultSiteConfig =
   fullSitePath: '',
   staticFiles: {},
   compiledFiles: {},
-  hostName: undefined,
+  siteHostName: undefined,
   port: undefined,
   tempWorkDirectory: null,
   canUpload: true,
@@ -1231,7 +1231,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
   }
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
+  const { logging: { siteLogDir, doLogToConsole }, siteHostName } = identifiedSite;
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
@@ -1290,7 +1290,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         {
           resObject.statusCode = statusCode;
         }
-        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName: ctx.hostName }, showContents ? (ctx.outputQueue || []).join('') : '');
+        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -1932,7 +1932,7 @@ function responder(serverConfig, identifiedSite, compiledCode, baseResContext, {
 function responderStaticFileError(e, req, res, serverConfig, identifiedSite, runFileName)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { name: siteName, hostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { name: siteName, siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { fullPath } = staticFiles[runFileName];
 
   JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`,
@@ -1946,13 +1946,13 @@ function responderStaticFileError(e, req, res, serverConfig, identifiedSite, run
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
 }
 
 function responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents, readStream, fileNotFoundException })
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { hostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
 
   const resObject = res;
   const resContext = { appHeaders: {}, resObject };
@@ -1970,7 +1970,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
   }
   else if (shouldUseFileContents || !readStream)
   {
-    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName }, fileContents);
+    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName }, fileContents);
   }
   else
   {
@@ -1986,7 +1986,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
 
     readStream.on('end', () =>
     {
-      resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
+      resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
     });
 
     readStream.on('error', (e) =>
@@ -1999,7 +1999,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
 function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { hostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
 
   JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`,
     {
@@ -2011,13 +2011,13 @@ function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identi
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
 }
 
 function sendUploadIsForbidden(req, res, serverConfig, identifiedSite)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { hostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
 
   JSCLog('error', 'Uploading is forbidden.',
     {
@@ -2029,12 +2029,12 @@ function sendUploadIsForbidden(req, res, serverConfig, identifiedSite)
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
 }
 
 function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, errorCode)
 {
-  const { hostName, staticFiles, compiledFiles,
+  const { siteHostName, staticFiles, compiledFiles,
     logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const jsCookies = new cookies(req, res);
@@ -2072,7 +2072,6 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
         requestMethod,
         contentType,
         jsCookies,
-        hostName,
         runFileName
       };
 
@@ -2085,7 +2084,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
   res.statusCode = errorCode;
   res.setHeader('Content-Type', 'application/octet-stream');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, hostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
 }
 
 function handleError4xx(req, res, serverConfig, identifiedSite, errorCode = 404)
@@ -2122,14 +2121,14 @@ function makeLogLine(hostName, method, url, statusCode)
   return `${new Date().toUTCString()} - ${hostName} - ${method}: ${url} - ${statusCode}`;
 }
 
-function resEnd(req, res, { hostName, isRefusedConnection, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold }, response)
+function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold }, response)
 {
   const { method, url } = req;
   const statusCode = `${res.statusCode}${isRefusedConnection && ' (REFUSED)' || ''}`;
 
   if (doLogToConsole || serverLogDir || siteLogDir)
   {
-    JSCLog('raw', makeLogLine(hostName, method, url, statusCode),
+    JSCLog('raw', makeLogLine(siteHostName, method, url, statusCode),
       {
         toConsole: doLogToConsole,
         toServerDir: serverLogDir,
@@ -2166,7 +2165,7 @@ function incomingRequestHandler(req, res)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');
-    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, hostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true })
+    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true })
     return;
   }
 
@@ -2188,7 +2187,7 @@ function incomingRequestHandler(req, res)
 
   const
     {
-      hostName, canUpload, maxPayloadSizeBytes,
+      canUpload, maxPayloadSizeBytes,
       tempWorkDirectory, staticFiles, compiledFiles,
       jscpExtensionRequired, includeHttpPoweredByHeader,
       logging: siteLogging
@@ -2330,7 +2329,6 @@ function incomingRequestHandler(req, res)
           requestMethod,
           contentType: postType,
           jsCookies,
-          hostName,
           runFileName
         };
 
@@ -2413,7 +2411,6 @@ function incomingRequestHandler(req, res)
           requestMethod,
           contentType,
           jsCookies,
-          hostName,
           runFileName
         };
   
@@ -2462,7 +2459,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig)
 
 function startServer(siteConfig, jscLogConfigBase)
 {
-  const { name: siteName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
+  const { name: siteName, siteHostName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
 
   const jscLogConfig = Object.assign({}, jscLogConfigBase,
@@ -2539,11 +2536,11 @@ function startServer(siteConfig, jscLogConfigBase)
     }
   }
 
-  runningServer.sites[siteConfig.hostName] = siteConfig;
+  runningServer.sites[siteHostName] = siteConfig;
 
   if (result)
   {
-    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteConfig.hostName}:${serverPort}/ assigned to server ${serverName}`, jscLogConfig);
+    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${serverPort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
   return result;
@@ -2861,7 +2858,7 @@ function processSourceFile(sourceFilePath, siteJSONFilePath, jscLogConfig)
   return compiledSource;
 }
 
-function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
+function parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
   const configKeyName = 'hostname';
@@ -2871,7 +2868,7 @@ function parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, js
   {
     if (configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
     {
-      siteConfig.hostName = configValue;
+      siteConfig.siteHostName = configValue;
     }
     else
     {
@@ -4068,7 +4065,7 @@ if (readSuccess)
               jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
             }
 
-            soFarSoGood = parseHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+            soFarSoGood = parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
             soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
             soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
             soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
@@ -4109,7 +4106,7 @@ if (readSuccess)
 
         if (readSuccess)
         {
-          const currentSiteHostName = siteConfig.hostName.toLowerCase();
+          const currentSiteHostName = siteConfig.siteHostName.toLowerCase();
           const currentEnableHTTPS = siteConfig.enableHTTPS;
           const currentRootDirectoryName = siteRootDirectoryName.toLowerCase();
 
@@ -4137,9 +4134,9 @@ if (readSuccess)
                 JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
               }
               
-              if (currentSiteHostName === combo.hostName.toLowerCase())
+              if (currentSiteHostName === combo.siteHostName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same hostName and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
                 JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
                 readSuccess = false;
               }
@@ -4156,7 +4153,7 @@ if (readSuccess)
           if (readSuccess)
           {
             allConfigCombos.push({
-              hostName: siteConfig.hostName,
+              siteHostName: siteConfig.siteHostName,
               port: siteConfig.port,
               name: siteConfig.name,
               rootDirectoryName: siteConfig.rootDirectoryName,
