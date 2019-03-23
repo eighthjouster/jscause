@@ -110,14 +110,13 @@ const symbolsToSanitize =
 
 const defaultSiteConfig =
 {
-  server: null,
-  name: '',
+  siteName: '',
   rootDirectoryName: '',
   fullSitePath: '',
   staticFiles: {},
   compiledFiles: {},
   siteHostName: undefined,
-  port: undefined,
+  sitePort: undefined,
   tempWorkDirectory: null,
   canUpload: true,
   maxPayloadSizeBytes: undefined,
@@ -1502,7 +1501,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   const currentPath = pathCheck && pathCheck[1] || '/';
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
+  const { fullSitePath, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
 
   const jscLogConfig =
   {
@@ -1536,7 +1535,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullSitePath, path);
+        path = fsPath.join(fullSitePath, path);
       }
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
@@ -1548,7 +1547,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullSitePath, path);
+        path = fsPath.join(fullSitePath, path);
       }
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
@@ -1560,12 +1559,12 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (!fsPath.isAbsolute(source))
       {
-        source = fsPath.join(rtContext.fullSitePath, source);
+        source = fsPath.join(fullSitePath, source);
       }
 
       if (!fsPath.isAbsolute(destination))
       {
-        destination = fsPath.join(rtContext.fullSitePath, destination);
+        destination = fsPath.join(fullSitePath, destination);
       }
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
@@ -1584,12 +1583,12 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (!fsPath.isAbsolute(source))
       {
-        source = fsPath.join(rtContext.fullSitePath, source);
+        source = fsPath.join(fullSitePath, source);
       }
 
       if (!fsPath.isAbsolute(destination))
       {
-        destination = fsPath.join(rtContext.fullSitePath, destination);
+        destination = fsPath.join(fullSitePath, destination);
       }
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
@@ -1625,7 +1624,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (!fsPath.isAbsolute(path))
       {
-        path = fsPath.join(rtContext.fullSitePath, path);
+        path = fsPath.join(fullSitePath, path);
       }
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
@@ -1641,7 +1640,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
       }
       else
       {
-        const modulePath = fsPath.join(rtContext.fullSitePath, JSCAUSE_WEBSITE_PATH, `${moduleName}.jscm`);
+        const modulePath = fsPath.join(fullSitePath, JSCAUSE_WEBSITE_PATH, `${moduleName}.jscm`);
         return require(modulePath);
       }
     },
@@ -1932,7 +1931,7 @@ function responder(serverConfig, identifiedSite, compiledCode, baseResContext, {
 function responderStaticFileError(e, req, res, serverConfig, identifiedSite, runFileName)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { name: siteName, siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteName, siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { fullPath } = staticFiles[runFileName];
 
   JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot serve ${fullPath} file.`,
@@ -1996,10 +1995,10 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
   }
 }
 
-function sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite)
+function sendPayLoadExceeded(req, res, serverConfig, identifiedSite)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteHostName, maxPayloadSizeBytes, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
 
   JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`,
     {
@@ -2259,7 +2258,7 @@ function incomingRequestHandler(req, res)
     if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
+      sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
     }
     else if (incomingForm && !canUpload)
     {
@@ -2313,7 +2312,7 @@ function incomingRequestHandler(req, res)
         if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
+          sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
         }
       });
 
@@ -2384,7 +2383,7 @@ function incomingRequestHandler(req, res)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(req, res, maxPayloadSizeBytes, serverConfig, identifiedSite);
+            sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
           }
           else
           {
@@ -2447,7 +2446,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig)
     JSCLog('error', `Server ${serverName} (port: ${serverPort}) not started.`, jscLogConfig);
     Object.values(sites).forEach((site) =>
     {
-      JSCLog('error', `- Site ${getSiteNameOrNoName(site.name)} not started.`, jscLogConfig);
+      JSCLog('error', `- Site ${getSiteNameOrNoName(site.siteName)} not started.`, jscLogConfig);
     });
   });
 
@@ -2459,7 +2458,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig)
 
 function startServer(siteConfig, jscLogConfigBase)
 {
-  const { name: siteName, siteHostName, port: serverPort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
+  const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
 
   const jscLogConfig = Object.assign({}, jscLogConfigBase,
@@ -2468,7 +2467,7 @@ function startServer(siteConfig, jscLogConfigBase)
       toSiteDir: siteLogging.siteLogDir
     });
 
-  let runningServer = runningServers[serverPort];
+  let runningServer = runningServers[sitePort];
   let webServer;
   let serverName;
 
@@ -2531,8 +2530,8 @@ function startServer(siteConfig, jscLogConfigBase)
     if (webServer)
     {
       runningServer.webServer = webServer;
-      runWebServer(runningServer, serverPort, jscLogConfig);
-      runningServers[serverPort] = runningServer;
+      runWebServer(runningServer, sitePort, jscLogConfig);
+      runningServers[sitePort] = runningServer;
     }
   }
 
@@ -2540,7 +2539,7 @@ function startServer(siteConfig, jscLogConfigBase)
 
   if (result)
   {
-    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${serverPort}/ assigned to server ${serverName}`, jscLogConfig);
+    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
   return result;
@@ -2652,8 +2651,8 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
 
 function createInitialSiteConfig(siteInfo)
 {
-  const { name, port, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS } = siteInfo;
-  return Object.assign({}, defaultSiteConfig, { name, port, rootDirectoryName, enableHTTPS });
+  const { name: siteName, port: sitePort, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS } = siteInfo;
+  return Object.assign({}, defaultSiteConfig, { siteName, sitePort, rootDirectoryName, enableHTTPS });
 }
 
 function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound, jscLogConfig)
@@ -3125,7 +3124,7 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
 
 function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
-  const { name: siteName, fullSitePath } = siteConfig;
+  const { siteName, fullSitePath } = siteConfig;
   const configKeyName = 'logging';
   const configValue = processedConfigJSON[configKeyName];
   let soFarSoGood = true;
@@ -3216,7 +3215,7 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
 function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, jscLogConfig)
 {
   let { soFarSoGood, directoriesToProcess, pushedFiles } = state;
-  const { name: siteName } = siteConfig;
+  const { siteName } = siteConfig;
 
   let linkStats;
   const symlinkList = [];
@@ -3293,7 +3292,7 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
 
 function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig)
 {
-  const { name: siteName } = siteConfig;
+  const { siteName } = siteConfig;
   let { soFarSoGood, cachedStaticFilesSoFar } = state;
   fileEntry.fileType = 'static';
 
@@ -3966,7 +3965,7 @@ if (readSuccess)
     {
       const siteConfig = createInitialSiteConfig(thisServerSite);
 
-      const { name: siteName, port: sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
+      const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
 
       if (siteName)
       {
@@ -3993,7 +3992,7 @@ if (readSuccess)
           const portNumber = parseFloat(sitePort, 10);
           if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
           {
-            siteConfig.port = portNumber;
+            siteConfig.sitePort = portNumber;
           }
           else
           {
@@ -4112,38 +4111,38 @@ if (readSuccess)
 
           allConfigCombos.forEach((combo) =>
           {
-            if (sitePort === combo.port)
+            if (sitePort === combo.sitePort)
             {
               if (currentEnableHTTPS)
               {
                 readSuccess = combo.enableHTTPS;
                 if (readSuccess)
                 {
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
                   JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
                 }
                 else
                 {
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
                   JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
                 }
               }
               else if (combo.enableHTTPS)
               {
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.name)}`, jscLogBase);
+                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
                 JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
               }
               
               if (currentSiteHostName === combo.siteHostName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
                 JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
                 readSuccess = false;
               }
               
               if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.name)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
+                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
                 JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogSite);
                 readSuccess = false;
               }
@@ -4152,14 +4151,7 @@ if (readSuccess)
 
           if (readSuccess)
           {
-            allConfigCombos.push({
-              siteHostName: siteConfig.siteHostName,
-              port: siteConfig.port,
-              name: siteConfig.name,
-              rootDirectoryName: siteConfig.rootDirectoryName,
-              tempWorkDirectory: siteConfig.tempWorkDirectory,
-              enableHTTPS: siteConfig.enableHTTPS
-            });
+            allConfigCombos.push(Object.assign({}, siteConfig));
           }
         }
 
@@ -4367,7 +4359,7 @@ serverConfig.sites.forEach((site) =>
   }
   else
   {
-    const { name: siteName } = site;
+    const { siteName } = site;
     allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
 
     JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);

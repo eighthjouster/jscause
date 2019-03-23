@@ -24,10 +24,6 @@ True rsContext attributes:
   *runFileName - addressed.
   *hostName - addressed.
 
-Check for other identifiedSites attributes, esp. those that are renamed when declared before using:
- - Like siteName (what others?)
- - Do the same with serverConfig.
-
  - compiledCode doesn't need to be a function parameter at all.
 
 Must be removed from rsContext and extracted from elsewhere (e.g. identifiedSite or serverConfig):
@@ -51,7 +47,7 @@ I think the best course of action would be to list the parameters that resContex
     - And take note of it to remove it from that resContext, formContext, etc, definition.
 responder(excess parameters) - also, check for that responseStatusCode parameter.  We don't want calls to be passing statusCode instead (I mean, they should rename it responseStatusCode.  Or can we... refactor the name and use statusCode directly?) - I think most parameters have been refactored by now.
 makeRTOnSuccessOnErrorHandlers(may have excess parameters)
-doMoveToTempWorkDir(excess parameters?) Yes, like tempWorkDirectory.
+doMoveToTempWorkDir(excess parameters?) Yes, like tempWorkDirectory.  tempWorkDirectory can be removed since it's on identifiedSite.  What others?
 resEnd()... maybe.
 cancelDefaultRTPromises() maybe?
 makeCustomRtPromiseActor() maybe?
