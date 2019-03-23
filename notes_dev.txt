@@ -24,8 +24,6 @@ True rsContext attributes:
   *runFileName - addressed.
   *hostName - addressed.
 
- - compiledCode doesn't need to be a function parameter at all.
-
 Must be removed from rsContext and extracted from elsewhere (e.g. identifiedSite or serverConfig):
   *compiledFiles - addressed.
   *doLogToConsole - addressed.

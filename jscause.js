@@ -1159,7 +1159,7 @@ function doDeleteFile(thisFile, jscLogConfig)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext)
+function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
 {
   pendingWork.pendingRenaming++;
   const oldFilePath = thisFile.path;
@@ -1192,7 +1192,7 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifi
     
     if (pendingWork.pendingRenaming <= 0)
     {
-      responder(serverConfig, identifiedSite, compiledCode, resContext, { formContext });
+      responder(serverConfig, identifiedSite, resContext, { formContext });
     }
   });
 }
@@ -1815,7 +1815,7 @@ function extractErrorFromRuntimeObject(e)
    *
    ************************************** */
 
-function responder(serverConfig, identifiedSite, compiledCode, baseResContext, { formContext, postContext } = {})
+function responder(serverConfig, identifiedSite, baseResContext, { formContext, postContext } = {})
 {
   const {
     formFiles,
@@ -1834,7 +1834,7 @@ function responder(serverConfig, identifiedSite, compiledCode, baseResContext, {
   let postParams;
   let uploadedFiles = {};
   const additional = {};
-  
+
   switch(baseResContext.contentType)
   {
     case 'formDataWithUpload':
@@ -1902,6 +1902,8 @@ function responder(serverConfig, identifiedSite, compiledCode, baseResContext, {
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
+    const { compiledFiles } = identifiedSite;
+    const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
     if (compiledCode)
     {
       printInit(resContext);
@@ -2059,10 +2061,8 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
     }
 
     runFileName = compiledFileName;
-    const compiledCode = compiledFiles && compiledFiles[runFileName];
-    const compiledCodeExists = (typeof(compiledCode) !== 'undefined');
 
-    if (compiledCodeExists)
+    if (compiledFiles && typeof(compiledFiles[runFileName] !== 'undefined'))
     {
       const resContext =
       {
@@ -2076,7 +2076,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
       const postContext = { requestBody: [], responseStatusCode: errorCode };
 
-      responder(serverConfig, identifiedSite, compiledCode, resContext, { postContext });
+      responder(serverConfig, identifiedSite, resContext, { postContext });
       return;
     }
   }
@@ -2178,11 +2178,11 @@ function incomingRequestHandler(req, res)
 
   const [ /* Deliberately empty */ , /* Deliberately empty */ , resourceFileExtension ] = resourceName.match(/(.*)\.([^./]+)$/) || [];
 
-  let runFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
+  let initialRunFileName = `${resourceName}${(resourceFileExtension) ? '' : '.jscp' }`;
 
   // Because the filesystem and the browser may have encoded the same file name differently (UTF NFC vs NFD):
   resourceName = encodeURI(decodeURI(resourceName).normalize('NFD'));
-  runFileName = encodeURI(decodeURI(runFileName).normalize('NFD'));
+  initialRunFileName = encodeURI(decodeURI(initialRunFileName).normalize('NFD'));
 
   const
     {
@@ -2199,17 +2199,16 @@ function incomingRequestHandler(req, res)
     res.setHeader('X-Powered-By', 'jscause');
   }
 
-  if ((runFileName === '/error4xx.jscp') ||
-      (runFileName === '/error4xx.html') ||
-      (runFileName === '/error5xx.jscp') ||
-      (runFileName === '/error5xx.html'))
+  if ((initialRunFileName === '/error4xx.jscp') ||
+      (initialRunFileName === '/error4xx.html') ||
+      (initialRunFileName === '/error5xx.jscp') ||
+      (initialRunFileName === '/error5xx.html'))
   {
     handleError4xx(req, res, serverConfig, identifiedSite);
     return;
   }
 
-  let compiledCode = compiledFiles[runFileName];
-  let compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+  let compiledCodeExists = (typeof(compiledFiles[initialRunFileName]) !== 'undefined');
 
   const jscpExtensionDetected = (resourceFileExtension === 'jscp');
   const indexWithNoExtensionDetected = (!resourceFileExtension && (resourceName.match(/\/index$/)));
@@ -2221,18 +2220,19 @@ function incomingRequestHandler(req, res)
     handleError4xx(req, res, serverConfig, identifiedSite);
     return;
   }
-  else if (staticFiles[runFileName])
+  else if (staticFiles[initialRunFileName])
   {
-    serveStaticContent(req, res, serverConfig, identifiedSite, runFileName);
+    serveStaticContent(req, res, serverConfig, identifiedSite, initialRunFileName);
   }
   else
   {
     if (!compiledCodeExists)
     {
-      runFileName = `${resourceName}/index.jscp`;
-      compiledCode = compiledFiles[runFileName];
-      compiledCodeExists = (typeof(compiledCode) !== 'undefined');
+      initialRunFileName = `${resourceName}/index.jscp`;
+      compiledCodeExists = (typeof(compiledFiles[initialRunFileName]) !== 'undefined');
     }
+
+    const runFileName = initialRunFileName;
 
     if (!compiledCodeExists)
     {
@@ -2353,12 +2353,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext);
+                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, compiledCode, pendingWork, resContext, formContext);
+                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
               }
             });
           }
@@ -2366,7 +2366,7 @@ function incomingRequestHandler(req, res)
 
         if (!isUpload || !formFilesKeys)
         {
-          responder(serverConfig, identifiedSite, compiledCode, resContext, { formContext });
+          responder(serverConfig, identifiedSite, resContext, { formContext });
         }
       });
     }
@@ -2415,7 +2415,7 @@ function incomingRequestHandler(req, res)
   
         const postContext = { requestBody, maxSizeExceeded, forbiddenUploadAttempted };
 
-        responder(serverConfig, identifiedSite, compiledCode, resContext, { postContext });
+        responder(serverConfig, identifiedSite, resContext, { postContext });
       });
     }
   }
