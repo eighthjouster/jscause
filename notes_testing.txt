@@ -1,0 +1,12 @@
+There is a testing framework in place, but we'll need to fill it out with actual tests.
+See: runTesting() and the jsTest/ folder.
+
+They are intended for unit testing.
+
+I was considering using NightWatchJS (or similar) for end-to-end testing.
+
+For now, I'll try to compile a list of all the sanity checks that need to be done in order to ensure that the framework is behaving correctly.  When implementing new functionality or features, please add their corresponding sanity checks here.
+
+List of sanity checks:
+======================
+

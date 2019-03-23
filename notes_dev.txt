@@ -2,27 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-const jsCookies = new cookies(req, res);
- - It should be in the caller, maybe.
- There's a lot about rtContext that can be removed if we include serverConfig and identifiedSite.
-  - On it.
-
-Well, this is quite an adventure:
- - Check every JSCLog() call to make sure that fileSizeThreshold is included in its parameters.
-   - Almost there:
-     - Check jscLogConfig and related (jscLogBase? jscLogSite? jscLogBaseWithSite?).
-
-Check what other functions have too many parameters.
- - Proably none else.
-
-Consider deepFreezing both serverConfig and identifiedSite?
-
- - Back up, please.
-
-And you'll need to do exhaustive testing at this point.
-  We started setting up the testing framework.  Finish it here.
-  - Documentation:  nodejs jscause.js runtests
-    - If the tests are not present, do not even try to run them.
+Perform exhaustive testing at this point.
+ - Document every step you do in notes_testing.txt
 
  - Back up, please.
 
@@ -105,6 +86,9 @@ Documentation: Ctrl+C or SIGINT will terminate the server gracefully:
   - If there are any log files being compressed at that very moment, it will wait until the operation completes.  Any pending log files to compress will be ignored after that.
   - A second Ctrl+C during cleanup will let the user know that cleanup is still happening.
   - A third Ctrl+C will terminate the program immediately, even if cleanup was happening.
+
+- Documentation:  nodejs jscause.js runtests
+  - If the tests are not present, do not even try to run them.
 
 Server logging?
  - Access and errors.
@@ -193,6 +177,7 @@ Version 0.7.1b here!
 Order by priority:
 
 Use nightwatchjs for end-to-end testing.
+- See the notes_testing.js file.
 
 During compression, the final file should not be .gz but something like .gz.tmp, then renamed to .gz when the compression is done.
 

@@ -1495,7 +1495,9 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
 function createRunTime(serverConfig, identifiedSite, rtContext)
 {
   const { runFileName, getParams, postParams, contentType,
-    requestMethod, uploadedFiles, additional, jsCookies, reqObject = {} } = rtContext;
+    requestMethod, uploadedFiles, additional, reqObject = {}, resObject = {} } = rtContext;
+
+  const jsCookies = new cookies(reqObject, resObject);
 
   const pathCheck = runFileName.match(/(.*)\/.*\.jscp$/);
   const currentPath = pathCheck && pathCheck[1] || '/';
@@ -2038,7 +2040,6 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
   const { siteHostName, staticFiles, compiledFiles,
     logging: { doLogToConsole, siteLogDir } } = identifiedSite;
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const jsCookies = new cookies(req, res);
   
   const { headers = {}, method } = req;
   const requestMethod = (method || '').toLowerCase();
@@ -2070,7 +2071,6 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
         resObject: res,
         requestMethod,
         contentType,
-        jsCookies,
         runFileName
       };
 
@@ -2150,8 +2150,6 @@ function incomingRequestHandler(req, res)
   const serverLogging = serverConfig.logging;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
 
-  const jsCookies = new cookies(req, res);
-  
   let contentType = (headers['content-type'] || '').toLowerCase();
   let identifiedSite;
 
@@ -2327,7 +2325,6 @@ function incomingRequestHandler(req, res)
           resObject: res,
           requestMethod,
           contentType: postType,
-          jsCookies,
           runFileName
         };
 
@@ -2409,7 +2406,6 @@ function incomingRequestHandler(req, res)
           resObject: res,
           requestMethod,
           contentType,
-          jsCookies,
           runFileName
         };
   
