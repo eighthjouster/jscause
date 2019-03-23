@@ -1159,14 +1159,12 @@ function doDeleteFile(thisFile, jscLogConfig)
   });
 }
 
-function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
+function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
 {
-  pendingWork.pendingRenaming++;
+  const { logging: { siteLogDir, doLogToConsole }, tempWorkDirectory } = identifiedSite;
+  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
   const oldFilePath = thisFile.path;
   const newFilePath = fsPath.join(tempWorkDirectory, `jscupload_${crypto.randomBytes(16).toString('hex')}`);
-
-  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { siteLogDir, doLogToConsole } = identifiedSite.logging;
 
   const jscLogConfig =
   {
@@ -1176,6 +1174,8 @@ function doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifi
     fileSizeThreshold: logFileSizeThreshold
   };
   
+  pendingWork.pendingRenaming++;
+
   fs.rename(oldFilePath, newFilePath, (err) =>
   {
     pendingWork.pendingRenaming--;
@@ -1826,7 +1826,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
   
   const {
     requestBody,
-    responseStatusCode,
+    statusCode,
     maxSizeExceeded = formMaxSizeExceeded,
     forbiddenUploadAttempted = formForbiddenUploadAttempted
   } = postContext || {};
@@ -1886,7 +1886,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       redirection: { willHappen: false },
       runAfterQueue: undefined,
       runtimeException: undefined,
-      statusCode: responseStatusCode || 200,
+      statusCode: statusCode || 200,
       uploadedFiles,
       waitForNextId: 1,
       waitForQueue: {}
@@ -2074,7 +2074,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
         runFileName
       };
 
-      const postContext = { requestBody: [], responseStatusCode: errorCode };
+      const postContext = { requestBody: [], statusCode: errorCode };
 
       responder(serverConfig, identifiedSite, resContext, { postContext });
       return;
@@ -2187,7 +2187,7 @@ function incomingRequestHandler(req, res)
   const
     {
       canUpload, maxPayloadSizeBytes,
-      tempWorkDirectory, staticFiles, compiledFiles,
+      staticFiles, compiledFiles,
       jscpExtensionRequired, includeHttpPoweredByHeader,
       logging: siteLogging
     } = identifiedSite;
@@ -2353,12 +2353,12 @@ function incomingRequestHandler(req, res)
               {
                 thisFile.forEach((thisActualFile) =>
                 {
-                  doMoveToTempWorkDir(thisActualFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
+                  doMoveToTempWorkDir(thisActualFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
                 });
               }
               else
               {
-                doMoveToTempWorkDir(thisFile, tempWorkDirectory, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
+                doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext);
               }
             });
           }
