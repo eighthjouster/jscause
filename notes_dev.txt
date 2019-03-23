@@ -4,6 +4,7 @@ git bundle create jscause-.bundle devel
 
 Perform exhaustive testing at this point.
  - Document every step you do in notes_testing.txt
+   - You must test comments, // and /* */ in json files.
 
  - Back up, please.
 
