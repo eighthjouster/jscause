@@ -202,3 +202,109 @@ ERROR: Server not started.  No sites are running.
 ERROR: Site configuration: Missing name.
 ERROR: Site (no name) not started.
 ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": ""
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration: Missing name.
+ERROR: Site (no name) not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site"
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration: Site name 'My Site' is missing port.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": ""
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration:  Site name 'My Site' has an invalid port.  Integer number expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration: Site name 'My Site' is missing rootdirectoryname.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": ""
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration: Site name 'My Site': rootdirectoryname cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": 4
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site configuration: Site name 'My Site': rootdirectoryname expects a string value.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite"
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR:  Cannot find directory: sites/mysite
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+===
+
+Pending:
+
+Test: What if a port is taken? (By some other application.)
+Test: Check if a rootDirectoryName is invalid.

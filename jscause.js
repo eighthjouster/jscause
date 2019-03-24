@@ -2853,6 +2853,30 @@ function processSourceFile(sourceFilePath, siteJSONFilePath, jscLogConfig)
   return compiledSource;
 }
 
+function validateSiteRootDirectoryName(directoryName, siteName, jscLogConfig)
+{
+  let readSuccess = true;
+  if (!directoryName)
+  {
+    if (typeof(directoryName) === 'undefined')
+    {
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing rootdirectoryname.`, jscLogConfig);
+    }
+    else
+    {
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)}: rootdirectoryname cannot be empty.`, jscLogConfig);
+    }
+    readSuccess = false;
+  }
+  else if (typeof(directoryName) !== 'string')
+  {
+    JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)}: rootdirectoryname expects a string value.`, jscLogConfig);
+    readSuccess = false;
+  }
+
+  return readSuccess;
+}
+
 function parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
@@ -4003,8 +4027,10 @@ if (readSuccess)
         }
       }
 
+      readSuccess = readSuccess && validateSiteRootDirectoryName(siteRootDirectoryName, siteName, jscLogBase);
+
       let siteJSONFilePath;
-      if (readSuccess && siteRootDirectoryName)
+      if (readSuccess)
       {
         siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
         readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
