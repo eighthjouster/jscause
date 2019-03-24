@@ -166,7 +166,7 @@ ERROR: Server not started.  No sites are running.
 ERROR: Server configuration: Logging: directoryName: Cannot find directory: [*]
 ERROR: Server not started.  No sites are running.
 
-8. Add an empty logs file.
+8. Add an empty './logs' directory.
 
 9. jscause.conf with empty or invalid formats, part 2. With the content, start the server.  Nodejs must quit:
 - Content:
@@ -301,6 +301,45 @@ ERROR: Server not started.  No sites are running.
 ERROR:  Cannot find directory: sites/mysite
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
+
+10. Add an empty './sites/mysite' directory.
+
+11. jscause.conf with empty or invalid formats, part 3. With the content, start the server.  Nodejs must quit:
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite"
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Cannot find configuration/site.json file.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+12. Add an empty './sites/mysite/configuration/site.json' file.
+
+13. jscause.conf with empty or invalid formats, part 3. With the content, start the server.  Nodejs must quit:
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite"
+    }
+  ],
+  "logging": {}
+}
+- Expect:
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+^ ACTUALLY.... it should have said something like "empty file!", "invalid json!" or something like that.  Fix.
 
 ===
 
