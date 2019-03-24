@@ -2929,7 +2929,7 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
   const configKeyName = 'maxpayloadsizebytes';
   const configValue = processedConfigJSON[configKeyName];
 
-  if ((typeof(configValue) !== 'string') || configValue.replace(/^\s*/g, '').replace(/\s*$/g, ''))
+  if (typeof(configValue) !== 'undefined')
   {
     const uploadSize = parseFloat(configValue, 10);
     if (!isNaN(uploadSize) && (uploadSize === Math.floor(uploadSize)))
@@ -2938,7 +2938,7 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
     }
     else
     {
-      JSCLog('error', 'Site configuration:  Missing or invalid maxpayloadsizebytes.  Integer number expected.', jscLogConfig);
+      JSCLog('error', 'Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.', jscLogConfig);
       soFarSoGood = false;
     }
   }
@@ -4123,6 +4123,10 @@ if (readSuccess)
           const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
 
           readSuccess = soFarSoGood && allRequiredKeys;
+        }
+        else
+        {
+          JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)}: site.json is invalid.`, jscLogBase);
         }
 
         if (readSuccess)

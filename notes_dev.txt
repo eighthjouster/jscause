@@ -47,6 +47,9 @@ the server will emit an error, but will allow the listening to continue.
   - The server shouldn't allow the listening, correct?
   - Still happening?
 
+On getDirectoryPathAndCheckIfWritable():
+ - Why do directory paths need to be writable? Maybe the log directories, but nothing else...
+
 - Test thoroughly.
   - Simulate and test all the errors.
     - Including the console.warn()

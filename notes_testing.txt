@@ -7,6 +7,28 @@ I was considering using NightWatchJS (or similar) for end-to-end testing.
 
 For now, I'll try to compile a list of all the sanity checks that need to be done in order to ensure that the framework is behaving correctly.  When implementing new functionality or features, please add their corresponding sanity checks here.
 
+Notice that certain expect output conditions (if not most) omit unnecessary lines.  A tester must ignore those.  For example:  If the server outputs the following:
+
+ERROR: Site configuration:  The following configuration attributes were not found:
+ERROR: - logging
+ERROR: - canupload
+ERROR: - maxpayloadsizebytes
+ERROR: - mimetypes
+ERROR: - tempworkdirectory
+ERROR: - jscpextensionrequired
+ERROR: - httppoweredbyheader
+ERROR: Site 'My Site' not started.
+INFO: ************ All sites' configuration read at this point ********************
+ERROR: Server not started.  No sites are running.
+
+But the expected output is defined as:
+ERROR: Site configuration:  The following configuration attributes were not found:
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+Then the test passes.
+
+
 List of sanity checks:
 ======================
 
@@ -336,14 +358,117 @@ ERROR: Server not started.  No sites are running.
   "logging": {}
 }
 - Expect:
+ERROR: Site configuration: Site 'My Site': site.json is invalid.
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
 
-^ ACTUALLY.... it should have said something like "empty file!", "invalid json!" or something like that.  Fix.
+15. mysite/configuration/site.json with empty or invalid formats, part 1. With the content, start the server.  Nodejs must quit:
+- Content:
+{}
+- Expect:
+ERROR: Site configuration:  The following configuration attributes were not found:
+ERROR: - logging
+ERROR: - hostname
+ERROR: - canupload
+ERROR: - maxpayloadsizebytes
+ERROR: - mimetypes
+ERROR: - tempworkdirectory
+ERROR: - jscpextensionrequired
+ERROR: - httppoweredbyheader
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid hostname.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": ""
+}
+- Expect:
+ERROR: Site configuration:  hostname cannot be empty.
+ERROR: Site configuration:  The following configuration attributes were not found:
+ERROR: - logging
+ERROR: - canupload
+ERROR: - maxpayloadsizebytes
+ERROR: - mimetypes
+ERROR: - tempworkdirectory
+ERROR: - jscpextensionrequired
+ERROR: - httppoweredbyheader
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1"
+}
+- Expect:
+ERROR: Site configuration:  The following configuration attributes were not found:
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": ""
+}
+- Expect:
+ERROR: Site configuration:  Invalid canupload.  Boolean expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": ""
+}
+- Expect:
+ERROR: Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid jscpextensionrequired.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": ""
+}
+- Expect:
+ERROR: Site configuration:  jscpextensionrequired cannot be empty.  Use 'never' (recommended), 'optional' or 'always'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "random"
+}
+- Expect:
+ERROR: Site configuration:  invalid jscpextensionrequired value.  Use 'never' (recommended), 'optional' or 'always'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
 
 ===
 
 Pending:
 
+Test the configuration reading of mime types, if you haven't done so yet.
+Test: When a mandatory value is missing from site.json (one by one.)
 Test: What if a port is taken? (By some other application.)
-Test: Check if a rootDirectoryName is invalid.
+Test: Check if a rootDirectoryName value is invalid.
+ - As in, it must be a string, not a number.
