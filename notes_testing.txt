@@ -461,14 +461,158 @@ ERROR: Server not started.  No sites are running.
 ERROR: Site configuration:  invalid jscpextensionrequired value.  Use 'never' (recommended), 'optional' or 'always'.
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid httppoweredbyheader.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": ""
+}
+- Expect:
+ERROR: Site configuration:  httppoweredbyheader cannot be empty.  Use 'include' or 'exclude'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "random"
+}
+- Expect:
+ERROR: Site configuration:  invalid httppoweredbyheader value.  Use 'include' or 'exclude'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid httpscertfile.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": ""
+}
+- Expect:
+ERROR: Site configuration:  httpscertfile cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid httpskeyfile.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": ""
+}
+- Expect:
+ERROR: Site configuration:  httpskeyfile cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": 1
+}
+- Expect:
+ERROR: Site configuration:  Invalid tempworkdirectory.  String value expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": ""
+}
+- Expect:
+ERROR: Site configuration:  tempworkdirectory cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+
 
 
 ===
 
 Pending:
-
-Test the configuration reading of mime types, if you haven't done so yet.
+Test the configuration reading and validity of mime types, if you haven't done so yet.
+Test the configuration validity of httpsCertFile and httpsKeyFile, if you haven't done so yet.
 Test: When a mandatory value is missing from site.json (one by one.)
+ - So, remember that some keys are not mandatory (like the https cert ones.)
+Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
 Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
+Test that https cert/key files are valid.
