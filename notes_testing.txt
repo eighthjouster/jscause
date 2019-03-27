@@ -582,13 +582,205 @@ ERROR: Site configuration:  tempworkdirectory cannot be empty.
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": 1
+}
 - Expect:
+ERROR: Site configuration:  Invalid mimetypes.  Object expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {}
+}
 - Expect:
+ERROR: Site configuration:  The following configuration attribute was not found:
+ERROR: - logging
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {}
+}
 - Expect:
+ERROR: Site configuration: Site 'My Site' has an invalid logging directoryname.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "random": {}
+  }
+}
 - Expect:
+ERROR: Site configuration:  mimetype has an invalid 'random' name.  Expected: 'include', 'exclude'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "include": 1
+  }
+}
+- Expect:
+ERROR: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "include": {
+      "": ""
+    }
+  }
+}
+- Expect:
+ERROR: Site configuration:  mimetype name cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "include": {
+      "png": ""
+    }
+  }
+}
+- Expect:
+WARNING: Site configuration: png mimetype value is empty.  Assumed application/octet-stream.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "include": ["png"]
+  }
+}
+- Expect:
+ERROR: Site configuration:  mimetype has an invalid 'include' attribute value. Object (key, value) expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "exclude": {}
+  }
+}
+- Expect:
+ERROR: Site configuration:  mimetype has an invalid 'exclude' attribute value. Array expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {
+    "exclude": [""]
+  }
+}
+- Expect:
+ERROR: Site configuration:  mimetype name cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "random": "random",
+    "fileOutput": "disabled",
+    "directoryName": "./localLogs",
+    "consoleOutput": "disabled"
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: 'random' is not a valid configuration key.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
 - Expect:
 - Content:
@@ -616,3 +808,4 @@ Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
 Test that https cert/key files are valid.
+- Test including/excluding mime types, what happens when the same type is on both the include and exclude list, etc.

@@ -2970,7 +2970,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
         JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`, jscLogConfig);
         soFarSoGood = false;
       }
-      else if ((valueName === 'include') && (Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object'))
+      else if ((valueName === 'include') && ((Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object')))
       {
         JSCLog('error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.', jscLogConfig);
         soFarSoGood = false;
@@ -3600,13 +3600,32 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   let fileOutputEnabled;
   let consoleOutputEnabled;
 
+  // Let's check for invalid entries.
+  const validEntries = ['directoryname', 'fileoutput', 'consoleoutput', 'logfilesizethreshold'];
+
+  Object.keys(loggingInfo || {}).every((infoKey) =>
+  {
+    if (!validEntries.includes(infoKey))
+    {
+      JSCLog('error', `Site configuration: Logging: '${infoKey}' is not a valid configuration key.`, jscLogConfig);
+      readSuccess = false;
+    }
+  });
+
+  if (!readSuccess)
+  {
+    return;
+  }
+
+
   // Let's check the specified directory.
-  let {
-    directoryname: directoryName,
-    fileoutput: fileOutput = 'enabled',
-    consoleoutput: consoleOutput = 'enabled',
-    logfilesizethreshold: logFileSizeThreshold
-  } = loggingInfo || {};
+  let
+    {
+      directoryname: directoryName,
+      fileoutput: fileOutput = 'enabled',
+      consoleoutput: consoleOutput = 'enabled',
+      logfilesizethreshold: logFileSizeThreshold
+    } = loggingInfo || {};
   let perSiteFileOutputEnabled;
   let perSiteConsoleOutputEnabled;
 
@@ -3809,7 +3828,7 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
 
     if (!updatedConfigLogging.directoryPath)
     {
-      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid directoryname.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid logging directoryname.`, jscLogConfig);
       readSuccess = false;
     }
   }
