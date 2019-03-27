@@ -3828,7 +3828,7 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
 
     if (!updatedConfigLogging.directoryPath)
     {
-      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid logging directoryname.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid or missing logging directoryname.`, jscLogConfig);
       readSuccess = false;
     }
   }

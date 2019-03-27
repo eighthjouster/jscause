@@ -782,6 +782,69 @@ ERROR: Site configuration: Logging: 'random' is not a valid configuration key.
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "fileOutput": 1
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: fileoutput must be either 'enabled' or 'disabled'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "fileOutput": "disabled",
+    "consoleOutput": 1
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: consoleOutput must be either 'enabled' or 'disabled'.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "directoryName": 1
+  }
+}
+- Expect:
+ERROR: Site configuration: 'My Site' site logging: invalid directoryname.  String expected.
+ - FIX THIS:  It should say other stuff like "not started" at the end, as usual.
+
+
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
 - Expect:
 - Content:
 - Expect:
@@ -799,13 +862,11 @@ ERROR: Server not started.  No sites are running.
 ===
 
 Pending:
-Test the configuration reading and validity of mime types, if you haven't done so yet.
-Test the configuration validity of httpsCertFile and httpsKeyFile, if you haven't done so yet.
 Test: When a mandatory value is missing from site.json (one by one.)
+ - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)
 Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
 Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
 Test that https cert/key files are valid.
-- Test including/excluding mime types, what happens when the same type is on both the include and exclude list, etc.
