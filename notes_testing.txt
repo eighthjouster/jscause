@@ -771,10 +771,7 @@ ERROR: Server not started.  No sites are running.
   "tempWorkDirectory": "./workbench",
   "mimeTypes": {},
   "logging": {
-    "random": "random",
-    "fileOutput": "disabled",
-    "directoryName": "./localLogs",
-    "consoleOutput": "disabled"
+    "random": "random"
   }
 }
 - Expect:
@@ -831,15 +828,46 @@ ERROR: Server not started.  No sites are running.
 }
 - Expect:
 ERROR: Site configuration: 'My Site' site logging: invalid directoryname.  String expected.
- - FIX THIS:  It should say other stuff like "not started" at the end, as usual.
-
-
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "directoryName": ""
+  }
+}
 - Expect:
+ERROR: Site configuration: Site 'My Site': logging directoryname cannot be empty.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "directoryName": "random"
+  }
+}
 - Expect:
-- Content:
-- Expect:
+ERROR: Site configuration: Logging: directoryName: Cannot find directory: [*]
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 - Content:
 - Expect:
 - Content:

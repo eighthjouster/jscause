@@ -3664,6 +3664,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       else if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
       {
         JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`, jscLogConfig);
+        readSuccess = false;
       }
       else if (perSiteDirectoryName)
       {
@@ -3828,7 +3829,7 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
 
     if (!updatedConfigLogging.directoryPath)
     {
-      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} has an invalid or missing logging directoryname.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)}: logging directoryname cannot be empty.`, jscLogConfig);
       readSuccess = false;
     }
   }

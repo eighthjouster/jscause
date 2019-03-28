@@ -26,11 +26,6 @@ Perform exhaustive testing at this point.
         - Example: handleError4xx(()
           - Yeah, why don't you pass identifiedSite directly to those?
 
-The following line:
-JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`, jscLogConfig);
- - Shouldn't it be followed by readSuccess = false;?
-  - And test.
-
 In the docs so far:
   - Log files can be limited by size.  When the limit is reached, a new log file will be created, with identical name as the previous one, but with a numeric suffix (e.g. --1, --2, etc).  The previous file will be compressed.
   - If you move compressed log files to another location, and JSCause is writing to a suffixed file, then it will reset writing to a non-suffixed file.  This will cause log entries that will appear as out of sync with the files they're in.  Worse, next time a move occurs, the newly created log file will overwrite the one previously existing in the destination.  To avoid this, your move procedure should leave all the compressed suffixed files associated with the current (non-compressed) log file.
