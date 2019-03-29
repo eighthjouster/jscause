@@ -834,7 +834,7 @@ ERROR: Server not started.  No sites are running.
 {
   "hostName": "jscausesite1",
   "canUpload": false,
-  "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
+  "maxPayloadSizeBytes": 0,
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
   "httpsCertFile": "jscause-cert.pem",
@@ -853,7 +853,7 @@ ERROR: Server not started.  No sites are running.
 {
   "hostName": "jscausesite1",
   "canUpload": false,
-  "maxPayloadSizeBytes": 0,//3072 // 3 KB. //__RP
+  "maxPayloadSizeBytes": 0,
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
   "httpsCertFile": "jscause-cert.pem",
@@ -868,8 +868,80 @@ ERROR: Server not started.  No sites are running.
 ERROR: Site configuration: Logging: directoryName: Cannot find directory: [*]
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
+
+14. Add an empty './sites/mysite/localLogs' directory.
+
+15. jscause.conf with empty or invalid formats, part 4. With the content, start the server.  Nodejs must quit:
 - Content:
+{
+  "logging": {
+    "directoryName": "/localLogs"
+  }
+}
 - Expect:
+ERROR: Site configuration: 'My Site' site logging: directoryname must be a relative path.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "logging": {
+    "directoryName": "./randomDirectory"
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: directoryName: Cannot find directory: [*]
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "fileOutput": "enabled",
+    "directoryName": "./localLogs",
+    "consoleOutput": "enabled"
+  }
+}
+- Expect:
+ERROR: Site 'My Site': could not read directory: sites/mysite/website
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+16. Add an empty './sites/mysite/website' directory.
+
+17. jscause.conf with empty or invalid formats, part 4. With the content, start the server.  Nodejs must NOT quit:
+
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "fileOutput": "enabled",
+    "directoryName": "./localLogs",
+    "consoleOutput": "enabled"
+  }
+}
+- Expect:
+INFO: Reading configuration for site 'My Site' from 'sites/mysite'
+INFO: Site 'My Site' at http://jscausesite1:3000/ assigned to server 0
+INFO: The following sites were set up successfully:
+INFO: 'My Site'
+INFO: Will start listening.
+INFO: Server 0 listening on port 3000
 - Content:
 - Expect:
 - Content:
@@ -890,6 +962,8 @@ ERROR: Server not started.  No sites are running.
 ===
 
 Pending:
+mysite's localLogs was tested with absolute paths (which should prevent the server from starting.)  What other directories should be tested.
+mysite config:  what if localLogs is not writeable? Or what if it's a symlink?
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)
