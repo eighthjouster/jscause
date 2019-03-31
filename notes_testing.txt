@@ -345,7 +345,7 @@ ERROR: Server not started.  No sites are running.
 
 12. Add an empty './sites/mysite/configuration/site.json' file.
 
-13. jscause.conf with empty or invalid formats, part 3. With the content, start the server.  Nodejs must quit:
+13. jscause.conf with empty or invalid formats, part 4. With the content, start the server.  Nodejs must quit:
 - Content:
 {
   "sites": [
@@ -871,7 +871,7 @@ ERROR: Server not started.  No sites are running.
 
 14. Add an empty './sites/mysite/localLogs' directory.
 
-15. jscause.conf with empty or invalid formats, part 4. With the content, start the server.  Nodejs must quit:
+15. mysite/configuration/site.json with empty or invalid formats, part 2. With the content, start the server.  Nodejs must quit:
 - Content:
 {
   "logging": {
@@ -916,7 +916,7 @@ ERROR: Server not started.  No sites are running.
 
 16. Add an empty './sites/mysite/website' directory.
 
-17. jscause.conf with empty or invalid formats, part 4. With the content, start the server.  Nodejs must NOT quit:
+17. mysite/configuration/site.json with empty or invalid formats, part 3. With the content, start the server.  Nodejs must NOT quit:
 
 - Content:
 {
@@ -942,8 +942,27 @@ INFO: The following sites were set up successfully:
 INFO: 'My Site'
 INFO: Will start listening.
 INFO: Server 0 listening on port 3000
+
+18. jscause.conf with empty or invalid formats, part 5. With the content, start the server.  Nodejs must quit:
 - Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite",
+      "enableHTTPS": 0
+    }
+  ],
+  "logging": {}
+}
 - Expect:
+ERROR: Site configuration: Site name 'My Site' has an invalid 'enablehttps' value.  Boolean expected.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
+
+NOW, ON TO TESTING LOGGING CONFIG VALUES HERE.
+
 - Content:
 - Expect:
 - Content:
@@ -967,8 +986,10 @@ mysite config:  what if localLogs is not writeable? Or what if it's a symlink?
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)
+Test the multi-site combinations (when the server stops because two sites share the same name, etc.)
 Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
 Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
+    - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
 Test that https cert/key files are valid.

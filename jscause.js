@@ -2648,7 +2648,14 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
 function createInitialSiteConfig(siteInfo)
 {
   const { name: siteName, port: sitePort, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS } = siteInfo;
-  return Object.assign({}, defaultSiteConfig, { siteName, sitePort, rootDirectoryName, enableHTTPS });
+  return Object.assign({}, defaultSiteConfig,
+    {
+      siteName,
+      sitePort,
+      rootDirectoryName,
+      enableHTTPS: (typeof(enableHTTPS) === 'undefined') ? false : enableHTTPS
+    }
+  );
 }
 
 function checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, errorMsgIfFound, jscLogConfig)
@@ -4005,7 +4012,7 @@ if (readSuccess)
     {
       const siteConfig = createInitialSiteConfig(thisServerSite);
 
-      const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName } = siteConfig;
+      const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
 
       if (siteName)
       {
@@ -4054,6 +4061,15 @@ if (readSuccess)
       {
         siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
         readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
+      }
+
+      if (readSuccess)
+      {
+        if (typeof(enableHTTPS) !== 'boolean')
+        {
+          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} has an invalid 'enablehttps' value.  Boolean expected.`, jscLogBase);
+          readSuccess = false;
+        }
       }
 
       if (readSuccess)
