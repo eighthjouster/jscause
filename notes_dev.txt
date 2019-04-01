@@ -19,13 +19,15 @@ Perform exhaustive testing at this point.
 
  - Back up, please.
 
+- Document: logFileSizeThreshold
+
 - Logging rotation?
   - Max size of uncompressed log files? (default: 1 MB).
     *- -1, -2, -3 for the same date. - Done.
       *- 30-second mod debug mode for file names already enabled.
         +- And document. - on it.
   - Keep the last N files? (0 for keep everything).
-    - Do the configuration first.  Follow the fileSizeThreshold route.
+    - Do the configuration first.  Follow the logFileSizeThreshold route.
       - Actually, see if you can convert parameters to context object in certain situations first.
         - Example: handleError4xx(()
           - Yeah, why don't you pass identifiedSite directly to those?

@@ -913,6 +913,28 @@ ERROR: Server not started.  No sites are running.
 ERROR: Site 'My Site': could not read directory: sites/mysite/website
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "hostName": "jscausesite1",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "fileOutput": "enabled",
+    "directoryName": "./localLogs",
+    "consoleOutput": "enabled",
+    "logFileSizeThreshold": 0
+  }
+}
+- Expect:
+ERROR: Site configuration: 'My Site' site logging: 'perSite' section must not have a 'logFileSizeThreshold' configuration key.
+ERROR: Site 'My Site' not started.
+ERROR: Server not started.  No sites are running.
 
 16. Add an empty './sites/mysite/website' directory.
 
@@ -960,9 +982,72 @@ INFO: Server 0 listening on port 3000
 ERROR: Site configuration: Site name 'My Site' has an invalid 'enablehttps' value.  Boolean expected.
 ERROR: Site 'My Site' not started.
 ERROR: Server not started.  No sites are running.
-
-NOW, ON TO TESTING LOGGING CONFIG VALUES HERE.
-
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite"
+    }
+  ],
+  "logging": {
+    "general": ""
+  }
+}
+- Expect:
+ERROR: Configuration: logging:  Invalid value for general.  Object expected
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite",
+      "enableHTTPS": false
+    }
+  ],
+  "logging": {
+    "general": {
+      "fileOutput": "enabled",
+      "directoryName": "logs",
+      "consoleOutput": "enabled",
+      "logFileSizeThreshold": ""
+    }
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: 'logFileSizeThreshold' is invalid.  Integer number expected.
+ERROR: Server not started.  No sites are running.
+- Content:
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite",
+      "enableHTTPS": false
+    }
+  ],
+  "logging": {
+    "general": {
+      "fileOutput": "enabled",
+      "directoryName": "logs",
+      "consoleOutput": "enabled",
+      "logFileSizeThreshold": -1
+    }
+  }
+}
+- Expect:
+ERROR: Site configuration: Logging: 'logFileSizeThreshold' must be 0 or greater.
+ERROR: Server not started.  No sites are running.
+- Content:
+- Expect:
+- Content:
+- Expect:
+- Content:
+- Expect:
 - Content:
 - Expect:
 - Content:

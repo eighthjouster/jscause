@@ -3574,7 +3574,7 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
           }
           else
           {
-            JSCLog('error', 'Configuration: logging:  Invalid value for general.', jscLogConfig);
+            JSCLog('error', 'Configuration: logging:  Invalid value for general.  Object expected', jscLogConfig);
             result = false;
           }
           break;
@@ -3658,7 +3658,24 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     if (serverWide)
     {
       directoryName = directoryName || 'logs';
-      logFileSizeThreshold = logFileSizeThreshold || 0;
+
+      if (typeof(logFileSizeThreshold) === 'undefined')
+      {
+        logFileSizeThreshold = 0;
+      }
+      else if (typeof(logFileSizeThreshold) === 'number')
+      {
+        if (logFileSizeThreshold < 0)
+        {
+          JSCLog('error', 'Site configuration: Logging: \'logFileSizeThreshold\' must be 0 or greater.', jscLogConfig);
+          readSuccess = false;
+        }
+      }
+      else
+      {
+        JSCLog('error', 'Site configuration: Logging: \'logFileSizeThreshold\' is invalid.  Integer number expected.', jscLogConfig);
+        readSuccess = false;
+      }
     }
     else
     {
