@@ -4192,38 +4192,41 @@ if (readSuccess)
           {
             if (sitePort === combo.sitePort)
             {
-              if (currentEnableHTTPS)
-              {
-                readSuccess = combo.enableHTTPS;
-                if (readSuccess)
-                {
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
-                }
-                else
-                {
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                  JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
-                }
-              }
-              else if (combo.enableHTTPS)
-              {
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
-              }
-              
-              if (currentSiteHostName === combo.siteHostName.toLowerCase())
-              {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
-                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
-                readSuccess = false;
-              }
-              
               if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
               {
                 JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
                 JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogSite);
                 readSuccess = false;
+              }
+
+              if (readSuccess)
+              {
+                if (currentEnableHTTPS)
+                {
+                  readSuccess = combo.enableHTTPS;
+                  if (readSuccess)
+                  {
+                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
+                  }
+                  else
+                  {
+                    JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                    JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTP port, ${sitePort}`, jscLogSite);
+                  }
+                }
+                else if (combo.enableHTTPS)
+                {
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
+                }
+                
+                if (currentSiteHostName === combo.siteHostName.toLowerCase())
+                {
+                  JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
+                  JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
+                  readSuccess = false;
+                }
               }
             }
           });
