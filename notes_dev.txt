@@ -41,6 +41,10 @@ In the docs so far:
       - Same with archiving checks.
     - Document this behavior.
 
+Do we need this?
+else if (process.argv[2] === 'testmode')
+ - If we do, DOCUMENT.
+
 If I put on site.json:
 "fileOutput": "disbled",
 (notice that there is a typo),
@@ -123,8 +127,11 @@ And back up again.
 Ability to write to files?
   - Text and binary.
 
+You need to break down incomingRequestHandler.
+ - And validateLoggingConfigSection.
+ - And definitely startApplication.
+
 Back up.
-Update Mac.
 
 Databases.
  - Basic.

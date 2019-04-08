@@ -9,10 +9,7 @@ const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
 const jscLib = getAllElementsToSupportTesting();
 
-if (process.argv[2] === 'runtests')
-{
-  runTesting();
-}
+let processExitAttempts = 0;
 
 const http = require('http');
 const https = require('https');
@@ -22,7 +19,6 @@ const urlUtils = require('url');
 const crypto = require('crypto');
 const zlib = require('zlib');
 
-const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
 const JSCAUSE_SITES_PATH = 'sites';
 const JSCAUSE_CERTS_PATH = 'certs';
@@ -30,6 +26,7 @@ const JSCAUSE_WEBSITE_PATH = 'website';
 const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
+const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
 
 const PROMISE_ACTOR_TYPE_SUCCESS = 1;
 const PROMISE_ACTOR_TYPE_ERROR = 2;
@@ -133,6 +130,39 @@ const allLogDirs = {};
 const allOpenLogFiles = {};
 const compressLogsDirQueue = [];
 let isCurrentlyLogDirCompressing = false;
+const serverConfig = {};
+const runningServers = {};
+
+/* *****************************************
+ * 
+ * Startup code.
+ * 
+ * *****************************************/
+
+const { cookies, formidable, sanitizeFilename } = loadVendorModules();
+const RUNTIME_ROOT_DIR = process.cwd();
+
+let isTestMode = false;
+if (process.argv[2] === 'runtests')
+{
+  isTestMode = true;
+  runTesting();
+}
+
+if (process.argv[2] === 'testmode')
+{
+  console.log('**** RUNNING IN TEST MODE.  DO NOT USE IN PRODUCTION. ****');
+  console.log('Get rid of the testmode switch to run jscause normally.');
+  isTestMode = true;
+}
+
+if (process.argv[2] && !isTestMode)
+{
+  console.error('Unrecognized command line switch. Server not started.');
+  process.exit(1);
+}
+
+startApplication((isTestMode) ? 'jscause_test.conf' : 'jscause.conf');
 
 /* *****************************************
  * 
@@ -631,16 +661,15 @@ function vendor_require(vendorModuleName)
   let compiledModule;
   let hydratedFile;
 
-  if (typeof(templateFile) === 'undefined')
+  let templateFile;
+
+  try
   {
-    try
-    {
-      templateFile = fs.readFileSync(VENDOR_TEMPLATE_FILENAME, 'utf-8');
-    }
-    catch(e)
-    {
-      JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
-    }
+    templateFile = fs.readFileSync(VENDOR_TEMPLATE_FILENAME, 'utf-8');
+  }
+  catch(e)
+  {
+    JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
   }
 
   if (typeof(templateFile) !== 'undefined')
@@ -1368,7 +1397,7 @@ function doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, pr
   }
 }
 
-const makeCustomRtPromiseActor = (serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback) =>
+function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType, defaultSuccessWaitForId, defaultErrorWaitForId, actorCallback)
 {
   return (actorCallback) ?
     (...params) =>
@@ -1390,7 +1419,7 @@ const makeCustomRtPromiseActor = (serverConfig, identifiedSite, rtContext, promi
       doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType);
       cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, true);
     };
-};
+}
 
 function makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId)
 {
@@ -3882,604 +3911,609 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
  * Reading and processing the server configuration file
  *
  *******************************************************/
-const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
-let templateFile;
-let allVendorModulesLoaded = true;
 
-const cookies = vendor_require('./jscvendor/cookies');
-allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
-
-const formidable = vendor_require('./jscvendor/formidable');
-allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
-
-const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
-allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
-
-if (!allVendorModulesLoaded)
+function loadVendorModules()
 {
-  JSCLog('error', 'CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
-  process.exit(1);
-}
-
-templateFile = undefined; // Done with all the vendor module loading.
-
-const RUNTIME_ROOT_DIR = process.cwd();
-
-JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
-
-const runningServers = {};
-let atLeastOneSiteStarted = false;
-let readSuccess = false;
-let allSitesInServer;
-let serverWideLoggingInfo;
-const serverConfig = {};
-
-let jscLogBase =
-{
-  toConsole: true
-};
-
-const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME, undefined, jscLogBase);
-
-if (globalConfigJSON)
-{
-  const allAllowedKeys =
-  [
-    'sites',
-    'logging'
-  ];
-
-  const requiredKeysNotFound = [];
-
-  let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
-
-  let soFarSoGood = !!processedConfigJSON;
+  let allVendorModulesLoaded = true;
   
-  // sites
-  if (soFarSoGood)
+  const cookies = vendor_require('./jscvendor/cookies');
+  allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
+  
+  const formidable = vendor_require('./jscvendor/formidable');
+  allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
+  
+  const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
+  allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
+  
+  if (!allVendorModulesLoaded)
   {
-    allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jscLogBase);
-    soFarSoGood = !!allSitesInServer;
+    JSCLog('error', 'CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
+    process.exit(1);
   }
 
-  // logging
-  if (soFarSoGood)
-  {
-    serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON, jscLogBase);
-    soFarSoGood = !!serverWideLoggingInfo;
-  }
-
-  const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration', jscLogBase);
-
-  readSuccess = soFarSoGood && allRequiredKeys;
+  return { cookies, formidable, sanitizeFilename };
 }
 
-/* *****************************************************
- *
- * Processing the server's logging configuration
- *
- *******************************************************/
-if (readSuccess)
+function startApplication(serverConfFileName)
 {
-  readSuccess = false;
-  const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase);
-  
-  if (generalLogging)
+  JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
+
+  let atLeastOneSiteStarted = false;
+  let readSuccess = false;
+  let allSitesInServer;
+  let serverWideLoggingInfo;
+
+  let jscLogBase =
   {
-    const { fileOutputEnabled: doOutputToServerDir, directoryPath: serverLogDir } = generalLogging;
-    serverConfig.logging =
-    {
-      general: generalLogging,
-      serverLogDir: doOutputToServerDir && serverLogDir
-    };
+    toConsole: true
+  };
+
+  const globalConfigJSON = readAndProcessJSONFile(serverConfFileName, undefined, jscLogBase);
+
+  if (globalConfigJSON)
+  {
+    const allAllowedKeys =
+    [
+      'sites',
+      'logging'
+    ];
+
+    const requiredKeysNotFound = [];
+
+    let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, serverConfFileName, jscLogBase);
+
+    let soFarSoGood = !!processedConfigJSON;
     
-    jscLogBase =
+    // sites
+    if (soFarSoGood)
     {
-      toConsole: serverConfig.logging.general.consoleOutputEnabled,
-      toServerDir: serverConfig.logging.serverLogDir,
-      fileSizeThreshold: serverConfig.logging.general.logFileSizeThreshold
-    };
+      allSitesInServer = parseSitesConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jscLogBase);
+      soFarSoGood = !!allSitesInServer;
+    }
+
+    // logging
+    if (soFarSoGood)
+    {
+      serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON, jscLogBase);
+      soFarSoGood = !!serverWideLoggingInfo;
+    }
+
+    const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration', jscLogBase);
+
+    readSuccess = soFarSoGood && allRequiredKeys;
   }
 
-  const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase);
-  
-  if (generalLogging && perSiteLogging)
+  /* *****************************************************
+  *
+  * Processing the server's logging configuration
+  *
+  *******************************************************/
+  if (readSuccess)
   {
-    serverConfig.logging.perSite = perSiteLogging;
-    readSuccess = true;
-  }
-}
-
-/* *****************************************************
- *
- * Reading and processing the sites' configuration files
- *
- *******************************************************/
-
-const allSiteConfigs = [];
-let allReadySiteNames = [];
-let allFailedSiteNames = [];
-let allSiteNames = [];
-let allConfigCombos = [];
-
-if (readSuccess)
-{
-  let jscLogBaseWithSite = Object.assign({}, jscLogBase);
-  let jscLogSite;
-
-  const allAllowedSiteKeys =
-  [
-    'name',
-    'port',
-    'rootdirectoryname',
-    'enablehttps'
-  ];
-  
-  const allSitesInServerLength = allSitesInServer.length;
-
-  for (let i = 0; i < allSitesInServerLength; i++)
-  {
-    readSuccess = true;
-
-    const thisUnprocessedServerSite = allSitesInServer[i];
-
-    let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
-
-    if (thisServerSite)
+    readSuccess = false;
+    const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase);
+    
+    if (generalLogging)
     {
-      const siteConfig = createInitialSiteConfig(thisServerSite);
-
-      const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
-
-      if (siteName)
+      const { fileOutputEnabled: doOutputToServerDir, directoryPath: serverLogDir } = generalLogging;
+      serverConfig.logging =
       {
-        if (allSiteNames.indexOf(siteName) === -1)
-        {
-          allSiteNames.push(siteName);
-        }
-        else
-        {
-          JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`, jscLogBase);
-          readSuccess = false;
-        }
-      }
-      else
+        general: generalLogging,
+        serverLogDir: doOutputToServerDir && serverLogDir
+      };
+      
+      jscLogBase =
       {
-        JSCLog('error', 'Site configuration: Missing name.', jscLogBase);
-        readSuccess = false;
-      }
+        toConsole: serverConfig.logging.general.consoleOutputEnabled,
+        toServerDir: serverConfig.logging.serverLogDir,
+        fileSizeThreshold: serverConfig.logging.general.logFileSizeThreshold
+      };
+    }
 
-      if (readSuccess)
+    const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase);
+    
+    if (generalLogging && perSiteLogging)
+    {
+      serverConfig.logging.perSite = perSiteLogging;
+      readSuccess = true;
+    }
+  }
+
+  /* *****************************************************
+  *
+  * Reading and processing the sites' configuration files
+  *
+  *******************************************************/
+
+  const allSiteConfigs = [];
+  let allReadySiteNames = [];
+  let allFailedSiteNames = [];
+  let allSiteNames = [];
+  let allConfigCombos = [];
+
+  if (readSuccess)
+  {
+    let jscLogBaseWithSite = Object.assign({}, jscLogBase);
+    let jscLogSite;
+
+    const allAllowedSiteKeys =
+    [
+      'name',
+      'port',
+      'rootdirectoryname',
+      'enablehttps'
+    ];
+    
+    const allSitesInServerLength = allSitesInServer.length;
+
+    for (let i = 0; i < allSitesInServerLength; i++)
+    {
+      readSuccess = true;
+
+      const thisUnprocessedServerSite = allSitesInServer[i];
+
+      let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, serverConfFileName, jscLogBase);
+
+      if (thisServerSite)
       {
-        if (typeof(sitePort) !== 'undefined')
+        const siteConfig = createInitialSiteConfig(thisServerSite);
+
+        const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
+
+        if (siteName)
         {
-          const portNumber = parseFloat(sitePort, 10);
-          if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
+          if (allSiteNames.indexOf(siteName) === -1)
           {
-            siteConfig.sitePort = portNumber;
+            allSiteNames.push(siteName);
           }
           else
           {
-            JSCLog('error', `Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`, jscLogBase);
+            JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`, jscLogBase);
             readSuccess = false;
           }
         }
         else
         {
-          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`, jscLogBase);
+          JSCLog('error', 'Site configuration: Missing name.', jscLogBase);
           readSuccess = false;
-        }
-      }
-
-      readSuccess = readSuccess && validateSiteRootDirectoryName(siteRootDirectoryName, siteName, jscLogBase);
-
-      let siteJSONFilePath;
-      if (readSuccess)
-      {
-        siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
-        readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
-      }
-
-      if (readSuccess)
-      {
-        if (typeof(enableHTTPS) !== 'boolean')
-        {
-          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} has an invalid 'enablehttps' value.  Boolean expected.`, jscLogBase);
-          readSuccess = false;
-        }
-      }
-
-      if (readSuccess)
-      {
-        siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
-
-        JSCLog('info', `Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`, jscLogBase);
-        const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath, jscLogBase);
-        
-        readSuccess = !!siteConfigJSON;
-
-        if (readSuccess)
-        {
-          const allAllowedKeys =
-          [
-            'hostname',
-            'tempworkdirectory',
-            'canupload',
-            'maxpayloadsizebytes',
-            'mimetypes',
-            'jscpextensionrequired',
-            'httppoweredbyheader',
-            'httpscertfile',
-            'httpskeyfile',
-            'logging'
-          ];
-
-          const requiredKeysNotFound = [];
-
-          let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME, jscLogBase);
-
-          let soFarSoGood = !!processedConfigJSON;
-          let parseHttpsCertResult = false;
-          let parseHttpsKeyResult = false;
-
-          if (soFarSoGood)
-          {
-            soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
-
-            const updatedConfigLogging = soFarSoGood && setupSiteLoggingForRequests(siteName, siteConfig.logging, serverConfig.logging, jscLogBase);
-            soFarSoGood = !!updatedConfigLogging;
-
-            if (soFarSoGood)
-            {
-              siteConfig.logging = updatedConfigLogging;
-              const { doLogToConsole: toConsole, siteLogDir: toSiteDir } = siteConfig.logging;
-
-              jscLogSite = { toConsole, toSiteDir };
-  
-              jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
-            }
-
-            soFarSoGood = parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
-            
-            parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
-            parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
-          }
-
-          let fileMissingIndex = requiredKeysNotFound.indexOf('httpscertfile');
-          if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
-          {
-            soFarSoGood = soFarSoGood && parseHttpsCertResult;
-          }
-          else
-          {
-            // Certs file entry does not exist, let's ignore this since https is not enabled.
-            requiredKeysNotFound.splice(fileMissingIndex, 1);
-          }
-
-          fileMissingIndex = requiredKeysNotFound.indexOf('httpskeyfile');
-          if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
-          {
-            soFarSoGood = soFarSoGood && parseHttpsKeyResult;
-          }
-          else
-          {
-            // Key file entry does not exist, let's ignore this since https is not enabled.
-            requiredKeysNotFound.splice(fileMissingIndex, 1);
-          }
-
-          const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
-
-          readSuccess = soFarSoGood && allRequiredKeys;
-        }
-        else
-        {
-          JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)}: site.json is invalid.`, jscLogBase);
         }
 
         if (readSuccess)
         {
-          const currentSiteHostName = siteConfig.siteHostName.toLowerCase();
-          const currentEnableHTTPS = siteConfig.enableHTTPS;
-          const currentRootDirectoryName = siteRootDirectoryName.toLowerCase();
-
-          allConfigCombos.forEach((combo) =>
+          if (typeof(sitePort) !== 'undefined')
           {
-            if (sitePort === combo.sitePort)
+            const portNumber = parseFloat(sitePort, 10);
+            if (!isNaN(portNumber) && (portNumber === Math.floor(portNumber)))
             {
-              if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
-              {
-                JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
-                JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogSite);
-                readSuccess = false;
-              }
-
-              if (readSuccess)
-              {
-                if (currentEnableHTTPS)
-                {
-                  readSuccess = combo.enableHTTPS;
-                  if (readSuccess)
-                  {
-                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
-                  }
-                  else
-                  {
-                    JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                    JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTP port, ${sitePort}`, jscLogSite);
-                  }
-                }
-                else if (combo.enableHTTPS)
-                {
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
-                  JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
-                }
-                
-                if (currentSiteHostName === combo.siteHostName.toLowerCase())
-                {
-                  JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
-                  JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
-                  readSuccess = false;
-                }
-              }
-            }
-          });
-
-          if (readSuccess)
-          {
-            allConfigCombos.push(Object.assign({}, siteConfig));
-          }
-        }
-
-        let filePathsList;
-        let jscmFilesList;
-        if (readSuccess)
-        {
-          let state =
-          {
-            directoriesProcessedSoFar: 0,
-            cachedStaticFilesSoFar: 0,
-            directoriesToProcess: [ { dirElements: [''] } ],
-            siteConfig,
-            pushedFiles: 0,
-            soFarSoGood: true
-          };
-
-          // Let's read the files.
-          readSuccess = false;
-          filePathsList = [];
-          jscmFilesList = [];
-
-          const websiteRoot = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
-
-          do
-          {
-            let currentDirectoryPath;
-            const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = state.directoriesToProcess.shift();
-            const directoryPath = fsPath.join(...currentDirectoryElements);
-            if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
-            {
-              currentDirectoryPath = directoryPath;
+              siteConfig.sitePort = portNumber;
             }
             else
             {
-              currentDirectoryPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, directoryPath);
+              JSCLog('error', `Site configuration:  Site name ${getSiteNameOrNoName(siteName)} has an invalid port.  Integer number expected.`, jscLogBase);
+              readSuccess = false;
             }
-
-            state.soFarSoGood = false;
-            let allFiles;
-            const isWebsiteRoot = (websiteRoot === currentDirectoryPath);
-            try
-            {
-              allFiles = fs.readdirSync(currentDirectoryPath);
-              state.soFarSoGood = true;
-            }
-            catch(e)
-            {
-              JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`, Object.assign({ e }, jscLogBaseWithSite));
-            }
-
-            if (state.soFarSoGood)
-            {
-              if (Array.isArray(allFiles))
-              {
-                allFiles = allFiles.map(fileName => ({ fileName }));
-              }
-
-
-              let stats;
-              state.pushedFiles = 0;
-              let fullPath;
-              while (allFiles.length)
-              {
-                const { fileName, simlinkTarget } = allFiles.shift();
-                if (fileName.substr(0, 1) === '.')
-                {
-                  // Assumed hidden file.  Skip it.
-                  continue;
-                }
-
-                if (!isWebsiteRoot && ((fileName === 'error4xx.jscp') ||
-                  (fileName === 'error4xx.html') ||
-                  (fileName === 'error5xx.jscp') ||
-                  (fileName === 'error5xx.html')))
-                {
-                  JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`, jscLogBaseWithSite);
-                }
-          
-                if (simlinkTarget)
-                {
-                  fullPath = simlinkTarget;
-                }
-                else
-                {
-                  fullPath = fsPath.join(currentDirectoryPath, fileName);
-                }
-
-                try
-                {
-                  stats = fs.lstatSync(fullPath);
-                }
-                catch (e)
-                {
-                  state.soFarSoGood = false;
-                  JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`, Object.assign({ e }, jscLogBaseWithSite));
-                }
-
-                if (state.soFarSoGood)
-                {
-                  Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogBaseWithSite));
-                }
-                else
-                {
-                  break;
-                }
-              }
-            }
-          }
-          while(state.directoriesToProcess.length && state.soFarSoGood);
-
-          readSuccess = state.soFarSoGood;
-        }
-
-        if (readSuccess)
-        {
-          siteConfig.staticFiles = {};
-          siteConfig.compiledFiles = {};
-
-          // Make sure that modules compile. If we don't do this, then 
-          // the user would get a runtime error.  Better to fail as soon as possible instead.
-          jscmFilesList.every(({ filePath }) =>
-          {
-            readSuccess = (typeof(processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite)) !== 'undefined');
-            return readSuccess;
-          });
-
-          if (readSuccess)
-          {
-            filePathsList.every((fileEntry) =>
-            {
-              const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
-  
-              const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
-              if (fileType === 'jscp')
-              {
-                const processedSourceFile = processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite);
-                if (typeof(processedSourceFile) === 'undefined')
-                {
-                  readSuccess = false;
-                }
-                else{
-                  siteConfig.compiledFiles[webPath] = processedSourceFile;
-                }
-              }
-              else
-              {
-                // fileType assumed 'static'
-                siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath, fileSize };
-              }
-  
-              return readSuccess;
-            });
-          }
-        }
-
-        if (readSuccess)
-        {
-          if (setTempWorkDirectory(siteConfig, jscLogBaseWithSite))
-          {
-            // All is well so far.
-            if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
-            {
-              siteConfig.canUpload = false;
-            }
-
-            allSiteConfigs.push(siteConfig);
           }
           else
           {
+            JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing port.`, jscLogBase);
             readSuccess = false;
           }
         }
-      }
-      else if (readSuccess)
-      {
-        JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.', jscLogBaseWithSite);
-        readSuccess = false;
-      }
 
-      if (readSuccess)
-      {
-        allReadySiteNames.push(siteName);
+        readSuccess = readSuccess && validateSiteRootDirectoryName(siteRootDirectoryName, siteName, jscLogBase);
+
+        let siteJSONFilePath;
+        if (readSuccess)
+        {
+          siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
+          readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
+        }
+
+        if (readSuccess)
+        {
+          if (typeof(enableHTTPS) !== 'boolean')
+          {
+            JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} has an invalid 'enablehttps' value.  Boolean expected.`, jscLogBase);
+            readSuccess = false;
+          }
+        }
+
+        if (readSuccess)
+        {
+          siteConfig.fullSitePath = fsPath.join(RUNTIME_ROOT_DIR, siteJSONFilePath);
+
+          JSCLog('info', `Reading configuration for site '${siteName}' from '${siteJSONFilePath}'`, jscLogBase);
+          const siteConfigJSON = readAndProcessJSONFile(JSCAUSE_SITECONF_FILENAME, siteJSONFilePath, jscLogBase);
+          
+          readSuccess = !!siteConfigJSON;
+
+          if (readSuccess)
+          {
+            const allAllowedKeys =
+            [
+              'hostname',
+              'tempworkdirectory',
+              'canupload',
+              'maxpayloadsizebytes',
+              'mimetypes',
+              'jscpextensionrequired',
+              'httppoweredbyheader',
+              'httpscertfile',
+              'httpskeyfile',
+              'logging'
+            ];
+
+            const requiredKeysNotFound = [];
+
+            let processedConfigJSON = prepareConfiguration(siteConfigJSON, allAllowedKeys, JSCAUSE_SITECONF_FILENAME, jscLogBase);
+
+            let soFarSoGood = !!processedConfigJSON;
+            let parseHttpsCertResult = false;
+            let parseHttpsKeyResult = false;
+
+            if (soFarSoGood)
+            {
+              soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
+
+              const updatedConfigLogging = soFarSoGood && setupSiteLoggingForRequests(siteName, siteConfig.logging, serverConfig.logging, jscLogBase);
+              soFarSoGood = !!updatedConfigLogging;
+
+              if (soFarSoGood)
+              {
+                siteConfig.logging = updatedConfigLogging;
+                const { doLogToConsole: toConsole, siteLogDir: toSiteDir } = siteConfig.logging;
+
+                jscLogSite = { toConsole, toSiteDir };
+    
+                jscLogBaseWithSite = Object.assign({}, jscLogBase, jscLogSite);
+              }
+
+              soFarSoGood = parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              
+              parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
+              parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
+            }
+
+            let fileMissingIndex = requiredKeysNotFound.indexOf('httpscertfile');
+            if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
+            {
+              soFarSoGood = soFarSoGood && parseHttpsCertResult;
+            }
+            else
+            {
+              // Certs file entry does not exist, let's ignore this since https is not enabled.
+              requiredKeysNotFound.splice(fileMissingIndex, 1);
+            }
+
+            fileMissingIndex = requiredKeysNotFound.indexOf('httpskeyfile');
+            if (siteConfig.enableHTTPS || (fileMissingIndex === -1))
+            {
+              soFarSoGood = soFarSoGood && parseHttpsKeyResult;
+            }
+            else
+            {
+              // Key file entry does not exist, let's ignore this since https is not enabled.
+              requiredKeysNotFound.splice(fileMissingIndex, 1);
+            }
+
+            const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Site configuration', jscLogBaseWithSite);
+
+            readSuccess = soFarSoGood && allRequiredKeys;
+          }
+          else
+          {
+            JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)}: site.json is invalid.`, jscLogBase);
+          }
+
+          if (readSuccess)
+          {
+            const currentSiteHostName = siteConfig.siteHostName.toLowerCase();
+            const currentEnableHTTPS = siteConfig.enableHTTPS;
+            const currentRootDirectoryName = siteRootDirectoryName.toLowerCase();
+
+            allConfigCombos.forEach((combo) =>
+            {
+              if (sitePort === combo.sitePort)
+              {
+                if (currentRootDirectoryName === combo.rootDirectoryName.toLowerCase())
+                {
+                  JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogBase);
+                  JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)} is attempting to use an already existing root directory and port combination - '${currentRootDirectoryName}', ${sitePort}`, jscLogSite);
+                  readSuccess = false;
+                }
+
+                if (readSuccess)
+                {
+                  if (currentEnableHTTPS)
+                  {
+                    readSuccess = combo.enableHTTPS;
+                    if (readSuccess)
+                    {
+                      JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                      JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
+                    }
+                    else
+                    {
+                      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTP port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                      JSCLog('error', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is attempting to use HTTPS in an already assigned HTTP port, ${sitePort}`, jscLogSite);
+                    }
+                  }
+                  else if (combo.enableHTTPS)
+                  {
+                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTP, and is sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                    JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTP in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
+                  }
+                  
+                  if (currentSiteHostName === combo.siteHostName.toLowerCase())
+                  {
+                    JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
+                    JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
+                    readSuccess = false;
+                  }
+                }
+              }
+            });
+
+            if (readSuccess)
+            {
+              allConfigCombos.push(Object.assign({}, siteConfig));
+            }
+          }
+
+          let filePathsList;
+          let jscmFilesList;
+          if (readSuccess)
+          {
+            let state =
+            {
+              directoriesProcessedSoFar: 0,
+              cachedStaticFilesSoFar: 0,
+              directoriesToProcess: [ { dirElements: [''] } ],
+              siteConfig,
+              pushedFiles: 0,
+              soFarSoGood: true
+            };
+
+            // Let's read the files.
+            readSuccess = false;
+            filePathsList = [];
+            jscmFilesList = [];
+
+            const websiteRoot = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
+
+            do
+            {
+              let currentDirectoryPath;
+              const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = state.directoriesToProcess.shift();
+              const directoryPath = fsPath.join(...currentDirectoryElements);
+              if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
+              {
+                currentDirectoryPath = directoryPath;
+              }
+              else
+              {
+                currentDirectoryPath = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH, directoryPath);
+              }
+
+              state.soFarSoGood = false;
+              let allFiles;
+              const isWebsiteRoot = (websiteRoot === currentDirectoryPath);
+              try
+              {
+                allFiles = fs.readdirSync(currentDirectoryPath);
+                state.soFarSoGood = true;
+              }
+              catch(e)
+              {
+                JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: could not read directory: ${currentDirectoryPath}`, Object.assign({ e }, jscLogBaseWithSite));
+              }
+
+              if (state.soFarSoGood)
+              {
+                if (Array.isArray(allFiles))
+                {
+                  allFiles = allFiles.map(fileName => ({ fileName }));
+                }
+
+
+                let stats;
+                state.pushedFiles = 0;
+                let fullPath;
+                while (allFiles.length)
+                {
+                  const { fileName, simlinkTarget } = allFiles.shift();
+                  if (fileName.substr(0, 1) === '.')
+                  {
+                    // Assumed hidden file.  Skip it.
+                    continue;
+                  }
+
+                  if (!isWebsiteRoot && ((fileName === 'error4xx.jscp') ||
+                    (fileName === 'error4xx.html') ||
+                    (fileName === 'error5xx.jscp') ||
+                    (fileName === 'error5xx.html')))
+                  {
+                    JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`, jscLogBaseWithSite);
+                  }
+            
+                  if (simlinkTarget)
+                  {
+                    fullPath = simlinkTarget;
+                  }
+                  else
+                  {
+                    fullPath = fsPath.join(currentDirectoryPath, fileName);
+                  }
+
+                  try
+                  {
+                    stats = fs.lstatSync(fullPath);
+                  }
+                  catch (e)
+                  {
+                    state.soFarSoGood = false;
+                    JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot find ${fullPath}`, Object.assign({ e }, jscLogBaseWithSite));
+                  }
+
+                  if (state.soFarSoGood)
+                  {
+                    Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogBaseWithSite));
+                  }
+                  else
+                  {
+                    break;
+                  }
+                }
+              }
+            }
+            while(state.directoriesToProcess.length && state.soFarSoGood);
+
+            readSuccess = state.soFarSoGood;
+          }
+
+          if (readSuccess)
+          {
+            siteConfig.staticFiles = {};
+            siteConfig.compiledFiles = {};
+
+            // Make sure that modules compile. If we don't do this, then 
+            // the user would get a runtime error.  Better to fail as soon as possible instead.
+            jscmFilesList.every(({ filePath }) =>
+            {
+              readSuccess = (typeof(processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite)) !== 'undefined');
+              return readSuccess;
+            });
+
+            if (readSuccess)
+            {
+              filePathsList.every((fileEntry) =>
+              {
+                const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
+    
+                const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
+                if (fileType === 'jscp')
+                {
+                  const processedSourceFile = processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite);
+                  if (typeof(processedSourceFile) === 'undefined')
+                  {
+                    readSuccess = false;
+                  }
+                  else{
+                    siteConfig.compiledFiles[webPath] = processedSourceFile;
+                  }
+                }
+                else
+                {
+                  // fileType assumed 'static'
+                  siteConfig.staticFiles[webPath] = { fileContentType, fileContents, fullPath, fileSize };
+                }
+    
+                return readSuccess;
+              });
+            }
+          }
+
+          if (readSuccess)
+          {
+            if (setTempWorkDirectory(siteConfig, jscLogBaseWithSite))
+            {
+              // All is well so far.
+              if ((siteConfig.maxPayloadSizeBytes || 0) < 0)
+              {
+                siteConfig.canUpload = false;
+              }
+
+              allSiteConfigs.push(siteConfig);
+            }
+            else
+            {
+              readSuccess = false;
+            }
+          }
+        }
+        else if (readSuccess)
+        {
+          JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.', jscLogBaseWithSite);
+          readSuccess = false;
+        }
+
+        if (readSuccess)
+        {
+          allReadySiteNames.push(siteName);
+        }
+        else
+        {
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBaseWithSite);
+        }
       }
       else
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBaseWithSite);
+        break;
       }
+    }
+  }
+
+  allSiteNames = null;
+
+  serverConfig.sites = allSiteConfigs || [];
+  serverConfig.sites.forEach((site) =>
+  {
+    if (startServer(site, jscLogBase))
+    {
+      atLeastOneSiteStarted = true;
     }
     else
     {
-      break;
+      const { siteName } = site;
+      allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
+
+      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
+      allFailedSiteNames.push(siteName);
     }
-  }
-}
+  });
 
-allSiteNames = null;
+  JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
 
-serverConfig.sites = allSiteConfigs || [];
-serverConfig.sites.forEach((site) =>
-{
-  if (startServer(site, jscLogBase))
+  if (allReadySiteNames.length)
   {
-    atLeastOneSiteStarted = true;
+    JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
+    allReadySiteNames.forEach((name) =>
+    {
+      JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
+    });
+  }
+
+  if (allFailedSiteNames.length)
+  {
+    JSCLog('error', 'The following sites failed to run:', jscLogBase);
+    allFailedSiteNames.forEach((name) =>
+    {
+      JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
+    });
+  }
+
+  if (atLeastOneSiteStarted)
+  {
+    JSCLog('info', 'Will start listening.', jscLogBase);
   }
   else
   {
-    const { siteName } = site;
-    allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
-
-    JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
-    allFailedSiteNames.push(siteName);
+    JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
+    JSCLogTerminate();
   }
-});
 
-JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
-
-if (allReadySiteNames.length)
-{
-  JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
-  allReadySiteNames.forEach((name) =>
+  process.on('SIGINT', function()
   {
-    JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
+    exitApplication();
   });
 }
 
-if (allFailedSiteNames.length)
-{
-  JSCLog('error', 'The following sites failed to run:', jscLogBase);
-  allFailedSiteNames.forEach((name) =>
-  {
-    JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
-  });
-}
-
-if (atLeastOneSiteStarted)
-{
-  JSCLog('info', 'Will start listening.', jscLogBase);
-}
-else
-{
-  JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-  JSCLogTerminate();
-}
-
-let processExitAttempts = 0;
 function exitApplication()
 {
   processExitAttempts++;
@@ -4498,11 +4532,6 @@ function exitApplication()
     process.exit();
   }
 }
-
-process.on('SIGINT', function()
-{
-  exitApplication();
-});
 
 function getAllElementsToSupportTesting()
 {
@@ -4537,6 +4566,6 @@ function runTesting()
   }
   else {
     console.error('Testing did not run.');
-    process.exit();
+    process.exit(1);
   }
 }
