@@ -7,12 +7,6 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
-const jscTestGlobal =
-{
-  testSniffer: () => {}
-};
-jscTestGlobal.jscLib = getAllElementsToSupportTesting();
-
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -147,9 +141,12 @@ const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
 let isTestMode = false;
+const jscTestGlobal = {};
+
 if (process.argv[2] === 'runtests')
 {
   isTestMode = true;
+  jscTestGlobal.jscLib = getAllElementsToSupportTesting();
   runTesting();
 }
 else if (process.argv[2])
@@ -593,48 +590,54 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
     }));
 }
 
-function JSCLog(type, message, logOptions = {}, testSniffer = jscTestGlobal.testSniffer)
+function JSCLog(type, message, logOptions = {})
 {
-  const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
-  const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
-  if (toConsole)
+  if (isTestMode)
   {
-    if (outputToConsole)
+    jscTestGlobal.testSniffer(type, message, logOptions);
+    console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
+  }
+  else
+  {
+    const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
+    const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
+    if (toConsole)
     {
-      outputToConsole(`${(consolePrefix) ? `${consolePrefix}: ` : ''}${message}`);
-      if (e)
+      if (outputToConsole)
       {
-        outputToConsole(e);
+        outputToConsole(`${(consolePrefix) ? `${consolePrefix}: ` : ''}${message}`);
+        if (e)
+        {
+          outputToConsole(e);
+        }
+      }
+      else
+      {
+        console.log('WEIRD! NO CONSOLE FUNCTION! THIS SHOULD NEVER HAPPEN.');//__RP
       }
     }
-    else
+  
+    if (toServerDir || toSiteDir)
     {
-      console.log('WEIRD! NO CONSOLE FUNCTION! THIS SHOULD NEVER HAPPEN.');//__RP
+      const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
+      if (toServerDir)
+      {
+        outputLogToDir(toServerDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
+        if (e)
+        {
+          outputLogToDir(toServerDir, fileSizeThreshold, e, toConsole);
+        }
+      }
+      if (toSiteDir)
+      {
+        outputLogToDir(toSiteDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
+        if (e)
+        {
+          outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
+        }
+      }
     }
   }
-
-  if (toServerDir || toSiteDir)
-  {
-    const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
-    if (toServerDir)
-    {
-      outputLogToDir(toServerDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
-      if (e)
-      {
-        outputLogToDir(toServerDir, fileSizeThreshold, e, toConsole);
-      }
-    }
-    if (toSiteDir)
-    {
-      outputLogToDir(toSiteDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
-      if (e)
-      {
-        outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
-      }
-    }
-  }
-
-  testSniffer(type, message, logOptions);
 }
 
 function waitForLogFileCompressionBeforeTerminate(options)

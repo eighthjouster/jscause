@@ -7,7 +7,9 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.totalTestsPassed = 0;
   jscTestGlobal.failedTestNames = [];
 
-  const testList = [ test1 ];
+  const testList = [
+    test1
+  ];
   
   console.log('Testing started.');
 
@@ -16,8 +18,10 @@ const start = (jscTestGlobal, onCompletionCb) =>
 
 function finishedAllTesting(jscTestGlobal)
 {
-  console.log('WE HAVE FINISHED ALL TESTING!');//__RP
-  console.log(jscTestGlobal);//__RP
+  console.log('WE HAVE FINISHED ALL TESTING!');
+  console.log(`Total tests run: ${jscTestGlobal.totalTestsRun}`);
+  console.log(`Total tests passed: ${jscTestGlobal.totalTestsPassed}`);
+  console.log(`Failed tests: ${(jscTestGlobal.failedTestNames.length && jscTestGlobal.failedTestNames || [ 'None.  All tests passed.' ]).join(', ')}`);//__RP
   if (typeof(jscTestGlobal.onCompletion) === 'function')
   {
     jscTestGlobal.onCompletion();
@@ -52,6 +56,8 @@ function nextTest(jscTestGlobal, list)
 
   const testPromise = new Promise((resolve) =>
   {
+    jscTestGlobal.configfile = '';
+    jscTestGlobal.onTestEnd = undefined;
     thisTest(jscTestGlobal);
 
     jscTestGlobal.resolveIt = resolve;
@@ -62,7 +68,7 @@ function nextTest(jscTestGlobal, list)
       resolve(originalOnServerError());
     };
 
-    jscLib.startApplication('____DOESNOTEXIST____',
+    jscLib.startApplication((typeof(jscTestGlobal.configfile) !== 'undefined') ? jscTestGlobal.configfile : 'jscause.conf',
       {
         onServerStarted: jscTestGlobal.onServerStarted,
         onServerError: jscTestGlobal.onServerError
@@ -85,6 +91,7 @@ function nextTest(jscTestGlobal, list)
       }
       console.log(result);//__RP
 
+      jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
       nextTest(jscTestGlobal, list);
     })
     .catch((e) =>
@@ -92,6 +99,7 @@ function nextTest(jscTestGlobal, list)
       console.log('SOMETHING WRONG HAPPENED. WE SHOULD HAVE NEVER GOTTEN HERE!');//__RP
       console.log(e);
 
+      jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
       nextTest(jscTestGlobal, list);
     });
 }
@@ -144,6 +152,7 @@ function terminateApplication(jscTestGlobal, resolveMessage = '')
 function test1(jscTestGlobal)
 {
   jscTestGlobal.testName = 'My test';
+  jscTestGlobal.configfile = '____DOESNOTEXIST____';
   jscTestGlobal.snifferList =
   [
     [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
@@ -178,6 +187,11 @@ function test1(jscTestGlobal)
   {
     console.log('EEEEEEEEEEEERROR!');//__RP
     return 'The server emitted an error.  Might be good or bad.';//__RP
+  };
+
+  jscTestGlobal.onTestEnd = () =>
+  {
+    console.log('TEST 1 COMPLETED.  NOTHING TO TEAR DOWN, I THINK.');//__RP
   };
 }
 
