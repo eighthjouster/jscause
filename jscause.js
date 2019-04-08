@@ -13,8 +13,6 @@ const jscTestGlobal =
 };
 jscTestGlobal.jscLib = getAllElementsToSupportTesting();
 
-let processExitAttempts = 0;
-
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -130,12 +128,14 @@ const defaultSiteConfig =
 };
 
 const LOGEXTENSION_FILENAME_RE = /\.log$/;
-const allLogDirs = {};
-const allOpenLogFiles = {};
-const compressLogsDirQueue = [];
-let isCurrentlyLogDirCompressing = false;
-const serverConfig = {};
-const runningServers = {};
+
+let allLogDirs;
+let allOpenLogFiles;
+let compressLogsDirQueue;
+let isCurrentlyLogDirCompressing;
+let processExitAttempts;
+let serverConfig;
+let runningServers;
 
 /* *****************************************
  * 
@@ -168,6 +168,17 @@ if (!isTestMode)
  * Helper functions
  * 
  * *****************************************/
+
+function initializeGlobals()
+{
+  allLogDirs = {};
+  allOpenLogFiles = {};
+  compressLogsDirQueue = [];
+  isCurrentlyLogDirCompressing = false;
+  processExitAttempts = 0;
+  serverConfig = {};
+  runningServers = {};
+}
 
 function determineLogFileSuffix(suffix)
 {
@@ -640,11 +651,33 @@ function waitForLogFileCompressionBeforeTerminate(options)
       console.log('Terminated.');
       if (typeof(options.onTerminateComplete) === 'function')
       {
-        options.onTerminateComplete();
+        Promise.all(
+          Object.values(runningServers)
+            .map(
+              (thisServer) => thisServer.webServer.close(() => Promise.resolve())
+            )
+        )
+          .then(() =>
+          {
+            options.onTerminateComplete();
+          })
+          .catch((e) =>
+          {
+            console.log('ERROR ON SERVER LISTENING TERMINATION? SHOULD WE EVER GET HERE?');//__RP
+            console.log(e);//__RP
+
+          });
       }
       else
       {
         process.exit();
+      }
+    }
+    else
+    {
+      if (typeof(options.onTerminateComplete) === 'function')
+      {
+        options.onTerminateComplete();
       }
     }
   }
@@ -3945,6 +3978,8 @@ function loadVendorModules()
 function startApplication(serverConfFileName, options = {})
 {
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
+
+  initializeGlobals();
 
   let atLeastOneSiteStarted = false;
   let readSuccess = false;

@@ -2,10 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Well, I've fleshed out the testing framework a bit more.
+Time to convert those tests in notes_testing.txt to actual tests.
 
 So far:
  - Still testing jscause.conf
+
+Some console.log() can be changed to console.error() in the testing file.
 
 In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.
