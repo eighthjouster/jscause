@@ -7,7 +7,11 @@
    ************************************** */
 const JSCAUSE_APPLICATION_VERSION = '0.2.0';
 
-const jscLib = getAllElementsToSupportTesting();
+const jscTestGlobal =
+{
+  testSniffer: () => {}
+};
+jscTestGlobal.jscLib = getAllElementsToSupportTesting();
 
 let processExitAttempts = 0;
 
@@ -148,21 +152,16 @@ if (process.argv[2] === 'runtests')
   isTestMode = true;
   runTesting();
 }
-
-if (process.argv[2] === 'testmode')
-{
-  console.log('**** RUNNING IN TEST MODE.  DO NOT USE IN PRODUCTION. ****');
-  console.log('Get rid of the testmode switch to run jscause normally.');
-  isTestMode = true;
-}
-
-if (process.argv[2] && !isTestMode)
+else if (process.argv[2])
 {
   console.error('Unrecognized command line switch. Server not started.');
   process.exit(1);
 }
 
-startApplication((isTestMode) ? 'jscause_test.conf' : 'jscause.conf');
+if (!isTestMode)
+{
+  startApplication('jscause.conf');
+}
 
 /* *****************************************
  * 
@@ -583,8 +582,9 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
     }));
 }
 
-function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = {})
+function JSCLog(type, message, logOptions = {}, testSniffer = jscTestGlobal.testSniffer)
 {
+  const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   if (toConsole)
   {
@@ -622,26 +622,35 @@ function JSCLog(type, message, { e, toConsole = false, toServerDir, toSiteDir, f
       }
     }
   }
+
+  testSniffer(type, message, logOptions);
 }
 
-function waitForLogFileCompressionBeforeTerminate()
+function waitForLogFileCompressionBeforeTerminate(options)
 {
   if (isCurrentlyLogDirCompressing)
   {
     console.log('Waiting for the current log file compression file to terminate...');
-    setTimeout(waitForLogFileCompressionBeforeTerminate, 5000);
+    setTimeout(() => { waitForLogFileCompressionBeforeTerminate(options); }, 5000);
   }
   else
   {
     if (processExitAttempts)
     {
       console.log('Terminated.');
-      process.exit();
+      if (typeof(options.onTerminateComplete) === 'function')
+      {
+        options.onTerminateComplete();
+      }
+      else
+      {
+        process.exit();
+      }
     }
   }
 }
 
-function JSCLogTerminate()
+function JSCLogTerminate(options)
 {
   Object.keys(allOpenLogFiles).forEach((key) =>
   {
@@ -651,8 +660,7 @@ function JSCLogTerminate()
     fs.closeSync(fileObj.fd);
     // If error.... make reference to ${key} //__RP
   });
-
-  setTimeout(waitForLogFileCompressionBeforeTerminate, 0);
+  setTimeout(() => { waitForLogFileCompressionBeforeTerminate(options) }, 0);
 }
 
 function vendor_require(vendorModuleName)
@@ -3934,7 +3942,7 @@ function loadVendorModules()
   return { cookies, formidable, sanitizeFilename };
 }
 
-function startApplication(serverConfFileName)
+function startApplication(serverConfFileName, options = {})
 {
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
@@ -4501,11 +4509,15 @@ function startApplication(serverConfFileName)
   if (atLeastOneSiteStarted)
   {
     JSCLog('info', 'Will start listening.', jscLogBase);
+    if (typeof(options.onServerStarted) === 'function')
+    {
+      options.onServerStarted();
+    }
   }
   else
   {
     JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-    JSCLogTerminate();
+    JSCLogTerminate({ onTerminateComplete: options.onServerError });
   }
 
   process.on('SIGINT', function()
@@ -4514,13 +4526,13 @@ function startApplication(serverConfFileName)
   });
 }
 
-function exitApplication()
+function exitApplication(options = {})
 {
   processExitAttempts++;
   if (processExitAttempts === 1)
   {
     console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
-    JSCLogTerminate();
+    JSCLogTerminate(options);
   }
   else if (processExitAttempts === 2)
   {
@@ -4528,7 +4540,7 @@ function exitApplication()
   }
   else
   {
-    console.log('\nTerminated.');
+    console.log('\nForcefully terminated.');
     process.exit();
   }
 }
@@ -4537,6 +4549,8 @@ function getAllElementsToSupportTesting()
 {
   const allElementsToSupportTesting =
   {
+    exitApplication,
+    startApplication
   };
   return allElementsToSupportTesting;
 }
@@ -4558,7 +4572,7 @@ function runTesting()
 
   if (jscTest)
   {
-    jscTest.start(jscLib, () =>
+    jscTest.start(jscTestGlobal, () =>
     {
       console.log('Testing ended.');
       process.exit();

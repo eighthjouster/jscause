@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Well, I've fleshed out the testing framework a bit more.
+
 So far:
  - Still testing jscause.conf
 
@@ -16,6 +18,12 @@ Did you know that site names can be anything? Like "{}" will be converted to "[O
 Perform exhaustive testing at this point.
  - Document every step you do in notes_testing.txt
    - You must test comments, // and /* */ in json files.
+
+Can guest jscp scripts create globals that can then be read by jscause internal functions? I hope not.  This would be a security risk.
+
+Do we need onServerStarted, onServerError, onTerminateComplete?
+
+Maybe: In some automated tests in which the server shut downs normally (ctrl+C?), they should wait for the server to shut down completely (e.g. allow time to close all the log files.)
 
  - Back up, please.
 
