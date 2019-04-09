@@ -1,27 +1,100 @@
 'use strict';
 
+const allTests =
+[
+  'testBattery_001'
+];
+
 const start = (jscTestGlobal, onCompletionCb) =>
 {
   jscTestGlobal.onCompletion = onCompletionCb;
   jscTestGlobal.totalTestsRun = 0;
   jscTestGlobal.totalTestsPassed = 0;
   jscTestGlobal.failedTestNames = [];
+  jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
 
-  const testList = [
-    test1
-  ];
-  
-  console.log('Testing started.');
+  let testList = [];
+  let onlyTestList = [];
 
-  nextTest(jscTestGlobal, testList);
+  for (let i = 0; i < allTests.length; i++)
+  {
+    const currentName = allTests[i];
+    let currentTest;
+    try
+    {
+      currentTest = require(`./${currentName}`);
+    }
+    catch(e)
+    {
+      console.log(`Error when trying to load ${currentName}.`);
+      console.log(e);
+      testList = [];
+      break;
+    }
+
+    if (Array.isArray(currentTest))
+    {
+      currentTest.forEach((thisTest) =>
+      {
+        if (thisTest.only)
+        {
+          onlyTestList.push(thisTest);
+        }
+        else
+        {
+          testList.push(thisTest);
+        }
+      });
+    }
+    else
+    {
+      if (currentTest.only)
+      {
+        onlyTestList.push(currentTest);
+      }
+      else
+      {
+        testList.push(currentTest);
+      }
+    }
+  }
+
+  if (onlyTestList.length)
+  {
+    console.log('\'only\' directive detected.  Only hand-picked tests will be performed.');
+    testList = onlyTestList;
+  }
+
+  if (testList.length)
+  {
+    console.log('Testing started.');
+
+    nextTest(jscTestGlobal, testList);
+  }
+  else
+  {
+    console.log('No testing was performed.');
+  }
 };
 
 function finishedAllTesting(jscTestGlobal)
 {
-  console.log('WE HAVE FINISHED ALL TESTING!');
+  console.log('*************************************************');
   console.log(`Total tests run: ${jscTestGlobal.totalTestsRun}`);
   console.log(`Total tests passed: ${jscTestGlobal.totalTestsPassed}`);
-  console.log(`Failed tests: ${(jscTestGlobal.failedTestNames.length && jscTestGlobal.failedTestNames || [ 'None.  All tests passed.' ]).join(', ')}`);//__RP
+  if (jscTestGlobal.failedTestNames.length)
+  {
+    console.log('Failed tests:');
+    jscTestGlobal.failedTestNames.forEach((name) =>
+    {
+      console.log(` - ${name}`);
+    });
+    console.log(`Total tests failed: ${jscTestGlobal.totalTestsRun - jscTestGlobal.totalTestsPassed}`);
+  }
+  else
+  {
+    console.log('All tests passed!');
+  }
   if (typeof(jscTestGlobal.onCompletion) === 'function')
   {
     jscTestGlobal.onCompletion();
@@ -49,8 +122,8 @@ function nextTest(jscTestGlobal, list)
       logOptions,
       jscTestGlobal.expectedLogMessages,
       jscTestGlobal.endOfExpectLogMessages,
-      jscTestGlobal.expectedLogMessagesPass,
-      jscTestGlobal.expectedLogMessagesFail
+      jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.bind(jscTestGlobal),
+      jscTestGlobal.expectedLogMessagesFail && jscTestGlobal.expectedLogMessagesFail.bind(jscTestGlobal)
     );
   };
 
@@ -59,9 +132,8 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.configfile = '';
     jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onTestEnd = undefined;
-    thisTest(jscTestGlobal);
+    Object.assign(jscTestGlobal, thisTest);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
-
 
     jscTestGlobal.resolveIt = resolve;
 
@@ -73,17 +145,16 @@ function nextTest(jscTestGlobal, list)
 
     jscLib.startApplication((typeof(jscTestGlobal.configfile) !== 'undefined') ? jscTestGlobal.configfile : 'jscause.conf',
       {
-        onServerStarted: jscTestGlobal.onServerStarted,
-        onServerError: jscTestGlobal.onServerError
+        onServerStarted: jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.bind(jscTestGlobal),
+        onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal)
       }
-    );//__RP
+    );
   });
 
   testPromise
     .then((result) =>
     {
-      console.log('DONE WITH THE TEST. DID IT PASS?');//__RP
-      console.log(jscTestGlobal.testPassed);//__RP
+      result && console.log(result);
       if (jscTestGlobal.testPassed)
       {
         jscTestGlobal.totalTestsPassed++;
@@ -92,18 +163,15 @@ function nextTest(jscTestGlobal, list)
       {
         jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
       }
-      console.log(result);//__RP
 
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
       nextTest(jscTestGlobal, list);
     })
     .catch((e) =>
     {
-      console.log('SOMETHING WRONG HAPPENED. WE SHOULD HAVE NEVER GOTTEN HERE!');//__RP
+      console.log('CRITICAL: Test application bug found.  We should have never gotten here. Aborting.');
       console.log(e);
-
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
-      nextTest(jscTestGlobal, list);
     });
 }
 
@@ -117,7 +185,7 @@ function invokeOnCompletion(jscTestGlobal, resolveMessage)
   }
 }
 
-function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, endOfExpectLogMessages, expectedLogMessagesPass, expectedLogMessagesFail) //__RP will logOptions ever be used here?
+function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, endOfExpectLogMessages, expectedLogMessagesPass, expectedLogMessagesFail)
 {
   if (expectedLogMessages.length)
   {
@@ -128,7 +196,7 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
   
       if (expectedLogMessages.length === 0)
       {
-        expectedLogMessagesPass();
+        expectedLogMessagesPass(this);
       }
     }
     else
@@ -138,7 +206,7 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
         const [ endType = '', endMessage = '' ] = endOfExpectLogMessages[i];
         if ((type === endType) && (message === endMessage))
         {
-          expectedLogMessagesFail();
+          expectedLogMessagesFail(this);
           break;
         }
       }
@@ -146,60 +214,11 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
   }
 }
 
-function terminateApplication(jscTestGlobal, resolveMessage = '')
+function terminateApplication(resolveMessage = '')
 {
+  const jscTestGlobal = this;
   const { jscLib } = jscTestGlobal;
-  jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } }); //__RP
-}
-
-function test1(jscTestGlobal)
-{
-  const currentTest =
-  {
-    testName: 'My test',
-    configfile: '____DOESNOTEXIST____',
-    expectedLogMessages:
-    [
-      [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    onTestBeforeStart()
-    {
-      console.log('STARTING TEST 1!!');//__RP
-    },
-    expectedLogMessagesPass()
-    {
-      console.log('ALRIGHT, TEST PASSED!!!!!');//__RP
-      jscTestGlobal.testPassed = true;
-    },
-    expectedLogMessagesFail()
-    {
-      console.log('SHUCKS, TEST DID NOT PASS!!');//__RP
-      jscTestGlobal.testPassed = false;
-    },
-    onServerStarted()
-    {
-      console.log('SERVER STARTED OK?! SHUCKS! TEST DID NOT PASS!');//__RP
-  
-      jscTestGlobal.testPassed = false;
-      terminateApplication(jscTestGlobal, 'The server started okay.  Do we ever get here? Yes we do.');
-    },
-    onServerError()
-    {
-      console.log('EEEEEEEEEEEERROR!');//__RP
-      return 'The server emitted an error.  Might be good or bad.';//__RP
-    },
-    onTestEnd()
-    {
-      console.log('TEST 1 COMPLETED.  NOTHING TO TEAR DOWN, I THINK.');//__RP
-    }
-  };
-
-  Object.assign(jscTestGlobal, currentTest);
+  jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
 }
 
 module.exports =

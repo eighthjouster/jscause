@@ -17,6 +17,8 @@ Did you know that site names can be anything? Like "{}" will be converted to "[O
  - If we decide to leave this, document.
    - If we decide to correct it, update the tests to check that this behavior doesn't happen.
 
+Don't forget that we have this logOptions param in checkExpectedLogMessages().
+
 Perform exhaustive testing at this point.
  - Document every step you do in notes_testing.txt
    - You must test comments, // and /* */ in json files.

@@ -5,7 +5,7 @@
    * Setup
    *
    ************************************** */
-const JSCAUSE_APPLICATION_VERSION = '0.2.0';
+const JSCAUSE_APPLICATION_VERSION = '0.3.0';
 
 const http = require('http');
 const https = require('https');
@@ -651,7 +651,10 @@ function waitForLogFileCompressionBeforeTerminate(options)
   {
     if (processExitAttempts)
     {
-      console.log('Terminated.');
+      if (!isTestMode)
+      {
+        console.log('Terminated.');
+      }
       if (typeof(options.onTerminateComplete) === 'function')
       {
         Promise.all(
@@ -4569,7 +4572,10 @@ function exitApplication(options = {})
   processExitAttempts++;
   if (processExitAttempts === 1)
   {
-    console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
+    if (!isTestMode)
+    {
+      console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
+    }
     JSCLogTerminate(options);
   }
   else if (processExitAttempts === 2)
