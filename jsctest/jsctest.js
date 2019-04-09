@@ -256,19 +256,13 @@ function doEmptyTestDirectory(dirPathParam)
       {
         if ((dir_path !== rootDir) || (entry !== 'readme.txt'))
         {
-          console.log(`- ${entry_path}`);//__RP
-          //fs.unlinkSync(entry_path);
-        }
-        else
-        {
-          console.log(`WE WILL NOT DELETE SACRED FILE ${entry_path}`);//__RP
+          fs.unlinkSync(entry_path);
         }
       }
     }.bind(this));
     if (dir_path !== rootDir)
     {
-      console.log(`-d- ${dir_path}`);//__RP
-      //__RP fs.rmdirSync(dir_path);
+      fs.rmdirSync(dir_path);
     }
   }
 }
