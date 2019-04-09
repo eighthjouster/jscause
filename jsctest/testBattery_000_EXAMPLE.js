@@ -1,13 +1,10 @@
-'use strict';
-
-const thisTest =
+const emptyDir =
 {
   // only: true,
-  testName: 'My test', //__RP better name, please.
-  configfile: '____DOESNOTEXIST____',
+  testName: 'Empty app dir',
   expectedLogMessages:
   [
-    [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
+    [ 'error', 'Cannot find jscause.conf file.' ],
     [ 'error', 'Server not started.  No sites are running.' ]
   ],
   endOfExpectLogMessages:
@@ -21,6 +18,9 @@ const thisTest =
     // help with debugging.
     //
     // console.log(`Starting: ${this.testName}`);
+    // In theory, the following function must be called right before
+    // and right after all battery of tests are performed.
+    // this.doEmptyTestDirectory();
   },
   expectedLogMessagesPass()
   {
@@ -55,4 +55,4 @@ const thisTest =
 };
 
 // If there is only one test, then there will be no need to put it in an array.
-module.exports = [ thisTest ];
+module.exports = [ emptyDir ];

@@ -16,6 +16,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.failedTestNames = [];
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
+  jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
 
   let testList = [];
   let onlyTestList = [];
@@ -226,6 +227,12 @@ function terminateApplication(resolveMessage = '')
   jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
 }
 
+function createFile(fileName, contents)
+{
+  const filePath = fsPath.join(this.rootDir, fileName);
+  fs.writeFileSync(filePath, contents);
+}
+
 function doEmptyTestDirectory(dirPathParam)
 {
   const rootDir = this.rootDir;
@@ -246,7 +253,7 @@ function doEmptyTestDirectory(dirPathParam)
   {
     fs.readdirSync(dir_path).forEach(function(entry)
     {
-      var entry_path = fsPath.join(dir_path, entry);
+      const entry_path = fsPath.join(dir_path, entry);
       if (fs.lstatSync(entry_path).isDirectory())
       {
         doEmptyTestDirectory.call(this, entry_path);

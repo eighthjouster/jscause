@@ -3,28 +3,7 @@ List of sanity checks:
 
 Starting a server is done with `node jscause.js`
 
-1. Create an empty folder with jscause.js in it.
-
-3. Add the jscvendor folder.
-
-4. Start the server: Expect two responses:
-ERROR: Cannot find jscause.conf file.
-ERROR: Server not started.  No sites are running.
-  nodejs must quit.
-
-5. Add an empty jscause.conf file.
-
-6. Start the server:  Expect the response:
-ERROR: Server not started.  No sites are running.
-  nodejs must quit.
-
 7. jscause.conf with empty or invalid formats, part 1. With the content, start the server.  Nodejs must quit:
-- Content:
-{}
-- Expect:
-ERROR: Server configuration:  The following configuration attribute was not found:
-ERROR: - sites
-ERROR: Server not started.  No sites are running.
 - Content:
 [a single space, no new line]
 ERROR: Invalid jscause.conf file format.

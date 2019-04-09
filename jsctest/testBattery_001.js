@@ -1,9 +1,9 @@
 'use strict';
 
-const thisTest =
+const test_001_emptyDir =
 {
   // only: true,
-  testName: 'My test', //__RP better name, please.
+  testName: 'Empty app dir',
   expectedLogMessages:
   [
     [ 'error', 'Cannot find jscause.conf file.' ],
@@ -18,8 +18,11 @@ const thisTest =
     // Here we set up the test.  Config files, sample files, etc.
     // Announcing that we are about to start this particular test might
     // help with debugging.
-    //
-    // console.log(`Starting: ${this.testName}`);
+
+    console.log(`Starting test: ${this.testName}`);
+
+    // In theory, the following function must be called right before
+    // and right after all battery of tests are performed.
     this.doEmptyTestDirectory();
   },
   expectedLogMessagesPass()
@@ -50,9 +53,93 @@ const thisTest =
     // Announcing that we are finishing this particular test might
     // help with debugging.
     //
-    // console.log(`Finished: ${this.testName}`);
+    console.log(`Finished test: ${this.testName}`);
+  }
+};
+
+const test_002_emptyConfigFile =
+{
+  // only: true,
+  testName: 'Empty config file',
+  expectedLogMessages:
+  [
+    [ 'error', 'Server not started.  No sites are running.' ]
+  ],
+  endOfExpectLogMessages:
+  [
+    [ 'error', 'Server not started.  No sites are running.' ]
+  ],
+  onTestBeforeStart()
+  {
+    console.log(`Starting test: ${this.testName}`);
+    this.createFile('jscause.conf', '');
+  },
+  expectedLogMessagesPass()
+  {
+    this.testPassed = true;
+  },
+  expectedLogMessagesFail()
+  {
+    this.testPassed = false;
+  },
+  onServerStarted()
+  {
+    this.testPassed = false;
+    this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+  },
+  onServerError()
+  {
+  },
+  onTestEnd()
+  {
+    console.log(`Finished test: ${this.testName}`);
+  }
+};
+
+const test_003_emptyConfigFileWithBrackets =
+{
+  // only: true,
+  testName: 'Empty config file with brackets',
+  expectedLogMessages:
+  [
+    [ 'error', 'Server configuration:  The following configuration attribute was not found:' ],
+    [ 'error', '- sites' ],
+    [ 'error', 'Server not started.  No sites are running.' ]
+  ],
+  endOfExpectLogMessages:
+  [
+    [ 'error', 'Server not started.  No sites are running.' ]
+  ],
+  onTestBeforeStart()
+  {
+    console.log(`Starting test: ${this.testName}`);
+    this.createFile('jscause.conf', '{}');
+  },
+  expectedLogMessagesPass()
+  {
+    this.testPassed = true;
+  },
+  expectedLogMessagesFail()
+  {
+    this.testPassed = false;
+  },
+  onServerStarted()
+  {
+    this.testPassed = false;
+    this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+  },
+  onServerError()
+  {
+  },
+  onTestEnd()
+  {
+    console.log(`Finished test: ${this.testName}`);
   }
 };
 
 // If there is only one test, then there will be no need to put it in an array.
-module.exports = [ thisTest ];
+module.exports = [
+  test_001_emptyDir,
+  test_002_emptyConfigFile,
+  test_003_emptyConfigFileWithBrackets
+];

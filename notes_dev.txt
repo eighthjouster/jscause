@@ -15,6 +15,9 @@ In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.
   - Does this still count?  Check the testing.
 
+Once you're done debugging writing tests, uncomment:
+//__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
+
 Did you know that site names can be anything? Like "{}" will be converted to "[Object object]".
  - If we decide to leave this, document.
    - If we decide to correct it, update the tests to check that this behavior doesn't happen.
