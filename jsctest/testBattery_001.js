@@ -4,7 +4,6 @@ const thisTest =
 {
   // only: true,
   testName: 'My test', //__RP better name, please.
-  configfile: 'jscause.conf',
   expectedLogMessages:
   [
     [ 'error', 'Cannot find jscause.conf file.' ],

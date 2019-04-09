@@ -15,6 +15,7 @@ const urlUtils = require('url');
 const crypto = require('crypto');
 const zlib = require('zlib');
 
+const JSCAUSE_CONF_FILENAME = 'jscause.conf';
 const JSCAUSE_CONF_PATH = 'configuration';
 const JSCAUSE_SITES_PATH = 'sites';
 const JSCAUSE_CERTS_PATH = 'certs';
@@ -157,7 +158,7 @@ else if (process.argv[2])
 
 if (!isTestMode)
 {
-  startApplication('jscause.conf');
+  startApplication();
 }
 
 /* *****************************************
@@ -3983,7 +3984,7 @@ function loadVendorModules()
   return { cookies, formidable, sanitizeFilename };
 }
 
-function startApplication(serverConfFileName, options = { rootDir: undefined })
+function startApplication(options = { rootDir: undefined })
 {
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
@@ -3999,7 +4000,7 @@ function startApplication(serverConfFileName, options = { rootDir: undefined })
     toConsole: true
   };
 
-  const globalConfigJSON = readAndProcessJSONFile(serverConfFileName, options.rootDir, jscLogBase);
+  const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME, options.rootDir, jscLogBase);
 
   if (globalConfigJSON)
   {
@@ -4011,7 +4012,7 @@ function startApplication(serverConfFileName, options = { rootDir: undefined })
 
     const requiredKeysNotFound = [];
 
-    let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, serverConfFileName, jscLogBase);
+    let processedConfigJSON = prepareConfiguration(globalConfigJSON, allAllowedKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
 
     let soFarSoGood = !!processedConfigJSON;
     
@@ -4103,7 +4104,7 @@ function startApplication(serverConfFileName, options = { rootDir: undefined })
 
       const thisUnprocessedServerSite = allSitesInServer[i];
 
-      let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, serverConfFileName, jscLogBase);
+      let thisServerSite = prepareConfiguration(thisUnprocessedServerSite, allAllowedSiteKeys, JSCAUSE_CONF_FILENAME, jscLogBase);
 
       if (thisServerSite)
       {

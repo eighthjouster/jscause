@@ -4,16 +4,12 @@ git bundle create jscause-.bundle devel
 
 Time to convert those tests in notes_testing.txt to actual tests.
 
-The last test should remove everything but the readme.txt from the testrootdir directory.  Implement with caution.
+The last test should call doEmptyTestDirectory()
 
 So far:
  - Still testing jscause.conf
 
 Some console.log() can be changed to console.error() in the testing file.
-
-Perhaps we don't need the line:
-configfile: 'jscause.conf',
-in the tests?
 
 In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.

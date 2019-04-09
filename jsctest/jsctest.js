@@ -133,7 +133,6 @@ function nextTest(jscTestGlobal, list)
 
   const testPromise = new Promise((resolve) =>
   {
-    jscTestGlobal.configfile = '';
     jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onTestEnd = undefined;
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
@@ -148,7 +147,7 @@ function nextTest(jscTestGlobal, list)
       resolve(originalOnServerError());
     };
 
-    jscLib.startApplication((typeof(jscTestGlobal.configfile) !== 'undefined') ? jscTestGlobal.configfile : 'jscause.conf',
+    jscLib.startApplication(
       {
         onServerStarted: jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.bind(jscTestGlobal),
         onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
