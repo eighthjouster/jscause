@@ -5,9 +5,6 @@ const allTests =
   'testBattery_001'
 ];
 
-const fs = require('fs');
-const fsPath = require('path');
-
 const start = (jscTestGlobal, onCompletionCb) =>
 {
   jscTestGlobal.onCompletion = onCompletionCb;
@@ -15,7 +12,6 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.totalTestsPassed = 0;
   jscTestGlobal.failedTestNames = [];
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
-  jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
 
   let testList = [];
   let onlyTestList = [];
@@ -136,7 +132,6 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.configfile = '';
     jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onTestEnd = undefined;
-    jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     Object.assign(jscTestGlobal, thisTest);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
 
@@ -151,8 +146,7 @@ function nextTest(jscTestGlobal, list)
     jscLib.startApplication((typeof(jscTestGlobal.configfile) !== 'undefined') ? jscTestGlobal.configfile : 'jscause.conf',
       {
         onServerStarted: jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.bind(jscTestGlobal),
-        onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
-        rootDir: jscTestGlobal.rootDir
+        onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal)
       }
     );
   });
@@ -225,52 +219,6 @@ function terminateApplication(resolveMessage = '')
   const jscTestGlobal = this;
   const { jscLib } = jscTestGlobal;
   jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
-}
-
-function doEmptyTestDirectory(dirPathParam)
-{
-  const rootDir = this.rootDir;
-  const dir_path = dirPathParam || rootDir;
-  if (!dir_path)
-  {
-    console.log('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
-    return;
-  }
-
-  if (dir_path.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.log('CRITICAL: doEmptyDirectory(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  if (fs.existsSync(dir_path))
-  {
-    fs.readdirSync(dir_path).forEach(function(entry)
-    {
-      var entry_path = fsPath.join(dir_path, entry);
-      if (fs.lstatSync(entry_path).isDirectory())
-      {
-        doEmptyTestDirectory.call(this, entry_path);
-      }
-      else
-      {
-        if ((dir_path !== rootDir) || (entry !== 'readme.txt'))
-        {
-          console.log(`- ${entry_path}`);//__RP
-          //fs.unlinkSync(entry_path);
-        }
-        else
-        {
-          console.log(`WE WILL NOT DELETE SACRED FILE ${entry_path}`);//__RP
-        }
-      }
-    }.bind(this));
-    if (dir_path !== rootDir)
-    {
-      console.log(`-d- ${dir_path}`);//__RP
-      //__RP fs.rmdirSync(dir_path);
-    }
-  }
 }
 
 module.exports =

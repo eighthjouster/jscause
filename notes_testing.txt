@@ -1,44 +1,9 @@
-There is a testing framework in place, but we'll need to fill it out with actual tests.
-See: runTesting() and the jsTest/ folder.
-
-They are intended for unit testing.
-
-I was considering using NightWatchJS (or similar) for end-to-end testing.
-
-For now, I'll try to compile a list of all the sanity checks that need to be done in order to ensure that the framework is behaving correctly.  When implementing new functionality or features, please add their corresponding sanity checks here.
-
-Notice that certain expect output conditions (if not most) omit unnecessary lines.  A tester must ignore those.  For example:  If the server outputs the following:
-
-ERROR: Site configuration:  The following configuration attributes were not found:
-ERROR: - logging
-ERROR: - canupload
-ERROR: - maxpayloadsizebytes
-ERROR: - mimetypes
-ERROR: - tempworkdirectory
-ERROR: - jscpextensionrequired
-ERROR: - httppoweredbyheader
-ERROR: Site 'My Site' not started.
-INFO: ************ All sites' configuration read at this point ********************
-ERROR: Server not started.  No sites are running.
-
-But the expected output is defined as:
-ERROR: Site configuration:  The following configuration attributes were not found:
-ERROR: Site 'My Site' not started.
-ERROR: Server not started.  No sites are running.
-
-Then the test passes.
-
-
 List of sanity checks:
 ======================
 
 Starting a server is done with `node jscause.js`
 
 1. Create an empty folder with jscause.js in it.
-
-2. Start the server:  Expect at least one response of the type:
-ERROR: CRITICAL: Cannot load jscvendor/vendor_template.jsctpl file. The JSCause installation might be corrupted.
-  nodejs must quit.
 
 3. Add the jscvendor folder.
 

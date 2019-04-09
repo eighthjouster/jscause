@@ -137,10 +137,10 @@ let runningServers;
  * 
  * *****************************************/
 
+let isTestMode = false;
 const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
-let isTestMode = false;
 const jscTestGlobal = {};
 
 if (process.argv[2] === 'runtests')
@@ -597,7 +597,7 @@ function JSCLog(type, message, logOptions = {})
     jscTestGlobal.checkExpectedLogMessages(type, message, logOptions);
     console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
   }
-  else
+  //__RP else
   {
     const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
     const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
@@ -2631,6 +2631,8 @@ function readConfigurationFile(name, path = '.', jscLogConfig = {})
   }
   catch (e)
   {
+    console.log(name, path);//__RP
+    console.log(e);//__RP
     JSCLog('error', `Cannot find ${name} file.`, Object.assign({ e }, jscLogConfig));
   }
 
@@ -3981,7 +3983,7 @@ function loadVendorModules()
   return { cookies, formidable, sanitizeFilename };
 }
 
-function startApplication(serverConfFileName, options = {})
+function startApplication(serverConfFileName, options = { rootDir: undefined })
 {
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
@@ -3997,7 +3999,7 @@ function startApplication(serverConfFileName, options = {})
     toConsole: true
   };
 
-  const globalConfigJSON = readAndProcessJSONFile(serverConfFileName, undefined, jscLogBase);
+  const globalConfigJSON = readAndProcessJSONFile(serverConfFileName, options.rootDir, jscLogBase);
 
   if (globalConfigJSON)
   {

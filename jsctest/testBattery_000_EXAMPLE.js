@@ -4,10 +4,10 @@ const thisTest =
 {
   // only: true,
   testName: 'My test', //__RP better name, please.
-  configfile: 'jscause.conf',
+  configfile: '____DOESNOTEXIST____',
   expectedLogMessages:
   [
-    [ 'error', 'Cannot find jscause.conf file.' ],
+    [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
     [ 'error', 'Server not started.  No sites are running.' ]
   ],
   endOfExpectLogMessages:
@@ -21,7 +21,6 @@ const thisTest =
     // help with debugging.
     //
     // console.log(`Starting: ${this.testName}`);
-    this.doEmptyTestDirectory();
   },
   expectedLogMessagesPass()
   {
