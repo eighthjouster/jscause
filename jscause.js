@@ -594,7 +594,7 @@ function JSCLog(type, message, logOptions = {})
 {
   if (isTestMode)
   {
-    jscTestGlobal.testSniffer(type, message, logOptions);
+    jscTestGlobal.checkExpectedLogMessages(type, message, logOptions);
     console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
   }
   else

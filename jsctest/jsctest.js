@@ -41,24 +41,27 @@ function nextTest(jscTestGlobal, list)
   }
 
   jscTestGlobal.totalTestsRun++;
-  jscTestGlobal.testSniffer = (type, message, logOptions) =>
+  jscTestGlobal.checkExpectedLogMessages = (type, message, logOptions) =>
   {
-    testSniffer(
+    checkExpectedLogMessages(
       type,
       message,
       logOptions,
-      jscTestGlobal.snifferList,
-      jscTestGlobal.snifferEndPhrases,
-      jscTestGlobal.allMessagesSniffedOk,
-      jscTestGlobal.allMessagesSniffedError
+      jscTestGlobal.expectedLogMessages,
+      jscTestGlobal.endOfExpectLogMessages,
+      jscTestGlobal.expectedLogMessagesPass,
+      jscTestGlobal.expectedLogMessagesFail
     );
   };
 
   const testPromise = new Promise((resolve) =>
   {
     jscTestGlobal.configfile = '';
+    jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onTestEnd = undefined;
     thisTest(jscTestGlobal);
+    jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
+
 
     jscTestGlobal.resolveIt = resolve;
 
@@ -114,28 +117,28 @@ function invokeOnCompletion(jscTestGlobal, resolveMessage)
   }
 }
 
-function testSniffer(type, message, logOptions, snifferList, snifferEndPhrases, allMessagesSniffedOk, allMessagesSniffedError) //__RP will logOptions ever be used here?
+function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, endOfExpectLogMessages, expectedLogMessagesPass, expectedLogMessagesFail) //__RP will logOptions ever be used here?
 {
-  if (snifferList.length)
+  if (expectedLogMessages.length)
   {
-    const [ listType = '', listMessage = '' ] = snifferList[0];
+    const [ listType = '', listMessage = '' ] = expectedLogMessages[0];
     if ((type === listType) && (message === listMessage))
     {
-      snifferList.shift();
+      expectedLogMessages.shift();
   
-      if (snifferList.length === 0)
+      if (expectedLogMessages.length === 0)
       {
-        allMessagesSniffedOk();
+        expectedLogMessagesPass();
       }
     }
     else
     {
-      for (let i = 0; i < snifferEndPhrases.length; i++)
+      for (let i = 0; i < endOfExpectLogMessages.length; i++)
       {
-        const [ endType = '', endMessage = '' ] = snifferEndPhrases[i];
+        const [ endType = '', endMessage = '' ] = endOfExpectLogMessages[i];
         if ((type === endType) && (message === endMessage))
         {
-          allMessagesSniffedError();
+          expectedLogMessagesFail();
           break;
         }
       }
@@ -146,53 +149,57 @@ function testSniffer(type, message, logOptions, snifferList, snifferEndPhrases, 
 function terminateApplication(jscTestGlobal, resolveMessage = '')
 {
   const { jscLib } = jscTestGlobal;
-  jscLib.exitApplication({ onTerminateComplete: () => { invokeOnCompletion(jscTestGlobal, resolveMessage); } }); //__RP
+  jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } }); //__RP
 }
 
 function test1(jscTestGlobal)
 {
-  jscTestGlobal.testName = 'My test';
-  jscTestGlobal.configfile = '____DOESNOTEXIST____';
-  jscTestGlobal.snifferList =
-  [
-    [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
-    [ 'error', 'Server not started.  No sites are running.' ]
-  ];
-
-  jscTestGlobal.snifferEndPhrases = [
-    [ 'error', 'Server not started.  No sites are running.' ]
-  ];
-
-  jscTestGlobal.allMessagesSniffedOk = () =>
+  const currentTest =
   {
-    console.log('ALRIGHT, TEST PASSED!!!!!');//__RP
-    jscTestGlobal.testPassed = true;
+    testName: 'My test',
+    configfile: '____DOESNOTEXIST____',
+    expectedLogMessages:
+    [
+      [ 'error', 'Cannot find ____DOESNOTEXIST____ file.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onTestBeforeStart()
+    {
+      console.log('STARTING TEST 1!!');//__RP
+    },
+    expectedLogMessagesPass()
+    {
+      console.log('ALRIGHT, TEST PASSED!!!!!');//__RP
+      jscTestGlobal.testPassed = true;
+    },
+    expectedLogMessagesFail()
+    {
+      console.log('SHUCKS, TEST DID NOT PASS!!');//__RP
+      jscTestGlobal.testPassed = false;
+    },
+    onServerStarted()
+    {
+      console.log('SERVER STARTED OK?! SHUCKS! TEST DID NOT PASS!');//__RP
+  
+      jscTestGlobal.testPassed = false;
+      terminateApplication(jscTestGlobal, 'The server started okay.  Do we ever get here? Yes we do.');
+    },
+    onServerError()
+    {
+      console.log('EEEEEEEEEEEERROR!');//__RP
+      return 'The server emitted an error.  Might be good or bad.';//__RP
+    },
+    onTestEnd()
+    {
+      console.log('TEST 1 COMPLETED.  NOTHING TO TEAR DOWN, I THINK.');//__RP
+    }
   };
 
-  jscTestGlobal.allMessagesSniffedError = () =>
-  {
-    console.log('SHUCKS, TEST DID NOT PASS!!');//__RP
-    jscTestGlobal.testPassed = false;
-  };
-
-  jscTestGlobal.onServerStarted = () =>
-  {
-    console.log('SERVER STARTED OK?! SHUCKS! TEST DID NOT PASS!');//__RP
-
-    jscTestGlobal.testPassed = false;
-    terminateApplication(jscTestGlobal, 'The server started okay.  Do we ever get here? Yes we do.');
-  };
-
-  jscTestGlobal.onServerError = () =>
-  {
-    console.log('EEEEEEEEEEEERROR!');//__RP
-    return 'The server emitted an error.  Might be good or bad.';//__RP
-  };
-
-  jscTestGlobal.onTestEnd = () =>
-  {
-    console.log('TEST 1 COMPLETED.  NOTHING TO TEAR DOWN, I THINK.');//__RP
-  };
+  Object.assign(jscTestGlobal, currentTest);
 }
 
 module.exports =
