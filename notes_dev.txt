@@ -2,6 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Address this error while testing:
+(node:2275) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGINT listeners added. Use emitter.setMaxListeners() to increase limit
+
 Time to convert those tests in notes_testing.txt to actual tests.
 
 The last test should call doEmptyTestDirectory()

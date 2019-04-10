@@ -1,62 +1,9 @@
 List of sanity checks:
 ======================
 
-Starting a server is done with `node jscause.js`
+Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
+document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
-7. jscause.conf with empty or invalid formats, part 1. With the content, start the server.  Nodejs must quit:
-- Content:
-[a single space, no new line]
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected end of JSON input
-- Content:
-[an empty new line]
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected end of JSON input
-INFO: ************ All sites' configuration read at this point ********************
-ERROR: Server not started.  No sites are running.
-- Content:
-p
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected token p in JSON at position 0
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected end of JSON input
-ERROR: Server not started.  No sites are running.
-- Content:
-[1]
-- Expect:
-ERROR: "0" is not a valid configuration key.
-INFO: ************ All sites' configuration read at this point ********************
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  unknown: ""
-}
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected token u in JSON at position 2
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  "unknown": unknown
-}
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected token u in JSON at position 2
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  "unknown": ""
-}
-- Expect:
-ERROR: "unknown" is not a valid configuration key.
-ERROR: Check that all the keys and values in jscause.conf are valid.
-ERROR: Server not started.  No sites are running.
 - Content:
 {
   "sites": ""
