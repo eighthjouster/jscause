@@ -598,7 +598,7 @@ function JSCLog(type, message, logOptions = {})
     jscTestGlobal.checkExpectedLogMessages(type, message, logOptions);
     console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
   }
-  //__RP else
+  //__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
   {
     const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
     const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
@@ -4564,10 +4564,13 @@ function startApplication(options = { rootDir: undefined })
     JSCLogTerminate({ onTerminateComplete: options.onServerError });
   }
 
-  process.on('SIGINT', function()
+  if (!isTestMode)
   {
-    exitApplication();
-  });
+    process.on('SIGINT', function()
+    {
+      exitApplication();
+    });
+  }
 }
 
 function exitApplication(options = {})
