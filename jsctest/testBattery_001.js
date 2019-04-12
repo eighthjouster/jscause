@@ -3,7 +3,7 @@
 function makeTest(testName)
 {
   return {
-    // only: true,
+    only: false,
     testName,
     onTestBeforeStart()
     {
@@ -328,6 +328,82 @@ const test_011_configFile_singleUnknownKey = Object.assign(makeTest('Config file
   }
 );
 
+const test_012_configFile_invalidSitesKey = Object.assign(makeTest('Config file with invalid sites key'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": ""\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Server configuration:  Expected an array of sites.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_013_configFile_emptySitesValue = Object.assign(makeTest('Config file with an empty sites value'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": []\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Configuration:  sites cannot be empty.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_014_configFile_invalidSitesArray = Object.assign(makeTest('Config file with an invalid array value'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1]\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site configuration: Missing name.' ],
+      [ 'error', 'Site (no name) not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
 // If there is only one test, then there will be no need to put it in an array.
 module.exports = [
   test_001_emptyDir,
@@ -340,5 +416,8 @@ module.exports = [
   test_008_configFile_arrayOf1,
   test_009_configFile_singleInvalidKey,
   test_010_configFile_singleKeyInvalidVal,
-  test_011_configFile_singleUnknownKey
+  test_011_configFile_singleUnknownKey,
+  test_012_configFile_invalidSitesKey,
+  test_013_configFile_emptySitesValue,
+  test_014_configFile_invalidSitesArray
 ];

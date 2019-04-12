@@ -6,30 +6,6 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 - Content:
 {
-  "sites": ""
-}
-- Expect:
-ERROR: Server configuration:  Expected an array of sites.
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  "sites": []
-}
-- Expect:
-ERROR: Configuration:  sites cannot be empty.
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  "sites": [1]
-}
-- Expect:
-ERROR: Server configuration: Logging: directoryName: Cannot find directory: [*]
-ERROR: Server not started.  No sites are running.
-- Expect:
-ERROR: Configuration:  sites cannot be empty.
-ERROR: Server not started.  No sites are running.
-- Content:
-{
   "sites": [1],
   "unknown": 1
 }
