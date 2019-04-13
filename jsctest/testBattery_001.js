@@ -1,51 +1,8 @@
 'use strict';
 
-function makeTest(testName)
-{
-  return {
-    only: false,
-    testName,
-    onTestBeforeStart()
-    {
-      // Here we set up the test.  Config files, sample files, etc.
-      // Announcing that we are about to start this particular test might
-      // help with debugging.
-  
-      console.log(`Starting test: ${this.testName}`);
-    },
-    expectedLogMessagesPass()
-    {
-      // We got all the sequence of log messages we were expecting.
-      // It's generally a good thing.  But it will depened on the test.
-      this.testPassed = true;
-    },
-    expectedLogMessagesFail()
-    {
-      // We never got the sequence of log messages we were expecting.
-      // It's generally a bad thing.  But it will depened on the test.
-      this.testPassed = false;
-    },
-    onServerStarted()
-    {
-      // The server started okay.  It might be good or bad, depending on the test.
-    },
-    onServerError()
-    {
-      // return 'The server emitted an error.  It might be good or bad, depending on the test.';
-    },
-    onTestEnd()
-    {
-      // Here we tear down the test.  Config files, sample files, etc
-      // that are no longer needed.
-      // Announcing that we are finishing this particular test might
-      // help with debugging.
-      //
-      console.log(`Finished test: ${this.testName}`);
-    }
-  };
-}
+const testUtils = require('./testBatteryUtils');
 
-const test_001_emptyDir = Object.assign(makeTest('Empty app dir'),
+const test_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty app dir'),
   {
     // only: true,
     onTestBeforeStart()
@@ -73,7 +30,7 @@ const test_001_emptyDir = Object.assign(makeTest('Empty app dir'),
   }
 );
 
-const test_002_emptyConfigFile = Object.assign(makeTest('Empty config file'),
+const test_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('Empty config file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -97,7 +54,7 @@ const test_002_emptyConfigFile = Object.assign(makeTest('Empty config file'),
   }
 );
 
-const test_003_configFileWithBrackets = Object.assign(makeTest('Config file with brackets'),
+const test_003_configFileWithBrackets = Object.assign(testUtils.makeFromBaseTest('Config file with brackets'),
   {
     // only: true,
     onTestBeforeStart()
@@ -123,7 +80,7 @@ const test_003_configFileWithBrackets = Object.assign(makeTest('Config file with
   }
 );
 
-const test_004_emptyConfigFileSingleSpace = Object.assign(makeTest('Empty config file with just one single space'),
+const test_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single space'),
   {
     // only: true,
     onTestBeforeStart()
@@ -149,7 +106,7 @@ const test_004_emptyConfigFileSingleSpace = Object.assign(makeTest('Empty config
   }
 );
 
-const test_005_emptyConfigFileSingleNewLine = Object.assign(makeTest('Empty config file with just one single new line'),
+const test_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single new line'),
   {
     // only: true,
     onTestBeforeStart()
@@ -175,7 +132,7 @@ const test_005_emptyConfigFileSingleNewLine = Object.assign(makeTest('Empty conf
   }
 );
 
-const test_006_configFile_p = Object.assign(makeTest('Config file with just the p letter'),
+const test_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Config file with just the p letter'),
   {
     // only: true,
     onTestBeforeStart()
@@ -201,7 +158,7 @@ const test_006_configFile_p = Object.assign(makeTest('Config file with just the 
   }
 );
 
-const test_007_configFile_openingBracket = Object.assign(makeTest('Config file with just the opening curly bracket'),
+const test_007_configFile_openingBracket = Object.assign(testUtils.makeFromBaseTest('Config file with just the opening curly bracket'),
   {
     // only: true,
     onTestBeforeStart()
@@ -227,7 +184,7 @@ const test_007_configFile_openingBracket = Object.assign(makeTest('Config file w
   }
 );
 
-const test_008_configFile_arrayOf1 = Object.assign(makeTest('Config file with just an array [1]'),
+const test_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTest('Config file with just an array [1]'),
   {
     // only: true,
     onTestBeforeStart()
@@ -252,7 +209,7 @@ const test_008_configFile_arrayOf1 = Object.assign(makeTest('Config file with ju
   }
 );
 
-const test_009_configFile_singleInvalidKey = Object.assign(makeTest('Config file with just an unknown key'),
+const test_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFromBaseTest('Config file with just an unknown key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -277,7 +234,7 @@ const test_009_configFile_singleInvalidKey = Object.assign(makeTest('Config file
   }
 );
 
-const test_010_configFile_singleKeyInvalidVal = Object.assign(makeTest('Config file with unknown key and invalid value'),
+const test_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key and invalid value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -302,7 +259,7 @@ const test_010_configFile_singleKeyInvalidVal = Object.assign(makeTest('Config f
   }
 );
 
-const test_011_configFile_singleUnknownKey = Object.assign(makeTest('Config file with unknown key'),
+const test_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -328,7 +285,7 @@ const test_011_configFile_singleUnknownKey = Object.assign(makeTest('Config file
   }
 );
 
-const test_012_configFile_invalidSitesKey = Object.assign(makeTest('Config file with invalid sites key'),
+const test_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFromBaseTest('Config file with invalid sites key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -353,7 +310,7 @@ const test_012_configFile_invalidSitesKey = Object.assign(makeTest('Config file 
   }
 );
 
-const test_013_configFile_emptySitesValue = Object.assign(makeTest('Config file with an empty sites value'),
+const test_013_configFile_emptySitesValue = Object.assign(testUtils.makeFromBaseTest('Config file with an empty sites value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -378,7 +335,7 @@ const test_013_configFile_emptySitesValue = Object.assign(makeTest('Config file 
   }
 );
 
-const test_014_configFile_invalidSitesArray = Object.assign(makeTest('Config file with an invalid array value'),
+const test_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFromBaseTest('Config file with an invalid array value'),
   {
     /// only: true,
     onTestBeforeStart()
@@ -403,7 +360,7 @@ const test_014_configFile_invalidSitesArray = Object.assign(makeTest('Config fil
   }
 );
 
-const test_015_configFile_sitesWithUnexpectedP = Object.assign(makeTest('Config file with an unexpected p'),
+const test_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected p'),
   {
     // only: true,
     onTestBeforeStart()
@@ -429,7 +386,7 @@ const test_015_configFile_sitesWithUnexpectedP = Object.assign(makeTest('Config 
   }
 );
 
-const test_016_configFile_sitesWithUnexpectedComma = Object.assign(makeTest('Config file with an unexpected comma'),
+const test_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected comma'),
   {
     // only: true,
     onTestBeforeStart()
@@ -455,7 +412,7 @@ const test_016_configFile_sitesWithUnexpectedComma = Object.assign(makeTest('Con
   }
 );
 
-const test_017_configFile_sitesWithUnknown = Object.assign(makeTest('Config file with a second invalid key'),
+const test_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFromBaseTest('Config file with a second invalid key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -481,7 +438,7 @@ const test_017_configFile_sitesWithUnknown = Object.assign(makeTest('Config file
   }
 );
 
-const test_018_configFile_invalidLoggingValue = Object.assign(makeTest('Config file with invalid logging value'),
+const test_018_configFile_invalidLoggingValue = Object.assign(testUtils.makeFromBaseTest('Config file with invalid logging value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -506,7 +463,7 @@ const test_018_configFile_invalidLoggingValue = Object.assign(makeTest('Config f
   }
 );
 
-const test_019_configFile_emptyLogging = Object.assign(makeTest('Config file with empty logging'),
+const test_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBaseTest('Config file with empty logging'),
   {
     // only: true,
     onTestBeforeStart()
