@@ -195,8 +195,8 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
 {
   if (expectedLogMessages.length)
   {
-    const [ listType = '', listMessage = '' ] = expectedLogMessages[0];
-    if ((type === listType) && (message === listMessage))
+    const [ listType = '', listMessage = '', listMessageType = '' ] = expectedLogMessages[0];
+    if ((type === listType) && ((message === listMessage) || ((listMessageType === 'prefix') && (message.indexOf(listMessage) === 0))))
     {
       expectedLogMessages.shift();
   
@@ -209,8 +209,8 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
     {
       for (let i = 0; i < endOfExpectLogMessages.length; i++)
       {
-        const [ endType = '', endMessage = '' ] = endOfExpectLogMessages[i];
-        if ((type === endType) && (message === endMessage))
+        const [ endType = '', endMessage = '', endMessageType = '' ] = endOfExpectLogMessages[i];
+        if ((type === endType) && ((message === endMessage) || ((endMessageType === 'prefix') && (message.indexOf(endMessage) === 0))))
         {
           expectedLogMessagesFail(this);
           break;
