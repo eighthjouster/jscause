@@ -2,7 +2,8 @@
 
 const allTests =
 [
-  'testBattery_001'
+  'testBattery_001',
+  'testBattery_002'
 ];
 
 const fs = require('fs');
@@ -16,6 +17,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.failedTestNames = [];
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
+  jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
 
   let testList = [];
@@ -236,41 +238,60 @@ function createFile(fileName, contents)
 function doEmptyTestDirectory(dirPathParam)
 {
   const rootDir = this.rootDir;
-  const dir_path = dirPathParam || rootDir;
-  if (!dir_path)
+  const dirPath = dirPathParam || rootDir;
+  if (!dirPath)
   {
     console.log('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
     return;
   }
 
-  if (dir_path.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
   {
     console.log('CRITICAL: doEmptyDirectory(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
     return;
   }
 
-  if (fs.existsSync(dir_path))
+  if (fs.existsSync(dirPath))
   {
-    fs.readdirSync(dir_path).forEach(function(entry)
+    fs.readdirSync(dirPath).forEach(function(entry)
     {
-      const entry_path = fsPath.join(dir_path, entry);
+      const entry_path = fsPath.join(dirPath, entry);
       if (fs.lstatSync(entry_path).isDirectory())
       {
         doEmptyTestDirectory.call(this, entry_path);
       }
       else
       {
-        if ((dir_path !== rootDir) || (entry !== 'readme.txt'))
+        if ((dirPath !== rootDir) || (entry !== 'readme.txt'))
         {
           fs.unlinkSync(entry_path);
         }
       }
     }.bind(this));
-    if (dir_path !== rootDir)
+    if (dirPath !== rootDir)
     {
-      fs.rmdirSync(dir_path);
+      fs.rmdirSync(dirPath);
     }
   }
+}
+
+function doCreateDirectoryFromPathList(dirPathList)
+{
+  const rootDir = this.rootDir;
+  const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
+  if (!dirPath)
+  {
+    console.log('CRITICAL: doCreateDirectoryFromPathList(): No directory specified for creation');
+    return;
+  }
+
+  if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.log('CRITICAL: doCreateDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
+  fs.mkdirSync(dirPath);
 }
 
 module.exports =

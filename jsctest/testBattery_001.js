@@ -2,7 +2,7 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const test_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty app dir'),
+const test_001_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty app dir'),
   {
     // only: true,
     onTestBeforeStart()
@@ -30,7 +30,7 @@ const test_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty app di
   }
 );
 
-const test_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('Empty config file'),
+const test_001_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('Empty config file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -54,7 +54,7 @@ const test_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('Empty
   }
 );
 
-const test_003_configFileWithBrackets = Object.assign(testUtils.makeFromBaseTest('Config file with brackets'),
+const test_001_003_configFileWithBrackets = Object.assign(testUtils.makeFromBaseTest('Config file with brackets'),
   {
     // only: true,
     onTestBeforeStart()
@@ -80,7 +80,7 @@ const test_003_configFileWithBrackets = Object.assign(testUtils.makeFromBaseTest
   }
 );
 
-const test_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single space'),
+const test_001_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single space'),
   {
     // only: true,
     onTestBeforeStart()
@@ -106,7 +106,7 @@ const test_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFromBase
   }
 );
 
-const test_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single new line'),
+const test_001_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFromBaseTest('Empty config file with just one single new line'),
   {
     // only: true,
     onTestBeforeStart()
@@ -132,7 +132,7 @@ const test_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFromBa
   }
 );
 
-const test_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Config file with just the p letter'),
+const test_001_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Config file with just the p letter'),
   {
     // only: true,
     onTestBeforeStart()
@@ -158,7 +158,7 @@ const test_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Config f
   }
 );
 
-const test_007_configFile_openingBracket = Object.assign(testUtils.makeFromBaseTest('Config file with just the opening curly bracket'),
+const test_001_007_configFile_openingBracket = Object.assign(testUtils.makeFromBaseTest('Config file with just the opening curly bracket'),
   {
     // only: true,
     onTestBeforeStart()
@@ -184,7 +184,7 @@ const test_007_configFile_openingBracket = Object.assign(testUtils.makeFromBaseT
   }
 );
 
-const test_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTest('Config file with just an array [1]'),
+const test_001_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTest('Config file with just an array [1]'),
   {
     // only: true,
     onTestBeforeStart()
@@ -209,7 +209,7 @@ const test_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTest('C
   }
 );
 
-const test_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFromBaseTest('Config file with just an unknown key'),
+const test_001_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFromBaseTest('Config file with just an unknown key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -234,7 +234,7 @@ const test_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFromBas
   }
 );
 
-const test_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key and invalid value'),
+const test_001_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key and invalid value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -259,7 +259,7 @@ const test_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.makeFrom
   }
 );
 
-const test_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key'),
+const test_001_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFromBaseTest('Config file with unknown key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -285,7 +285,7 @@ const test_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFromBas
   }
 );
 
-const test_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFromBaseTest('Config file with invalid sites key'),
+const test_001_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFromBaseTest('Config file with invalid sites key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -310,7 +310,7 @@ const test_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFromBase
   }
 );
 
-const test_013_configFile_emptySitesValue = Object.assign(testUtils.makeFromBaseTest('Config file with an empty sites value'),
+const test_001_013_configFile_emptySitesValue = Object.assign(testUtils.makeFromBaseTest('Config file with an empty sites value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -335,7 +335,7 @@ const test_013_configFile_emptySitesValue = Object.assign(testUtils.makeFromBase
   }
 );
 
-const test_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFromBaseTest('Config file with an invalid array value'),
+const test_001_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFromBaseTest('Config file with an invalid array value'),
   {
     /// only: true,
     onTestBeforeStart()
@@ -360,7 +360,7 @@ const test_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFromBa
   }
 );
 
-const test_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected p'),
+const test_001_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected p'),
   {
     // only: true,
     onTestBeforeStart()
@@ -386,7 +386,7 @@ const test_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.makeFro
   }
 );
 
-const test_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected comma'),
+const test_001_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils.makeFromBaseTest('Config file with an unexpected comma'),
   {
     // only: true,
     onTestBeforeStart()
@@ -412,7 +412,7 @@ const test_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils.mak
   }
 );
 
-const test_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFromBaseTest('Config file with a second invalid key'),
+const test_001_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFromBaseTest('Config file with a second invalid key'),
   {
     // only: true,
     onTestBeforeStart()
@@ -438,7 +438,7 @@ const test_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFromBas
   }
 );
 
-const test_018_configFile_invalidLoggingValue = Object.assign(testUtils.makeFromBaseTest('Config file with invalid logging value'),
+const test_001_018_configFile_invalidLoggingValue = Object.assign(testUtils.makeFromBaseTest('Config file with invalid logging value'),
   {
     // only: true,
     onTestBeforeStart()
@@ -463,7 +463,7 @@ const test_018_configFile_invalidLoggingValue = Object.assign(testUtils.makeFrom
   }
 );
 
-const test_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBaseTest('Config file with empty logging'),
+const test_001_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBaseTest('Config file with empty logging'),
   {
     // only: true,
     onTestBeforeStart()
@@ -490,23 +490,23 @@ const test_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBaseTes
 
 // If there is only one test, then there will be no need to put it in an array.
 module.exports = [
-  test_001_emptyDir,
-  test_002_emptyConfigFile,
-  test_003_configFileWithBrackets,
-  test_004_emptyConfigFileSingleSpace,
-  test_005_emptyConfigFileSingleNewLine,
-  test_006_configFile_p,
-  test_007_configFile_openingBracket,
-  test_008_configFile_arrayOf1,
-  test_009_configFile_singleInvalidKey,
-  test_010_configFile_singleKeyInvalidVal,
-  test_011_configFile_singleUnknownKey,
-  test_012_configFile_invalidSitesKey,
-  test_013_configFile_emptySitesValue,
-  test_014_configFile_invalidSitesArray,
-  test_015_configFile_sitesWithUnexpectedP,
-  test_016_configFile_sitesWithUnexpectedComma,
-  test_017_configFile_sitesWithUnknown,
-  test_018_configFile_invalidLoggingValue,
-  test_019_configFile_emptyLogging
+  test_001_001_emptyDir,
+  test_001_002_emptyConfigFile,
+  test_001_003_configFileWithBrackets,
+  test_001_004_emptyConfigFileSingleSpace,
+  test_001_005_emptyConfigFileSingleNewLine,
+  test_001_006_configFile_p,
+  test_001_007_configFile_openingBracket,
+  test_001_008_configFile_arrayOf1,
+  test_001_009_configFile_singleInvalidKey,
+  test_001_010_configFile_singleKeyInvalidVal,
+  test_001_011_configFile_singleUnknownKey,
+  test_001_012_configFile_invalidSitesKey,
+  test_001_013_configFile_emptySitesValue,
+  test_001_014_configFile_invalidSitesArray,
+  test_001_015_configFile_sitesWithUnexpectedP,
+  test_001_016_configFile_sitesWithUnexpectedComma,
+  test_001_017_configFile_sitesWithUnknown,
+  test_001_018_configFile_invalidLoggingValue,
+  test_001_019_configFile_emptyLogging
 ];
