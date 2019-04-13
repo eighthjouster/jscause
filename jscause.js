@@ -3228,7 +3228,7 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
   return soFarSoGood;
 }
 
-function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
+function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig, rootDir)
 {
   const { siteName, fullSitePath } = siteConfig;
   const configKeyName = 'logging';
@@ -3250,7 +3250,7 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
       fullSitePath
     };
 
-    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData }, jscLogConfig);
+    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData }, jscLogConfig, rootDir);
 
     siteConfig.logging = loggingConfig;
     soFarSoGood = !!loggingConfig;
@@ -3676,7 +3676,7 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
   return result && loggingInfo;
 }
 
-function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {}, jscLogConfig = {})
+function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {}, jscLogConfig = {}, additionalToRootDir = '')
 {
   let readSuccess = true;
   let doDirectoryCheck = true;
@@ -3806,7 +3806,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     {
       if (!fsPath.isAbsolute(directoryName))
       {
-        directoryName = fsPath.join(RUNTIME_ROOT_DIR, directoryName);
+        directoryName = fsPath.join(RUNTIME_ROOT_DIR, additionalToRootDir, directoryName);
       }
       directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName:`, jscLogConfig);
       readSuccess = (typeof(directoryPath) !== 'undefined');
@@ -4043,7 +4043,7 @@ function startApplication(options = { rootDir: undefined })
   if (readSuccess)
   {
     readSuccess = false;
-    const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase);
+    const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase, options.rootDir);
     
     if (generalLogging)
     {
@@ -4062,7 +4062,7 @@ function startApplication(options = { rootDir: undefined })
       };
     }
 
-    const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase);
+    const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase, options.rootDir);
     
     if (generalLogging && perSiteLogging)
     {
@@ -4205,7 +4205,7 @@ function startApplication(options = { rootDir: undefined })
 
             if (soFarSoGood)
             {
-              soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase);
+              soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase, options.rootDir);
 
               const updatedConfigLogging = soFarSoGood && setupSiteLoggingForRequests(siteName, siteConfig.logging, serverConfig.logging, jscLogBase);
               soFarSoGood = !!updatedConfigLogging;

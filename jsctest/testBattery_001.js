@@ -380,7 +380,7 @@ const test_013_configFile_emptySitesValue = Object.assign(makeTest('Config file 
 
 const test_014_configFile_invalidSitesArray = Object.assign(makeTest('Config file with an invalid array value'),
   {
-    // only: true,
+    /// only: true,
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
@@ -388,8 +388,135 @@ const test_014_configFile_invalidSitesArray = Object.assign(makeTest('Config fil
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Missing name.' ],
-      [ 'error', 'Site (no name) not started.' ],
+      [ 'error', 'Server configuration: Logging: directoryName: Cannot find directory:', 'prefix' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_015_configFile_sitesWithUnexpectedP = Object.assign(makeTest('Config file with an unexpected p'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1]p\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Invalid jscause.conf file format.' ],
+      [ 'error', 'Unexpected token p in JSON at position 14' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_016_configFile_sitesWithUnexpectedComma = Object.assign(makeTest('Config file with an unexpected comma'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1],\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Invalid jscause.conf file format.' ],
+      [ 'error', 'Unexpected token } in JSON at position 16' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_017_configFile_sitesWithUnknown = Object.assign(makeTest('Config file with a second invalid key'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1],\n  "unknown": 1\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', '"unknown" is not a valid configuration key.' ],
+      [ 'error', 'Check that all the keys and values in jscause.conf are valid.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_018_configFile_invalidLoggingValue = Object.assign(makeTest('Config file with invalid logging value'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1],\n  "logging": 1\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Server configuration:  Expected a valid logging configuration value.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_019_configFile_emptyLogging = Object.assign(makeTest('Config file with empty logging'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [1],\n  "logging": {}\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Server configuration: Logging: directoryName: Cannot find directory:', 'prefix' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     endOfExpectLogMessages:
@@ -419,5 +546,10 @@ module.exports = [
   test_011_configFile_singleUnknownKey,
   test_012_configFile_invalidSitesKey,
   test_013_configFile_emptySitesValue,
-  test_014_configFile_invalidSitesArray
+  test_014_configFile_invalidSitesArray,
+  test_015_configFile_sitesWithUnexpectedP,
+  test_016_configFile_sitesWithUnexpectedComma,
+  test_017_configFile_sitesWithUnknown,
+  test_018_configFile_invalidLoggingValue,
+  test_019_configFile_emptyLogging
 ];
