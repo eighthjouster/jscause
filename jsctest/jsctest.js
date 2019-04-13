@@ -18,6 +18,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
   jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
+  jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
 
   let testList = [];
@@ -292,6 +293,43 @@ function doCreateDirectoryFromPathList(dirPathList)
   }
 
   fs.mkdirSync(dirPath);
+}
+
+function doRemoveDirectoryFromPathList(dirPathList, { ignoreIfMissing = false } = {})
+{
+  const rootDir = this.rootDir;
+  const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
+  if (!dirPath)
+  {
+    console.log('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for creation');
+    return;
+  }
+
+  if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.log('CRITICAL: doRemoveDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
+  let dirPathExists = true;
+  try
+  {
+    fs.statSync(dirPath);
+  }
+  catch (e)
+  {
+    dirPathExists = false;
+    if (!ignoreIfMissing)
+    {
+      console.log(`CRITICAL: doRemoveDirectoryFromPathList(): Could not delete directory: ${dirPath}`);
+      console.log(e);
+    }
+  }
+
+  if (dirPathExists)
+  {
+    fs.rmdirSync(dirPath);
+  }
 }
 
 module.exports =

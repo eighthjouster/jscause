@@ -4,30 +4,6 @@ List of sanity checks:
 Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
 document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
-8. Add an empty './logs' directory.
-
-9. jscause.conf with empty or invalid formats, part 2. With the content, start the server.  Nodejs must quit:
-- Content:
-{
-  "sites": [1],
-  "logging": {}
-}
-- Expect:
-ERROR: Site configuration: Missing name.
-ERROR: Site (no name) not started.
-ERROR: Server not started.  No sites are running.
-- Content:
-{
-  "sites": [
-    {
-    },
-  ],
-  "logging": {}
-}
-- Expect:
-ERROR: Invalid jscause.conf file format.
-ERROR: Unexpected token ] in JSON at position 18
-ERROR: Server not started.  No sites are running.
 - Content:
 {
   "sites": [
