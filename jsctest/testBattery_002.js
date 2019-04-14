@@ -187,6 +187,84 @@ const test_002_007_missingRootDirName = Object.assign(testUtils.makeFromBaseTest
   }
 );
 
+const test_002_008_emptyRootDirName = Object.assign(testUtils.makeFromBaseTest('Site config, empty root directory name'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": ""\n    }\n  ],\n  "logging": {}\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site configuration: Site name \'My Site\': rootdirectoryname cannot be empty.' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_002_009_invalidRootDirName = Object.assign(testUtils.makeFromBaseTest('Site config, invalid root directory name'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": 4\n    }\n  ],\n  "logging": {}\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site configuration: Site name \'My Site\': rootdirectoryname expects a string value.' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('Site config valid, missing sites directory'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      console.log(`Starting test: ${this.testName}`);
+      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {}\n}\n');
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Cannot find directory: sites/mysite' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    endOfExpectLogMessages:
+    [
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
 module.exports = [
   test_002_001_emptyLogsDirectory,
   test_002_002_emptySiteConfigExtraComma,
@@ -194,5 +272,8 @@ module.exports = [
   test_002_004_emptySiteName,
   test_002_005_missingSitePort,
   test_002_006_invalidSitePort,
-  test_002_007_missingRootDirName
+  test_002_007_missingRootDirName,
+  test_002_008_emptyRootDirName,
+  test_002_009_invalidRootDirName,
+  test_002_010_missingSitesDir
 ];

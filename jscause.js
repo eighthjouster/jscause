@@ -3530,7 +3530,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', 
     }
     catch (e)
     {
-      JSCLog('error', `${errorMsgPrefix} Cannot find directory: ${directoryName}`, Object.assign({ e }, jscLogConfig));
+      JSCLog('error', `${errorMsgPrefix}Cannot find directory: ${directoryName}`, Object.assign({ e }, jscLogConfig));
       readSuccess = false;
     }
   
@@ -3544,7 +3544,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', 
       }
       catch (e)
       {
-        JSCLog('error', `${errorMsgPrefix} Cannot find link:`, jscLogConfig);
+        JSCLog('error', `${errorMsgPrefix}Cannot find link:`, jscLogConfig);
         JSCLog('error', `- ${directoryName} --> ${linkedPath}`, Object.assign({ e }, jscLogConfig));
         readSuccess = false;
       }
@@ -3558,7 +3558,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', 
       }
       else
       {
-        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`, jscLogConfig);
+        JSCLog('error', `${errorMsgPrefix}${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not a directory.`, jscLogConfig);
         readSuccess = false;
       }
     }
@@ -3571,7 +3571,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', 
       }
       catch (e)
       {
-        JSCLog('error', `${errorMsgPrefix} ${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`, jscLogConfig);
+        JSCLog('error', `${errorMsgPrefix}${directoryName}${(linkedPath) ? ` --> ${linkedPath}` : ''} is not writeable.`, jscLogConfig);
         readSuccess = false;
       }
     }
@@ -3583,7 +3583,7 @@ function getDirectoryPathAndCheckIfWritable(directoryName, errorMsgPrefix = '', 
   }
   else
   {
-    JSCLog('error', `${errorMsgPrefix} ${directoryName} is not of a valid type.  String expected.`, jscLogConfig);
+    JSCLog('error', `${errorMsgPrefix}${directoryName} is not of a valid type.  String expected.`, jscLogConfig);
   }
 
   return finalDirectoryPath;
@@ -3808,7 +3808,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       {
         directoryName = fsPath.join(RUNTIME_ROOT_DIR, additionalToRootDir, directoryName);
       }
-      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName:`, jscLogConfig);
+      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName: `, jscLogConfig);
       readSuccess = (typeof(directoryPath) !== 'undefined');
     }
   }
