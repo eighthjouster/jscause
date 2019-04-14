@@ -3986,6 +3986,7 @@ function loadVendorModules()
 
 function startApplication(options = { rootDir: undefined })
 {
+  const { rootDir: alternateRootDir } = options;
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
   initializeGlobals();
@@ -4000,7 +4001,7 @@ function startApplication(options = { rootDir: undefined })
     toConsole: true
   };
 
-  const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME, options.rootDir, jscLogBase);
+  const globalConfigJSON = readAndProcessJSONFile(JSCAUSE_CONF_FILENAME, alternateRootDir, jscLogBase);
 
   if (globalConfigJSON)
   {
@@ -4043,7 +4044,7 @@ function startApplication(options = { rootDir: undefined })
   if (readSuccess)
   {
     readSuccess = false;
-    const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase, options.rootDir);
+    const generalLogging = validateLoggingConfigSection(serverWideLoggingInfo.general, {}, jscLogBase, alternateRootDir);
     
     if (generalLogging)
     {
@@ -4062,7 +4063,7 @@ function startApplication(options = { rootDir: undefined })
       };
     }
 
-    const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase, options.rootDir);
+    const perSiteLogging = generalLogging && validateLoggingConfigSection(serverWideLoggingInfo.persite, { perSite: true }, jscLogBase, alternateRootDir);
     
     if (generalLogging && perSiteLogging)
     {
@@ -4157,7 +4158,7 @@ function startApplication(options = { rootDir: undefined })
         let siteJSONFilePath;
         if (readSuccess)
         {
-          siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
+          siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(alternateRootDir || '', JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
           readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
         }
 
@@ -4205,7 +4206,7 @@ function startApplication(options = { rootDir: undefined })
 
             if (soFarSoGood)
             {
-              soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase, options.rootDir);
+              soFarSoGood = parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBase, alternateRootDir);
 
               const updatedConfigLogging = soFarSoGood && setupSiteLoggingForRequests(siteName, siteConfig.logging, serverConfig.logging, jscLogBase);
               soFarSoGood = !!updatedConfigLogging;

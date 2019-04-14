@@ -9,8 +9,9 @@ const test_002_001_emptyLogsDirectory = Object.assign(testUtils.makeFromBaseTest
     {
       console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
+
       this.createFile('jscause.conf', '{\n  "sites": [1],\n  "logging": {}\n}\n');
-      this.doRemoveDirectoryFromPathList('logs', { ignoreIfMissing: true });
+
       this.doCreateDirectoryFromPathList(['logs']);
     },
     expectedLogMessages:
@@ -249,7 +250,7 @@ const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('S
     },
     expectedLogMessages:
     [
-      [ 'error', 'Cannot find directory: sites/mysite' ],
+      [ 'error', 'Cannot find directory: jsctest/testrootdir/sites/mysite' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

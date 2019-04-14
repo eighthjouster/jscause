@@ -3,7 +3,8 @@
 const allTests =
 [
   'testBattery_001',
-  'testBattery_002'
+  'testBattery_002',
+  'testBattery_003'
 ];
 
 const fs = require('fs');
@@ -230,9 +231,22 @@ function terminateApplication(resolveMessage = '')
   jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
 }
 
-function createFile(fileName, contents)
+function createFile(dirPathList, contents)
 {
-  const filePath = fsPath.join(this.rootDir, fileName);
+  if (!dirPathList)
+  {
+    console.log('CRITICAL: createFile(): No file path specified for creation');
+    return;
+  }
+
+  const filePath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+
+  if (filePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.log('CRITICAL: createFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
   fs.writeFileSync(filePath, contents);
 }
 
