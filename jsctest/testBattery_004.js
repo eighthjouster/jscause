@@ -267,7 +267,7 @@ const test_004_010_siteConfNoLogFileSizeThresholdOnPerSite = Object.assign(testU
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: \'My Site\' site logging: \'perSite\' section must not have a \'logFileSizeThreshold\' configuration key.' ],
+      [ 'error', 'Site configuration: \'My Site\' site logging: \'perSite\' section must not have a \'logfilesizethreshold\' configuration key.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

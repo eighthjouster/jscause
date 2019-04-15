@@ -3727,7 +3727,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
 
       if (typeof(logFileSizeThreshold) !== 'undefined')
       {
-        JSCLog('error', 'Site configuration: Logging: \'perSite\' section must not have a \'logFileSizeThreshold\' configuration key.', jscLogConfig);
+        JSCLog('error', 'Site configuration: Logging: \'perSite\' section must not have a \'logfilesizethreshold\' configuration key.', jscLogConfig);
         readSuccess = false;
       }
     }
@@ -3746,13 +3746,13 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       {
         if (logFileSizeThreshold < 0)
         {
-          JSCLog('error', 'Site configuration: Logging: \'logFileSizeThreshold\' must be 0 or greater.', jscLogConfig);
+          JSCLog('error', 'Site configuration: Logging: \'logfilesizethreshold\' must be 0 or greater.', jscLogConfig);
           readSuccess = false;
         }
       }
       else
       {
-        JSCLog('error', 'Site configuration: Logging: \'logFileSizeThreshold\' is invalid.  Integer number expected.', jscLogConfig);
+        JSCLog('error', 'Site configuration: Logging: \'logfilesizethreshold\' is invalid.  Integer number expected.', jscLogConfig);
         readSuccess = false;
       }
     }
@@ -3761,7 +3761,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       let { siteName = '', perSiteDirectoryName = null, fullSitePath = '' } = perSiteData;
       if (typeof(logFileSizeThreshold) !== 'undefined')
       {
-        JSCLog('error', `Site configuration: '${siteName}' site logging: 'perSite' section must not have a 'logFileSizeThreshold' configuration key.`, jscLogConfig);
+        JSCLog('error', `Site configuration: '${siteName}' site logging: 'perSite' section must not have a 'logfilesizethreshold' configuration key.`, jscLogConfig);
         readSuccess = false;
       }
       else if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
