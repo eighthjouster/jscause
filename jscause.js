@@ -1756,12 +1756,12 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (secure && !((protocol === 'https') || isEncryptedConnection))
       {
-        throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send'));
+        throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send.'));
       }
 
       if (expires && ((typeof(expires) !== 'object') || !(expires instanceof Date)))
       {
-        throw(new Error('Invalid expired value.  Date object expected'));
+        throw(new Error('Invalid expired value.  Date object expected.'));
       }
 
       if (maxAge && (expires || (typeof(maxAge) !== 'number')))
@@ -1771,7 +1771,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
       {
-        throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected'));
+        throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected.'));
       }
 
       cookieName = encodeURIComponent(cookieName);
@@ -3653,7 +3653,7 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
           }
           else
           {
-            JSCLog('error', 'Configuration: logging:  Invalid value for general.  Object expected', jscLogConfig);
+            JSCLog('error', 'Configuration: logging:  Invalid value for general.  Object expected.', jscLogConfig);
             result = false;
           }
           break;
@@ -3808,7 +3808,14 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       {
         directoryName = fsPath.join(RUNTIME_ROOT_DIR, additionalToRootDir, directoryName);
       }
-      directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `${(serverWide) ? 'Server configuration' : 'Site configuration'}: Logging: directoryName: `, jscLogConfig);
+      if (serverWide)
+      {
+        directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, 'Server configuration: Logging: directoryName: ', jscLogConfig);
+      }
+      else
+      {
+        directoryPath = getDirectoryPathAndCheckIfWritable(directoryName, `Site configuration: ${getSiteNameOrNoName(perSiteData.siteName)} logging: directoryName: `, jscLogConfig);
+      }
       readSuccess = (typeof(directoryPath) !== 'undefined');
     }
   }

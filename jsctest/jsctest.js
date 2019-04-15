@@ -4,7 +4,9 @@ const allTests =
 [
   'testBattery_001',
   'testBattery_002',
-  'testBattery_003'
+  'testBattery_003',
+  'testBattery_004',
+  'testBattery_005'
 ];
 
 const fs = require('fs');
