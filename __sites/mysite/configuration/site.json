@@ -1,16 +1,14 @@
 {
-  "hostName": "jscausesite2",
-  "tempWorkDirectory": ".",
-  "canUpload": true,
+  "hostName": "jscausesite1",
+  "canUpload": false,
   "maxPayloadSizeBytes": 0,
-  "mimeTypes": {},
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
   "httpsCertFile": "jscause-cert.pem",
   "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
   "logging": {
-    "fileOutput": "disabled",
-    "directoryName": "./localLogs2",
-    "consoleOutput": "enabled"
+    "directoryName": "./localLogs"
   }
 }

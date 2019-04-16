@@ -1,0 +1,14 @@
+{
+  "hostName": "jscausesite2",
+  "canUpload": false,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "directoryName": "./localLogs2"
+  }
+}

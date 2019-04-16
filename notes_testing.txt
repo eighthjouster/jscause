@@ -52,3 +52,7 @@ Test: Check if a rootDirectoryName value is invalid.
     - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
 Test that https cert/key files are valid.
  - This will throw a critical, "unexpected" application error.  Work around this.
+
+In the end, jscause_backup.conf can be either restored or deleted.
+ - And rename __logs and __sites back to logs/ and sites/
+ 
