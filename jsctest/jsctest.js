@@ -7,7 +7,8 @@ const allTests =
   'testBattery_003',
   'testBattery_004',
   'testBattery_005',
-  'testBattery_006'
+  'testBattery_006',
+  'testBattery_007'
 ];
 
 const fs = require('fs');
@@ -133,9 +134,7 @@ function nextTest(jscTestGlobal, list)
       message,
       logOptions,
       jscTestGlobal.expectedLogMessages,
-      jscTestGlobal.endOfExpectLogMessages,
-      jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.bind(jscTestGlobal),
-      jscTestGlobal.expectedLogMessagesFail && jscTestGlobal.expectedLogMessagesFail.bind(jscTestGlobal)
+      jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.bind(jscTestGlobal)
     );
   };
 
@@ -198,7 +197,7 @@ function invokeOnCompletion(jscTestGlobal, resolveMessage)
   }
 }
 
-function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, endOfExpectLogMessages, expectedLogMessagesPass, expectedLogMessagesFail)
+function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, expectedLogMessagesPass)
 {
   if (expectedLogMessages.length)
   {
@@ -210,18 +209,6 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
       if (expectedLogMessages.length === 0)
       {
         expectedLogMessagesPass(this);
-      }
-    }
-    else
-    {
-      for (let i = 0; i < endOfExpectLogMessages.length; i++)
-      {
-        const [ endType = '', endMessage = '', endMessageType = '' ] = endOfExpectLogMessages[i];
-        if ((type === endType) && ((message === endMessage) || ((endMessageType === 'prefix') && (message.indexOf(endMessage) === 0))))
-        {
-          expectedLogMessagesFail(this);
-          break;
-        }
       }
     }
   }

@@ -21,12 +21,6 @@ module.exports = {
         // It's generally a good thing.  But it will depened on the test.
         this.testPassed = true;
       },
-      expectedLogMessagesFail()
-      {
-        // We never got the sequence of log messages we were expecting.
-        // It's generally a bad thing.  But it will depened on the test.
-        this.testPassed = false;
-      },
       onServerStarted()
       {
         // The server started okay.  It might be good or bad, depending on the test.

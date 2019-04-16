@@ -28,10 +28,6 @@ const test_005_001_configFileInvalidEnableHTTPS = Object.assign(testUtils.makeFr
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -52,10 +48,6 @@ const test_005_002_configFileInvalidLoggingGeneral = Object.assign(testUtils.mak
     expectedLogMessages:
     [
       [ 'error', 'Configuration: logging:  Invalid value for general.  Object expected.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -80,10 +72,6 @@ const test_005_003_configFileInvalidLoggingLogFileSizeThreshold = Object.assign(
       [ 'error', 'Site configuration: Logging: \'logfilesizethreshold\' is invalid.  Integer number expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -104,10 +92,6 @@ const test_005_004_configFilePositiveLoggingLogFileSizeThreshold = Object.assign
     expectedLogMessages:
     [
       [ 'error', 'Site configuration: Logging: \'logfilesizethreshold\' must be 0 or greater.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()

@@ -7,10 +7,6 @@ const emptyDir =
     [ 'error', 'Cannot find jscause.conf file.' ],
     [ 'error', 'Server not started.  No sites are running.' ]
   ],
-  endOfExpectLogMessages:
-  [
-    [ 'error', 'Server not started.  No sites are running.' ]
-  ],
   onTestBeforeStart()
   {
     // Here we set up the test.  Config files, sample files, etc.
@@ -27,12 +23,6 @@ const emptyDir =
     // We got all the sequence of log messages we were expecting.
     // It's generally a good thing.  But it will depened on the test.
     this.testPassed = true;
-  },
-  expectedLogMessagesFail()
-  {
-    // We never got the sequence of log messages we were expecting.
-    // It's generally a bad thing.  But it will depened on the test.
-    this.testPassed = false;
   },
   onServerStarted()
   {

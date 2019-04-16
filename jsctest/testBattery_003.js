@@ -23,10 +23,6 @@ const test_003_001_siteDirJsonMissing = Object.assign(testUtils.makeFromBaseTest
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -51,10 +47,6 @@ const test_003_002_emptySiteConf = Object.assign(testUtils.makeFromBaseTest('Emp
     [
       [ 'error', 'Site configuration: Site \'My Site\': site.json is invalid.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -88,10 +80,6 @@ const test_003_003_emptySiteConfBrackets = Object.assign(testUtils.makeFromBaseT
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -113,10 +101,6 @@ const test_003_004_siteConfInvalidHostname = Object.assign(testUtils.makeFromBas
     [
       [ 'error', 'Site configuration:  Invalid hostname.  String value expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -148,10 +132,6 @@ const test_003_005_siteConfEmptyHostname = Object.assign(testUtils.makeFromBaseT
       [ 'error', '- httppoweredbyheader' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -174,10 +154,6 @@ const test_003_006_siteConfNotfoundCanUpload = Object.assign(testUtils.makeFromB
       [ 'error', 'Site configuration:  The following configuration attributes were not found:' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -202,10 +178,6 @@ const test_003_007_siteConfInvalidCanUpload = Object.assign(testUtils.makeFromBa
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -228,10 +200,6 @@ const test_003_008_siteConfInvalidMaxPayloadSizeBytes = Object.assign(testUtils.
       [ 'error', 'Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -256,10 +224,6 @@ const test_003_009_siteConfInvalidJscpExtensionRequired = Object.assign(testUtil
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -282,10 +246,6 @@ const test_003_010_siteConfEmptyJscpExtensionRequired = Object.assign(testUtils.
       [ 'error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -310,10 +270,6 @@ const test_003_011_siteConfInvalidJscpExtensionRequiredValue = Object.assign(tes
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -336,10 +292,6 @@ const test_003_012_siteConfInvalidHttpPoweredByHeader = Object.assign(testUtils.
       [ 'error', 'Site configuration:  Invalid httppoweredbyheader.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -364,10 +316,6 @@ const test_003_013_siteConfEmptyHttpPoweredByHeader = Object.assign(testUtils.ma
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -390,10 +338,6 @@ const test_003_014_siteConfInvalidHttpPoweredByHeaderValue = Object.assign(testU
       [ 'error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -418,10 +362,6 @@ const test_003_015_siteConfInvalidHttpsCertFile = Object.assign(testUtils.makeFr
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -444,10 +384,6 @@ const test_003_016_siteConfEmptyHttpsCertFile = Object.assign(testUtils.makeFrom
       [ 'error', 'Site configuration:  httpscertfile cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -472,10 +408,6 @@ const test_003_017_siteConfInvalidHttpsKeyFile = Object.assign(testUtils.makeFro
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -498,10 +430,6 @@ const test_003_018_siteConfEmptyHttpsKeyFile = Object.assign(testUtils.makeFromB
       [ 'error', 'Site configuration:  httpskeyfile cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -526,10 +454,6 @@ const test_003_019_siteConfInvalidTempWorkDirectory = Object.assign(testUtils.ma
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -553,10 +477,6 @@ const test_003_020_siteConfEmptyTempWorkDirectory = Object.assign(testUtils.make
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -579,10 +499,6 @@ const test_003_021_siteConfInvalidMimeTypes = Object.assign(testUtils.makeFromBa
       [ 'error', 'Site configuration:  Invalid mimetypes.  Object expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -608,10 +524,6 @@ const test_003_022_siteConfMissingLogging = Object.assign(testUtils.makeFromBase
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -634,10 +546,6 @@ const test_003_022_siteConfInvalidLoggindDirName = Object.assign(testUtils.makeF
       [ 'error', 'Site configuration: Site \'My Site\': logging directoryname cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -662,10 +570,6 @@ const test_003_023_siteConfInvalidMimeTypeEntry = Object.assign(testUtils.makeFr
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -688,10 +592,6 @@ const test_003_024_siteConfInvalidMimeTypeInclude = Object.assign(testUtils.make
       [ 'error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -716,10 +616,6 @@ const test_003_025_siteConfEmptyMimeTypeName = Object.assign(testUtils.makeFromB
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -741,10 +637,6 @@ const test_003_026_siteConfEmptyMimeType = Object.assign(testUtils.makeFromBaseT
     [
       [ 'warning', 'Site configuration: png mimetype value is empty.  Assumed application/octet-stream.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {
@@ -768,10 +660,6 @@ const test_003_027_siteConfMimeTypeIncludeAsArray = Object.assign(testUtils.make
       [ 'error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -794,10 +682,6 @@ const test_003_028_siteConfMimeTypeExcludeAsObject = Object.assign(testUtils.mak
       [ 'error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -819,10 +703,6 @@ const test_003_029_siteConfEmptyMimeTypeExcludeName = Object.assign(testUtils.ma
     [
       [ 'error', 'Site configuration:  mimetype name cannot be empty.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
-    ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
     {

@@ -18,10 +18,6 @@ const test_001_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty ap
       [ 'error', 'Cannot find jscause.conf file.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -39,10 +35,6 @@ const test_001_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('E
       this.createFile('jscause.conf', '');
     },
     expectedLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
     [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
@@ -68,10 +60,6 @@ const test_001_003_configFileWithBrackets = Object.assign(testUtils.makeFromBase
       [ 'error', '- sites' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -92,10 +80,6 @@ const test_001_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFrom
     [
       [ 'error', 'Invalid jscause.conf file format.' ],
       [ 'error', 'Unexpected end of JSON input' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -120,10 +104,6 @@ const test_001_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFr
       [ 'error', 'Unexpected end of JSON input' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -144,10 +124,6 @@ const test_001_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Conf
     [
       [ 'error', 'Invalid jscause.conf file format.' ],
       [ 'error', 'Unexpected token p in JSON at position 0' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -172,10 +148,6 @@ const test_001_007_configFile_openingBracket = Object.assign(testUtils.makeFromB
       [ 'error', 'Unexpected end of JSON input' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -195,10 +167,6 @@ const test_001_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTes
     expectedLogMessages:
     [
       [ 'error', '"0" is not a valid configuration key.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -222,10 +190,6 @@ const test_001_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFro
       [ 'error', 'Unexpected token u in JSON at position 2' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -245,10 +209,6 @@ const test_001_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.make
     expectedLogMessages:
     [
       [ 'error', 'Unexpected token u in JSON at position 13' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -273,10 +233,6 @@ const test_001_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFro
       [ 'error', 'Check that all the keys and values in jscause.conf are valid.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -296,10 +252,6 @@ const test_001_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFrom
     expectedLogMessages:
     [
       [ 'error', 'Server configuration:  Expected an array of sites.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -323,10 +275,6 @@ const test_001_013_configFile_emptySitesValue = Object.assign(testUtils.makeFrom
       [ 'error', 'Configuration:  sites cannot be empty.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -346,10 +294,6 @@ const test_001_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFr
     expectedLogMessages:
     [
       [ 'error', 'Server configuration: Logging: directoryName: Cannot find directory:', 'prefix' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -374,10 +318,6 @@ const test_001_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.mak
       [ 'error', 'Unexpected token p in JSON at position 14' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -398,10 +338,6 @@ const test_001_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils
     [
       [ 'error', 'Invalid jscause.conf file format.' ],
       [ 'error', 'Unexpected token } in JSON at position 16' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -426,10 +362,6 @@ const test_001_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFro
       [ 'error', 'Check that all the keys and values in jscause.conf are valid.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -451,10 +383,6 @@ const test_001_018_configFile_invalidLoggingValue = Object.assign(testUtils.make
       [ 'error', 'Server configuration:  Expected a valid logging configuration value.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -474,10 +402,6 @@ const test_001_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBas
     expectedLogMessages:
     [
       [ 'error', 'Server configuration: Logging: directoryName: Cannot find directory:', 'prefix' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()

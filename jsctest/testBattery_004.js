@@ -26,10 +26,6 @@ const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromB
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -51,10 +47,6 @@ const test_004_002_siteConfInvalidLoggingFileOutputKey = Object.assign(testUtils
     [
       [ 'error', 'Site configuration: Logging: fileoutput must be either \'enabled\' or \'disabled\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -80,10 +72,6 @@ const test_004_003_siteConfInvalidLoggingConsoleOutputKey = Object.assign(testUt
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -105,10 +93,6 @@ const test_004_004_siteConfInvalidLoggingDirectoryNameKey = Object.assign(testUt
     [
       [ 'error', 'Site configuration: \'My Site\' site logging: invalid directoryname.  String expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -134,10 +118,6 @@ const test_004_005_siteConfEmptyLoggingDirectoryName = Object.assign(testUtils.m
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -159,10 +139,6 @@ const test_004_006_siteConfMissingLoggingDirectory = Object.assign(testUtils.mak
     [
       [ 'error', 'Site configuration: \'My Site\' logging: directoryName: Cannot find directory:', 'prefix' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -190,10 +166,6 @@ const test_004_007_siteConfLoggingDirectoryAbsolutePath = Object.assign(testUtil
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -215,10 +187,6 @@ const test_004_008_siteConfLoggingDirectoryRandomPath = Object.assign(testUtils.
     [
       [ 'error', 'Site configuration: \'My Site\' logging: directoryName: Cannot find directory:', 'prefix' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -244,10 +212,6 @@ const test_004_009_siteConfMissingWebsiteDirectory = Object.assign(testUtils.mak
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -271,10 +235,6 @@ const test_004_010_siteConfNoLogFileSizeThresholdOnPerSite = Object.assign(testU
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -293,6 +253,9 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "fileOutput": "enabled",\n    "directoryName": "./localLogs",\n    "consoleOutput": "enabled"\n  }\n}\n');
+
+      this.gotAllExpectedLogMsgs = false;
+      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -303,19 +266,17 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
       [ 'info', 'Will start listening.' ],
       [ 'info', 'Server 0 listening on port 3000' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'info', 'Server 0 listening on port 3000' ]
-    ],
     expectedLogMessagesPass()
     {
-      // We must override this to a nop because the default passes the test.
+      // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      // So we will defer it to onServerStarted()
+      this.gotAllExpectedLogMsgs = true;
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.testPassed = true;
+      this.serverDidStart = true;
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }

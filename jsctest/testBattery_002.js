@@ -20,10 +20,6 @@ const test_002_001_emptyLogsDirectory = Object.assign(testUtils.makeFromBaseTest
       [ 'error', 'Site (no name) not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -44,10 +40,6 @@ const test_002_002_emptySiteConfigExtraComma = Object.assign(testUtils.makeFromB
     [
       [ 'error', 'Invalid jscause.conf file format.' ],
       [ 'error', 'Unexpected token ] in JSON at position 18' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -72,10 +64,6 @@ const test_002_003_emptySiteConfig = Object.assign(testUtils.makeFromBaseTest('E
       [ 'error', 'Site (no name) not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -96,10 +84,6 @@ const test_002_004_emptySiteName = Object.assign(testUtils.makeFromBaseTest('Sit
     [
       [ 'error', 'Site configuration: Missing name.' ],
       [ 'error', 'Site (no name) not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -124,10 +108,6 @@ const test_002_005_missingSitePort = Object.assign(testUtils.makeFromBaseTest('S
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -148,10 +128,6 @@ const test_002_006_invalidSitePort = Object.assign(testUtils.makeFromBaseTest('S
     [
       [ 'error', 'Site configuration:  Site name \'My Site\' has an invalid port.  Integer number expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -176,10 +152,6 @@ const test_002_007_missingRootDirName = Object.assign(testUtils.makeFromBaseTest
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -200,10 +172,6 @@ const test_002_008_emptyRootDirName = Object.assign(testUtils.makeFromBaseTest('
     [
       [ 'error', 'Site configuration: Site name \'My Site\': rootdirectoryname cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()
@@ -228,10 +196,6 @@ const test_002_009_invalidRootDirName = Object.assign(testUtils.makeFromBaseTest
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
-    endOfExpectLogMessages:
-    [
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
     onServerStarted()
     {
       this.testPassed = false;
@@ -252,10 +216,6 @@ const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('S
     [
       [ 'error', 'Cannot find directory: jsctest/testrootdir/sites/mysite' ],
       [ 'error', 'Site \'My Site\' not started.' ],
-      [ 'error', 'Server not started.  No sites are running.' ]
-    ],
-    endOfExpectLogMessages:
-    [
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
     onServerStarted()

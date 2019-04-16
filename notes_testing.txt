@@ -4,15 +4,30 @@ List of sanity checks:
 Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
 document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
-- Content:
-- Expect:
-
-- EXPECT THIS FROM DEALING WITH both site.json files:
-ERROR: Site configuration: Both sites 'My Site' and 'My Site 2' have the same host name and port combination - 'jscausesite1', 3000
-
 - LOGGING DISCREPANCIES BETWEEN SERVERWIDE AND PER-SITE
  - IN JUST JSCAUSE.CONF
- - BETWEEN JSCAUSE.CONF AND SITE.JSON
+
+{
+  "sites": [
+    {
+      "name": "My Site",
+      "port": 3000,
+      "rootDirectoryName": "mysite"
+    }
+  ],
+  "logging": {
+    "general": {
+      "fileOutput": "enabled" // <----- THIS HAS ALREADY BEEN TESTED.  NOW....
+      // TEST SWAPPING BOTH GENERAL AND PERSITE.
+      // THE SERVER WON'T COMPLAIN.  IS THAT EXPECTED?
+    },
+    "perSite": {
+      "fileOutput": "disabled"
+    }
+  }
+}
+
+- DISCREPANCIES BETWEEN JSCAUSE.CONF AND SITE.JSON
 
 - Content:
 - Expect:
@@ -24,7 +39,7 @@ Pending:
 
 Test when the workbench directory does not exist.
 
-mysite's localLogs was tested with absolute paths (which should prevent the server from starting.)  What other directories should be tested.
+mysite's localLogs was tested with absolute paths (which should prevent the server from starting.)  What other directories should be tested?
 mysite config:  what if localLogs is not writeable? Or what if it's a symlink?
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
@@ -36,3 +51,4 @@ Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
     - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
 Test that https cert/key files are valid.
+ - This will throw a critical, "unexpected" application error.  Work around this.
