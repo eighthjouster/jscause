@@ -4,34 +4,13 @@ List of sanity checks:
 Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
 document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
-- LOGGING DISCREPANCIES BETWEEN SERVERWIDE AND PER-SITE
- - IN JUST JSCAUSE.CONF
-
-{
-  "sites": [
-    {
-      "name": "My Site",
-      "port": 3000,
-      "rootDirectoryName": "mysite"
-    }
-  ],
-  "logging": {
-    "general": {
-      "fileOutput": "enabled" // <----- THIS HAS ALREADY BEEN TESTED.  NOW....
-      // TEST SWAPPING BOTH GENERAL AND PERSITE.
-      // THE SERVER WON'T COMPLAIN.  IS THAT EXPECTED?
-    },
-    "perSite": {
-      "fileOutput": "disabled"
-    }
-  }
-}
-
 - DISCREPANCIES BETWEEN JSCAUSE.CONF AND SITE.JSON
-
-- Content:
-- Expect:
-
+  - Discrepancies between server's general and site's persite.
+    - fileOutput
+    - consoleOutput
+  - Discrepancies between server's persite and site's persite.
+    - fileOutput
+    - consoleOutput
 
 ===
 
@@ -52,6 +31,10 @@ Test: Check if a rootDirectoryName value is invalid.
     - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
 Test that https cert/key files are valid.
  - This will throw a critical, "unexpected" application error.  Work around this.
+
+- When logging, check that the server configuration prevails if there are discrepancies.
+
+- Test that console does not emit anything if disabled?
 
 In the end, jscause_backup.conf can be either restored or deleted.
  - And rename __logs and __sites back to logs/ and sites/
