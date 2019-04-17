@@ -4,17 +4,8 @@ List of sanity checks:
 Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
 document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
-- DISCREPANCIES BETWEEN JSCAUSE.CONF AND SITE.JSON
-  - Discrepancies between server's general and site's persite.
-    - fileOutput
-    - consoleOutput
-  - Discrepancies between server's persite and site's persite.
-    - fileOutput
-    - consoleOutput
 
-===
-
-Pending:
+You should probably test server's enabled/disabled and site's per site combinations as well.
 
 Test when the workbench directory does not exist.
 

@@ -87,7 +87,7 @@ Some work has been put into place.
            consoleOutput: 'enabled|disabled' [enabled by default]
          },
          perSite: {
-           fileOutput: 'enabled|disabled|per site' [diabled by default.]
+           fileOutput: 'enabled|disabled|per site' [disabled by default.]
            consoleOutput: 'enabled|disabled|per site' enabled by default. (per site = let the site configuration decide)
          }
      - Per site:
