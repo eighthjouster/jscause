@@ -7,7 +7,6 @@ const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       const jsCauseConfContents =
@@ -67,8 +66,6 @@ const test_004_002_siteConfInvalidLoggingFileOutputKey = Object.assign(testUtils
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -104,8 +101,6 @@ const test_004_003_siteConfInvalidLoggingConsoleOutputKey = Object.assign(testUt
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -142,8 +137,6 @@ const test_004_004_siteConfInvalidLoggingDirectoryNameKey = Object.assign(testUt
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -162,7 +155,7 @@ const test_004_004_siteConfInvalidLoggingDirectoryNameKey = Object.assign(testUt
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: \'My Site\' site logging: invalid directoryname.  String expected.' ],
+      [ 'error', 'Site configuration: \'My Site\' site logging: Invalid directoryname.  String expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
@@ -179,8 +172,6 @@ const test_004_005_siteConfEmptyLoggingDirectoryName = Object.assign(testUtils.m
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -218,8 +209,6 @@ const test_004_006_siteConfMissingLoggingDirectory = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -257,8 +246,6 @@ const test_004_007_siteConfLoggingDirectoryAbsolutePath = Object.assign(testUtil
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
 
       const siteConfContents =
@@ -289,8 +276,6 @@ const test_004_008_siteConfLoggingDirectoryRandomPath = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'logging':
@@ -319,8 +304,6 @@ const test_004_009_siteConfMissingWebsiteDirectory = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -360,8 +343,6 @@ const test_004_010_siteConfNoLogFileSizeThresholdOnPerSite = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -402,8 +383,6 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
       const siteConfContents =

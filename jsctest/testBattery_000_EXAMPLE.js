@@ -10,10 +10,6 @@ const emptyDir =
   onTestBeforeStart()
   {
     // Here we set up the test.  Config files, sample files, etc.
-    // Announcing that we are about to start this particular test might
-    // help with debugging.
-    //
-    // console.log(`Starting: ${this.testName}`);
     // In theory, the following function must be called right before
     // and right after all battery of tests are performed.
     // this.doEmptyTestDirectory();
@@ -37,10 +33,6 @@ const emptyDir =
   {
     // Here we tear down the test.  Config files, sample files, etc
     // that are no longer needed.
-    // Announcing that we are finishing this particular test might
-    // help with debugging.
-    //
-    // console.log(`Finished: ${this.testName}`);
   }
 };
 

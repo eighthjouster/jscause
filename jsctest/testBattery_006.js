@@ -7,7 +7,6 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       this.doCreateDirectoryFromPathList(['logs']);
@@ -122,8 +121,6 @@ const test_006_002_configFileTwoSitesSameRootDirAndPort = Object.assign(testUtil
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -174,8 +171,6 @@ const test_006_003_configFileTwoSitesSameName = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -226,8 +221,6 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -278,8 +271,6 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -331,8 +322,6 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -383,8 +372,6 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':

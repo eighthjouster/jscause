@@ -7,7 +7,6 @@ const test_005_001_configFileInvalidEnableHTTPS = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       const jsCauseConfContents =
@@ -72,8 +71,6 @@ const test_005_002_configFileInvalidLoggingGeneral = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -109,8 +106,6 @@ const test_005_003_configFileInvalidLoggingLogFileSizeThreshold = Object.assign(
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -153,8 +148,6 @@ const test_005_004_configFilePositiveLoggingLogFileSizeThreshold = Object.assign
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':

@@ -39,8 +39,8 @@ const start = (jscTestGlobal, onCompletionCb) =>
     }
     catch(e)
     {
-      console.log(`Error when trying to load ${currentName}.`);
-      console.log(e);
+      console.error(`Error when trying to load ${currentName}.`);
+      console.error(e);
       testList = [];
       break;
     }
@@ -74,39 +74,39 @@ const start = (jscTestGlobal, onCompletionCb) =>
 
   if (onlyTestList.length)
   {
-    console.log('\'only\' directive detected.  Only hand-picked tests will be performed.');
+    console.info('\'only\' directive detected.  Only hand-picked tests will be performed.');
     testList = onlyTestList;
   }
 
   if (testList.length)
   {
-    console.log('Testing started.');
+    console.info('Testing started.');
 
     nextTest(jscTestGlobal, testList);
   }
   else
   {
-    console.log('No testing was performed.');
+    console.info('No testing was performed.');
   }
 };
 
 function finishedAllTesting(jscTestGlobal)
 {
-  console.log('*************************************************');
-  console.log(`Total tests run: ${jscTestGlobal.totalTestsRun}`);
-  console.log(`Total tests passed: ${jscTestGlobal.totalTestsPassed}`);
+  console.info('*************************************************');
+  console.info(`Total tests run: ${jscTestGlobal.totalTestsRun}`);
+  console.info(`Total tests passed: ${jscTestGlobal.totalTestsPassed}`);
   if (jscTestGlobal.failedTestNames.length)
   {
-    console.log('Failed tests:');
+    console.info('Failed tests:');
     jscTestGlobal.failedTestNames.forEach((name) =>
     {
-      console.log(` - ${name}`);
+      console.info(` - ${name}`);
     });
-    console.log(`Total tests failed: ${jscTestGlobal.totalTestsRun - jscTestGlobal.totalTestsPassed}`);
+    console.info(`Total tests failed: ${jscTestGlobal.totalTestsRun - jscTestGlobal.totalTestsPassed}`);
   }
   else
   {
-    console.log('All tests passed!');
+    console.info('All tests passed!');
   }
   if (typeof(jscTestGlobal.onCompletion) === 'function')
   {
@@ -143,7 +143,9 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onTestEnd = undefined;
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
+    jscTestGlobal.testPassed = false;
     Object.assign(jscTestGlobal, thisTest);
+    console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
 
     jscTestGlobal.resolveIt = resolve;
@@ -166,7 +168,7 @@ function nextTest(jscTestGlobal, list)
   testPromise
     .then((result) =>
     {
-      result && console.log(result);
+      result && console.info(result);
       if (jscTestGlobal.testPassed)
       {
         jscTestGlobal.totalTestsPassed++;
@@ -176,13 +178,15 @@ function nextTest(jscTestGlobal, list)
         jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
       }
 
+      console.info(`Finished test: ${jscTestGlobal.testName}`);
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
       nextTest(jscTestGlobal, list);
     })
     .catch((e) =>
     {
-      console.log('CRITICAL: Test application bug found.  We should have never gotten here. Aborting.');
-      console.log(e);
+      console.error('CRITICAL: Test application bug found.  We should have never gotten here. Aborting.');
+      console.error(e);
+      console.info(`Finished test: ${jscTestGlobal.testName}`);
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
     });
 }
@@ -225,7 +229,7 @@ function createFile(dirPathList, contents)
 {
   if (!dirPathList)
   {
-    console.log('CRITICAL: createFile(): No file path specified for creation');
+    console.error('CRITICAL: createFile(): No file path specified for creation');
     return;
   }
 
@@ -233,7 +237,7 @@ function createFile(dirPathList, contents)
 
   if (filePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
   {
-    console.log('CRITICAL: createFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    console.error('CRITICAL: createFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
     return;
   }
 
@@ -246,13 +250,13 @@ function doEmptyTestDirectory(dirPathParam)
   const dirPath = dirPathParam || rootDir;
   if (!dirPath)
   {
-    console.log('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
+    console.error('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
     return;
   }
 
   if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
   {
-    console.log('CRITICAL: doEmptyDirectory(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    console.error('CRITICAL: doEmptyDirectory(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
     return;
   }
 
@@ -286,13 +290,13 @@ function doCreateDirectoryFromPathList(dirPathList)
   const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
   if (!dirPath)
   {
-    console.log('CRITICAL: doCreateDirectoryFromPathList(): No directory specified for creation');
+    console.error('CRITICAL: doCreateDirectoryFromPathList(): No directory specified for creation');
     return;
   }
 
   if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
   {
-    console.log('CRITICAL: doCreateDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    console.error('CRITICAL: doCreateDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
     return;
   }
 
@@ -305,13 +309,13 @@ function doRemoveDirectoryFromPathList(dirPathList, { ignoreIfMissing = false } 
   const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
   if (!dirPath)
   {
-    console.log('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for creation');
+    console.error('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for creation');
     return;
   }
 
   if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
   {
-    console.log('CRITICAL: doRemoveDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    console.error('CRITICAL: doRemoveDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
     return;
   }
 
@@ -325,8 +329,8 @@ function doRemoveDirectoryFromPathList(dirPathList, { ignoreIfMissing = false } 
     dirPathExists = false;
     if (!ignoreIfMissing)
     {
-      console.log(`CRITICAL: doRemoveDirectoryFromPathList(): Could not delete directory: ${dirPath}`);
-      console.log(e);
+      console.error(`CRITICAL: doRemoveDirectoryFromPathList(): Could not delete directory: ${dirPath}`);
+      console.error(e);
     }
   }
 

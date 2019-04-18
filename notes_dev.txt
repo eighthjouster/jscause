@@ -7,9 +7,7 @@ Time to convert those tests in notes_testing.txt to actual tests.
 The last test should call doEmptyTestDirectory()
 
 So far:
- - Still testing jscause.conf
-
-Some console.log() can be changed to console.error() in the testing file.
+ - Check for pending work in notes_testing.txt
 
 In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.

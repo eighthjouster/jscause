@@ -6,8 +6,6 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-invalid something.  Shouldn't that invalid be Invalid?
-
 tempWorkDirectory:
  - Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
  - Test when directory does not exist.

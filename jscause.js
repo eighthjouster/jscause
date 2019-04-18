@@ -3172,7 +3172,7 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
           siteConfig.jscpExtensionRequired = finalValue;
           break;
         default:
-          JSCLog('error', 'Site configuration:  invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
+          JSCLog('error', 'Site configuration:  Invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
           soFarSoGood = false;
       }
     }
@@ -3209,7 +3209,7 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
           siteConfig.includeHttpPoweredByHeader = (finalValue === 'include');
           break;
         default:
-          JSCLog('error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.', jscLogConfig);
+          JSCLog('error', 'Site configuration:  Invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.', jscLogConfig);
           soFarSoGood = false;
       }
     }
@@ -3766,7 +3766,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
       }
       else if (perSiteDirectoryName && typeof(perSiteDirectoryName) !== 'string')
       {
-        JSCLog('error', `Site configuration: '${siteName}' site logging: invalid directoryname.  String expected.`, jscLogConfig);
+        JSCLog('error', `Site configuration: '${siteName}' site logging: Invalid directoryname.  String expected.`, jscLogConfig);
         readSuccess = false;
       }
       else if (perSiteDirectoryName)
@@ -4615,7 +4615,7 @@ function getAllElementsToSupportTesting()
 
 function runTesting()
 {
-  console.log('JSCause - Testing mode');
+  console.info('JSCause - Testing mode');
 
   let jscTest;
   try
@@ -4632,7 +4632,7 @@ function runTesting()
   {
     jscTest.start(jscTestGlobal, () =>
     {
-      console.log('Testing ended.');
+      console.info('Testing ended.');
       process.exit();
     });
   }

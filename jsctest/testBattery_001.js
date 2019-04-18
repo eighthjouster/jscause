@@ -7,8 +7,6 @@ const test_001_001_emptyDir = Object.assign(testUtils.makeFromBaseTest('Empty ap
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       // In theory, the following function must be called right before
       // and right after all battery of tests are performed.
       this.doEmptyTestDirectory();
@@ -31,7 +29,6 @@ const test_001_002_emptyConfigFile = Object.assign(testUtils.makeFromBaseTest('E
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '');
     },
     expectedLogMessages:
@@ -51,7 +48,6 @@ const test_001_003_configFileWithBrackets = Object.assign(testUtils.makeFromBase
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{}');
     },
     expectedLogMessages:
@@ -73,7 +69,6 @@ const test_001_004_emptyConfigFileSingleSpace = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', ' ');
     },
     expectedLogMessages:
@@ -95,7 +90,6 @@ const test_001_005_emptyConfigFileSingleNewLine = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '\n');
     },
     expectedLogMessages:
@@ -117,7 +111,6 @@ const test_001_006_configFile_p = Object.assign(testUtils.makeFromBaseTest('Conf
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', 'p');
     },
     expectedLogMessages:
@@ -139,7 +132,6 @@ const test_001_007_configFile_openingBracket = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{');
     },
     expectedLogMessages:
@@ -161,7 +153,6 @@ const test_001_008_configFile_arrayOf1 = Object.assign(testUtils.makeFromBaseTes
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '[1]');
     },
     expectedLogMessages:
@@ -182,7 +173,6 @@ const test_001_009_configFile_singleInvalidKey = Object.assign(testUtils.makeFro
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{\n  unknown: ""\n}\n');
     },
     expectedLogMessages:
@@ -203,7 +193,6 @@ const test_001_010_configFile_singleKeyInvalidVal = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{\n  "unknown": unknown\n}\n');
     },
     expectedLogMessages:
@@ -224,7 +213,6 @@ const test_001_011_configFile_singleUnknownKey = Object.assign(testUtils.makeFro
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'unknown': ''
@@ -250,7 +238,6 @@ const test_001_012_configFile_invalidSitesKey = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': ''
@@ -275,7 +262,6 @@ const test_001_013_configFile_emptySitesValue = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': []
@@ -300,7 +286,6 @@ const test_001_014_configFile_invalidSitesArray = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': [1]
@@ -325,7 +310,6 @@ const test_001_015_configFile_sitesWithUnexpectedP = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{\n  "sites": [1]p\n}\n');
     },
     expectedLogMessages:
@@ -347,7 +331,6 @@ const test_001_016_configFile_sitesWithUnexpectedComma = Object.assign(testUtils
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{\n  "sites": [1],\n}\n');
     },
     expectedLogMessages:
@@ -369,7 +352,6 @@ const test_001_017_configFile_sitesWithUnknown = Object.assign(testUtils.makeFro
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': [1],
@@ -396,7 +378,6 @@ const test_001_018_configFile_invalidLoggingValue = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': [1],
@@ -422,7 +403,6 @@ const test_001_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBas
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites': [1],

@@ -7,7 +7,6 @@ const test_003_001_siteDirJsonMissing = Object.assign(testUtils.makeFromBaseTest
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       const jsCauseConfContents =
@@ -48,8 +47,6 @@ const test_003_002_emptySiteConf = Object.assign(testUtils.makeFromBaseTest('Emp
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'configuration']);
 
       const jsCauseConfContents =
@@ -87,8 +84,6 @@ const test_003_003_emptySiteConfBrackets = Object.assign(testUtils.makeFromBaseT
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{}');
     },
     expectedLogMessages:
@@ -118,8 +113,6 @@ const test_003_004_siteConfInvalidHostname = Object.assign(testUtils.makeFromBas
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 1
@@ -144,8 +137,6 @@ const test_003_005_siteConfEmptyHostname = Object.assign(testUtils.makeFromBaseT
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': ''
@@ -178,8 +169,6 @@ const test_003_006_siteConfNotfoundCanUpload = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1'
@@ -205,8 +194,6 @@ const test_003_007_siteConfInvalidCanUpload = Object.assign(testUtils.makeFromBa
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -233,8 +220,6 @@ const test_003_008_siteConfInvalidMaxPayloadSizeBytes = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -262,8 +247,6 @@ const test_003_009_siteConfInvalidJscpExtensionRequired = Object.assign(testUtil
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -292,8 +275,6 @@ const test_003_010_siteConfEmptyJscpExtensionRequired = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -322,8 +303,6 @@ const test_003_011_siteConfInvalidJscpExtensionRequiredValue = Object.assign(tes
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -335,7 +314,7 @@ const test_003_011_siteConfInvalidJscpExtensionRequiredValue = Object.assign(tes
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
+      [ 'error', 'Site configuration:  Invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -352,8 +331,6 @@ const test_003_012_siteConfInvalidHttpPoweredByHeader = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -383,8 +360,6 @@ const test_003_013_siteConfEmptyHttpPoweredByHeader = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -414,8 +389,6 @@ const test_003_014_siteConfInvalidHttpPoweredByHeaderValue = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -428,7 +401,7 @@ const test_003_014_siteConfInvalidHttpPoweredByHeaderValue = Object.assign(testU
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.' ],
+      [ 'error', 'Site configuration:  Invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -445,8 +418,6 @@ const test_003_015_siteConfInvalidHttpsCertFile = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -477,8 +448,6 @@ const test_003_016_siteConfEmptyHttpsCertFile = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -509,8 +478,6 @@ const test_003_017_siteConfInvalidHttpsKeyFile = Object.assign(testUtils.makeFro
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -542,8 +509,6 @@ const test_003_018_siteConfEmptyHttpsKeyFile = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -575,8 +540,6 @@ const test_003_019_siteConfInvalidTempWorkDirectory = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -609,8 +572,6 @@ const test_003_020_siteConfEmptyTempWorkDirectory = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -643,8 +604,6 @@ const test_003_021_siteConfInvalidMimeTypes = Object.assign(testUtils.makeFromBa
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -678,8 +637,6 @@ const test_003_022_siteConfMissingLogging = Object.assign(testUtils.makeFromBase
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -714,8 +671,6 @@ const test_003_022_siteConfInvalidLoggindDirName = Object.assign(testUtils.makeF
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -750,8 +705,6 @@ const test_003_023_siteConfInvalidMimeTypeEntry = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -788,8 +741,6 @@ const test_003_024_siteConfInvalidMimeTypeInclude = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -826,8 +777,6 @@ const test_003_025_siteConfEmptyMimeTypeName = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -867,8 +816,6 @@ const test_003_026_siteConfEmptyMimeType = Object.assign(testUtils.makeFromBaseT
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -907,8 +854,6 @@ const test_003_027_siteConfMimeTypeIncludeAsArray = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -944,8 +889,6 @@ const test_003_028_siteConfMimeTypeExcludeAsObject = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',
@@ -981,8 +924,6 @@ const test_003_029_siteConfEmptyMimeTypeExcludeName = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const siteConfContents =
       {
         'hostName': 'jscausesite1',

@@ -7,7 +7,6 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       this.doCreateDirectoryFromPathList(['logs']);
@@ -91,8 +90,6 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -147,8 +144,6 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -203,8 +198,6 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -259,8 +252,6 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -315,8 +306,6 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -371,8 +360,6 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -427,8 +414,6 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -483,8 +468,6 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':
@@ -554,23 +537,22 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
         'logging':
         {
-          'directoryName': './localLogs',
-          'fileOutput': 'disabled'
+          'perSite':
+          {
+            'consoleOutput': 'disabled'
+          }
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
@@ -624,8 +606,6 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
-
       const jsCauseConfContents =
       {
         'sites':

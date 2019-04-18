@@ -7,7 +7,6 @@ const test_002_001_emptyLogsDirectory = Object.assign(testUtils.makeFromBaseTest
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
       const jsCauseConfContents =
@@ -38,7 +37,6 @@ const test_002_002_emptySiteConfigExtraComma = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       this.createFile('jscause.conf', '{\n  "sites": [\n    {\n    },\n  ],\n  "logging": {}\n}\n');
     },
     expectedLogMessages:
@@ -60,7 +58,6 @@ const test_002_003_emptySiteConfig = Object.assign(testUtils.makeFromBaseTest('E
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -91,7 +88,6 @@ const test_002_004_emptySiteName = Object.assign(testUtils.makeFromBaseTest('Sit
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -123,7 +119,6 @@ const test_002_005_missingSitePort = Object.assign(testUtils.makeFromBaseTest('S
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -155,7 +150,6 @@ const test_002_006_invalidSitePort = Object.assign(testUtils.makeFromBaseTest('S
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -188,7 +182,6 @@ const test_002_007_missingRootDirName = Object.assign(testUtils.makeFromBaseTest
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -221,7 +214,6 @@ const test_002_008_emptyRootDirName = Object.assign(testUtils.makeFromBaseTest('
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -255,7 +247,6 @@ const test_002_009_invalidRootDirName = Object.assign(testUtils.makeFromBaseTest
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
@@ -289,7 +280,6 @@ const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('S
     // only: true,
     onTestBeforeStart()
     {
-      console.log(`Starting test: ${this.testName}`);
       const jsCauseConfContents =
       {
         'sites':
