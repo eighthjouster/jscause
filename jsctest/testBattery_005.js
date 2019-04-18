@@ -10,7 +10,20 @@ const test_005_001_configFileInvalidEnableHTTPS = Object.assign(testUtils.makeFr
       console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite",\n      "enableHTTPS": 0\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite',
+            'enableHTTPS': 0
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.doCreateDirectoryFromPathList(['logs']);
       this.doCreateDirectoryFromPathList(['sites']);
@@ -20,7 +33,25 @@ const test_005_001_configFileInvalidEnableHTTPS = Object.assign(testUtils.makeFr
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "fileOutput": "enabled",\n    "directoryName": "./localLogs",\n    "consoleOutput": "enabled"\n  }\n}\n');
+      const siteConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'fileOutput': 'enabled',
+          'directoryName': './localLogs',
+          'consoleOutput': 'enabled'
+        }
+      };
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
     [
@@ -43,7 +74,22 @@ const test_005_002_configFileInvalidLoggingGeneral = Object.assign(testUtils.mak
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": ""\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general': ''
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -65,7 +111,29 @@ const test_005_003_configFileInvalidLoggingLogFileSizeThreshold = Object.assign(
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite",\n      "enableHTTPS": false\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "enabled",\n      "directoryName": "logs",\n      "consoleOutput": "enabled",\n      "logFileSizeThreshold": ""\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite',
+            'enableHTTPS': false
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'enabled',
+            'directoryName': 'logs',
+            'consoleOutput': 'enabled',
+            'logFileSizeThreshold': ''
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -87,7 +155,29 @@ const test_005_004_configFilePositiveLoggingLogFileSizeThreshold = Object.assign
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite",\n      "enableHTTPS": false\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "enabled",\n      "directoryName": "logs",\n      "consoleOutput": "enabled",\n      "logFileSizeThreshold": -1\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite',
+            'enableHTTPS': false
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'enabled',
+            'directoryName': 'logs',
+            'consoleOutput': 'enabled',
+            'logFileSizeThreshold': -1
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [

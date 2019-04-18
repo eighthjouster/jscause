@@ -4,18 +4,24 @@ List of sanity checks:
 Paste this in a browser's console for a thrifty/nifty new line encoding/decoding tool:
 document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=event.target.value.replace(/\\n/g,\'\\\\n\')"></textarea><textarea onkeyup="document.body.children[2].innerHTML=event.target.value.replace(/\\\\n/g,\'\\n\')"></textarea><textarea></textarea>';
 
+====
 
-You should probably test server's enabled/disabled and site's per site combinations as well.
+invalid something.  Shouldn't that invalid be Invalid?
 
-Test when the workbench directory does not exist.
+tempWorkDirectory:
+ - Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
+ - Test when directory does not exist.
+ - Test when directory is absolute (it should throw an error).
 
-mysite's localLogs was tested with absolute paths (which should prevent the server from starting.)  What other directories should be tested?
+Site's directoryname.
+ - Test when directory does not exist.
+ - Test when directory is absolute (it should throw an error).
+   - Isn't this tested already?
+
 mysite config:  what if localLogs is not writeable? Or what if it's a symlink?
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)
-Test the multi-site combinations (when the server stops because two sites share the same name, etc.)
-Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
 Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
@@ -26,6 +32,27 @@ Test that https cert/key files are valid.
 - When logging, check that the server configuration prevails if there are discrepancies.
 
 - Test that console does not emit anything if disabled?
+
+Go through the code and see what else needs to be tested that is not directly related to serving files.
+
+Then, go through the code and start testing content-related stuff:
+  - Whether HTML stuff renders.
+  - Forms / GET / POST.
+  - JSON stuff.
+  - File uploads.
+    - Temporary upload files should be deleted.
+  - Limits exceeded.  Timeouts.
+  - waitFor().
+  - rtThen() / rtCatch().
+  - Other rt's.
+  - File operations.
+  - Redirects.
+  - Cookies.
+  - Error 400 / Error 500.
+    - Static error 400, static error 500.
+    - Other errors.
+  - Logging.
+  - What else?
 
 In the end, jscause_backup.conf can be either restored or deleted.
  - And rename __logs and __sites back to logs/ and sites/

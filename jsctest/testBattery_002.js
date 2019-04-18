@@ -10,7 +10,12 @@ const test_002_001_emptyLogsDirectory = Object.assign(testUtils.makeFromBaseTest
       console.log(`Starting test: ${this.testName}`);
       this.doEmptyTestDirectory();
 
-      this.createFile('jscause.conf', '{\n  "sites": [1],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites': [1],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.doCreateDirectoryFromPathList(['logs']);
     },
@@ -56,7 +61,16 @@ const test_002_003_emptySiteConfig = Object.assign(testUtils.makeFromBaseTest('E
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -78,7 +92,17 @@ const test_002_004_emptySiteName = Object.assign(testUtils.makeFromBaseTest('Sit
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": ""\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': ''
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -100,7 +124,17 @@ const test_002_005_missingSitePort = Object.assign(testUtils.makeFromBaseTest('S
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site"\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site'
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -122,7 +156,18 @@ const test_002_006_invalidSitePort = Object.assign(testUtils.makeFromBaseTest('S
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": ""\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': ''
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -144,7 +189,18 @@ const test_002_007_missingRootDirName = Object.assign(testUtils.makeFromBaseTest
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -166,7 +222,19 @@ const test_002_008_emptyRootDirName = Object.assign(testUtils.makeFromBaseTest('
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": ""\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': ''
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -188,7 +256,19 @@ const test_002_009_invalidRootDirName = Object.assign(testUtils.makeFromBaseTest
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": 4\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 4
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [
@@ -210,7 +290,19 @@ const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('S
     onTestBeforeStart()
     {
       console.log(`Starting test: ${this.testName}`);
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {}\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
     [

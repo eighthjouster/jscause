@@ -19,9 +19,47 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "enabled"\n    },\n    "perSite": {\n      "fileOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'enabled'
+          },
+          'perSite':
+          {
+            'fileOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "directoryName": "./localLogs"\n  }\n}\n');
+      const siteConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'directoryName': './localLogs'
+        }
+      };
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -55,7 +93,29 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "disabled"\n    },\n    "perSite": {\n      "fileOutput": "enabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'disabled'
+          },
+          'perSite':
+          {
+            'fileOutput': 'enabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -89,7 +149,29 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "enabled"\n    },\n    "perSite": {\n      "fileOutput": "enabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'enabled'
+          },
+          'perSite':
+          {
+            'fileOutput': 'enabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -123,7 +205,29 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "fileOutput": "disabled"\n    },\n    "perSite": {\n      "fileOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'fileOutput': 'disabled'
+          },
+          'perSite':
+          {
+            'fileOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -157,7 +261,29 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "consoleOutput": "enabled"\n    },\n    "perSite": {\n      "consoleOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'consoleOutput': 'enabled'
+          },
+          'perSite':
+          {
+            'consoleOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -191,7 +317,29 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "consoleOutput": "disabled"\n    },\n    "perSite": {\n      "consoleOutput": "enabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'consoleOutput': 'disabled'
+          },
+          'perSite':
+          {
+            'consoleOutput': 'enabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -225,7 +373,29 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "consoleOutput": "enabled"\n    },\n    "perSite": {\n      "consoleOutput": "enabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'consoleOutput': 'enabled'
+          },
+          'perSite':
+          {
+            'consoleOutput': 'enabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -259,7 +429,29 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "general": {\n      "consoleOutput": "disabled"\n    },\n    "perSite": {\n      "consoleOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'general':
+          {
+            'consoleOutput': 'disabled'
+          },
+          'perSite':
+          {
+            'consoleOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -293,9 +485,44 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "perSite": {\n      "fileOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'perSite':
+          {
+            'fileOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "directoryName": "./localLogs",\n    "fileOutput": "disabled"\n  }\n}\n');
+      const siteConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'directoryName': './localLogs',
+          'fileOutput': 'disabled'
+        }
+      };
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -329,9 +556,43 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "directoryName": "./localLogs",\n    "fileOutput": "disabled"\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'directoryName': './localLogs',
+          'fileOutput': 'disabled'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "directoryName": "./localLogs",\n    "consoleOutput": "disabled"\n  }\n}\n');
+      const siteConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'directoryName': './localLogs',
+          'consoleOutput': 'disabled'
+        }
+      };
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
@@ -365,9 +626,46 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
     {
       console.log(`Starting test: ${this.testName}`);
 
-      this.createFile('jscause.conf', '{\n  "sites": [\n    {\n      "name": "My Site",\n      "port": 3000,\n      "rootDirectoryName": "mysite"\n    }\n  ],\n  "logging": {\n    "perSite": {\n      "fileOutput": "disabled",\n      "consoleOutput": "disabled"\n    }\n  }\n}\n');
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite'
+          }
+        ],
+        'logging':
+        {
+          'perSite':
+          {
+            'fileOutput': 'disabled',
+            'consoleOutput': 'disabled'
+          }
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], '{\n  "hostName": "jscausesite1",\n  "canUpload": false,\n  "maxPayloadSizeBytes": 0,\n  "jscpExtensionRequired": "optional",\n  "httpPoweredByHeader": "include",\n  "httpsCertFile": "jscause-cert.pem",\n  "httpsKeyFile": "jscause-key.pem",\n  "tempWorkDirectory": "./workbench",\n  "mimeTypes": {},\n  "logging": {\n    "directoryName": "./localLogs",\n    "fileOutput": "enabled",\n    "consoleOutput": "enabled"\n  }\n}\n');
+      const siteConfContents =
+      {
+        'hostName': 'jscausesite1',
+        'canUpload': false,
+        'maxPayloadSizeBytes': 0,
+        'jscpExtensionRequired': 'optional',
+        'httpPoweredByHeader': 'include',
+        'httpsCertFile': 'jscause-cert.pem',
+        'httpsKeyFile': 'jscause-key.pem',
+        'tempWorkDirectory': './workbench',
+        'mimeTypes': {},
+        'logging':
+        {
+          'directoryName': './localLogs',
+          'fileOutput': 'enabled',
+          'consoleOutput': 'enabled'
+        }
+      };
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
       this.serverDidStart = false;
