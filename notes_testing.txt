@@ -6,11 +6,6 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-tempWorkDirectory:
- - Test the configuration validity of tempWorkDirectory, if you haven't done so yet.
- - Test when directory does not exist.
- - Test when directory is absolute (it should throw an error).
-
 Site's directoryname.
  - Test when directory does not exist.
  - Test when directory is absolute (it should throw an error).
@@ -40,6 +35,7 @@ Then, go through the code and start testing content-related stuff:
   - File uploads.
     - Temporary upload files should be deleted.
   - Limits exceeded.  Timeouts.
+  - Callbacks.
   - waitFor().
   - rtThen() / rtCatch().
   - Other rt's.

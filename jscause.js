@@ -1189,23 +1189,23 @@ function sanitizeForHTMLOutput(inputText)
 
 function setTempWorkDirectory(siteConfig, jscLogConfig)
 {
-  let  { tempWorkDirectory } = siteConfig;
+  let  { siteName, tempWorkDirectory } = siteConfig;
 
-  let setupSuccess = false;
+  let setupSuccess = (!siteConfig || !siteConfig.canUpload);
 
-  if (!siteConfig || !siteConfig.canUpload)
+  if (setupSuccess)
   {
-    setupSuccess = true;
-  }
-  if (fsPath.isAbsolute(tempWorkDirectory))
-  {
-    JSCLog('error', `Temporary work directory path ${tempWorkDirectory} must be specified as relative.`, jscLogConfig);
-  }
-  else
-  {
-    tempWorkDirectory = fsPath.join(siteConfig.fullSitePath, tempWorkDirectory);
-    siteConfig.tempWorkDirectory = getDirectoryPathAndCheckIfWritable(tempWorkDirectory, '', jscLogConfig);
-    setupSuccess = (typeof(siteConfig.tempWorkDirectory) !== 'undefined');
+    if (fsPath.isAbsolute(tempWorkDirectory))
+    {
+      JSCLog('error', `Temporary work directory path ${tempWorkDirectory} must be specified as relative to ${getSiteNameOrNoName(siteName)}.`, jscLogConfig);
+      setupSuccess = false;
+    }
+    else
+    {
+      tempWorkDirectory = fsPath.join(siteConfig.fullSitePath, tempWorkDirectory);
+      siteConfig.tempWorkDirectory = getDirectoryPathAndCheckIfWritable(tempWorkDirectory, '', jscLogConfig);
+      setupSuccess = (typeof(siteConfig.tempWorkDirectory) !== 'undefined');
+    }
   }
 
   return setupSuccess;
