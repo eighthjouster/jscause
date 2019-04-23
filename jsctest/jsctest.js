@@ -26,6 +26,8 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
+  jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
+  jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
 
   let testList = [];
   let onlyTestList = [];
@@ -207,7 +209,11 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
   if (expectedLogMessages.length)
   {
     const [ listType = '', listMessage = '', listMessageType = '' ] = expectedLogMessages[0];
-    if ((type === listType) && ((message === listMessage) || ((listMessageType === 'prefix') && (message.indexOf(listMessage) === 0))))
+    if ((type === listType) &&
+        ((message === listMessage) ||
+        ((listMessageType === 'prefix') && message.startsWith(listMessage)) ||
+        ((listMessageType === 'suffix') && message.endsWith(listMessage))
+        ))
     {
       expectedLogMessages.shift();
   
@@ -243,6 +249,52 @@ function createFile(dirPathList, contents)
   }
 
   fs.writeFileSync(filePath, contents);
+}
+
+function chmodFileOrDir(dirPathList, permissionInOctal)
+{
+  if (!dirPathList)
+  {
+    console.error('CRITICAL: chmodFileOrDir(): No file path specified for chmod');
+    return;
+  }
+
+  const fileOrDirPath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+
+  if (fileOrDirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.error('CRITICAL: chmodFileOrDir(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
+  fs.chmodSync(fileOrDirPath, permissionInOctal);
+}
+
+function createSymlink(targetPathList, symlinkPathList)
+{
+  if (!targetPathList)
+  {
+    console.error('CRITICAL: createSymlink(): No file path specified for target');
+    return;
+  }
+
+  if (!symlinkPathList)
+  {
+    console.error('CRITICAL: createSymlink(): No file path specified for target');
+    return;
+  }
+
+  const targetFilePath = fsPath.join.apply(null, targetPathList);
+
+  const symlinkFilePath = fsPath.join.apply(null, [this.rootDir].concat(symlinkPathList));
+
+  if (symlinkFilePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.error('CRITICAL: createSymlink(): symlinkPathList: Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
+  fs.symlinkSync(targetFilePath, symlinkFilePath);
 }
 
 function doEmptyTestDirectory(dirPathParam)

@@ -10,8 +10,20 @@ Site's directoryname.
  - Test when directory does not exist.
  - Test when directory is absolute (it should throw an error).
    - Isn't this tested already?
+ - Test when the directory is a symlink to a directory.
+ - Test when directory is non-writeable.
+ - Test when the directory is a file.
+ - Test when the directory is a symlink to a file.
 
-mysite config:  what if localLogs is not writeable? Or what if it's a symlink?
+logs (both general and site):
+ - Test when the directory is a symlink to a directory.
+ - Test when directory is non-writeable.
+ - Test when the directory is a file.
+ - Test when the directory is a symlink to a file.
+
+Do we have to set gotAllExpectedLogMsgs to false every time? Can't this be set by the testing engine behind the scenes?
+  - And serverDidStart as well?
+
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)

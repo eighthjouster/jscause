@@ -2,6 +2,23 @@
 
 const testUtils = require('./testBatteryUtils');
 
+const baseSiteConfContents =
+{
+  'hostName': 'jscausesite1',
+  'canUpload': false,
+  'maxPayloadSizeBytes': 0,
+  'jscpExtensionRequired': 'optional',
+  'httpPoweredByHeader': 'include',
+  'httpsCertFile': 'jscause-cert.pem',
+  'httpsKeyFile': 'jscause-key.pem',
+  'tempWorkDirectory': './workbench',
+  'mimeTypes': {},
+  'logging':
+  {
+    'directoryName': './localLogs'
+  }
+};
+
 const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtils.makeFromBaseTest('Server and site logging discrepancies, fileOutput'),
   {
     // only: true,
@@ -42,22 +59,7 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
-        {
-          'directoryName': './localLogs'
-        }
-      };
+      const siteConfContents = Object.assign({}, baseSiteConfContents, {});
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
@@ -488,23 +490,14 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': './localLogs',
-          'fileOutput': 'disabled'
-        }
-      };
+          'logging':
+          {
+            'directoryName': './localLogs',
+            'fileOutput': 'disabled'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
@@ -557,23 +550,14 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': './localLogs',
-          'consoleOutput': 'disabled'
-        }
-      };
+          'logging':
+          {
+            'directoryName': './localLogs',
+            'consoleOutput': 'disabled'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
@@ -627,24 +611,15 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': './localLogs',
-          'fileOutput': 'enabled',
-          'consoleOutput': 'enabled'
-        }
-      };
+          'logging':
+          {
+            'directoryName': './localLogs',
+            'fileOutput': 'enabled',
+            'consoleOutput': 'enabled'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
       this.gotAllExpectedLogMsgs = false;
