@@ -34,6 +34,10 @@ Maybe: In some automated tests in which the server shut downs normally (ctrl+C?)
 
  - Back up, please.
 
+Strange: two slashes in a path will render jscause.conf invalid:
+"rootDirectoryName": "//mysite",
+Why? Parser bug?
+
 - Document: logFileSizeThreshold
 
 - Logging rotation?

@@ -6,15 +6,6 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-Site's directoryname.
- - Test when directory does not exist.
- - Test when directory is absolute (it should throw an error).
-   - Isn't this tested already?
- - Test when the directory is a symlink to a directory.
- - Test when directory is non-writeable.
- - Test when the directory is a file.
- - Test when the directory is a symlink to a file.
-
 logs (both general and site):
  - Test when the directory is a symlink to a directory.
  - Test when directory is non-writeable.
@@ -31,6 +22,7 @@ Test: What if a port is taken? (By some other application.)
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
     - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
+    - If not done already.
 Test that https cert/key files are valid.
  - This will throw a critical, "unexpected" application error.  Work around this.
 

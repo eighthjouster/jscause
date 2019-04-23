@@ -4165,8 +4165,16 @@ function startApplication(options = { rootDir: undefined })
         let siteJSONFilePath;
         if (readSuccess)
         {
-          siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(alternateRootDir || '', JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
-          readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
+          if (fsPath.isAbsolute(siteRootDirectoryName))
+          {
+            JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}: Site root directory name ${siteRootDirectoryName} cannot be specified as an absolute path.  Directory name expected.`, jscLogBase);
+            readSuccess = false;
+          }
+          else
+          {
+            siteJSONFilePath = getDirectoryPathAndCheckIfWritable(fsPath.join(alternateRootDir || '', JSCAUSE_SITES_PATH, siteRootDirectoryName), '', jscLogBase);
+            readSuccess = (typeof(siteJSONFilePath) !== 'undefined');
+          }
         }
 
         if (readSuccess)
