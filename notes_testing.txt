@@ -6,12 +6,6 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-site logs:
- - Test when the directory is a file.
- - Test when the directory is a symlink to a directory.
- - Test when the directory is a symlink to a file.
- - Test when directory is non-writeable.
-
 Do we have to set gotAllExpectedLogMsgs to false every time? Can't this be set by the testing engine behind the scenes?
   - And serverDidStart as well?
 
