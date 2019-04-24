@@ -114,6 +114,37 @@ const test_002_004_emptySiteName = Object.assign(testUtils.makeFromBaseTest('Sit
   }
 );
 
+const test_002_004_02_invalidSiteName = Object.assign(testUtils.makeFromBaseTest('Site config, invalid, non-string name'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 4
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site configuration: Site name has an invalid value, 4. String expected.' ],
+      [ 'error', 'Site \'4\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
 const test_002_005_missingSitePort = Object.assign(testUtils.makeFromBaseTest('Site config, missing port'),
   {
     // only: true,
@@ -313,6 +344,7 @@ module.exports = [
   test_002_002_emptySiteConfigExtraComma,
   test_002_003_emptySiteConfig,
   test_002_004_emptySiteName,
+  test_002_004_02_invalidSiteName,
   test_002_005_missingSitePort,
   test_002_006_invalidSitePort,
   test_002_007_missingRootDirName,

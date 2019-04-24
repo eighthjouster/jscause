@@ -4122,13 +4122,21 @@ function startApplication(options = { rootDir: undefined })
 
         if (siteName)
         {
-          if (allSiteNames.indexOf(siteName) === -1)
+          if (typeof(siteName) === 'string')
           {
-            allSiteNames.push(siteName);
+            if (allSiteNames.indexOf(siteName) === -1)
+            {
+              allSiteNames.push(siteName);
+            }
+            else
+            {
+              JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`, jscLogBase);
+              readSuccess = false;
+            }
           }
           else
           {
-            JSCLog('error', `Site configuration: Site name '${siteName}' is not unique.`, jscLogBase);
+            JSCLog('error', `Site configuration: Site name has an invalid value, ${siteName}. String expected.`, jscLogBase);
             readSuccess = false;
           }
         }
