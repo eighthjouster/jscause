@@ -137,7 +137,11 @@ function nextTest(jscTestGlobal, list)
       message,
       logOptions,
       jscTestGlobal.expectedLogMessages,
-      jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.bind(jscTestGlobal)
+      () =>
+      {
+        jscTestGlobal.gotAllExpectedLogMsgs = true;
+        jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.call(jscTestGlobal);
+      }
     );
   };
 
@@ -147,6 +151,8 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.onTestEnd = undefined;
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestGlobal.testPassed = false;
+    jscTestGlobal.gotAllExpectedLogMsgs = false;
+    jscTestGlobal.serverDidStart = false;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
@@ -161,7 +167,11 @@ function nextTest(jscTestGlobal, list)
 
     jscLib.startApplication(
       {
-        onServerStarted: jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.bind(jscTestGlobal),
+        onServerStarted: () =>
+        {
+          jscTestGlobal.serverDidStart = true;
+          jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.call(jscTestGlobal);
+        },
         onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
         rootDir: jscTestGlobal.rootDir
       }
@@ -219,7 +229,7 @@ function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages
   
       if (expectedLogMessages.length === 0)
       {
-        expectedLogMessagesPass(this);
+        expectedLogMessagesPass();
       }
     }
   }

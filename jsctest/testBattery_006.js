@@ -85,9 +85,6 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -104,12 +101,10 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -139,9 +134,6 @@ const test_006_002_configFileTwoSitesSameRootDirAndPort = Object.assign(testUtil
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -154,12 +146,10 @@ const test_006_002_configFileTwoSitesSameRootDirAndPort = Object.assign(testUtil
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -190,9 +180,6 @@ const test_006_003_configFileTwoSitesSameName = Object.assign(testUtils.makeFrom
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -204,12 +191,10 @@ const test_006_003_configFileTwoSitesSameName = Object.assign(testUtils.makeFrom
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -240,9 +225,6 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -254,12 +236,10 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -291,9 +271,6 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -305,12 +282,10 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -341,9 +316,6 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
         'logging': {}
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -355,12 +327,10 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -422,9 +392,6 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
         }
       };
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -436,12 +403,10 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }

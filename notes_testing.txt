@@ -6,23 +6,21 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-Do we have to set gotAllExpectedLogMsgs to false every time? Can't this be set by the testing engine behind the scenes?
-  - And serverDidStart as well?
-
 Test: When a mandatory value is missing from site.json (one by one.)
  - Especially the logging section.
  - So, remember that some keys are not mandatory (like the https cert ones.)
-Test: What if a port is taken? (By some other application.)
+
 Test: Check if a rootDirectoryName value is invalid.
  - As in, it must be a string, not a number.
     - What about other sibling values? "name", for example, can be an integer.  It should complain instead.
     - If not done already.
+
 Test that https cert/key files are valid.
  - This will throw a critical, "unexpected" application error.  Work around this.
 
-- When logging, check that the server configuration prevails if there are discrepancies.
-
 - Test that console does not emit anything if disabled?
+
+Test: What if a port is taken? (By some other application.)
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
 

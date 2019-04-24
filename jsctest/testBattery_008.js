@@ -59,9 +59,6 @@ const test_008_001_siteConfMissingTempWorkDirectoryInFs = Object.assign(testUtil
           'tempWorkDirectory': './workbench_MISSING'
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -87,9 +84,6 @@ const test_008_002_siteConfAbsoluteTempWorkDirectoryPath = Object.assign(testUti
           'tempWorkDirectory': '/workbench'
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -116,9 +110,6 @@ const test_008_003_siteConfTempWorkDirectoryIsFile = Object.assign(testUtils.mak
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createFile(['sites', 'mysite', 'workbench_file'], '');
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -145,9 +136,6 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'workbench'], [ 'sites', 'mysite', 'workbench_dir_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -159,12 +147,10 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -182,9 +168,6 @@ const test_008_005_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(test
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'workbench_file'], [ 'sites', 'mysite', 'workbench_file_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -208,9 +191,6 @@ const test_008_006_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testU
       const siteConfContents = Object.assign({}, baseSiteConfContents);
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.chmodFileOrDir(['sites', 'mysite', 'workbench'], 0o444);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -239,9 +219,6 @@ const test_008_007_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUti
       jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
       jsCauseConfContents.sites[0].rootDirectoryName = '/mysite';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -268,9 +245,6 @@ const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.mak
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createFile(['sites', 'mysite_file'], '');
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -297,9 +271,6 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createSymlink(['.', 'mysite'], [ 'sites', 'mysite_dir_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -311,12 +282,10 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -334,9 +303,6 @@ const test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(test
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createSymlink(['.', 'mysite_file'], [ 'sites', 'mysite_file_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -362,9 +328,6 @@ const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testU
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.chmodFileOrDir(['sites', 'mysite'], 0o444);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -401,9 +364,6 @@ const test_008_012_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBa
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createFile(['.', 'logs_file'], '');
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -435,9 +395,6 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createSymlink(['.', 'logs'], [ '.', 'logs_dir_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -449,12 +406,10 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -478,9 +433,6 @@ const test_008_014_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.m
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.createSymlink(['.', 'logs_file'], [ '.', 'logs_file_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -512,9 +464,6 @@ const test_008_015_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.ma
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.chmodFileOrDir(['.', 'logs'], 0o444);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -551,9 +500,6 @@ const test_008_016_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFrom
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createFile(['sites', 'mysite', 'localLogs_file'], '');
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -587,9 +533,6 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'localLogs'], [ 'sites', 'mysite', 'localLogs_dir_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -601,12 +544,10 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -631,9 +572,6 @@ const test_008_018_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'localLogs_file'], [ 'sites', 'mysite', 'localLogs_file_s' ]);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -667,9 +605,6 @@ const test_008_019_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.chmodFileOrDir(['sites', 'mysite', 'localLogs'], 0o444);
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [

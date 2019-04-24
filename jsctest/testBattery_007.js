@@ -61,9 +61,6 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
 
       const siteConfContents = Object.assign({}, baseSiteConfContents, {});
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -75,12 +72,10 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -115,9 +110,6 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -129,12 +121,10 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -169,9 +159,6 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -183,12 +170,10 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -223,9 +208,6 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -237,12 +219,10 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -277,9 +257,6 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -291,12 +268,10 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -331,9 +306,6 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -345,12 +317,10 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -385,9 +355,6 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -399,12 +366,10 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -439,9 +404,6 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
         }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -453,12 +415,10 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -499,9 +459,6 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
           }
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -513,12 +470,10 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -559,9 +514,6 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
           }
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -573,12 +525,10 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
@@ -621,9 +571,6 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
           }
         });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -636,12 +583,10 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }

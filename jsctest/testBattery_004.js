@@ -404,9 +404,6 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
         }
       };
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      this.gotAllExpectedLogMsgs = false;
-      this.serverDidStart = false;
     },
     expectedLogMessages:
     [
@@ -421,12 +418,10 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
     {
       // We must override this because the default passes the test.
       // In this case, the test must pass if the server starts.
-      this.gotAllExpectedLogMsgs = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
     },
     onServerStarted()
     {
-      this.serverDidStart = true;
       this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
