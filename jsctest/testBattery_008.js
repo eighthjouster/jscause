@@ -257,7 +257,7 @@ const test_008_007_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUti
   }
 );
 
-const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file.'),
+const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -352,7 +352,7 @@ const test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(test
   }
 );
 
-const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is non-writeable'),
+const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -384,6 +384,155 @@ const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testU
   }
 );
 
+const test_008_012_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is file'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      jsCauseConfContents.logging =
+      {
+        general:
+        {
+          directoryName: 'logs_file'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.createFile(['.', 'logs_file'], '');
+
+      this.gotAllExpectedLogMsgs = false;
+      this.serverDidStart = false;
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'logs_file is not a directory.', 'suffix' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a directory'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      jsCauseConfContents.logging =
+      {
+        general:
+        {
+          directoryName: 'logs_dir_s'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.createSymlink(['.', 'logs'], [ '.', 'logs_dir_s' ]);
+
+      this.gotAllExpectedLogMsgs = false;
+      this.serverDidStart = false;
+    },
+    expectedLogMessages:
+    [
+      [ 'info' , 'The following sites were set up successfully:' ],
+      [ 'info' , '\'My Site\'' ],
+      [ 'info' , 'Server 0 listening on port 3000' ]
+    ],
+    expectedLogMessagesPass()
+    {
+      // We must override this because the default passes the test.
+      // In this case, the test must pass if the server starts.
+      this.gotAllExpectedLogMsgs = true;
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
+    },
+    onServerStarted()
+    {
+      this.serverDidStart = true;
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_008_014_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a file'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      jsCauseConfContents.logging =
+      {
+        general:
+        {
+          directoryName: 'logs_file_s'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.createSymlink(['.', 'logs_file'], [ '.', 'logs_file_s' ]);
+
+      this.gotAllExpectedLogMsgs = false;
+      this.serverDidStart = false;
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'logs_file_s is not a directory.', 'suffix' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_008_015_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Server log directory is non-writeable'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      jsCauseConfContents.logging =
+      {
+        general:
+        {
+          directoryName: 'logs'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.chmodFileOrDir(['.', 'logs'], 0o444);
+
+      this.gotAllExpectedLogMsgs = false;
+      this.serverDidStart = false;
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'jsctest/testrootdir/logs is not writeable.', 'suffix' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onTestEnd()
+    {
+      this.chmodFileOrDir(['.', 'logs'], 0o755);
+    }
+  }
+);
+
 module.exports = [
   test_008_001_siteConfMissingTempWorkDirectoryInFs,
   test_008_002_siteConfAbsoluteTempWorkDirectoryPath,
@@ -395,5 +544,9 @@ module.exports = [
   test_008_008_siteConfSiteRootDirectoryIsFile,
   test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir,
   test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile,
-  test_008_011_siteConfSiteRootDirectoryIsNonWriteable
+  test_008_011_siteConfSiteRootDirectoryIsNonWriteable,
+  test_008_012_serverLogDirectoryIsFile,
+  test_008_013_serverLogDirectoryIsSymlinkToDir,
+  test_008_014_serverLogDirectoryIsSymlinkToFile,
+  test_008_015_serverLogDirectoryIsNonWriteable
 ];
