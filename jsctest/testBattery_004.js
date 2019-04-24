@@ -2,6 +2,19 @@
 
 const testUtils = require('./testBatteryUtils');
 
+const baseSiteConfContents =
+{
+  'hostName': 'jscausesite1',
+  'canUpload': false,
+  'maxPayloadSizeBytes': 0,
+  'jscpExtensionRequired': 'optional',
+  'httpPoweredByHeader': 'include',
+  'httpsCertFile': 'jscause-cert.pem',
+  'httpsKeyFile': 'jscause-key.pem',
+  'tempWorkDirectory': './workbench',
+  'mimeTypes': {}
+};
+
 const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromBaseTest('Site config, invalid logging key'),
   {
     // only: true,
@@ -29,22 +42,13 @@ const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromB
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'configuration']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'workbench']);
 
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'random': 'random'
-        }
-      };
+          'logging':
+          {
+            'random': 'random'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -66,20 +70,13 @@ const test_004_002_siteConfInvalidLoggingFileOutputKey = Object.assign(testUtils
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'fileOutput': 1
-        }
-      };
+          'logging':
+          {
+            'fileOutput': 1
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -101,21 +98,14 @@ const test_004_003_siteConfInvalidLoggingConsoleOutputKey = Object.assign(testUt
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'fileOutput': 'disabled',
-          'consoleOutput': 1
-        }
-      };
+          'logging':
+          {
+            'fileOutput': 'disabled',
+            'consoleOutput': 1
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -137,20 +127,13 @@ const test_004_004_siteConfInvalidLoggingDirectoryNameKey = Object.assign(testUt
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': 1
-        }
-      };
+          'logging':
+          {
+            'directoryName': 1
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -172,22 +155,13 @@ const test_004_005_siteConfEmptyLoggingDirectoryName = Object.assign(testUtils.m
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': ''
-        }
-      };
+          'logging':
+          {
+            'directoryName': ''
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -209,22 +183,13 @@ const test_004_006_siteConfMissingLoggingDirectory = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'httpsCertFile': 'jscause-cert.pem',
-        'httpsKeyFile': 'jscause-key.pem',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents = Object.assign({}, baseSiteConfContents,
         {
-          'directoryName': 'random'
-        }
-      };
+          'logging':
+          {
+            'directoryName': 'random'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
