@@ -7,7 +7,9 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 ====
 
 Test that https cert/key files are valid.
+ - Continue developing test_009_001_siteConfInvalidHTTPSCertFile on testBattery_009.js
  - This will throw a critical, "unexpected" application error.  Work around this.
+ - Don't forget to comment out "only: true" when done.
 
 - Test that console does not emit anything if disabled?
 

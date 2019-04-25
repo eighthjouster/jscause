@@ -9,7 +9,8 @@ const allTests =
   'testBattery_005',
   'testBattery_006',
   'testBattery_007',
-  'testBattery_008'
+  'testBattery_008',
+  'testBattery_009'
 ];
 
 const fs = require('fs');

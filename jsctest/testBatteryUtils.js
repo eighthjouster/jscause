@@ -83,5 +83,19 @@ module.exports = {
       'YinAQZIGJFBgv2w8aeDrmH7SU0f6uVot+DFVRxrqR02De7S/9C1kEQ==',
       '-----END RSA PRIVATE KEY-----',
       ''
+    ].join('\n'),
+  jsCauseCertPemFileBadContents:
+    [
+      '-----BEGIN CERTIFICATE-----',
+      'BAD CONTENTS',
+      '-----END CERTIFICATE-----',
+      ''
+    ].join('\n'),
+  jsCauseKeyFileBadContents:
+    [
+      '-----BEGIN RSA PRIVATE KEY-----',
+      'BAD CONTENTS',
+      '-----END RSA PRIVATE KEY-----',
+      ''
     ].join('\n')
 };
