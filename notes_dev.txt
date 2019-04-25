@@ -214,8 +214,9 @@ Version 0.7.1b here!
 
 Order by priority:
 
-Use nightwatchjs for end-to-end testing.
-- See the notes_testing.js file.
+Testing battery:
+ - What if either the cert of key file can be base64 decoded, but the info inside is bad?
+   - Will the server fail?  It should.  Test this, if you can.  But don't sweat too much about it.
 
 During compression, the final file should not be .gz but something like .gz.tmp, then renamed to .gz when the compression is done.
 

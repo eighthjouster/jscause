@@ -2592,12 +2592,31 @@ function startServer(siteConfig, jscLogConfigBase)
           key: sslKey,
           cert: sslCert,
         };
-        webServer = https.createServer(httpsOptions);
+
+        try
+        {
+          webServer = https.createServer(httpsOptions);
+        }
+        catch(e)
+        {
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: An error occurred while attempting to start HTTPS server.`, jscLogConfig);
+          JSCLog('error', e.message, Object.assign({ e }, jscLogConfig));
+          result = false;
+        }
       }
     }
     else
     {
-      webServer = http.createServer();
+      try
+      {
+        webServer = http.createServer();
+      }
+      catch(e)
+      {
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: An error occurred while attempting to start HTTP server.`, jscLogConfig);
+        JSCLog('error', e.message, Object.assign({ e }, jscLogConfig));
+        result = false;
+      }
     }
     
     if (webServer)
@@ -2608,10 +2627,9 @@ function startServer(siteConfig, jscLogConfigBase)
     }
   }
 
-  runningServer.sites[siteHostName] = siteConfig;
-
   if (result)
   {
+    runningServer.sites[siteHostName] = siteConfig;
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 

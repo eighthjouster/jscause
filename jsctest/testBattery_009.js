@@ -38,7 +38,7 @@ const baseSiteConfContents =
 
 const test_009_001_siteConfInvalidHTTPSCertFile = Object.assign(testUtils.makeFromBaseTest('Site config, invalid HTTPS cert file'),
   {
-    only: true,
+    // only: true,
     onTestBeforeStart()
     {
       this.doEmptyTestDirectory();
@@ -66,7 +66,35 @@ const test_009_001_siteConfInvalidHTTPSCertFile = Object.assign(testUtils.makeFr
     },
     expectedLogMessages:
     [
-      [ 'error' , 'Cannot find directory:', 'prefix' ],
+      [ 'error' , 'Site \'My Site\': An error occurred while attempting to start HTTPS server.' ],
+      [ 'error' , 'bad base64 decode', 'suffix' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_009_002_siteConfInvalidHTTPSKeyFile = Object.assign(testUtils.makeFromBaseTest('Site config, invalid HTTPS key file'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = Object.assign({}, baseSiteConfContents);
+      siteConfContents.httpsKeyFile = 'jscause-key_BAD.pem';
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': An error occurred while attempting to start HTTPS server.' ],
+      [ 'error' , 'bad base64 decode', 'suffix' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
@@ -79,5 +107,6 @@ const test_009_001_siteConfInvalidHTTPSCertFile = Object.assign(testUtils.makeFr
 );
 
 module.exports = [
-  test_009_001_siteConfInvalidHTTPSCertFile
+  test_009_001_siteConfInvalidHTTPSCertFile,
+  test_009_002_siteConfInvalidHTTPSKeyFile
 ];
