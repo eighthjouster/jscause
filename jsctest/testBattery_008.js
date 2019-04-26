@@ -2,38 +2,44 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const baseSite =
-{
-  'name': 'My Site',
-  'port': 3000,
-  'rootDirectoryName': 'mysite'
-};
+const makeBaseSite = (extra = {}) =>
+  Object.assign(
+    {
+      'name': 'My Site',
+      'port': 3000,
+      'rootDirectoryName': 'mysite'
+    }, extra
+  );
 
-const baseJsCauseConfContents =
-{
-  'sites':
-  [
-    Object.assign({}, baseSite)
-  ],
-  'logging': {}
-};
+const makeBaseJsCauseConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'sites':
+      [
+        Object.assign({}, makeBaseSite())
+      ],
+      'logging': {}
+    }, extra
+  );
 
-const baseSiteConfContents =
-{
-  'hostName': 'jscausesite1',
-  'canUpload': false,
-  'maxPayloadSizeBytes': 0,
-  'jscpExtensionRequired': 'optional',
-  'httpPoweredByHeader': 'include',
-  'httpsCertFile': 'jscause-cert.pem',
-  'httpsKeyFile': 'jscause-key.pem',
-  'tempWorkDirectory': './workbench',
-  'mimeTypes': {},
-  'logging':
-  {
-    'directoryName': './localLogs'
-  }
-};
+const makeBaseSiteConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'hostName': 'jscausesite1',
+      'canUpload': false,
+      'maxPayloadSizeBytes': 0,
+      'jscpExtensionRequired': 'optional',
+      'httpPoweredByHeader': 'include',
+      'httpsCertFile': 'jscause-cert.pem',
+      'httpsKeyFile': 'jscause-key.pem',
+      'tempWorkDirectory': './workbench',
+      'mimeTypes': {},
+      'logging':
+      {
+        'directoryName': './localLogs'
+      }
+    }, extra
+  );
 
 const test_008_001_siteConfMissingTempWorkDirectoryInFs = Object.assign(testUtils.makeFromBaseTest('Site config, missing temp work directory path in file system'),
   {
@@ -51,13 +57,14 @@ const test_008_001_siteConfMissingTempWorkDirectoryInFs = Object.assign(testUtil
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'tempWorkDirectory': './workbench_MISSING'
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -79,10 +86,11 @@ const test_008_002_siteConfAbsoluteTempWorkDirectoryPath = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'tempWorkDirectory': '/workbench'
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -104,10 +112,11 @@ const test_008_003_siteConfTempWorkDirectoryIsFile = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'tempWorkDirectory': './workbench_file'
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createFile(['sites', 'mysite', 'workbench_file'], '');
     },
@@ -130,10 +139,11 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'tempWorkDirectory': './workbench_dir_s'
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'workbench'], [ 'sites', 'mysite', 'workbench_dir_s' ]);
     },
@@ -162,10 +172,11 @@ const test_008_005_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'tempWorkDirectory': './workbench_file_s'
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'workbench_file'], [ 'sites', 'mysite', 'workbench_file_s' ]);
     },
@@ -188,7 +199,7 @@ const test_008_006_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents);
+      const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.chmodFileOrDir(['sites', 'mysite', 'workbench'], 0o444);
     },
@@ -215,8 +226,7 @@ const test_008_007_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.sites[0].rootDirectoryName = '/mysite';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
@@ -239,8 +249,7 @@ const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.sites[0].rootDirectoryName = 'mysite_file';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
@@ -265,8 +274,7 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.sites[0].rootDirectoryName = 'mysite_dir_s';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
@@ -297,8 +305,7 @@ const test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.sites[0].rootDirectoryName = 'mysite_file_s';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
@@ -323,8 +330,7 @@ const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       this.chmodFileOrDir(['sites', 'mysite'], 0o444);
@@ -352,8 +358,7 @@ const test_008_012_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBa
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.logging =
       {
         general:
@@ -383,8 +388,7 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.logging =
       {
         general:
@@ -421,8 +425,7 @@ const test_008_014_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.m
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.logging =
       {
         general:
@@ -452,8 +455,7 @@ const test_008_015_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.logging =
       {
         general:
@@ -487,17 +489,17 @@ const test_008_016_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFrom
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           logging:
           {
             'directoryName': './localLogs_file'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createFile(['sites', 'mysite', 'localLogs_file'], '');
     },
@@ -520,17 +522,17 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           logging:
           {
             'directoryName': './localLogs_dir_s'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'localLogs'], [ 'sites', 'mysite', 'localLogs_dir_s' ]);
     },
@@ -559,17 +561,17 @@ const test_008_018_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           logging:
           {
             'directoryName': './localLogs_file_s'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.createSymlink(['.', 'localLogs_file'], [ 'sites', 'mysite', 'localLogs_file_s' ]);
     },
@@ -592,17 +594,17 @@ const test_008_019_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
-      jsCauseConfContents.sites[0] = Object.assign({}, baseSite);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           logging:
           {
             'directoryName': './localLogs'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       this.chmodFileOrDir(['sites', 'mysite', 'localLogs'], 0o444);
     },

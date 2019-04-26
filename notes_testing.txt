@@ -6,6 +6,9 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
+Continue refactoring testBattery_006 so that it uses the make() functions.
+ - And why don't you refactor the rest?  Global-search for "make base" and the modules that don't appear in the results... those need refactoring.
+ 
 Test that https cert/key files are valid.
  - Test that valid servers (e.g. "INFO: Server 1 listening on port 3002") continue to run in spite of that one server having failed.
 

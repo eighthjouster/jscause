@@ -2,39 +2,45 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const baseSite =
-{
-  'name': 'My Site',
-  'port': 3000,
-  'rootDirectoryName': 'mysite',
-  'enableHTTPS': true
-};
+const makeBaseSite = (extra = {}) =>
+  Object.assign(
+    {
+      'name': 'My Site',
+      'port': 3000,
+      'rootDirectoryName': 'mysite',
+      'enableHTTPS': true
+    }, extra
+  );
 
-const baseJsCauseConfContents =
-{
-  'sites':
-  [
-    Object.assign({}, baseSite)
-  ],
-  'logging': {}
-};
+const makeBaseJsCauseConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'sites':
+      [
+        Object.assign({}, makeBaseSite())
+      ],
+      'logging': {}
+    }, extra
+  );
 
-const baseSiteConfContents =
-{
-  'hostName': 'jscausesite1',
-  'canUpload': false,
-  'maxPayloadSizeBytes': 0,
-  'jscpExtensionRequired': 'optional',
-  'httpPoweredByHeader': 'include',
-  'httpsCertFile': 'jscause-cert.pem',
-  'httpsKeyFile': 'jscause-key.pem',
-  'tempWorkDirectory': './workbench',
-  'mimeTypes': {},
-  'logging':
-  {
-    'directoryName': './localLogs'
-  }
-};
+const makeBaseSiteConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'hostName': 'jscausesite1',
+      'canUpload': false,
+      'maxPayloadSizeBytes': 0,
+      'jscpExtensionRequired': 'optional',
+      'httpPoweredByHeader': 'include',
+      'httpsCertFile': 'jscause-cert.pem',
+      'httpsKeyFile': 'jscause-key.pem',
+      'tempWorkDirectory': './workbench',
+      'mimeTypes': {},
+      'logging':
+      {
+        'directoryName': './localLogs'
+      }
+    }, extra
+  );
 
 const test_009_001_siteConfInvalidHTTPSCertFile = Object.assign(testUtils.makeFromBaseTest('Site config, invalid HTTPS cert file'),
   {
@@ -57,10 +63,10 @@ const test_009_001_siteConfInvalidHTTPSCertFile = Object.assign(testUtils.makeFr
       this.createFile(['sites', 'mysite', 'configuration', 'certs', 'jscause-cert_BAD.pem'], testUtils.jsCauseCertPemFileBadContents);
       this.createFile(['sites', 'mysite', 'configuration', 'certs', 'jscause-key_BAD.pem'], testUtils.jsCauseKeyFileBadContents);
 
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents);
+      const siteConfContents = makeBaseSiteConfContents();
       siteConfContents.httpsCertFile = 'jscause-cert_BAD.pem';
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
@@ -84,10 +90,10 @@ const test_009_002_siteConfInvalidHTTPSKeyFile = Object.assign(testUtils.makeFro
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = Object.assign({}, baseJsCauseConfContents);
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents);
+      const siteConfContents = makeBaseSiteConfContents();
       siteConfContents.httpsKeyFile = 'jscause-key_BAD.pem';
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },

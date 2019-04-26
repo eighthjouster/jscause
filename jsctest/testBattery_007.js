@@ -2,22 +2,24 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const baseSiteConfContents =
-{
-  'hostName': 'jscausesite1',
-  'canUpload': false,
-  'maxPayloadSizeBytes': 0,
-  'jscpExtensionRequired': 'optional',
-  'httpPoweredByHeader': 'include',
-  'httpsCertFile': 'jscause-cert.pem',
-  'httpsKeyFile': 'jscause-key.pem',
-  'tempWorkDirectory': './workbench',
-  'mimeTypes': {},
-  'logging':
-  {
-    'directoryName': './localLogs'
-  }
-};
+const makeBaseSiteConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'hostName': 'jscausesite1',
+      'canUpload': false,
+      'maxPayloadSizeBytes': 0,
+      'jscpExtensionRequired': 'optional',
+      'httpPoweredByHeader': 'include',
+      'httpsCertFile': 'jscause-cert.pem',
+      'httpsKeyFile': 'jscause-key.pem',
+      'tempWorkDirectory': './workbench',
+      'mimeTypes': {},
+      'logging':
+      {
+        'directoryName': './localLogs'
+      }
+    }, extra
+  );
 
 const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtils.makeFromBaseTest('Server and site logging discrepancies, fileOutput'),
   {
@@ -59,7 +61,7 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = Object.assign({}, baseSiteConfContents, {});
+      const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -450,14 +452,15 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'logging':
           {
             'directoryName': './localLogs',
             'fileOutput': 'disabled'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -505,14 +508,15 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'logging':
           {
             'directoryName': './localLogs',
             'consoleOutput': 'disabled'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -561,7 +565,7 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'logging':
           {
@@ -569,7 +573,8 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
             'fileOutput': 'enabled',
             'consoleOutput': 'enabled'
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:

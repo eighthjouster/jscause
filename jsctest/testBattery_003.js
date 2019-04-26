@@ -2,17 +2,19 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const baseSiteConfContents =
-{
-  'hostName': 'jscausesite1',
-  'canUpload': false,
-  'maxPayloadSizeBytes': 0,
-  'jscpExtensionRequired': 'optional',
-  'httpPoweredByHeader': 'include',
-  'httpsCertFile': 'jscause-cert.pem',
-  'httpsKeyFile': 'jscause-key.pem',
-  'tempWorkDirectory': './workbench'
-};
+const makeBaseSiteConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'hostName': 'jscausesite1',
+      'canUpload': false,
+      'maxPayloadSizeBytes': 0,
+      'jscpExtensionRequired': 'optional',
+      'httpPoweredByHeader': 'include',
+      'httpsCertFile': 'jscause-cert.pem',
+      'httpsKeyFile': 'jscause-key.pem',
+      'tempWorkDirectory': './workbench'
+    }, extra
+  );
 
 const test_003_001_siteDirJsonMissing = Object.assign(testUtils.makeFromBaseTest('Site dir exists, json missing'),
   {
@@ -616,10 +618,11 @@ const test_003_021_siteConfInvalidMimeTypes = Object.assign(testUtils.makeFromBa
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes': 1
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -641,10 +644,11 @@ const test_003_022_siteConfMissingLogging = Object.assign(testUtils.makeFromBase
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes': {}
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -667,11 +671,12 @@ const test_003_022_siteConfInvalidLoggindDirName = Object.assign(testUtils.makeF
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes': {},
           'logging': {}
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -693,13 +698,14 @@ const test_003_023_siteConfInvalidMimeTypeEntry = Object.assign(testUtils.makeFr
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
             'random': {}
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -721,13 +727,14 @@ const test_003_024_siteConfInvalidMimeTypeInclude = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
             'include': 1
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -749,7 +756,7 @@ const test_003_025_siteConfEmptyMimeTypeName = Object.assign(testUtils.makeFromB
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
@@ -758,7 +765,8 @@ const test_003_025_siteConfEmptyMimeTypeName = Object.assign(testUtils.makeFromB
               '': ''
             }
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -780,7 +788,7 @@ const test_003_026_siteConfEmptyMimeType = Object.assign(testUtils.makeFromBaseT
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
@@ -789,7 +797,8 @@ const test_003_026_siteConfEmptyMimeType = Object.assign(testUtils.makeFromBaseT
               'png': ''
             }
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -810,13 +819,14 @@ const test_003_027_siteConfMimeTypeIncludeAsArray = Object.assign(testUtils.make
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
             'include': ['png']
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -837,13 +847,14 @@ const test_003_028_siteConfMimeTypeExcludeAsObject = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
             'exclude': {}
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -864,13 +875,14 @@ const test_003_029_siteConfEmptyMimeTypeExcludeName = Object.assign(testUtils.ma
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents = Object.assign({}, baseSiteConfContents,
+      const siteConfContents = makeBaseSiteConfContents(
         {
           'mimeTypes':
           {
             'exclude': ['']
           }
-        });
+        }
+      );
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
