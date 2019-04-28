@@ -6,7 +6,15 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
+I've discovered a bug.  Fix before continuing:
+ - Console output disabled in both server and site.  Server perSite console output is enabled.
+   - Expected: No output at all.
+   - Got: some output.  Fix this.
+
 Test that console does not emit anything if disabled?
+ - And files too (serverDir, siteDir).
+    jscTestGlobal.logOutputToServerDirOccurred
+    jscTestGlobal.logOutputToSiteDirOccurred
 
 Test: What if a port is taken? (By some other application.)
 

@@ -10,7 +10,8 @@ const allTests =
   'testBattery_006',
   'testBattery_007',
   'testBattery_008',
-  'testBattery_009'
+  'testBattery_009',
+  'testBattery_010'
 ];
 
 const fs = require('fs');
@@ -24,6 +25,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.failedTestNames = [];
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
+  jscTestGlobal.checkLogOutputWillOccur = checkLogOutputWillOccur.bind(jscTestGlobal);
   jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
@@ -131,12 +133,11 @@ function nextTest(jscTestGlobal, list)
   }
 
   jscTestGlobal.totalTestsRun++;
-  jscTestGlobal.checkExpectedLogMessages = (type, message, logOptions) =>
+  jscTestGlobal.checkExpectedLogMessages = (type, message) =>
   {
     checkExpectedLogMessages(
       type,
       message,
-      logOptions,
       jscTestGlobal.expectedLogMessages,
       () =>
       {
@@ -154,6 +155,9 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.testPassed = false;
     jscTestGlobal.gotAllExpectedLogMsgs = false;
     jscTestGlobal.serverDidStart = false;
+    jscTestGlobal.logOutputToConsoleOccurred = false;
+    jscTestGlobal.logOutputToServerDirOccurred = false;
+    jscTestGlobal.logOutputToSiteDirOccurred = false;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
@@ -215,9 +219,17 @@ function invokeOnCompletion(jscTestGlobal, resolveMessage)
   }
 }
 
-function checkExpectedLogMessages(type, message, logOptions, expectedLogMessages, expectedLogMessagesPass)
+function checkLogOutputWillOccur(logOptions)
 {
-  if (expectedLogMessages.length)
+  const { toConsole = false, toServerDir = false, toSiteDir = false } = logOptions;
+  this.logOutputToConsoleOccurred = this.logOutputToConsoleOccurred || toConsole;
+  this.logOutputToServerDirOccurred = this.logOutputToServerDirOccurred || toServerDir;
+  this.logOutputToSiteDirOccurred = this.logOutputToSiteDirOccurred || toSiteDir;
+}
+
+function checkExpectedLogMessages(type, message, expectedLogMessages, expectedLogMessagesPass)
+{
+  if (expectedLogMessages && expectedLogMessages.length)
   {
     const [ listType = '', listMessage = '', listMessageType = '' ] = expectedLogMessages[0];
     if ((type === listType) &&
