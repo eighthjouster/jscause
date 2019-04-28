@@ -6,14 +6,15 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-Test that https cert/key files are valid.
- - Test that valid servers (e.g. "INFO: Server 1 listening on port 3002") continue to run in spite of that one server having failed.
-
-- Test that console does not emit anything if disabled?
+Test that console does not emit anything if disabled?
 
 Test: What if a port is taken? (By some other application.)
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
+ - Reading user files.
+   - Static/dynamic.
+ - Caching user files.
+   - Static/dynamic.
 
 Then, go through the code and start testing content-related stuff:
   - Whether HTML stuff renders.
@@ -33,8 +34,8 @@ Then, go through the code and start testing content-related stuff:
     - Static error 400, static error 500.
     - Other errors.
   - Logging.
-  - What else?
+  - At this point, resume engine development.
 
 In the end, jscause_backup.conf can be either restored or deleted.
- - And rename __logs and __sites back to logs/ and sites/
- 
+
+- Leave this file to document future development that needs corresponding testings created.

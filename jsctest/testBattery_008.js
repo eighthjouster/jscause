@@ -16,7 +16,7 @@ const makeBaseJsCauseConfContents = (extra = {}) =>
     {
       'sites':
       [
-        Object.assign({}, makeBaseSite())
+        makeBaseSite()
       ],
       'logging': {}
     }, extra

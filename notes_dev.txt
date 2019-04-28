@@ -140,11 +140,13 @@ At this point, back up.
 Put regex literals outside of functions (like in handleCustomError).
 
 We'll need to put more code into functions.
+ - Run the tests after this.
 
 And back up again.
 
 Ability to write to files?
   - Text and binary.
+  - Put pending testing work in notes_testing.txt
 
 You need to break down incomingRequestHandler.
  - And validateLoggingConfigSection.
@@ -157,6 +159,8 @@ Databases.
    - We'll use MariaDB.
      - https://www.npmjs.com/package/mariadb
        - Just 4 dependencies.
+
+Update notes_testing.txt with any testing that needs to be implemented.
 
 Put in docs that a favicon.ico should be provided in the website root.
  - Put your own favicon.ico meanwhile.
@@ -180,6 +184,7 @@ https://hackerone.com/reports/310439
 At this point, divide up the engine into different files.
  - Make it one file using gulp or something, for prod.
    - Or just use your own setup file.
+  - Check that everything passes testing.
 
 Formalize the documentation.
  - Including some JSCause dev documentation (how to contribute, how to add new dependencies to JSCVendor, etc.)

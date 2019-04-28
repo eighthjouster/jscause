@@ -12,12 +12,21 @@ const makeBaseSite = (extra = {}) =>
     }, extra
   );
 
+const makeBaseSite2 = (extra = {}) =>
+  Object.assign(
+    {
+      'name': 'My Site 2',
+      'port': 3001,
+      'rootDirectoryName': 'mysite2'
+    }, extra
+  );
+
 const makeBaseJsCauseConfContents = (extra = {}) =>
   Object.assign(
     {
       'sites':
       [
-        Object.assign({}, makeBaseSite())
+        makeBaseSite()
       ],
       'logging': {}
     }, extra
@@ -112,7 +121,59 @@ const test_009_002_siteConfInvalidHTTPSKeyFile = Object.assign(testUtils.makeFro
   }
 );
 
+const test_009_003_siteConfInvalidHTTPSKeyFilePt2 = Object.assign(testUtils.makeFromBaseTest('Site config, invalid HTTPS key file, second site is okay'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2', 'configuration']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2', 'configuration', 'certs']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2', 'workbench']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2', 'localLogs2']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite2', 'website']);
+
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites.push(makeBaseSite2());
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConf2Contents = makeBaseSiteConfContents(
+        {
+          'logging':
+          {
+            'directoryName': './localLogs2'
+          }
+        });
+      this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConf2Contents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': An error occurred while attempting to start HTTPS server.' ],
+      [ 'error' , 'bad base64 decode', 'suffix' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'info', 'Site \'My Site 2\' at http://jscausesite1:3001/ assigned to server 0' ],
+      [ 'info', 'The following sites were set up successfully:' ],
+      [ 'info', '\'My Site 2\'' ],
+      [ 'error', 'The following sites failed to run:' ],
+      [ 'error', '- \'My Site\'' ],
+      [ 'info', 'Server 0 listening on port 3001' ]
+    ],
+    expectedLogMessagesPass()
+    {
+      // We must override this because the default passes the test.
+      // In this case, the test must pass if the server starts.
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
+    },
+    onServerStarted()
+    {
+      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
 module.exports = [
   test_009_001_siteConfInvalidHTTPSCertFile,
-  test_009_002_siteConfInvalidHTTPSKeyFile
+  test_009_002_siteConfInvalidHTTPSKeyFile,
+  test_009_003_siteConfInvalidHTTPSKeyFilePt2
 ];
