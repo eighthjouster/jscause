@@ -2,6 +2,30 @@
 
 const testUtils = require('./testBatteryUtils');
 
+const makeBaseSite = (extra = {}) =>
+  Object.assign(
+    {
+      'name': 'My Site',
+      'port': 3000,
+      'rootDirectoryName': 'mysite'
+    }, extra
+  );
+
+const makeBaseJsCauseConfContents = (extra = {}) =>
+  Object.assign(
+    {
+      'sites':
+      [
+        Object.assign({}, makeBaseSite())
+      ],
+      'logging':
+      {
+        'general': {},
+        'perSite': {}
+      }
+    }, extra
+  );
+
 const makeBaseSiteConfContents = (extra = {}) =>
   Object.assign(
     {
@@ -37,28 +61,9 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'fileOutput': 'enabled'
-          },
-          'perSite':
-          {
-            'fileOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.fileOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.fileOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       const siteConfContents = makeBaseSiteConfContents();
@@ -89,28 +94,9 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'fileOutput': 'disabled'
-          },
-          'perSite':
-          {
-            'fileOutput': 'enabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.fileOutput = 'disabled';
+      jsCauseConfContents.logging.perSite.fileOutput = 'enabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -138,28 +124,9 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'fileOutput': 'enabled'
-          },
-          'perSite':
-          {
-            'fileOutput': 'enabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.fileOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.fileOutput = 'enabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -187,28 +154,9 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'fileOutput': 'disabled'
-          },
-          'perSite':
-          {
-            'fileOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.fileOutput = 'disabled';
+      jsCauseConfContents.logging.perSite.fileOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -236,28 +184,9 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'consoleOutput': 'enabled'
-          },
-          'perSite':
-          {
-            'consoleOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.consoleOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -285,28 +214,9 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'consoleOutput': 'disabled'
-          },
-          'perSite':
-          {
-            'consoleOutput': 'enabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.consoleOutput = 'disabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'enabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -334,28 +244,9 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'consoleOutput': 'enabled'
-          },
-          'perSite':
-          {
-            'consoleOutput': 'enabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.consoleOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'enabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -383,28 +274,9 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'general':
-          {
-            'consoleOutput': 'disabled'
-          },
-          'perSite':
-          {
-            'consoleOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.consoleOutput = 'disabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -432,24 +304,9 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'perSite':
-          {
-            'fileOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general = undefined;
+      jsCauseConfContents.logging.perSite.fileOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
       const siteConfContents = makeBaseSiteConfContents(
@@ -488,24 +345,9 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'perSite':
-          {
-            'consoleOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general = undefined;
+      jsCauseConfContents.logging.perSite.consoleOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
       const siteConfContents = makeBaseSiteConfContents(
@@ -544,25 +386,10 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          }
-        ],
-        'logging':
-        {
-          'perSite':
-          {
-            'fileOutput': 'disabled',
-            'consoleOutput': 'disabled'
-          }
-        }
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general = undefined;
+      jsCauseConfContents.logging.perSite.fileOutput = 'disabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
       
       const siteConfContents = makeBaseSiteConfContents(

@@ -40,8 +40,6 @@ const makeBaseSiteConfContents = (extra = {}) =>
       'maxPayloadSizeBytes': 0,
       'jscpExtensionRequired': 'optional',
       'httpPoweredByHeader': 'include',
-      'httpsCertFile': 'jscause-cert.pem',
-      'httpsKeyFile': 'jscause-key.pem',
       'tempWorkDirectory': './workbench',
       'mimeTypes': {},
       'logging':
@@ -67,7 +65,11 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      const siteConfContents = makeBaseSiteConfContents();
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'httpsCertFile': 'jscause-cert.pem',
+          'httpsKeyFile': 'jscause-key.pem',
+        });
 
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
@@ -84,6 +86,8 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
       const siteConfContents2 = makeBaseSiteConfContents(
         {
           'hostName': 'jscausesite2',
+          'httpsCertFile': 'jscause-cert.pem',
+          'httpsKeyFile': 'jscause-key.pem',
           'logging':
           {
             'directoryName': './localLogs2'
@@ -190,24 +194,9 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite',
-            'enableHTTPS': true
-          },
-          {
-            'name': 'My Site 2',
-            'port': 3000,
-            'rootDirectoryName': 'mysite2'
-          }
-        ],
-        'logging': {}
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites[0].enableHTTPS = true;
+      jsCauseConfContents.sites[1].port = 3000;
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -235,25 +224,10 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite',
-            'enableHTTPS': true
-          },
-          {
-            'name': 'My Site 2',
-            'port': 3000,
-            'rootDirectoryName': 'mysite2',
-            'enableHTTPS': true
-          }
-        ],
-        'logging': {}
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites[0].enableHTTPS = true;
+      jsCauseConfContents.sites[1].port = 3000;
+      jsCauseConfContents.sites[1].enableHTTPS = true;
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -281,24 +255,9 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          },
-          {
-            'name': 'My Site 2',
-            'port': 3000,
-            'rootDirectoryName': 'mysite2',
-            'enableHTTPS': true
-          }
-        ],
-        'logging': {}
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites[1].port = 3000;
+      jsCauseConfContents.sites[1].enableHTTPS = true;
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
     expectedLogMessages:
@@ -326,55 +285,20 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents =
-      {
-        'sites':
-        [
-          {
-            'name': 'My Site',
-            'port': 3000,
-            'rootDirectoryName': 'mysite'
-          },
-          {
-            'name': 'My Site 2',
-            'port': 3000,
-            'rootDirectoryName': 'mysite2'
-          }
-        ],
-        'logging': {}
-      };
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites[1].port = 3000;
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      const siteConfContents =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
-        {
-          'directoryName': './localLogs'
-        }
-      };
+    
+      const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
-      const siteConfContents2 =
-      {
-        'hostName': 'jscausesite1',
-        'canUpload': false,
-        'maxPayloadSizeBytes': 0,
-        'jscpExtensionRequired': 'optional',
-        'httpPoweredByHeader': 'include',
-        'tempWorkDirectory': './workbench',
-        'mimeTypes': {},
-        'logging':
+      const siteConfContents2 = makeBaseSiteConfContents(
         {
-          'directoryName': './localLogs2'
-        }
-      };
+          'logging':
+          {
+            'directoryName': './localLogs2'
+          }
+        });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
     },
     expectedLogMessages:
