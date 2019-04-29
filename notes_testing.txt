@@ -6,15 +6,173 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-I've discovered a bug.  Fix before continuing:
- - Console output disabled in both server and site.  Server perSite console output is enabled.
-   - Expected: No output at all.
-   - Got: some output.  Fix this.
+Test the following:
+Console:
+*1.
+ - Server general logging: disabled.
+ - Server per site logging: disabled.
+ - Site logging: disabled.
+   - Result:  no console output.
+
+2.
+ - Server general logging: disabled.
+ - Server per site logging: disabled.
+ - Site logging: enabled.
+   - Result:  no console output.
+
+3.
+ - Server general logging: disabled.
+ - Server per site logging: per site.
+ - Site logging: disabled.
+   - Result:  no console output.
+
+4.
+ - Server general logging: disabled.
+ - Server per site logging: per site.
+ - Site logging: enabled.
+   - Result:  console output.
+
+*5.
+ - Server general logging: disabled.
+ - Server per site logging: enabled.
+ - Site logging: disabled.
+   - Result:  console output.
+
+6.
+ - Server general logging: disabled.
+ - Server per site logging: enabled.
+ - Site logging: enabled.
+   - Result:  console output.
+
+*7.
+ - Server general logging: enabled.
+ - Server per site logging: disabled.
+ - Site logging: disabled.
+   - Result:  console output.
+
+8.
+ - Server general logging: enabled.
+ - Server per site logging: disabled.
+ - Site logging: enabled.
+   - Result:  console output.
+
+9.
+ - Server general logging: enabled.
+ - Server per site logging: per site.
+ - Site logging: disabled.
+   - Result:  console output.
+
+10.
+ - Server general logging: enabled.
+ - Server per site logging: per site.
+ - Site logging: enabled.
+   - Result:  console output.
+
+11.
+ - Server general logging: enabled.
+ - Server per site logging: enabled.
+ - Site logging: disabled.
+   - Result:  console output.
+
+12.
+ - Server general logging: enabled.
+ - Server per site logging: enabled.
+ - Site logging: enabled.
+   - Result:  console output.
+   - Check that there is no file output here for good measure.
+
+File output:
+1.
+ - Server general logging: disabled.
+ - Server per site logging: disabled.
+ - Site logging: disabled.
+   - Result:  no file output.
+
+2.
+ - Server general logging: disabled.
+ - Server per site logging: disabled.
+ - Site logging: enabled.
+   - Result:  no file output.
+
+3.
+ - Server general logging: disabled.
+ - Server per site logging: per site.
+ - Site logging: disabled.
+   - Result:  no file output.
+
+4.
+ - Server general logging: disabled.
+ - Server per site logging: per site.
+ - Site logging: enabled.
+   - Result:  SITE file output.
+
+5.
+ - Server general logging: disabled.
+ - Server per site logging: enabled.
+ - Site logging: disabled.
+   - Result:  SITE file output.
+
+6.
+ - Server general logging: disabled.
+ - Server per site logging: enabled.
+ - Site logging: enabled.
+   - Result:  SITE file output.
+
+7.
+ - Server general logging: enabled.
+ - Server per site logging: disabled.
+ - Site logging: disabled.
+   - Result:  SERVER file output.
+
+8.
+ - Server general logging: enabled.
+ - Server per site logging: disabled.
+ - Site logging: enabled.
+   - Result:  SERVER file output.
+
+9.
+ - Server general logging: enabled.
+ - Server per site logging: per site.
+ - Site logging: disabled.
+   - Result:  SERVER file output.
+
+10.
+ - Server general logging: enabled.
+ - Server per site logging: per site.
+ - Site logging: enabled.
+   - Result:  SERVER file output, FILE file output.
+
+11.
+ - Server general logging: enabled.
+ - Server per site logging: enabled.
+ - Site logging: disabled.
+   - Result:  SERVER file output, FILE file output.
+
+12.
+ - Server general logging: enabled.
+ - Server per site logging: enabled.
+ - Site logging: enabled.
+   - Result:  SERVER file output, FILE file output.
+   - Check that there is no console output here for good measure.
+
+13.
+Both console and file:
+ - Server general logging: enabled.
+ - Server per site logging: enabled.
+ - Site logging: enabled.
+   - Result:  Console output, SERVER file output, FILE file output.
 
 Test that console does not emit anything if disabled?
  - And files too (serverDir, siteDir).
     jscTestGlobal.logOutputToServerDirOccurred
     jscTestGlobal.logOutputToSiteDirOccurred
+
+Take care of that comment:
+//__RP SORT THIS, IF NEEDED, AND THE ORDER ABOVE MUST MATCH!
+
+At this point, back up.
+
+===
 
 Test: What if a port is taken? (By some other application.)
 

@@ -52,7 +52,9 @@ const makeBaseSiteConfContents = (extra = {}) =>
     }, extra
   );
 
-const test_010_001_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('Check that no console logging really means no console output'),
+// Legend: D = disabled. E = enabled. P = per site.
+// G = General (Server).  GP = general per site.  S = Site.
+const test_010_001_GD_GPD_SD_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('Console: General disabled, general per site disabled, site disabled; no output'),
   {
     only: true,
     onTestBeforeStart()
@@ -82,7 +84,27 @@ const test_010_001_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('C
   }
 );
 
-const test_010_002_someConsoleOutputFromServer = Object.assign(testUtils.makeFromBaseTest('Check that console output happens if specified by server configuration'),
+const test_010_005_GD_GPE_SD_consoleOutput = Object.assign(testUtils.makeFromBaseTest('Console: General disabled, general per site enabled, site disabled; output'),
+  {
+    only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.perSite.consoleOutput = 'enabled';
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+    },
+    onServerStarted()
+    {
+      this.testPassed = this.logOutputToConsoleOccurred;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_010_007_GE_GPD_SD_consoleOutput = Object.assign(testUtils.makeFromBaseTest('Console: General enabled, general per site disabled, site disabled; output'),
   {
     only: true,
     onTestBeforeStart()
@@ -102,29 +124,8 @@ const test_010_002_someConsoleOutputFromServer = Object.assign(testUtils.makeFro
   }
 );
 
-const test_010_003_someConsoleOutputFromSite = Object.assign(testUtils.makeFromBaseTest('Check that console output happens if specified by site configuration'),
-  {
-    only: true,
-    onTestBeforeStart()
-    {
-      const siteConfContents = makeBaseSiteConfContents();
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-
-      const jsCauseConfContents = makeBaseJsCauseConfContents();
-      jsCauseConfContents.logging.general.consoleOutput = 'disabled';
-      jsCauseConfContents.logging.perSite.consoleOutput = 'enabled';
-      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-    },
-    onServerStarted()
-    {
-      this.testPassed = this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
-    }
-  }
-);
-
-module.exports = [
-  test_010_001_noConsoleOutput,
-  test_010_002_someConsoleOutputFromServer,
-  test_010_003_someConsoleOutputFromSite
+module.exports = [ //__RP SORT THIS, IF NEEDED, AND THE ORDER ABOVE MUST MATCH!
+  test_010_001_GD_GPD_SD_noConsoleOutput,
+  test_010_005_GD_GPE_SD_consoleOutput,
+  test_010_007_GE_GPD_SD_consoleOutput
 ];
