@@ -6,6 +6,20 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
+Found a bug:
+Run all tests:
+Check the test:
+Console: General disabled, general per site disabled, site enabled; no console output
+It reports:
+WARNING:  Unable to open log file for creating or appending: /Users/rafael/Projects/web/jsframework/jsctest/testrootdir/sites/mysite2/localLogs2/jsc_2019-04-29_8-00-00-30.log
+ - First of all, the test should have caught that some output was emitted and failed.
+   - So, fix this first.
+     - It happens when ALL tests are active.
+ - Second of all, why is the application trying to log to a file, when it shouldn't?
+   - First of all, fix whatever is causing that the warning happens because of some test remnant.
+   - Second of all, ^ temporarily unfix the above, then fix the cause of the warning.  No file logging should be happening here.
+     - Don't forget to "re-fix" the test remnant unfix above.
+
 Test the following:
 Console:
 *1.
@@ -14,19 +28,19 @@ Console:
  - Site logging: disabled.
    - Result:  no console output.
 
-2.
+*2.
  - Server general logging: disabled.
  - Server per site logging: disabled.
  - Site logging: enabled.
    - Result:  no console output.
 
-3.
+*3.
  - Server general logging: disabled.
  - Server per site logging: per site.
  - Site logging: disabled.
    - Result:  no console output.
 
-4.
+*4.
  - Server general logging: disabled.
  - Server per site logging: per site.
  - Site logging: enabled.
@@ -38,7 +52,7 @@ Console:
  - Site logging: disabled.
    - Result:  console output.
 
-6.
+*6.
  - Server general logging: disabled.
  - Server per site logging: enabled.
  - Site logging: enabled.
@@ -50,36 +64,37 @@ Console:
  - Site logging: disabled.
    - Result:  console output.
 
-8.
+*8.
  - Server general logging: enabled.
  - Server per site logging: disabled.
  - Site logging: enabled.
    - Result:  console output.
 
-9.
+*9.
  - Server general logging: enabled.
  - Server per site logging: per site.
  - Site logging: disabled.
    - Result:  console output.
 
-10.
+*10.
  - Server general logging: enabled.
  - Server per site logging: per site.
  - Site logging: enabled.
    - Result:  console output.
 
-11.
+*11.
  - Server general logging: enabled.
  - Server per site logging: enabled.
  - Site logging: disabled.
    - Result:  console output.
 
-12.
- - Server general logging: enabled.
- - Server per site logging: enabled.
- - Site logging: enabled.
-   - Result:  console output.
-   - Check that there is no file output here for good measure.
++12.
+ *- Server general logging: enabled.
+ *- Server per site logging: enabled.
+ *- Site logging: enabled.
+   *- Result:  console output.
+   UP NEXT:
+   +- Check that there is no file output here for good measure.
 
 File output:
 1.
@@ -167,8 +182,15 @@ Test that console does not emit anything if disabled?
     jscTestGlobal.logOutputToServerDirOccurred
     jscTestGlobal.logOutputToSiteDirOccurred
 
-Take care of that comment:
-//__RP SORT THIS, IF NEEDED, AND THE ORDER ABOVE MUST MATCH!
+14.  Test that an actual file is DEFINITELY not created when logging:  general, site.
+
+15.  Test that an actual file is created when logging:  general, site.
+
+16.  Test that info in an actual file is APPENDED when logging:  general, site.
+
+Comment out all the only: true; check that all tests pass.
+ - But also check the actual test output, so that it's true that no console/file output means no console/file output
+
 
 At this point, back up.
 
@@ -201,6 +223,8 @@ Then, go through the code and start testing content-related stuff:
     - Other errors.
   - Logging.
   - At this point, resume engine development.
+
+Check all the output when running all the tests, in case there are inconsistencies (e.g., test says no console output, but console output ocurred.  Things like that.)
 
 In the end, jscause_backup.conf can be either restored or deleted.
 
