@@ -150,6 +150,7 @@ function nextTest(jscTestGlobal, list)
   const testPromise = new Promise((resolve) =>
   {
     jscTestGlobal.onTestBeforeStart = undefined;
+    jscTestGlobal.onBeforeTestEnd = undefined;
     jscTestGlobal.onTestEnd = undefined;
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestGlobal.testPassed = false;
@@ -187,6 +188,7 @@ function nextTest(jscTestGlobal, list)
     .then((result) =>
     {
       result && console.info(result);
+      jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
       if (jscTestGlobal.testPassed)
       {
         jscTestGlobal.totalTestsPassed++;

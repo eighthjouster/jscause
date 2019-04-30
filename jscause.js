@@ -156,6 +156,9 @@ else if (process.argv[2])
   process.exit(1);
 }
 
+const writeLogToFile = (isTestMode) ? writeLogToFileTestMode : writeLogToFileFn;
+const openAndWriteToLogFile = (isTestMode) ? openAndWriteToLogFileTestMode : openAndWriteToLogFileFn;
+
 if (!isTestMode)
 {
   startApplication();
@@ -268,7 +271,19 @@ function getCurrentLogFileName(logDir, fileSizeThreshold)
   });
 }
 
-function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
+function consoleWarning(messageList)
+{
+  messageList.forEach(message =>
+  {
+    console.warn(message);
+  });
+  if (isTestMode)
+  {
+    jscTestGlobal.logOutputToConsoleOccurred = true;
+  }
+}
+
+function writeLogToFileFn(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
   if (logFileFd)
   {
@@ -282,17 +297,22 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
         {
           if (error && canOutputErrorsToConsole)
           {
-            console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file after write error: ${filePath}`);
+            consoleWarning([`${TERMINAL_WARNING_STRING}:  Could not close log file after write error: ${filePath}`]);
           }
         });
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
         if (canOutputErrorsToConsole)
         {
-          console.warn(`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`);
+          consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`]);
         }
       }
     });
   }
+}
+
+function writeLogToFileTestMode()
+{
+  //__RP TO-DO:  Deal with this function later.
 }
 
 function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole, onCompressionEnd)
@@ -302,8 +322,10 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`);
-        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+        consoleWarning([
+          `${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`,
+          `${TERMINAL_WARNING_STRING}:  ${error}`
+        ]);
       }
       compressedFileStream.end();
       dataCompressor.end();
@@ -315,8 +337,10 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`);
-        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+        consoleWarning([
+          `${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`,
+          `${TERMINAL_WARNING_STRING}:  ${error}`
+        ]);
       }
       fileToCompressStream.end();
       dataCompressor.end();
@@ -328,8 +352,10 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`);
-        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+        consoleWarning([
+          `${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`,
+          `${TERMINAL_WARNING_STRING}:  ${error}`
+        ]);
       }
       compressedFileStream.end();
       dataCompressor.end();
@@ -342,8 +368,10 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       {
         if (error && canOutputErrorsToConsole)
         {
-          console.warn(`${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`);
-          console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+          consoleWarning([
+            `${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`,
+            `${TERMINAL_WARNING_STRING}:  ${error}`
+          ]);
         }
 
         onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
@@ -364,21 +392,21 @@ function initiateLogFileCompression(logDir, fileName, canOutputErrorsToConsole, 
   {
     if (canOutputErrorsToConsole)
     {
-      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`);
+      consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to create log file stream for reading: ${fileName}`]);
     }
   }
   else if (!dataCompressor)
   {
     if (canOutputErrorsToConsole)
     {
-      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressing stream to compress file: ${fileName}`);
+      consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to create compressing stream to compress file: ${fileName}`]);
     }
   }
   else if (!compressedFileStream)
   {
     if (canOutputErrorsToConsole)
     {
-      console.warn(`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`);
+      consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to create compressed log file stream for writing: ${compressedFileName}`]);
     }
   }
   else
@@ -403,7 +431,7 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
     {
       if (error && canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`);
+        consoleWarning([`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`]);
       }
     });
   }
@@ -413,7 +441,7 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
   delete allLogDirs[logDir].filePath;
 }
 
-function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
+function openAndWriteToLogFileFn(filePath, message, canOutputErrorsToConsole)
 {
   fs.open(filePath, 'a', (error, fd) =>
   {
@@ -421,7 +449,7 @@ function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`);
+        consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to open log file for creating or appending: ${filePath}`]);
       }
     }
     else
@@ -430,6 +458,19 @@ function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
       writeLogToFile(filePath, fd, message, canOutputErrorsToConsole);
     }
   });
+}
+
+function openAndWriteToLogFileTestMode()
+{
+  //__RP TO-DO:  Deal with this function later.
+  //__RP The async nature of openAndWriteToLogFileFn() creates the issue that
+  // the handler is invoked long after the test was "passed."  If the 
+  // test dir is destroyed or recreated by the time the handler acts,
+  // an error happens and it might make the current test to fail, when
+  // it's not its fault.
+  // Not sure how to deal with it.  Ideally, the test should not move on
+  // until all the async operations complete.
+  // Maybe when I get some more sleep I'll think of a fix.
 }
 
 function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
@@ -482,7 +523,7 @@ function initiateLogDirCompression(canOutputErrorsToConsole)
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`);
+        consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable read this log directory: ${logDir}`]);
       }
     }
     else
@@ -585,8 +626,10 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
     {
       if (canOutputErrorsToConsole)
       {
-        console.warn(`${TERMINAL_WARNING_STRING}:  Could not get the current log file name`);
-        console.warn(`${TERMINAL_WARNING_STRING}:  ${error}`);
+        consoleWarning([
+          `${TERMINAL_WARNING_STRING}:  Could not get the current log file name`,
+          `${TERMINAL_WARNING_STRING}:  ${error}`
+        ]);
       }
     }));
 }

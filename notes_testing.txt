@@ -6,19 +6,8 @@ document.body.innerHTML='<textarea onkeyup="document.body.children[1].innerHTML=
 
 ====
 
-Found a bug:
-Run all tests:
-Check the test:
-Console: General disabled, general per site disabled, site enabled; no console output
-It reports:
-WARNING:  Unable to open log file for creating or appending: /Users/rafael/Projects/web/jsframework/jsctest/testrootdir/sites/mysite2/localLogs2/jsc_2019-04-29_8-00-00-30.log
- - First of all, the test should have caught that some output was emitted and failed.
-   - So, fix this first.
-     - It happens when ALL tests are active.
- - Second of all, why is the application trying to log to a file, when it shouldn't?
-   - First of all, fix whatever is causing that the warning happens because of some test remnant.
-   - Second of all, ^ temporarily unfix the above, then fix the cause of the warning.  No file logging should be happening here.
-     - Don't forget to "re-fix" the test remnant unfix above.
+Since onBeforeTestEnd() exists now, perhaps we can get rid of all those expectedLogMessagesPass()/onServerStarted() double checks.  We can put one single check in onBeforeTestEnd()
+ - And we can expand the testBattery_000_EXAMPLE comment to include this case.
 
 Test the following:
 Console:
@@ -182,11 +171,16 @@ Test that console does not emit anything if disabled?
     jscTestGlobal.logOutputToServerDirOccurred
     jscTestGlobal.logOutputToSiteDirOccurred
 
-14.  Test that an actual file is DEFINITELY not created when logging:  general, site.
+14.  Test that an actual file is created when file logging:  general, site.
 
-15.  Test that an actual file is created when logging:  general, site.
+15.  Test that an actual file is DEFINITELY not created when console logging:  general, site.
+ - Check the two functions marked with: //__RP TO-DO:  Deal with this function later.
 
-16.  Test that info in an actual file is APPENDED when logging:  general, site.
+16.  Test that info in an actual file is APPENDED when lfile ogging:  general, site.
+
+17.  Delete the log file and attempt to file log.  It should issue a warning.
+
+18.  Lock the log file (644)  and attempt to file log.  It should issue a warning.
 
 Comment out all the only: true; check that all tests pass.
  - But also check the actual test output, so that it's true that no console/file output means no console/file output

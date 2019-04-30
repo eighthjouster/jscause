@@ -98,8 +98,11 @@ const test_010_002_GD_GPD_SE_noConsoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
-      this.testPassed = !this.logOutputToConsoleOccurred;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.logOutputToConsoleOccurred;
     }
   }
 );
