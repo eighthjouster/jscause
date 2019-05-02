@@ -11,7 +11,8 @@ const allTests =
   'testBattery_007',
   'testBattery_008',
   'testBattery_009',
-  'testBattery_010'
+  'testBattery_010',
+  'testBattery_011'
 ];
 
 const fs = require('fs');
@@ -387,7 +388,7 @@ function doRemoveDirectoryFromPathList(dirPathList, { ignoreIfMissing = false } 
   const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
   if (!dirPath)
   {
-    console.error('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for creation');
+    console.error('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for removal');
     return;
   }
 
