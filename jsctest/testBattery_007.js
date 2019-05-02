@@ -75,16 +75,13 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       [ 'warning' , '- Server configuration prevails.' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -105,16 +102,13 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -135,16 +129,13 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -165,16 +156,13 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
       [ 'warning' , '- Server configuration prevails.' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -195,16 +183,13 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
       [ 'warning' , '- Server configuration prevails.' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -225,16 +210,13 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -255,16 +237,13 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -285,16 +264,13 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
       [ 'warning' , '- Server configuration prevails.' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -326,16 +302,13 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -367,16 +340,13 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -411,16 +381,13 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
       [ 'warning' , '- Server configuration prevails.' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );

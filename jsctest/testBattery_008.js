@@ -153,16 +153,13 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -286,16 +283,13 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -406,16 +400,13 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
@@ -542,16 +533,13 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );

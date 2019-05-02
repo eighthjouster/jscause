@@ -350,16 +350,13 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
       [ 'info', 'Will start listening.' ],
       [ 'info', 'Server 0 listening on port 3000' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );

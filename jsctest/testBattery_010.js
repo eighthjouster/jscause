@@ -103,13 +103,10 @@ const test_010_C_002_GD_GPD_SE_noConsoleOutput_noFileOutput = Object.assign(test
     },
     onServerStarted()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
-    },
-    onBeforeTestEnd()
-    {
       this.testPassed = !this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -357,12 +354,9 @@ const test_010_F_013_GD_GPD_SE_noFileOutput_noConsoleOutput = Object.assign(test
     },
     onServerStarted()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
-    },
-    onBeforeTestEnd()
-    {
       this.testPassed = !this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );

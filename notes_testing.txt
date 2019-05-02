@@ -1,10 +1,6 @@
 List of sanity checks:
 ======================
 
-BEFORE CONTINUING WITH THE LIST OF TESTS:
-Since onBeforeTestEnd() exists now, perhaps we can get rid of all those expectedLogMessagesPass()/onServerStarted() double checks.  We can put one single check in onBeforeTestEnd()
- - And we can expand the testBattery_000_EXAMPLE comment to include this case.
-
 Test the following:
 24.
 Both console and file:

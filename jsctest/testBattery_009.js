@@ -158,16 +158,13 @@ const test_009_003_siteConfInvalidHTTPSKeyFilePt2 = Object.assign(testUtils.make
       [ 'error', '- \'My Site\'' ],
       [ 'info', 'Server 0 listening on port 3001' ]
     ],
-    expectedLogMessagesPass()
-    {
-      // We must override this because the default passes the test.
-      // In this case, the test must pass if the server starts.
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
-    },
     onServerStarted()
     {
-      this.testPassed = !!this.serverDidStart && !!this.gotAllExpectedLogMsgs;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
     }
   }
 );
