@@ -1,19 +1,6 @@
 List of sanity checks:
 ======================
 
-Test the following:
-24.
-Both console and file:
- - Server general logging: enabled.
- - Server per site logging: enabled.
- - Site logging: enabled.
-   - Result:  Console output, SERVER file output, FILE file output.
-
-Test that console does not emit anything if disabled?
- - And files too (serverDir, siteDir).
-    jscTestGlobal.logOutputToServerDirOccurred
-    jscTestGlobal.logOutputToSiteDirOccurred
-
 (Another test module file? _011.js?)
 14.  Test that an actual file is created when file logging:  general, site.
 

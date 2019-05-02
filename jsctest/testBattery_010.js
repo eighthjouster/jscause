@@ -340,7 +340,7 @@ const test_010_C_012_GE_GPE_SE_consoleOutput_noFileOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_013_GD_GPD_SE_noFileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site disabled, site enabled; no file output, no file output'),
+const test_010_F_013_GD_GPD_SE_noFileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site disabled, site enabled; no file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -361,7 +361,7 @@ const test_010_F_013_GD_GPD_SE_noFileOutput_noConsoleOutput = Object.assign(test
   }
 );
 
-const test_010_F_014_GD_GPP_SD_noFileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site per site, site disabled; no file output, no file output'),
+const test_010_F_014_GD_GPP_SD_noFileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site per site, site disabled; no file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -382,7 +382,7 @@ const test_010_F_014_GD_GPP_SD_noFileOutput_noConsoleOutput = Object.assign(test
   }
 );
 
-const test_010_F_015_GD_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site per site, site enabled; file output, no file output'),
+const test_010_F_015_GD_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site per site, site enabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -404,7 +404,7 @@ const test_010_F_015_GD_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_016_GD_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site enabled, site disabled; file output, no file output'),
+const test_010_F_016_GD_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site enabled, site disabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -425,7 +425,7 @@ const test_010_F_016_GD_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_017_GD_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site enabled, site enabled; file output, no file output'),
+const test_010_F_017_GD_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General disabled, general per site enabled, site enabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -447,7 +447,7 @@ const test_010_F_017_GD_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_018_GE_GPD_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site disabled, site disabled; file output, no file output'),
+const test_010_F_018_GE_GPD_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site disabled, site disabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -468,7 +468,7 @@ const test_010_F_018_GE_GPD_SD_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_019_GE_GPD_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site disabled, site enabled; file output, no file output'),
+const test_010_F_019_GE_GPD_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site disabled, site enabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -490,7 +490,7 @@ const test_010_F_019_GE_GPD_SE_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_020_GE_GPP_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site per site, site disabled; file output, no file output'),
+const test_010_F_020_GE_GPP_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site per site, site disabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -512,7 +512,7 @@ const test_010_F_020_GE_GPP_SD_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_021_GE_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site per site, site enabled; file output, no file output'),
+const test_010_F_021_GE_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site per site, site enabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -535,7 +535,7 @@ const test_010_F_021_GE_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_022_GE_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site enabled, site disabled; file output, no file output'),
+const test_010_F_022_GE_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site enabled, site disabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -557,7 +557,7 @@ const test_010_F_022_GE_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUt
   }
 );
 
-const test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site enabled, site enabled; file output, no file output'),
+const test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUtils.makeFromBaseTest('File: General enabled, general per site enabled, site enabled; file output, no console output'),
   {
     // only: true,
     onTestBeforeStart()
@@ -575,6 +575,32 @@ const test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     {
       this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_010_CF_024_GE_GPE_SE_fileOutput_consoleOutput = Object.assign(testUtils.makeFromBaseTest('Console and file: General enabled, general per site enabled, site enabled; file output, console output'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.consoleOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.consoleOutput = 'enabled';
+      jsCauseConfContents.logging.general.fileOutput = 'enabled';
+      jsCauseConfContents.logging.perSite.fileOutput = 'enabled';
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      siteConfContents.logging.fileOutput = 'enabled';
+      siteConfContents.logging.consoleOutput = 'enabled';
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+    },
+    onServerStarted()
+    {
+      this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
+        this.logOutputToConsoleOccurred;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
@@ -603,5 +629,6 @@ module.exports = [
   test_010_F_020_GE_GPP_SD_fileOutput_noConsoleOutput,
   test_010_F_021_GE_GPP_SE_fileOutput_noConsoleOutput,
   test_010_F_022_GE_GPE_SD_fileOutput_noConsoleOutput,
-  test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput
+  test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput,
+  test_010_CF_024_GE_GPE_SE_fileOutput_consoleOutput
 ];
