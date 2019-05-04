@@ -59,7 +59,7 @@ const makeBaseSiteConfContents = (extra = {}) =>
 // G = General (Server).  GP = general per site.  S = Site.
 const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that general file logging output actually occurs in the file system'),
   {
-    only: true,
+    // only: true,
     onTestBeforeStart()
     {
       this.doEmptyTestDirectory();

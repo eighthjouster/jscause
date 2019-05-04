@@ -148,9 +148,15 @@ function nextTest(jscTestGlobal, list)
     );
   };
 
+  jscTestGlobal.areCallbacksStillPending = () =>
+  {
+    return jscTestGlobal.pendingCallbacks > 0;
+  }
+
   jscTestGlobal.callbackCalled = () =>
   {
-    if (!--jscTestGlobal.pendingCallBacks)
+    jscTestGlobal.pendingCallbacks--;
+    if (!jscTestGlobal.areCallbacksStillPending())
     {
       endTest(jscTestGlobal, list);
     }
@@ -168,7 +174,7 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.logOutputToConsoleOccurred = false;
     jscTestGlobal.logOutputToServerDirOccurred = false;
     jscTestGlobal.logOutputToSiteDirOccurred = false;
-    jscTestGlobal.pendingCallBacks = 1;
+    jscTestGlobal.pendingCallbacks = 0;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
@@ -198,7 +204,11 @@ function nextTest(jscTestGlobal, list)
     .then((result) =>
     {
       result && console.info(result);
-      jscTestGlobal.callbackCalled();
+
+      if (!jscTestGlobal.areCallbacksStillPending())
+      {
+        endTest(jscTestGlobal, list);
+      }
     })
     .catch((e) =>
     {

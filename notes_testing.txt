@@ -1,12 +1,16 @@
 List of sanity checks:
 ======================
 
-Investigate the messages of the type:
-WARNING:  Could not get the current log file name
-WARNING:  [object Object]
-when running the whole battery of tests.
+
+listen EADDRINUSE :::3000??????
+
+Where else should we use jscPromise and jscCatch?
+
+At this point, commit.
 
 14.  Test that an actual file is created when file logging:  general, site.
+
+At this point, BACKUP.
 
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
 

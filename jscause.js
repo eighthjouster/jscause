@@ -138,29 +138,16 @@ let runningServers;
  * 
  * *****************************************/
 
-let isTestMode = false;
+const isTestMode = (process.argv[2] === 'runtests');
 const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
-
-if (process.argv[2] === 'runtests')
-{
-  isTestMode = true;
-  jscTestGlobal.jscLib = getAllElementsToSupportTesting();
-  runTesting();
-}
-else if (process.argv[2])
-{
-  console.error('Unrecognized command line switch. Server not started.');
-  process.exit(1);
-}
-
-const jsCallBack = (isTestMode) ?
+const jscCallback = (isTestMode) ?
   (cb) =>
   {
-    jscTestGlobal.pendingCallBacks++;
-    return () =>
+    jscTestGlobal.pendingCallbacks++;
+    return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
       jscTestGlobal.callbackCalled();
@@ -168,8 +155,31 @@ const jsCallBack = (isTestMode) ?
   } :
   (cb) => cb;
 
-if (!isTestMode)
+const jscThen = jscCallback;
+const jscCatch = (isTestMode) ?
+  (cb) =>
+  {
+    return function() // It must be a function object instead of an arrow one because of the arguments object.
+    {
+      cb(...arguments);
+      jscTestGlobal.callbackCalled();
+    };
+  } :
+  (cb) => cb;
+
+if (isTestMode)
 {
+  jscTestGlobal.jscLib = getAllElementsToSupportTesting();
+  runTesting();
+}
+else
+{
+  if (process.argv[2])
+  {
+    console.error('Unrecognized command line switch. Server not started.');
+    process.exit(1);
+  }
+
   startApplication();
 }
 
@@ -233,7 +243,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   
   if (suffix <= 10) // __RP arbitrary number.
   {
-    fs.stat(currentFilePath, jsCallBack((error, stats) =>
+    fs.stat(currentFilePath, jscCallback((error, stats) =>
     {
       if (error)
       {
@@ -296,13 +306,13 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
   if (logFileFd)
   {
-    fs.write(logFileFd, new Buffer(`${message}\n`), jsCallBack((error) =>
+    fs.write(logFileFd, new Buffer(`${message}\n`), jscCallback((error) =>
     {
       if (error)
       {
         // Dropping the message.  We'll set things up so that the next message
         // will not attempt to reopen the file.
-        fs.close(logFileFd, jsCallBack((error) =>
+        fs.close(logFileFd, jscCallback((error) =>
         {
           if (error && canOutputErrorsToConsole)
           {
@@ -328,7 +338,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       {
         consoleWarning([
           `${TERMINAL_WARNING_STRING}:  Log compression: Error while reading from: ${fileName}`,
-          `${TERMINAL_WARNING_STRING}:  ${error}`
+          error
         ]);
       }
       compressedFileStream.end();
@@ -343,7 +353,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       {
         consoleWarning([
           `${TERMINAL_WARNING_STRING}:  Log compression: Error while compressing to: ${fileName} to ${compressedFileName}`,
-          `${TERMINAL_WARNING_STRING}:  ${error}`
+          error
         ]);
       }
       fileToCompressStream.end();
@@ -358,7 +368,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
       {
         consoleWarning([
           `${TERMINAL_WARNING_STRING}:  Log compression: Error while writing to: ${compressedFileName}`,
-          `${TERMINAL_WARNING_STRING}:  ${error}`
+          error
         ]);
       }
       compressedFileStream.end();
@@ -374,7 +384,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
         {
           consoleWarning([
             `${TERMINAL_WARNING_STRING}:  Log compression: Error while deleting source of already compressed file: ${fileName}`,
-            `${TERMINAL_WARNING_STRING}:  ${error}`
+            error
           ]);
         }
 
@@ -447,7 +457,7 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
 
 function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
 {
-  fs.open(filePath, 'a', jsCallBack((error, fd) =>
+  fs.open(filePath, 'a', jscCallback((error, fd) =>
   {
     if (error)
     {
@@ -590,7 +600,7 @@ function checkAndPrepareIfShouldCompressLogs(logDir, fileNameForLogging, canOutp
 function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsToConsole)
 {
   getCurrentLogFileName(logDir, fileSizeThreshold)
-    .then((latestFileNameForLogging) =>
+    .then(jscThen((latestFileNameForLogging) =>
     {
       if (!allLogDirs[logDir] || !allLogDirs[logDir].fileName)
       {
@@ -612,14 +622,14 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
       {
         openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole);
       }
-    })
-    .catch(((error) =>
+    }))
+    .catch(jscCatch((error) =>
     {
       if (canOutputErrorsToConsole)
       {
         consoleWarning([
           `${TERMINAL_WARNING_STRING}:  Could not get the current log file name`,
-          `${TERMINAL_WARNING_STRING}:  ${error}`
+          error
         ]);
       }
     }));
@@ -1525,9 +1535,9 @@ function makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext,
         .rtOnError(errorCallback);
     }
 
-    promiseContext.customCallBack = makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promiseContext, PROMISE_ACTOR_TYPE_ERROR, defaultSuccessWaitForId, defaultErrorWaitForId, errorCallback);
+    promiseContext.customCallback = makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promiseContext, PROMISE_ACTOR_TYPE_ERROR, defaultSuccessWaitForId, defaultErrorWaitForId, errorCallback);
 
-    promiseContext.errorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, promiseContext.customCallBack);
+    promiseContext.errorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, promiseContext.customCallback);
   };
 
   return {
@@ -1544,7 +1554,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
   {
     successWaitForId: undefined,
     errorWaitForId: undefined,
-    customCallBack: undefined
+    customCallback: undefined
   };
 
   defaultSuccessWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, () =>
@@ -1580,7 +1590,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
     {
       if (promiseContext.errorWaitForId)
       {
-        if (promiseContext.customCallBack)
+        if (promiseContext.customCallback)
         {
           rtContext.waitForQueue[promiseContext.errorWaitForId](e);
         }
