@@ -143,6 +143,10 @@ const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
+
+// jscCallback, jscThen and jscCatch are needed during testing so we wait for
+// all the callbacks to complete (file operations, networking) before going to the
+// next test.
 const jscCallback = (isTestMode) ?
   (cb) =>
   {
@@ -691,7 +695,7 @@ function waitForLogFileCompressionBeforeTerminate(options)
   if (isCurrentlyLogDirCompressing)
   {
     console.log('Waiting for the current log file compression file to terminate...');
-    setTimeout(() => { waitForLogFileCompressionBeforeTerminate(options); }, 5000);
+    setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options); }), 5000);
   }
   else
   {
@@ -745,7 +749,7 @@ function JSCLogTerminate(options)
     fs.closeSync(fileObj.fd);
     // If error.... make reference to ${key} //__RP
   });
-  setTimeout(() => { waitForLogFileCompressionBeforeTerminate(options) }, 0);
+  setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }), 0);
 }
 
 function vendor_require(vendorModuleName)

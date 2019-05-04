@@ -1,14 +1,10 @@
 List of sanity checks:
 ======================
 
-
-listen EADDRINUSE :::3000??????
-
-Where else should we use jscPromise and jscCatch?
-
-At this point, commit.
+Where else should we use jscPromise and jscCatch on?
 
 14.  Test that an actual file is created when file logging:  general, site.
+ - Almost there.  Check the actual file.
 
 At this point, BACKUP.
 

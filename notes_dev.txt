@@ -326,6 +326,8 @@ Delete header entries?
 
 Clear all header entries?
 
+Perhaps in a not so distant future we can arrange the code so that jscCallback, jscThen and jscCatch are true NOOPs in production.
+
 rt.waitFor():
  - There should be a way to define timeouts, to indicate when the callbacks are taking too long.
    - There should be a default somewhere, maybe 0 for "always wait."
