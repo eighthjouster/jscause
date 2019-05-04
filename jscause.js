@@ -156,8 +156,17 @@ else if (process.argv[2])
   process.exit(1);
 }
 
-const writeLogToFile = (isTestMode) ? writeLogToFileTestMode : writeLogToFileFn;
-const openAndWriteToLogFile = (isTestMode) ? openAndWriteToLogFileTestMode : openAndWriteToLogFileFn;
+const jsCallBack = (isTestMode) ?
+  (cb) =>
+  {
+    jscTestGlobal.pendingCallBacks++;
+    return () =>
+    {
+      cb(...arguments);
+      jscTestGlobal.callbackCalled();
+    };
+  } :
+  (cb) => cb;
 
 if (!isTestMode)
 {
@@ -221,10 +230,10 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   const currentFileNameStem = `jsc_${dateToYYYMMDD_HH0000({ suffix })}`;
   const currentFileName = `${currentFileNameStem}.log${postExtension}`;
   const currentFilePath = fsPath.join(logDir, currentFileName);
-
+  
   if (suffix <= 10) // __RP arbitrary number.
   {
-    fs.stat(currentFilePath, (error, stats) =>
+    fs.stat(currentFilePath, jsCallBack((error, stats) =>
     {
       if (error)
       {
@@ -255,7 +264,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
           resolve(currentFileName);
         }
       }
-    });
+    }));
   }
   else
   {
@@ -283,36 +292,31 @@ function consoleWarning(messageList)
   }
 }
 
-function writeLogToFileFn(filePath, logFileFd, message, canOutputErrorsToConsole)
+function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
   if (logFileFd)
   {
-    fs.write(logFileFd, new Buffer(`${message}\n`), (error) =>
+    fs.write(logFileFd, new Buffer(`${message}\n`), jsCallBack((error) =>
     {
       if (error)
       {
         // Dropping the message.  We'll set things up so that the next message
         // will not attempt to reopen the file.
-        fs.close(logFileFd, (error) =>
+        fs.close(logFileFd, jsCallBack((error) =>
         {
           if (error && canOutputErrorsToConsole)
           {
             consoleWarning([`${TERMINAL_WARNING_STRING}:  Could not close log file after write error: ${filePath}`]);
           }
-        });
+        }));
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
         if (canOutputErrorsToConsole)
         {
           consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`]);
         }
       }
-    });
+    }));
   }
-}
-
-function writeLogToFileTestMode()
-{
-  //__RP TO-DO:  Deal with this function later.
 }
 
 function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fileToCompressPath, fileToCompressStream, compressedFileStream, dataCompressor, canOutputErrorsToConsole, onCompressionEnd)
@@ -441,9 +445,9 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
   delete allLogDirs[logDir].filePath;
 }
 
-function openAndWriteToLogFileFn(filePath, message, canOutputErrorsToConsole)
+function openAndWriteToLogFile(filePath, message, canOutputErrorsToConsole)
 {
-  fs.open(filePath, 'a', (error, fd) =>
+  fs.open(filePath, 'a', jsCallBack((error, fd) =>
   {
     if (error)
     {
@@ -457,20 +461,7 @@ function openAndWriteToLogFileFn(filePath, message, canOutputErrorsToConsole)
       allOpenLogFiles[filePath] = { fd };
       writeLogToFile(filePath, fd, message, canOutputErrorsToConsole);
     }
-  });
-}
-
-function openAndWriteToLogFileTestMode()
-{
-  //__RP TO-DO:  Deal with this function later.
-  //__RP The async nature of openAndWriteToLogFileFn() creates the issue that
-  // the handler is invoked long after the test was "passed."  If the 
-  // test dir is destroyed or recreated by the time the handler acts,
-  // an error happens and it might make the current test to fail, when
-  // it's not its fault.
-  // Not sure how to deal with it.  Ideally, the test should not move on
-  // until all the async operations complete.
-  // Maybe when I get some more sleep I'll think of a fix.
+  }));
 }
 
 function onCompressionEnd(logDir, fileName, canOutputErrorsToConsole)
@@ -661,7 +652,7 @@ function JSCLog(type, message, logOptions = {})
         console.log('WEIRD! NO CONSOLE FUNCTION! THIS SHOULD NEVER HAPPEN.');//__RP
       }
     }
-  
+
     if (toServerDir || toSiteDir)
     {
       const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
@@ -2694,8 +2685,6 @@ function readConfigurationFile(name, path = '.', jscLogConfig = {})
   }
   catch (e)
   {
-    console.log(name, path);//__RP
-    console.log(e);//__RP
     JSCLog('error', `Cannot find ${name} file.`, Object.assign({ e }, jscLogConfig));
   }
 
@@ -3115,7 +3104,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
       const allowdNames = ['include', 'exclude'];
       if (allowdNames.indexOf(valueName) === -1)
       {
-        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name=>`'${name}'`).join(', ')}.`, jscLogConfig);
+        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name => `'${name}'`).join(', ')}.`, jscLogConfig);
         soFarSoGood = false;
       }
       else if ((valueName === 'include') && ((Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object')))

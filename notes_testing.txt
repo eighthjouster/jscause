@@ -1,13 +1,16 @@
 List of sanity checks:
 ======================
 
-(Another test module file? _011.js?)
+Investigate the messages of the type:
+WARNING:  Could not get the current log file name
+WARNING:  [object Object]
+when running the whole battery of tests.
+
 14.  Test that an actual file is created when file logging:  general, site.
 
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
- - Check the two functions marked with: //__RP TO-DO:  Deal with this function later.
 
-16.  Test that info in an actual file is APPENDED when lfile ogging:  general, site.
+16.  Test that info in an actual file is APPENDED when file logging:  general, site.
 
 17.  Delete the log file and attempt to file log.  It should issue a warning.
 

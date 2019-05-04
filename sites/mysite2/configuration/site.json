@@ -9,6 +9,8 @@
   "tempWorkDirectory": "./workbench",
   "mimeTypes": {},
   "logging": {
-    "directoryName": "./localLogs2"
+    "directoryName": "./localLogs2",
+    "consoleOutput": "disabled",
+    "fileOutput": "disabled"
   }
 }

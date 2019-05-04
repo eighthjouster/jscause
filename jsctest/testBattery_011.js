@@ -82,7 +82,8 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
     },
     onServerStarted()
     {
-      this.testPassed = false; //__RP for now.
+      this.testPassed = this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
+        !this.logOutputToConsoleOccurred;
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }

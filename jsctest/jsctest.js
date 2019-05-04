@@ -148,6 +148,14 @@ function nextTest(jscTestGlobal, list)
     );
   };
 
+  jscTestGlobal.callbackCalled = () =>
+  {
+    if (!--jscTestGlobal.pendingCallBacks)
+    {
+      endTest(jscTestGlobal, list);
+    }
+  };
+
   const testPromise = new Promise((resolve) =>
   {
     jscTestGlobal.onTestBeforeStart = undefined;
@@ -160,6 +168,7 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.logOutputToConsoleOccurred = false;
     jscTestGlobal.logOutputToServerDirOccurred = false;
     jscTestGlobal.logOutputToSiteDirOccurred = false;
+    jscTestGlobal.pendingCallBacks = 1;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
@@ -189,19 +198,7 @@ function nextTest(jscTestGlobal, list)
     .then((result) =>
     {
       result && console.info(result);
-      jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
-      if (jscTestGlobal.testPassed)
-      {
-        jscTestGlobal.totalTestsPassed++;
-      }
-      else
-      {
-        jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
-      }
-
-      console.info(`Finished test: ${jscTestGlobal.testName}`);
-      jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
-      nextTest(jscTestGlobal, list);
+      jscTestGlobal.callbackCalled();
     })
     .catch((e) =>
     {
@@ -210,6 +207,23 @@ function nextTest(jscTestGlobal, list)
       console.info(`Finished test: ${jscTestGlobal.testName}`);
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
     });
+}
+
+function endTest(jscTestGlobal, list)
+{
+  jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
+  if (jscTestGlobal.testPassed)
+  {
+    jscTestGlobal.totalTestsPassed++;
+  }
+  else
+  {
+    jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
+  }
+
+  console.info(`Finished test: ${jscTestGlobal.testName}`);
+  jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
+  nextTest(jscTestGlobal, list);
 }
 
 function invokeOnCompletion(jscTestGlobal, resolveMessage)
