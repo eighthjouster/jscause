@@ -1,7 +1,8 @@
 List of sanity checks:
 ======================
 
-Where else should we use jscPromise and jscCatch on?
+Should the 'Site config: invalid logging dir name' test emit a warning?
+ - And 'Site config, empty logging directoryName'
 
 14.  Test that an actual file is created when file logging:  general, site.
  - Almost there.  Check the actual file.
@@ -29,28 +30,41 @@ Test: What if a port is taken? (By some other application.)
 Go through the code and see what else needs to be tested that is not directly related to serving files.
  - Reading user files.
    - Static/dynamic.
+     - May need jscCallback/jscThen/jscCatch
  - Caching user files.
    - Static/dynamic.
+     - May need jscCallback/jscThen/jscCatch
 
 Then, go through the code and start testing content-related stuff:
   - Whether HTML stuff renders.
   - Forms / GET / POST.
+     - Use big files just to make sure that processes don't go past the next test.
+     - May need jscCallback/jscThen/jscCatch
   - JSON stuff.
   - File uploads.
     - Temporary upload files should be deleted.
+     - May need jscCallback/jscThen/jscCatch
+     - Use big files just to make sure that processes don't go past the next test.
   - Limits exceeded.  Timeouts.
+     - May need jscCallback/jscThen/jscCatch
   - Callbacks.
+     - May need jscCallback/jscThen/jscCatch
   - waitFor().
+     - May need jscCallback/jscThen/jscCatch
   - rtThen() / rtCatch().
+     - May need jscCallback/jscThen/jscCatch
   - Other rt's.
   - File operations.
+     - May need jscCallback/jscThen/jscCatch
   - Redirects.
   - Cookies.
   - Error 400 / Error 500.
     - Static error 400, static error 500.
     - Other errors.
   - Logging.
+     - May need jscCallback/jscThen/jscCatch
   - At this point, resume engine development.
+  - Publish an alpha.
 
 Check all the output when running all the tests, in case there are inconsistencies (e.g., test says no console output, but console output ocurred.  Things like that.)
 

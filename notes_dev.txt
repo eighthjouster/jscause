@@ -335,6 +335,8 @@ rt.waitFor():
 
 Reload on file change?
 
+Cleaner way to process.exit()? (or avoid using it altogether.)
+
 Option to crash the server on fatal error?
  - Crash it on immediate compile error.
  - Reload otherwise?

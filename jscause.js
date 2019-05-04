@@ -382,7 +382,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
     })
     .on('finish', () =>
     {
-      fs.unlink(fileToCompressPath, (error) =>
+      fs.unlink(fileToCompressPath, jscCallback((error) =>
       {
         if (error && canOutputErrorsToConsole)
         {
@@ -393,7 +393,7 @@ function setUpLogFileCompressionEvents(logDir, fileName, compressedFileName, fil
         }
 
         onCompressionEnd && onCompressionEnd(logDir, fileName, canOutputErrorsToConsole);
-      });
+      }));
     });
 }
 
@@ -445,13 +445,13 @@ function closeLogFile(logDir, filePath, canOutputErrorsToConsole)
 
   if (logFileFd)
   {
-    fs.close(logFileFd, (error) =>
+    fs.close(logFileFd, jscCallback((error) =>
     {
       if (error && canOutputErrorsToConsole)
       {
         consoleWarning([`${TERMINAL_WARNING_STRING}:  Could not close log file for archival: ${filePath}`]);
       }
-    });
+    }));
   }
 
   delete allOpenLogFiles[filePath];
@@ -522,7 +522,7 @@ function initiateLogDirCompression(canOutputErrorsToConsole)
 
   const { fileName: fileNameForLogging, currentlyCompressingFileNameList, pendingToCompressingFileNameList } = allLogDirs[logDir];
 
-  fs.readdir(logDir, (error, allFiles) =>
+  fs.readdir(logDir, jscCallback((error, allFiles) =>
   {
     if (error)
     {
@@ -552,7 +552,7 @@ function initiateLogDirCompression(canOutputErrorsToConsole)
         }
       });
     }
-  });
+  }));
 }
 
 function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
@@ -705,6 +705,7 @@ function waitForLogFileCompressionBeforeTerminate(options)
       {
         console.log('Terminated.');
       }
+
       if (typeof(options.onTerminateComplete) === 'function')
       {
         Promise.all(
@@ -713,16 +714,16 @@ function waitForLogFileCompressionBeforeTerminate(options)
               (thisServer) => thisServer.webServer.close(() => Promise.resolve())
             )
         )
-          .then(() =>
+          .then(jscThen(() =>
           {
             options.onTerminateComplete();
-          })
-          .catch((e) =>
+          }))
+          .catch(jscCatch((e) =>
           {
             console.log('ERROR ON SERVER LISTENING TERMINATION? SHOULD WE EVER GET HERE?');//__RP
             console.log(e);//__RP
 
-          });
+          }));
       }
       else
       {
@@ -1262,7 +1263,7 @@ function setTempWorkDirectory(siteConfig, jscLogConfig)
 
 function doDeleteFile(thisFile, jscLogConfig)
 {
-  fs.stat(thisFile.path, (err) =>
+  fs.stat(thisFile.path, jscCallback((err) =>
   {
     if (err)
     {
@@ -1273,16 +1274,16 @@ function doDeleteFile(thisFile, jscLogConfig)
       }
     }
     else {
-      fs.unlink(thisFile.path, (err) =>
+      fs.unlink(thisFile.path, jscCallback((err) =>
       {
         if (err)
         {
           JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
           JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
         }
-      });
+      }));
     }
-  });
+  }));
 }
 
 function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
@@ -1302,7 +1303,7 @@ function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, 
   
   pendingWork.pendingRenaming++;
 
-  fs.rename(oldFilePath, newFilePath, (err) =>
+  fs.rename(oldFilePath, newFilePath, jscCallback((err) =>
   {
     pendingWork.pendingRenaming--;
     if (err)
@@ -1320,7 +1321,7 @@ function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, 
     {
       responder(serverConfig, identifiedSite, resContext, { formContext });
     }
-  });
+  }));
 }
 
 function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
@@ -1579,7 +1580,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
   });
 
   new Promise(rtPromise)
-    .then(() =>
+    .then(jscThen(() =>
     {
       if (promiseContext.successWaitForId)
       {
@@ -1589,8 +1590,8 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
       {
         rtContext.waitForQueue[defaultSuccessWaitForId]();
       }
-    })
-    .catch((e) =>
+    }))
+    .catch(jscCatch((e) =>
     {
       if (promiseContext.errorWaitForId)
       {
@@ -1613,7 +1614,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
       {
         rtContext.waitForQueue[defaultErrorWaitForId](e);
       }
-    });
+    }));
 
   return makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId);
 }
@@ -1727,7 +1728,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         }
         else
         {
-          fs.stat(destination, (err) =>
+          fs.stat(destination, jscCallback((err) =>
           {
             if (err)
             {
@@ -1744,7 +1745,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
                 dest: destination
               });
             }
-          });
+          }));
         }
       });
     },
@@ -2229,11 +2230,11 @@ function serveStaticContent(req, res, serverConfig, identifiedSite, runFileName,
   
   if (typeof(fileContents) === 'undefined')
   {
-    fs.stat(fullPath, (err) =>
+    fs.stat(fullPath, jscCallback((err) =>
     {
       const readStream = (err) ? null : fs.createReadStream(fullPath);
       responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { readStream, fileNotFoundException: err });
-    });
+    }));
   }
   else
   {
