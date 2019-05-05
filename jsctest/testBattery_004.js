@@ -187,7 +187,7 @@ const test_004_005_siteConfEmptyLoggingDirectoryName = Object.assign(testUtils.m
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Site \'My Site\': logging directoryname cannot be empty.' ],
+      [ 'error', 'Site \'My Site\': could not read directory: jsctest/testrootdir/sites/mysite/website' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

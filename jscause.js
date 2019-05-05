@@ -3769,12 +3769,11 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     return;
   }
 
-
   // Let's check the specified directory.
   let
     {
       directoryname: directoryName,
-      fileoutput: fileOutput = 'enabled',
+      fileoutput: fileOutput = (serverWide && !perSite) ? 'enabled' : 'disabled',
       consoleoutput: consoleOutput = 'enabled',
       logfilesizethreshold: logFileSizeThreshold
     } = loggingInfo || {};

@@ -45,7 +45,7 @@ const makeBaseSiteConfContents = (extra = {}) =>
     }, extra
   );
 
-const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtils.makeFromBaseTest('Server and site logging discrepancies, fileOutput'),
+const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtils.makeFromBaseTest('Server and site logging discrepancies, fileOutput, no warnings'),
   {
     // only: true,
     onTestBeforeStart()
@@ -69,19 +69,13 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
-    expectedLogMessages:
-    [
-      [ 'warning' , 'Site configuration: Site \'My Site\' has file logging enabled while the server has per-site file logging disabled.' ],
-      [ 'warning' , '- Server configuration prevails.' ],
-      [ 'info' , 'Server 0 listening on port 3000' ]
-    ],
     onServerStarted()
     {
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = !!this.serverDidStart && !this.gotWarningMessages;
     }
   }
 );
@@ -150,19 +144,13 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
       jsCauseConfContents.logging.perSite.fileOutput = 'disabled';
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
     },
-    expectedLogMessages:
-    [
-      [ 'warning' , 'Site configuration: Site \'My Site\' has file logging enabled while the server has per-site file logging disabled.' ],
-      [ 'warning' , '- Server configuration prevails.' ],
-      [ 'info' , 'Server 0 listening on port 3000' ]
-    ],
     onServerStarted()
     {
       this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = !!this.serverDidStart && !this.gotWarningMessages;
     }
   }
 );

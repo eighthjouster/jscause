@@ -146,6 +146,15 @@ function nextTest(jscTestGlobal, list)
         jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.call(jscTestGlobal);
       }
     );
+
+    if (type === 'warning')
+    {
+      jscTestGlobal.gotWarningMessages = true;
+    }
+    else if (type === 'error')
+    {
+      jscTestGlobal.gotErrorMessages = true;
+    }
   };
 
   jscTestGlobal.areCallbacksStillPending = () =>
@@ -170,6 +179,8 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestGlobal.testPassed = false;
     jscTestGlobal.gotAllExpectedLogMsgs = false;
+    jscTestGlobal.gotWarningMessages = false;
+    jscTestGlobal.gotErrorMessages = false;
     jscTestGlobal.serverDidStart = false;
     jscTestGlobal.logOutputToConsoleOccurred = false;
     jscTestGlobal.logOutputToServerDirOccurred = false;

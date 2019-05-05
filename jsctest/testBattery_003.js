@@ -666,7 +666,7 @@ const test_003_022_siteConfMissingLogging = Object.assign(testUtils.makeFromBase
   }
 );
 
-const test_003_022_siteConfInvalidLoggindDirName = Object.assign(testUtils.makeFromBaseTest('Site config: invalid logging dir name'),
+const test_003_022_siteConfLoggingDefaultsWithoutWebsiteDir = Object.assign(testUtils.makeFromBaseTest('Site config: logging defaults without website dir'),
   {
     // only: true,
     onTestBeforeStart()
@@ -681,7 +681,7 @@ const test_003_022_siteConfInvalidLoggindDirName = Object.assign(testUtils.makeF
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Site \'My Site\': logging directoryname cannot be empty.' ],
+      [ 'error', 'Site \'My Site\': could not read directory: jsctest/testrootdir/sites/mysite/website' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -921,7 +921,7 @@ module.exports = [
   test_003_020_siteConfEmptyTempWorkDirectory,
   test_003_021_siteConfInvalidMimeTypes,
   test_003_022_siteConfMissingLogging,
-  test_003_022_siteConfInvalidLoggindDirName,
+  test_003_022_siteConfLoggingDefaultsWithoutWebsiteDir,
   test_003_023_siteConfInvalidMimeTypeEntry,
   test_003_024_siteConfInvalidMimeTypeInclude,
   test_003_025_siteConfEmptyMimeTypeName,
