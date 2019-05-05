@@ -1,10 +1,6 @@
 List of sanity checks:
 ======================
 
-Is the warning okay on this test?
-Site config, missing website directory
-Site config, empty site, server runs
-
 14.  Test that an actual file is created when file logging:  general, site.
  - Almost there.  Check the actual file.
 

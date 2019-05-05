@@ -48,7 +48,13 @@ const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromB
             'rootDirectoryName': 'mysite'
           }
         ],
-        'logging': {}
+        'logging':
+        {
+          'perSite':
+          {
+            'fileOutput': 'per site'
+          }
+        }
       };
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
@@ -235,13 +241,13 @@ const test_004_007_siteConfLoggingDirectoryAbsolutePath = Object.assign(testUtil
     {
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
 
-      const siteConfContents =
-      {
-        'logging':
+      const siteConfContents = makeBase1SiteConfContents(
         {
-          'directoryName': '/localLogs'
-        }
-      };
+          'logging':
+          {
+            'directoryName': '/localLogs'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
@@ -263,13 +269,13 @@ const test_004_008_siteConfLoggingDirectoryRandomPath = Object.assign(testUtils.
     // only: true,
     onTestBeforeStart()
     {
-      const siteConfContents =
-      {
-        'logging':
+      const siteConfContents = makeBase1SiteConfContents(
         {
-          'directoryName': './randomDirectory'
-        }
-      };
+          'logging':
+          {
+            'directoryName': './randomDirectory'
+          }
+        });
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
     expectedLogMessages:
