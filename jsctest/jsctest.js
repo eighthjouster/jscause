@@ -30,6 +30,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
+  jscTestGlobal.readFile = readFile.bind(jscTestGlobal);
   jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
 
@@ -167,7 +168,10 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.pendingCallbacks--;
     if (!jscTestGlobal.areCallbacksStillPending())
     {
-      endTest(jscTestGlobal, list);
+      if (jscTestGlobal.pendingCallbackTrackingEnabled)
+      {
+        signalTestEnd(jscTestGlobal, list);
+      }
     }
   };
 
@@ -185,6 +189,7 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.logOutputToConsoleOccurred = false;
     jscTestGlobal.logOutputToServerDirOccurred = false;
     jscTestGlobal.logOutputToSiteDirOccurred = false;
+    jscTestGlobal.pendingCallbackTrackingEnabled = true;
     jscTestGlobal.pendingCallbacks = 0;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
@@ -218,7 +223,7 @@ function nextTest(jscTestGlobal, list)
 
       if (!jscTestGlobal.areCallbacksStillPending())
       {
-        endTest(jscTestGlobal, list);
+        signalTestEnd(jscTestGlobal, list);
       }
     })
     .catch((e) =>
@@ -230,9 +235,24 @@ function nextTest(jscTestGlobal, list)
     });
 }
 
+function signalTestEnd(jscTestGlobal, list)
+{
+  jscTestGlobal.continueTesting = () =>
+  {
+    endTest(jscTestGlobal, list);
+  };
+
+  const result = jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
+
+  if (!result || !result.waitForContinueTestingSignal)
+  {
+    jscTestGlobal.continueTesting();
+  }
+}
+
 function endTest(jscTestGlobal, list)
 {
-  jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
+  console.log('END TEST!!!!');//__RP
   if (jscTestGlobal.testPassed)
   {
     jscTestGlobal.totalTestsPassed++;
@@ -310,6 +330,25 @@ function createFile(dirPathList, contents)
   }
 
   fs.writeFileSync(filePath, contents);
+}
+
+function readFile(dirPathList)
+{
+  if (!dirPathList)
+  {
+    console.error('CRITICAL: createFile(): No file path specified for reading');
+    return;
+  }
+
+  const filePath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+
+  if (filePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
+  {
+    console.error('CRITICAL: readFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    return;
+  }
+
+  return fs.readFileSync(filePath);
 }
 
 function chmodFileOrDir(dirPathList, permissionInOctal)

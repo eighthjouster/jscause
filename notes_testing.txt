@@ -3,6 +3,11 @@ List of sanity checks:
 
 14.  Test that an actual file is created when file logging:  general, site.
  - Almost there.  Check the actual file.
+  - Ok, some lines can appear anywhere in the log.
+    - Either you force them during testing, or....
+    - (Preferred):  Check (and delete) for the async lines first, then compare the rest normally.
+- Remember to do this for a per site as well.
+Remove console.log('END TEST!!!!');//__RP
 
 At this point, BACKUP.
 
@@ -59,6 +64,7 @@ Then, go through the code and start testing content-related stuff:
     - Static error 400, static error 500.
     - Other errors.
   - Logging.
+     - Especially the file name auto-generation.
      - May need jscCallback/jscThen/jscCatch
   - At this point, resume engine development.
   - Publish an alpha.

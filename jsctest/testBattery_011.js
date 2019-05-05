@@ -59,7 +59,7 @@ const makeBaseSiteConfContents = (extra = {}) =>
 // G = General (Server).  GP = general per site.  S = Site.
 const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that general file logging output actually occurs in the file system'),
   {
-    // only: true,
+    only: true,
     onTestBeforeStart()
     {
       this.doEmptyTestDirectory();
@@ -80,11 +80,53 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
-    onServerStarted()
+    onBeforeTestEnd()
     {
-      this.testPassed = this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
-        !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      let waitForContinueTestingSignal = false;
+      this.testPassed = false;
+      if (this.serverDidStart && this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred)
+      {
+        waitForContinueTestingSignal = true;
+        const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
+        const { messagePrefix: infoPrefix } = JSCLOG_DATA['info'];
+        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
+        getCurrentLogFileName('./logs', 0)
+          .then((fileName) =>
+          {
+            const actualLogFileContents = this.readFile(['logs', fileName]).toString();
+
+            const expectedLogFileContents =
+              [
+                formatLogMessage(infoPrefix, 'Reading configuration for site \'My Site\' from \'jsctest/testrootdir/sites/mysite\''),
+                formatLogMessage(infoPrefix, '************ All sites\' configuration read at this point ********************'),
+                formatLogMessage(infoPrefix, '\'My Site\''),
+                formatLogMessage(infoPrefix, 'Will start listening.'),
+                formatLogMessage(infoPrefix, 'The following sites were set up successfully:'),
+                formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
+                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
+                ''
+              ].join('\n');
+
+
+              console.log(actualLogFileContents);//__RP
+              console.log(expectedLogFileContents);//__RP
+            this.testPassed = (actualLogFileContents === expectedLogFileContents);
+            console.log('TEST PASSED?');//__RP
+            console.log(this.testPassed);//__RP
+            this.continueTesting();
+          })
+          .catch(() =>
+          {
+            this.testPassed = false;
+          });
+        return { waitForContinueTestingSignal };
+      }
+      else
+      {
+        console.log('___FAILED?!');//__RP
+        this.testPassed = false;
+        this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      }
     }
   }
 );

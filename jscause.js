@@ -639,6 +639,11 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
     }));
 }
 
+function formatLogMessage(prefix, message)
+{
+  return `${(prefix) ? `${prefix}: ` : ''}${message}`;
+}
+
 function JSCLog(type, message, logOptions = {})
 {
   if (isTestMode)
@@ -655,7 +660,7 @@ function JSCLog(type, message, logOptions = {})
     {
       if (outputToConsole)
       {
-        outputToConsole(`${(consolePrefix) ? `${consolePrefix}: ` : ''}${message}`);
+        outputToConsole(formatLogMessage(consolePrefix, message));
         if (e)
         {
           outputToConsole(e);
@@ -669,10 +674,10 @@ function JSCLog(type, message, logOptions = {})
 
     if (toServerDir || toSiteDir)
     {
-      const finalMessagePrefix = `${(messagePrefix) ? `${messagePrefix}: ` : ''}`;
+      const formattedMessage = formatLogMessage(messagePrefix, message);
       if (toServerDir)
       {
-        outputLogToDir(toServerDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
+        outputLogToDir(toServerDir, fileSizeThreshold, formattedMessage, toConsole);
         if (e)
         {
           outputLogToDir(toServerDir, fileSizeThreshold, e, toConsole);
@@ -680,7 +685,7 @@ function JSCLog(type, message, logOptions = {})
       }
       if (toSiteDir)
       {
-        outputLogToDir(toSiteDir, fileSizeThreshold, `${finalMessagePrefix}${message}`, toConsole);
+        outputLogToDir(toSiteDir, fileSizeThreshold, formattedMessage, toConsole);
         if (e)
         {
           outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
@@ -742,6 +747,7 @@ function waitForLogFileCompressionBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
+  console.log('TERMINATING?!?!?!');//__RP
   Object.keys(allOpenLogFiles).forEach((key) =>
   {
     const fileObj = allOpenLogFiles[key];
@@ -4689,7 +4695,10 @@ function getAllElementsToSupportTesting()
   const allElementsToSupportTesting =
   {
     exitApplication,
-    startApplication
+    startApplication,
+    getCurrentLogFileName,
+    JSCLOG_DATA,
+    formatLogMessage
   };
   return allElementsToSupportTesting;
 }
