@@ -127,6 +127,8 @@ const LOGEXTENSION_FILENAME_RE = /\.log$/;
 let allLogDirs;
 let allOpenLogFiles;
 let compressLogsDirQueue;
+let JSCLogMessageQueue;
+let isJSCLogMessageQueueProcessing;
 let isCurrentlyLogDirCompressing;
 let processExitAttempts;
 let serverConfig;
@@ -198,6 +200,8 @@ function initializeGlobals()
   allLogDirs = {};
   allOpenLogFiles = {};
   compressLogsDirQueue = [];
+  JSCLogMessageQueue = [];
+  isJSCLogMessageQueueProcessing = false;
   isCurrentlyLogDirCompressing = false;
   processExitAttempts = 0;
   serverConfig = {};
@@ -328,6 +332,15 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
         {
           consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`]);
         }
+      }
+  
+      if (JSCLogMessageQueue.length)
+      {
+        JSCLogNextInQueue();
+      }
+      else
+      {
+        isJSCLogMessageQueueProcessing = false;
       }
     }));
   }
@@ -644,8 +657,10 @@ function formatLogMessage(prefix, message)
   return `${(prefix) ? `${prefix}: ` : ''}${message}`;
 }
 
-function JSCLog(type, message, logOptions = {})
+function JSCLogNextInQueue()
 {
+  const { type, message, logOptions } = JSCLogMessageQueue.shift();
+  let outputToFile = false;
   if (isTestMode)
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
@@ -691,7 +706,26 @@ function JSCLog(type, message, logOptions = {})
           outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
         }
       }
+      outputToFile = true;
     }
+  }
+
+  if (outputToFile)
+  {
+    isJSCLogMessageQueueProcessing = true;
+  }
+  else if (JSCLogNextInQueue.length)
+  {
+    JSCLogNextInQueue();
+  }
+}
+
+function JSCLog(type, message, logOptions = {})
+{
+  JSCLogMessageQueue.push({ type, message, logOptions });
+  if (!isJSCLogMessageQueueProcessing)
+  {
+    JSCLogNextInQueue();
   }
 }
 
@@ -4065,9 +4099,9 @@ function loadVendorModules()
 function startApplication(options = { rootDir: undefined })
 {
   const { rootDir: alternateRootDir } = options;
-  JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
-
   initializeGlobals();
+
+  JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
   let atLeastOneSiteStarted = false;
   let readSuccess = false;

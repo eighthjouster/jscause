@@ -2,13 +2,8 @@ List of sanity checks:
 ======================
 
 14.  Test that an actual file is created when file logging:  general, site.
- - Almost there.  Check the actual file.
-  - Ok, some lines can appear anywhere in the log.
-    - Either you force them during testing, or....
-    - (Preferred):  Check (and delete) for the async lines first, then compare the rest normally.
-- Remember to do this for a per site as well.
-Remove console.log('END TEST!!!!');//__RP
-
+  - Done, but now 10 tests are not passing.  Why?
+ 
 At this point, BACKUP.
 
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
@@ -26,6 +21,12 @@ Comment out all the only: true; check that all tests pass.
 At this point, back up.
 
 ===
+
+What happens if opening the log file fails?
+  - Or if the writing fails?
+    - If you can't write tests for this, at least simulate it just to make sure that the log queue doesn't grow indiscriminately because the writing process got stalled.
+      - If it grows, here's a chance to put a failsafe of the sort:
+         - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
 
 Test: What if a port is taken? (By some other application.)
 

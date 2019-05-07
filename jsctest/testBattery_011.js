@@ -59,7 +59,7 @@ const makeBaseSiteConfContents = (extra = {}) =>
 // G = General (Server).  GP = general per site.  S = Site.
 const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that general file logging output actually occurs in the file system'),
   {
-    only: true,
+    // only: true,
     onTestBeforeStart()
     {
       this.doEmptyTestDirectory();
@@ -98,21 +98,16 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
             const expectedLogFileContents =
               [
                 formatLogMessage(infoPrefix, 'Reading configuration for site \'My Site\' from \'jsctest/testrootdir/sites/mysite\''),
+                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
                 formatLogMessage(infoPrefix, '************ All sites\' configuration read at this point ********************'),
+                formatLogMessage(infoPrefix, 'The following sites were set up successfully:'),
                 formatLogMessage(infoPrefix, '\'My Site\''),
                 formatLogMessage(infoPrefix, 'Will start listening.'),
-                formatLogMessage(infoPrefix, 'The following sites were set up successfully:'),
                 formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
-                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
                 ''
               ].join('\n');
 
-
-              console.log(actualLogFileContents);//__RP
-              console.log(expectedLogFileContents);//__RP
             this.testPassed = (actualLogFileContents === expectedLogFileContents);
-            console.log('TEST PASSED?');//__RP
-            console.log(this.testPassed);//__RP
             this.continueTesting();
           })
           .catch(() =>
@@ -123,7 +118,6 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
       }
       else
       {
-        console.log('___FAILED?!');//__RP
         this.testPassed = false;
         this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
       }

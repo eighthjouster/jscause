@@ -40,6 +40,8 @@ Why? Parser bug?
 
 - Document: logFileSizeThreshold
 
+There should be one JSCLogMessageQueue and one isJSCLogMessageQueueProcessing per site and for the global server.
+
 - Logging rotation?
   - Max size of uncompressed log files? (default: 1 MB).
     *- -1, -2, -3 for the same date. - Done.
