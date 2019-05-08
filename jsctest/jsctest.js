@@ -279,10 +279,10 @@ function invokeOnCompletion(jscTestGlobal, resolveMessage)
 
 function checkLogOutputWillOccur(logOptions)
 {
-  const { toConsole = false, toServerDir = false, toSiteDir = false } = logOptions;
+  const { toConsole = false, toServerDir = null, toSiteDir = null } = logOptions;
   this.logOutputToConsoleOccurred = this.logOutputToConsoleOccurred || toConsole;
-  this.logOutputToServerDirOccurred = this.logOutputToServerDirOccurred || toServerDir;
-  this.logOutputToSiteDirOccurred = this.logOutputToSiteDirOccurred || toSiteDir;
+  this.logOutputToServerDirOccurred = this.logOutputToServerDirOccurred || !!toServerDir;
+  this.logOutputToSiteDirOccurred = this.logOutputToSiteDirOccurred || !!toSiteDir;
 }
 
 function checkExpectedLogMessages(type, message, expectedLogMessages, expectedLogMessagesPass)

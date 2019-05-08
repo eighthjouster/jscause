@@ -81,10 +81,13 @@ const test_010_C_001_GD_GPD_SD_noConsoleOutput_noFileOutput = Object.assign(test
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -103,10 +106,13 @@ const test_010_C_002_GD_GPD_SE_noConsoleOutput_noFileOutput = Object.assign(test
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -125,10 +131,13 @@ const test_010_C_003_GD_GPP_SD_noConsoleOutput_noFileOutput = Object.assign(test
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -148,10 +157,13 @@ const test_010_C_004_GD_GPP_SE_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -170,10 +182,13 @@ const test_010_C_005_GD_GPE_SD_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -193,10 +208,13 @@ const test_010_C_006_GD_GPE_SE_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -215,10 +233,13 @@ const test_010_C_007_GE_GPD_SD_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -238,10 +259,13 @@ const test_010_C_008_GE_GPD_SE_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -261,10 +285,13 @@ const test_010_C_009_GE_GPP_SD_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -285,10 +312,13 @@ const test_010_C_010_GE_GPP_SE_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -308,10 +338,13 @@ const test_010_C_011_GE_GPE_SD_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -332,10 +365,13 @@ const test_010_C_012_GE_GPE_SE_consoleOutput_noFileOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToConsoleOccurred &&
         !this.logOutputToServerDirOccurred &&
         !this.logOutputToSiteDirOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -354,9 +390,12 @@ const test_010_F_013_GD_GPD_SE_noFileOutput_noConsoleOutput = Object.assign(test
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -375,9 +414,12 @@ const test_010_F_014_GD_GPP_SD_noFileOutput_noConsoleOutput = Object.assign(test
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -397,9 +439,12 @@ const test_010_F_015_GD_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -418,9 +463,12 @@ const test_010_F_016_GD_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -440,9 +488,12 @@ const test_010_F_017_GD_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = !this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -461,9 +512,12 @@ const test_010_F_018_GE_GPD_SD_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -483,9 +537,12 @@ const test_010_F_019_GE_GPD_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -505,9 +562,12 @@ const test_010_F_020_GE_GPP_SD_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -528,9 +588,12 @@ const test_010_F_021_GE_GPP_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -550,9 +613,12 @@ const test_010_F_022_GE_GPE_SD_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -573,9 +639,12 @@ const test_010_F_023_GE_GPE_SE_fileOutput_noConsoleOutput = Object.assign(testUt
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         !this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );
@@ -599,9 +668,12 @@ const test_010_CF_024_GE_GPE_SE_fileOutput_consoleOutput = Object.assign(testUti
     },
     onServerStarted()
     {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
       this.testPassed = this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred &&
         this.logOutputToConsoleOccurred;
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
     }
   }
 );

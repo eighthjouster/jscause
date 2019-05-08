@@ -15,6 +15,9 @@ In the specs:
 
 Once you're done debugging writing tests, uncomment:
 //__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
+  - It may stall.  So, if it happens, do two things:
+    - One, perfect time to implement a timeout failsafe.
+    - Two, this is because file writing is not happening, and JSCLogQueueNext() is not being called, or JSCLogMessageQueue.length is not being checked.
 
 Did you know that site names can be anything? Like "{}" will be converted to "[Object object]".
  - If we decide to leave this, document.
