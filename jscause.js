@@ -336,7 +336,7 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
   
       if (JSCLogMessageQueue.length)
       {
-        JSCLogNextInQueue();
+        JSCLogQueueNext();
       }
       else
       {
@@ -657,7 +657,7 @@ function formatLogMessage(prefix, message)
   return `${(prefix) ? `${prefix}: ` : ''}${message}`;
 }
 
-function JSCLogNextInQueue()
+function JSCLogQueueNext()
 {
   const { type, message, logOptions } = JSCLogMessageQueue.shift();
   let outputToFile = false;
@@ -714,9 +714,9 @@ function JSCLogNextInQueue()
   {
     isJSCLogMessageQueueProcessing = true;
   }
-  else if (JSCLogNextInQueue.length)
+  else if (JSCLogMessageQueue.length)
   {
-    JSCLogNextInQueue();
+    JSCLogQueueNext();
   }
 }
 
@@ -725,7 +725,7 @@ function JSCLog(type, message, logOptions = {})
   JSCLogMessageQueue.push({ type, message, logOptions });
   if (!isJSCLogMessageQueueProcessing)
   {
-    JSCLogNextInQueue();
+    JSCLogQueueNext();
   }
 }
 
