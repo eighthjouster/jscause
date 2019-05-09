@@ -2,10 +2,11 @@ List of sanity checks:
 ======================
 
 14.  Test that an actual file is created when file logging:  general, site.
-  - Done, but now 10 tests are not passing.  Why?
+  +- Done with general.  Continue with site.
+  - Uh-oh, I think getCurrentLogFileName() is using the directory OUTSIDE testrootdir for its calculations.  Check and fix.
+    - Optional parameter to specify a root directory?
+  - And deal with: //__RP THIS SHOULD BE THE SITE LOG DIRECTORY NAME.
  
-At this point, BACKUP.
-
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
 
 16.  Test that info in an actual file is APPENDED when file logging:  general, site.

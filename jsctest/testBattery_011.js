@@ -80,6 +80,10 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
     },
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
     onBeforeTestEnd()
     {
       let waitForContinueTestingSignal = false;
@@ -88,7 +92,7 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
       {
         waitForContinueTestingSignal = true;
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
-        const { messagePrefix: infoPrefix } = JSCLOG_DATA['info'];
+        const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
         this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
         getCurrentLogFileName('./logs', 0)
           .then((fileName) =>
@@ -114,20 +118,78 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
           {
             this.testPassed = false;
           });
+
         return { waitForContinueTestingSignal };
       }
       else
       {
         this.testPassed = false;
-        this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
       }
     }
   }
 );
 
-//__RP MAKE SURE THAT EACH TEST CLEANS THE LOG DIRECTORIES!!!!
-//__RP Use doEmptyTestDirectory() with a parameter for the log directories.
+const test_011_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that site file logging output actually occurs in the file system'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+      this.doEmptyTestDirectory(['sites', 'mysite', 'localLogs'], { preserveDirectory: true });
+
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.perSite.fileOutput = 'per site';
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      siteConfContents.logging.fileOutput = 'enabled';
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+    },
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      let waitForContinueTestingSignal = false;
+      this.testPassed = false;
+      if (this.serverDidStart && !this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred)
+      {
+        waitForContinueTestingSignal = true;
+        const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
+        const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
+        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
+        getCurrentLogFileName('./logs', 0) //__RP THIS SHOULD BE THE SITE LOG DIRECTORY NAME.
+          .then((fileName) =>
+          {
+            const actualLogFileContents = this.readFile(['sites', 'mysite', 'localLogs', fileName]).toString();
+
+            const expectedLogFileContents =
+              [
+                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
+                formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
+                ''
+              ].join('\n');
+
+            this.testPassed = (actualLogFileContents === expectedLogFileContents);
+            this.continueTesting();
+          })
+          .catch(() =>
+          {
+            this.testPassed = false;
+          });
+
+        return { waitForContinueTestingSignal };
+      }
+      else
+      {
+        this.testPassed = false;
+      }
+    }
+  }
+);
 
 module.exports = [
-  test_011_001_generalLoggingFileOutputOccurs
+  test_011_001_generalLoggingFileOutputOccurs,
+  test_011_002_siteLoggingFileOutputOccurs
 ];

@@ -397,10 +397,11 @@ function createSymlink(targetPathList, symlinkPathList)
   fs.symlinkSync(targetFilePath, symlinkFilePath);
 }
 
-function doEmptyTestDirectory(dirPathParam)
+function doEmptyTestDirectory(dirPathList = [], { preserveDirectory = false } = {})
 {
   const rootDir = this.rootDir;
-  const dirPath = dirPathParam || rootDir;
+  const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
+
   if (!dirPath)
   {
     console.error('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
@@ -420,7 +421,7 @@ function doEmptyTestDirectory(dirPathParam)
       const entry_path = fsPath.join(dirPath, entry);
       if (fs.lstatSync(entry_path).isDirectory())
       {
-        doEmptyTestDirectory.call(this, entry_path);
+        doEmptyTestDirectory.call(this, dirPathList.concat(entry));
       }
       else
       {
@@ -430,7 +431,7 @@ function doEmptyTestDirectory(dirPathParam)
         }
       }
     }.bind(this));
-    if (dirPath !== rootDir)
+    if ((dirPath !== rootDir) && !preserveDirectory)
     {
       fs.rmdirSync(dirPath);
     }
