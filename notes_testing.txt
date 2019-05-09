@@ -1,12 +1,21 @@
 List of sanity checks:
 ======================
 
-14.  Test that an actual file is created when file logging:  general, site.
-  +- Done with general.  Continue with site.
-  - Uh-oh, I think getCurrentLogFileName() is using the directory OUTSIDE testrootdir for its calculations.  Check and fix.
-    - Optional parameter to specify a root directory?
-  - And deal with: //__RP THIS SHOULD BE THE SITE LOG DIRECTORY NAME.
- 
+Test:
+That getTestFilePath does not act outsite testrootdir.
+And also:
+Use getTestFilePath in all test functions, such as doCreateDirectoryFromPathList.
+  - If possible. Some of them may accept optional parameters.
+
+Interesting:  If I do this:
+getCurrentLogFileName(undefined, 0)
+instead of:
+getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
+Testing won't continue.  It will simply just stop.
+  - What can we do to avoid this?  I mean, it should fail at this point, and move on.
+
+Perhaps getCurrentLogFileName should be tested before being used in the way it's used in tests now.
+
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
 
 16.  Test that info in an actual file is APPENDED when file logging:  general, site.

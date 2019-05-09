@@ -28,6 +28,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
   jscTestGlobal.checkLogOutputWillOccur = checkLogOutputWillOccur.bind(jscTestGlobal);
   jscTestGlobal.doCreateDirectoryFromPathList = doCreateDirectoryFromPathList.bind(jscTestGlobal);
+  jscTestGlobal.getTestFilePath = getTestFilePath.bind(jscTestGlobal);
   jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
   jscTestGlobal.readFile = readFile.bind(jscTestGlobal);
@@ -436,6 +437,28 @@ function doEmptyTestDirectory(dirPathList = [], { preserveDirectory = false } = 
       fs.rmdirSync(dirPath);
     }
   }
+}
+
+function getTestFilePath(dirPathList)
+{
+  const dirPath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+  if (dirPath)
+  {
+    if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) === 0)
+    {
+      return dirPath;
+    }
+    else
+    {
+      console.error('CRITICAL: doCreateDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+    }
+  }
+  else
+  {
+    console.error('CRITICAL: doCreateDirectoryFromPathList(): No directory specified for creation');
+  }
+
+  return null;
 }
 
 function doCreateDirectoryFromPathList(dirPathList)

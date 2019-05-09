@@ -94,7 +94,8 @@ const test_011_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
         const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
         this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
-        getCurrentLogFileName('./logs', 0)
+        //getCurrentLogFileName(undefined, 0) //__RP TEST WITH THIS.  IS IT STILL STOPPING THE TESTS?
+        getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
           .then((fileName) =>
           {
             const actualLogFileContents = this.readFile(['logs', fileName]).toString();
@@ -159,7 +160,7 @@ const test_011_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFro
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
         const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
         this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
-        getCurrentLogFileName('./logs', 0) //__RP THIS SHOULD BE THE SITE LOG DIRECTORY NAME.
+        getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
           .then((fileName) =>
           {
             const actualLogFileContents = this.readFile(['sites', 'mysite', 'localLogs', fileName]).toString();
