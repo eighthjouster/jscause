@@ -122,7 +122,7 @@ const test_012_004_getCurrentLogFileName_emptyLogDir = Object.assign(testUtils.m
   }
 );
 
-const test_012_005_getCurrentLogFileName_fileWithLogExtension_noSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - File with log extension, no size threshold'),
+const test_012_005_getCurrentLogFileName_existingLogFile_noSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing log file, no size threshold'),
   {
     // only: true,
     onTestBeforeStart()
@@ -152,7 +152,7 @@ const test_012_005_getCurrentLogFileName_fileWithLogExtension_noSizeThreshold = 
   }
 );
 
-const test_012_006_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - File with log extension, with size threshold'),
+const test_012_006_getCurrentLogFileName_existingLogFile_withSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing log file, with size threshold'),
   {
     // only: true,
     onTestBeforeStart()
@@ -185,7 +185,7 @@ const test_012_006_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold 
   }
 );
 
-const test_012_007_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold_pt2 = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - File with log extension, with size threshold; part 2: existing suffix.'),
+const test_012_007_getCurrentLogFileName_existingLogFiles_withSizeThreshold_pt2 = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing log files, with size threshold; part 2: existing suffix.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -220,12 +220,225 @@ const test_012_007_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold_
   }
 );
 
+const test_012_008_getCurrentLogFileName_existingGzFile = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file..'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingFileName = `jsc_${fileNameDateComponent}.log.gz`;
+      this.createFile(['logs', existingFileName], 'Some compressed contents.');
+      getCurrentLogFileName(this.getTestFilePath(['logs']))
+        .then((fileName) =>
+        {
+          this.testPassed = (fileName === `jsc_${fileNameDateComponent}--1.log`);
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_009_getCurrentLogFileName_existingGzFiles = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file, with size threshold.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingFileName1 = `jsc_${fileNameDateComponent}.log.gz`;
+      const existingFileName2 = `jsc_${fileNameDateComponent}--1.log.gz`;
+      this.createFile(['logs', existingFileName1], 'Some compressed contents.');
+      this.createFile(['logs', existingFileName2], 'Some other compressed contents.');
+      getCurrentLogFileName(this.getTestFilePath(['logs']))
+        .then((fileName) =>
+        {
+          this.testPassed = (fileName === `jsc_${fileNameDateComponent}--2.log`);
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_010_getCurrentLogFileName_existingGzFileLogFile_noSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file and log file, no size threshold.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingFileName1 = `jsc_${fileNameDateComponent}.log.gz`;
+      const existingFileName2 = `jsc_${fileNameDateComponent}--1.log`;
+      this.createFile(['logs', existingFileName1], 'Some compressed contents.');
+      this.createFile(['logs', existingFileName2], 'Some contents.');
+      getCurrentLogFileName(this.getTestFilePath(['logs']))
+        .then((fileName) =>
+        {
+          console.log(existingFileName1);//__RP
+          console.log(existingFileName2);//__RP
+          console.log(fileName);//__RP
+          this.testPassed = (fileName === `jsc_${fileNameDateComponent}--1.log`);
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_011_getCurrentLogFileName_existingGzFileLogFile_withBelowSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file and log file, with size threshold below.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const sizeThreshold = 10;
+      const belowThreshold = sizeThreshold - 1;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingFileName1 = `jsc_${fileNameDateComponent}.log.gz`;
+      const existingFileName2 = `jsc_${fileNameDateComponent}--1.log`;
+      this.createFile(['logs', existingFileName1], 'Some compressed contents.');
+      this.createFile(['logs', existingFileName2], 'A'.repeat(belowThreshold));
+      getCurrentLogFileName(this.getTestFilePath(['logs']), sizeThreshold)
+        .then((fileName) =>
+        {
+          this.testPassed = (fileName === `jsc_${fileNameDateComponent}--1.log`);
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_012_getCurrentLogFileName_existingGzFileLogFile_withAboveSizeThreshold = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file and log file, with size threshold above.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const sizeThreshold = 10;
+      const aboveThreshold = sizeThreshold + 1;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingFileName1 = `jsc_${fileNameDateComponent}.log.gz`;
+      const existingFileName2 = `jsc_${fileNameDateComponent}--1.log`;
+      this.createFile(['logs', existingFileName1], 'Some compressed contents.');
+      this.createFile(['logs', existingFileName2], 'A'.repeat(aboveThreshold));
+      getCurrentLogFileName(this.getTestFilePath(['logs']), sizeThreshold)
+        .then((fileName) =>
+        {
+          this.testPassed = (fileName === `jsc_${fileNameDateComponent}--2.log`);
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_013_getCurrentLogFileName_maxSuffixReached = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Max suffix reached.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const sizeThreshold = 10;
+      const aboveTheThreshold = sizeThreshold + 1;
+      const contentsAboveTheThreshold = 'A'.repeat(aboveTheThreshold);
+      this.createFile(['logs', `jsc_${fileNameDateComponent}.log`], contentsAboveTheThreshold);
+      this.createFile(['logs', `jsc_${fileNameDateComponent}--1.log`], contentsAboveTheThreshold);
+      this.createFile(['logs', `jsc_${fileNameDateComponent}--2.log`], contentsAboveTheThreshold);
+      this.createFile(['logs', `jsc_${fileNameDateComponent}--3.log`], contentsAboveTheThreshold);
+      getCurrentLogFileName(this.getTestFilePath(['logs']), sizeThreshold, 3)
+        .then((fileName) =>
+        {
+          this.testFailMessage = `Got a valid file name ('${fileName}').  We should have never gotten one.`;
+          this.testPassed = false;
+          this.continueTesting();
+        })
+        .catch((rejectMsg) =>
+        {
+          this.testPassed = (rejectMsg === 'Too many segment files (>3)');
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
 module.exports = [
   test_012_001_getCurrentLogFileName_invalidLogDir_undefined,
   test_012_002_getCurrentLogFileName_invalidLogDir_nonString,
   test_012_003_getCurrentLogFileName_unreadableLogDir,
   test_012_004_getCurrentLogFileName_emptyLogDir,
-  test_012_005_getCurrentLogFileName_fileWithLogExtension_noSizeThreshold,
-  test_012_006_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold,
-  test_012_007_getCurrentLogFileName_fileWithLogExtension_withSizeThreshold_pt2
+  test_012_005_getCurrentLogFileName_existingLogFile_noSizeThreshold,
+  test_012_006_getCurrentLogFileName_existingLogFile_withSizeThreshold,
+  test_012_007_getCurrentLogFileName_existingLogFiles_withSizeThreshold_pt2,
+  test_012_008_getCurrentLogFileName_existingGzFile,
+  test_012_009_getCurrentLogFileName_existingGzFiles,
+  test_012_010_getCurrentLogFileName_existingGzFileLogFile_noSizeThreshold,
+  test_012_011_getCurrentLogFileName_existingGzFileLogFile_withBelowSizeThreshold,
+  test_012_012_getCurrentLogFileName_existingGzFileLogFile_withAboveSizeThreshold,
+  test_012_013_getCurrentLogFileName_maxSuffixReached
 ];

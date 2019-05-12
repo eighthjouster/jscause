@@ -228,7 +228,7 @@ function dateToYYYMMDD_HH0000({ date, suffix = 0 } = {})
   return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30/* __RP for now */}${determineLogFileSuffix(suffix)}`; //__RP check the comment inside this line.
 }
 
-function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix = 0, postExtension = '')
+function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix = 0, maxSuffix, postExtension = '')
 {
   // Typically, this function is used this way:
   // Provide an initial suffix of 0 and a postExtension of '.gz'.
@@ -250,7 +250,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   const currentFileName = `${currentFileNameStem}.log${postExtension}`;
   const currentFilePath = fsPath.join(logDir, currentFileName);
   
-  if (suffix <= 10) // __RP arbitrary number.
+  if (suffix <= maxSuffix) // __RP arbitrary number.
   {
     fs.stat(currentFilePath, jscCallback((error, stats) =>
     {
@@ -260,7 +260,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
         {
           if (postExtension)
           {
-            retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix, '');
+            retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix, maxSuffix, '');
           }
           else
           {
@@ -274,9 +274,9 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
       }
       else
       {
-        if (postExtension || (fileSizeThreshold && (stats.size > fileSizeThreshold))) //__RP ARBITRARY NUMBER. MUST BE IN CONFIG.
+        if (postExtension || (fileSizeThreshold && (stats.size > fileSizeThreshold)))
         {
-          retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix + 1, postExtension);
+          retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix + 1, maxSuffix, postExtension);
         }
         else
         {
@@ -287,15 +287,15 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   }
   else
   {
-    reject(`Too many segment files (>${10})`);// __RP ARBITRARY NUMBER AGAIN.
+    reject(`Too many segment files (>${maxSuffix})`);
   }
 }
 
-function getCurrentLogFileName(logDir, fileSizeThreshold)
+function getCurrentLogFileName(logDir, fileSizeThreshold, maxSuffix = 10) //__RP maxSuffix optional value is arbitrary here.
 {
   return new Promise((resolve, reject) =>
   {
-    retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, 0, '.gz');
+    retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, 0, maxSuffix, '.gz');
   });
 }
 
