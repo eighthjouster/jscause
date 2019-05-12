@@ -25,8 +25,7 @@ Test that everything in its comment is right:
 * - What about simulating that the dir is unreadable? - Done.
 
 NEXT UP:
- - Then dir with a file with the same file name and '.log' extension.
- - Then dir with a file with the same file name and '.log' extension and '-1' or whatever that  - Then dir with a '.gz' log extension.
+- Then dir with a '.gz' log extension.
  - Then dir with a file with the same file name and '.gz' extension and '-1' or whatever that allows us to check that it doesn't return that one.
 allows us to check that it doesn't return that one.
  - Then dir with files with both extensions.

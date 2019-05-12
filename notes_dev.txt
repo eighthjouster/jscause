@@ -224,6 +224,8 @@ Version 0.7.1b here!
 
 Order by priority:
 
+When the logging system is looking for the next file to log to ("--1.log", "--2.log", etc), even if it finds one with content size below the threshold, it should make sure that no file exists with the next "--N.log" name before writing.  Otherwise, it must keep searching on.  For instance:  if it finds that "--5.log" is below the threshold, but there exists "--6.log", it must continue with "--6.log".  If that file is below the threshold, and "--7.log" does not exist, then it's okay to use for logging.
+
 Testing battery:
  - What if either the cert of key file can be base64 decoded, but the info inside is bad?
    - Will the server fail?  It should.  Test this, if you can.  But don't sweat too much about it.
