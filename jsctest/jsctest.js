@@ -12,7 +12,8 @@ const allTests =
   'testBattery_008',
   'testBattery_009',
   'testBattery_010',
-  'testBattery_011'
+  'testBattery_011',
+  'testBattery_012'
 ];
 
 const fs = require('fs');
@@ -180,7 +181,9 @@ function nextTest(jscTestGlobal, list)
   {
     jscTestGlobal.onTestBeforeStart = undefined;
     jscTestGlobal.onBeforeTestEnd = undefined;
+    jscTestGlobal.onUnitTestStarted = undefined;
     jscTestGlobal.onTestEnd = undefined;
+    jscTestGlobal.isUnitTest = false;
     jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestGlobal.testPassed = false;
     jscTestGlobal.gotAllExpectedLogMsgs = false;
@@ -192,29 +195,41 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.logOutputToSiteDirOccurred = false;
     jscTestGlobal.pendingCallbackTrackingEnabled = true;
     jscTestGlobal.pendingCallbacks = 0;
+    jscTestGlobal.waitForContinueTestingCall = false;
+    jscTestGlobal.waitForContinueTestingCallPasses = 0;
+    jscTestGlobal.waitForContinueTestingCallMaxPasses = 60;
+    jscTestGlobal.waitForContinueTestingCallHandlerId = undefined;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
 
     jscTestGlobal.resolveIt = resolve;
 
-    const originalOnServerError = jscTestGlobal.onServerError;
-    jscTestGlobal.onServerError = () =>
+    if (jscTestGlobal.isUnitTest)
     {
-      resolve(originalOnServerError());
-    };
-
-    jscLib.startApplication(
+      jscTestGlobal.pendingCallbackTrackingEnabled = false;
+      jscTestGlobal.resolveIt();
+    }
+    else
+    {
+      const originalOnServerError = jscTestGlobal.onServerError;
+      jscTestGlobal.onServerError = () =>
       {
-        onServerStarted: () =>
+        resolve(originalOnServerError());
+      };
+
+      jscLib.startApplication(
         {
-          jscTestGlobal.serverDidStart = true;
-          jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.call(jscTestGlobal);
-        },
-        onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
-        rootDir: jscTestGlobal.rootDir
-      }
-    );
+          onServerStarted: () =>
+          {
+            jscTestGlobal.serverDidStart = true;
+            jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.call(jscTestGlobal);
+          },
+          onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
+          rootDir: jscTestGlobal.rootDir
+        }
+      );
+    }
   });
 
   testPromise
@@ -236,16 +251,39 @@ function nextTest(jscTestGlobal, list)
     });
 }
 
+function stillWaitingForContinueTestingCall(jscTestGlobal)
+{
+  console.error('Waiting for continue testing signal...');
+  if (++jscTestGlobal.waitForContinueTestingCallPasses >= jscTestGlobal.waitForContinueTestingCallMaxPasses)
+  {
+    console.error(`Wait for continue testing call reached the maximum of ${jscTestGlobal.waitForContinueTestingCallMaxPasses} passes.`);
+    jscTestGlobal.testPassed = false;
+    console.error('On to failing this test and ending it...');
+    jscTestGlobal.continueTesting();
+  }
+}
+
 function signalTestEnd(jscTestGlobal, list)
 {
   jscTestGlobal.continueTesting = () =>
   {
+    jscTestGlobal.waitForContinueTestingCall = false;
+    if (jscTestGlobal.waitForContinueTestingCallHandlerId)
+    {
+      clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
+      jscTestGlobal.waitForContinueTestingCallHandlerId = null;
+    }
     endTest(jscTestGlobal, list);
   };
 
-  const result = jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
+  jscTestGlobal.onUnitTestStarted && jscTestGlobal.onUnitTestStarted();
+  jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
 
-  if (!result || !result.waitForContinueTestingSignal)
+  if (jscTestGlobal.waitForContinueTestingCall)
+  {
+    jscTestGlobal.waitForContinueTestingCallHandlerId = setInterval(() => { stillWaitingForContinueTestingCall(jscTestGlobal) }, 1000);
+  }
+  else
   {
     jscTestGlobal.continueTesting();
   }
@@ -260,6 +298,11 @@ function endTest(jscTestGlobal, list)
   }
   else
   {
+    if (jscTestGlobal.testFailMessage)
+    {
+      console.error('Test failed:');
+      console.error(jscTestGlobal.testFailMessage);
+    }
     jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
   }
 

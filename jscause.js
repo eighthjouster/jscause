@@ -213,7 +213,7 @@ function determineLogFileSuffix(suffix)
   return (suffix) ? `--${suffix}` : '';
 }
 
-function dateToYYYMMDD_HH0000({ date, suffix = 0 })
+function dateToYYYMMDD_HH0000({ date, suffix = 0 } = {})
 {
   const d = date && new Date(date) || new Date();
   const month = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -4728,11 +4728,12 @@ function getAllElementsToSupportTesting()
 {
   const allElementsToSupportTesting =
   {
-    exitApplication,
-    startApplication,
-    getCurrentLogFileName,
     JSCLOG_DATA,
-    formatLogMessage
+    dateToYYYMMDD_HH0000,
+    exitApplication,
+    formatLogMessage,
+    getCurrentLogFileName,
+    startApplication
   };
   return allElementsToSupportTesting;
 }

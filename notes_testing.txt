@@ -1,14 +1,44 @@
 List of sanity checks:
 ======================
 
-Interesting:  If I do this:
-getCurrentLogFileName(undefined, 0)
-instead of:
-getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
-Testing won't continue.  It will simply just stop.
-  - What can we do to avoid this?  I mean, it should fail at this point, and move on.
-
 Perhaps getCurrentLogFileName should be tested before being used in the way it's used in tests now.
+
+Test getCurrentLogFileName():
+Test that everything in its comment is right:
+// Provide an initial suffix of 0 and a postExtension of '.gz'.
+// That signals the function that we're looking for names that have already been
+// used (files are compressed with this name).
+// If the name exists, recursively call this file with a different suffix (e.g. 1).
+// Once a name has not been used in a compressed file, recursively call this function again,
+// this time with no postExtension.
+// That signals the functin that we're looking for names for files that either:
+// 1. are not being used, or 2. are being used and under a certain file size threshold.
+//
+// Example:  Look for a name such as 'jsc_name'.
+// 1. Does jsc_name.log.gz exists? Look for jsc_name--1.log.gz, then jsc_name--2.log.gz, etc.
+// 2. Found that jsc_name--3.log.gz does not exist? Ok.
+// 3. Check if jsc_name--3.log exists.  It does not?  Cool.  Let's use this name for logging.  The end.
+// 4. It exists?  Check if its size is no larger than the threshold.
+// 5. Otherwise, check for jsc_name--4.log, jsc_name--5.log, etc, going back to step 3.
+
+* - Invalid logDir parameter? - Done.
+* - What about simulating that the dir is unreadable? - Done.
+
+NEXT UP:
+ - Then dir with a '.gz' log extension.
+
+Before continuing:
+ - We'll need to unit test dateToYYYMMDD_HH0000().
+
+ - Then dir with a file with the same file name and '.gz' extension and '-1' or whatever that allows us to check that it doesn't return that one.
+ - Then dir with a file with the same file name and '.log' extension.
+ - Then dir with a file with the same file name and '.log' extension and '-1' or whatever that allows us to check that it doesn't return that one.
+ - Then dir with files with both extensions.
+ - Then dir with files that are under the size threshold.
+ - Then dir with files that are over the size threshold.
+ - Invalid threshold parameter?
+ - Then dir with different extensions?
+ - Can we simulate "running out of names"?
 
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
 
