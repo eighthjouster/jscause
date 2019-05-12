@@ -25,20 +25,18 @@ Test that everything in its comment is right:
 * - What about simulating that the dir is unreadable? - Done.
 
 NEXT UP:
- - Then dir with a '.gz' log extension.
-
-Before continuing:
- - We'll need to unit test dateToYYYMMDD_HH0000().
-
- - Then dir with a file with the same file name and '.gz' extension and '-1' or whatever that allows us to check that it doesn't return that one.
  - Then dir with a file with the same file name and '.log' extension.
- - Then dir with a file with the same file name and '.log' extension and '-1' or whatever that allows us to check that it doesn't return that one.
+ - Then dir with a file with the same file name and '.log' extension and '-1' or whatever that  - Then dir with a '.gz' log extension.
+ - Then dir with a file with the same file name and '.gz' extension and '-1' or whatever that allows us to check that it doesn't return that one.
+allows us to check that it doesn't return that one.
  - Then dir with files with both extensions.
+ - Invalid threshold parameter?
  - Then dir with files that are under the size threshold.
  - Then dir with files that are over the size threshold.
- - Invalid threshold parameter?
  - Then dir with different extensions?
  - Can we simulate "running out of names"?
+
+At this point, back up.
 
 15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
 
@@ -48,11 +46,13 @@ Before continuing:
 
 18.  Lock the log file (644)  and attempt to file log.  It should issue a warning.
 
+At this point, back up.
+
+19.  Test log archiving.
+  - It will be various tests: if files exist, thresholds, etc.
+
 Comment out all the only: true; check that all tests pass.
  - But also check the actual test output, so that it's true that no console/file output means no console/file output
-
-
-At this point, back up.
 
 ===
 
@@ -61,6 +61,8 @@ What happens if opening the log file fails?
     - If you can't write tests for this, at least simulate it just to make sure that the log queue doesn't grow indiscriminately because the writing process got stalled.
       - If it grows, here's a chance to put a failsafe of the sort:
          - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
+
+At this point, back up.
 
 Test: What if a port is taken? (By some other application.)
 

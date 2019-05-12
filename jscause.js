@@ -219,11 +219,12 @@ function dateToYYYMMDD_HH0000({ date, suffix = 0 } = {})
   const month = (d.getMonth() + 1).toString().padStart(2, '0');
   const day = (d.getDate()).toString().padStart(2, '0');
   const year = d.getFullYear();
-  const hours = d.getHours();
+  const hours = d.getHours().toString().padStart(2, '0');
 
   const secondsRound30 = Math.ceil(d.getSeconds() / 30) * 30;//__RP
 
   //__RP return `${year}-${month}-${day}_${hours}-00-00${determineLogFileSuffix(suffix)}`;
+  //__RP WE YOU UNCOMMENT THE ABOVE, YOU WILL NEED TO UPDATE THE TESTS (jsctest/testBattery_011.js)
   return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30/* __RP for now */}${determineLogFileSuffix(suffix)}`; //__RP check the comment inside this line.
 }
 

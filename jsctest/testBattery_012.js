@@ -2,194 +2,162 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const makeBaseSite = (extra = {}) =>
-  Object.assign(
-    {
-      'name': 'My Site',
-      'port': 3000,
-      'rootDirectoryName': 'mysite'
-    }, extra
-  );
-
-const makeBaseJsCauseConfContents = (extra = {}) =>
-  Object.assign(
-    {
-      'sites':
-      [
-        makeBaseSite()
-      ],
-      'logging':
-      {
-        'general':
-        {
-          'fileOutput': 'disabled',
-          'consoleOutput': 'disabled',
-          'directoryName': './logs'
-        },
-        'perSite':
-        {
-          'fileOutput': 'disabled',
-          'consoleOutput': 'disabled'
-        },
-      }
-    }, extra
-  );
-
-const makeBaseSiteConfContents = (extra = {}) =>
-  Object.assign(
-    {
-      'hostName': 'jscausesite1',
-      'canUpload': false,
-      'maxPayloadSizeBytes': 0,
-      'jscpExtensionRequired': 'optional',
-      'httpPoweredByHeader': 'include',
-      'tempWorkDirectory': './workbench',
-      'mimeTypes': {},
-      'logging':
-      {
-        'consoleOutput': 'disabled',
-        'fileOutput': 'disabled',
-        'directoryName': './localLogs'
-      }
-    }, extra
-  );
-
-const test_012_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that general file logging output actually occurs in the file system'),
+const test_012_001_getCurrentLogFileName_invalidLogDir_undefined = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Invalid log dir; undefined'),
   {
     // only: true,
     onTestBeforeStart()
     {
       this.doEmptyTestDirectory();
-
       this.doCreateDirectoryFromPathList(['logs']);
-      this.doCreateDirectoryFromPathList(['sites']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'configuration']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'configuration', 'certs']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'workbench']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
-      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
-
-      const jsCauseConfContents = makeBaseJsCauseConfContents();
-      jsCauseConfContents.logging.general.fileOutput = 'enabled';
-      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      const siteConfContents = makeBaseSiteConfContents();
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      this.isUnitTest = true;
     },
-    onServerStarted()
+    onUnitTestStarted()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
-    },
-    onBeforeTestEnd()
-    {
-      let waitForContinueTestingCall = false;
-      this.testPassed = false;
-      if (this.serverDidStart && this.logOutputToServerDirOccurred && !this.logOutputToSiteDirOccurred)
-      {
-        waitForContinueTestingCall = true;
-        const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
-        const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
-        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
-        getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
-          .then((fileName) =>
-          {
-            const actualLogFileContents = this.readFile(['logs', fileName]).toString();
+      const { jscLib: { getCurrentLogFileName } } = this;
+      getCurrentLogFileName(undefined, 0)
+        .then((fileName) =>
+        {
+          this.testFailMessage = `Got a valid file name ('${fileName}').  We should have never gotten one.`;
+          this.testPassed = false;
+          this.continueTesting();
+        })
+        .catch(e =>
+        {
+          this.testPassed = (e.message.indexOf('Path must be a string.') === 0);
+          this.continueTesting();
+        });
 
-            const expectedLogFileContents =
-              [
-                formatLogMessage(infoPrefix, 'Reading configuration for site \'My Site\' from \'jsctest/testrootdir/sites/mysite\''),
-                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
-                formatLogMessage(infoPrefix, '************ All sites\' configuration read at this point ********************'),
-                formatLogMessage(infoPrefix, 'The following sites were set up successfully:'),
-                formatLogMessage(infoPrefix, '\'My Site\''),
-                formatLogMessage(infoPrefix, 'Will start listening.'),
-                formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
-                ''
-              ].join('\n');
-
-            this.testPassed = (actualLogFileContents === expectedLogFileContents);
-            this.continueTesting();
-          })
-          .catch(e =>
-          {
-            console.error('An error ocurred while retrieving log file name:');
-            console.error(e);
-            this.testPassed = false;
-            this.continueTesting();
-          });
-
-        this.waitForContinueTestingCall = waitForContinueTestingCall;
-      }
-      else
-      {
-        this.testPassed = false;
-      }
+      this.waitForContinueTestingCall = true;
     }
   }
 );
 
-const test_012_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFromBaseTest('Check that site file logging output actually occurs in the file system'),
+const test_012_002_getCurrentLogFileName_invalidLogDir_nonString = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Invalid log dir; non string'),
   {
     // only: true,
     onTestBeforeStart()
     {
-      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
-      this.doEmptyTestDirectory(['sites', 'mysite', 'localLogs'], { preserveDirectory: true });
-
-      const jsCauseConfContents = makeBaseJsCauseConfContents();
-      jsCauseConfContents.logging.perSite.fileOutput = 'per site';
-      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      const siteConfContents = makeBaseSiteConfContents();
-      siteConfContents.logging.fileOutput = 'enabled';
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      this.isUnitTest = true;
     },
-    onServerStarted()
+    onUnitTestStarted()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      const { jscLib: { getCurrentLogFileName } } = this;
+      getCurrentLogFileName(42, 0)
+        .then((fileName) =>
+        {
+          this.testFailMessage = `Got a valid file name ('${fileName}').  We should have never gotten one.`;
+          this.testPassed = false;
+          this.continueTesting();
+        })
+        .catch(e =>
+        {
+          this.testPassed = (e.message.indexOf('Path must be a string.') === 0);
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_003_getCurrentLogFileName_unreadableLogDir = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Unreadable log dir'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
     },
-    onBeforeTestEnd()
+    onUnitTestStarted()
     {
-      let waitForContinueTestingCall = false;
-      this.testPassed = false;
-      if (this.serverDidStart && !this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred)
-      {
-        waitForContinueTestingCall = true;
-        const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
-        const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
-        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
-        getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
-          .then((fileName) =>
-          {
-            const actualLogFileContents = this.readFile(['sites', 'mysite', 'localLogs', fileName]).toString();
+      const { jscLib: { getCurrentLogFileName } } = this;
+      this.chmodFileOrDir(['.', 'logs'], 0o444);
+      getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
+        .then((/* fileName */) =>
+        {
+          this.testFailMessage = 'Got to read the directory when it was supposed to be unreadable.  We should have never gotten one.';
+          this.testPassed = false;
+          this.continueTesting();
+        })
+        .catch(e =>
+        {
+          this.testPassed = (e.message.indexOf('permission denied') >= 0);
+          this.continueTesting();
+        });
 
-            const expectedLogFileContents =
-              [
-                formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
-                formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
-                ''
-              ].join('\n');
+      this.waitForContinueTestingCall = true;
+    },
+    onTestEnd()
+    {
+      this.chmodFileOrDir(['.', 'logs'], 0o755);
+    }
+  }
+);
 
-            this.testPassed = (actualLogFileContents === expectedLogFileContents);
-            this.continueTesting();
-          })
-          .catch(() =>
-          {
-            this.testPassed = false;
-          });
 
-        this.waitForContinueTestingCall = waitForContinueTestingCall;
-      }
-      else
-      {
-        this.testPassed = false;
-      }
+const test_012_004_getCurrentLogFileName_emptyLogDir = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Empty log dir'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+    },
+    onUnitTestStarted()
+    {
+      const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      const expectedFileName = `jsc_${dateToYYYMMDD_HH0000()}.log`;
+      getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
+        .then((fileName) =>
+        {
+          this.testPassed = (fileName === expectedFileName); //__RP SHOULD BE TRUE IF 
+          this.continueTesting();
+        })
+        .catch(() =>
+        {
+          this.testPassed = false;
+          this.continueTesting();
+        });
+
+      this.waitForContinueTestingCall = true;
+    }
+  }
+);
+
+const test_012_005_getCurrentLogFileName_fileWithLogExtension = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - File with log extension'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.isUnitTest = true;
+    },
+    onUnitTestStarted()
+    {
+      //__RP TO-DO: CREATE THE TEST.
+
+
+
+      // const { jscLib: { getCurrentLogFileName, dateToYYYMMDD_HH0000 } } = this;
+      // const expectedFileName = `jsc_${dateToYYYMMDD_HH0000()}.log`;
+      // getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
+      //   .then((fileName) =>
+      //   {
+      //     this.testPassed = (fileName === expectedFileName); //__RP SHOULD BE TRUE IF 
+      //     this.continueTesting();
+      //   })
+      //   .catch(() =>
+      //   {
+      //     this.testPassed = false;
+      //     this.continueTesting();
+      //   });
+
+      // this.waitForContinueTestingCall = true;
     }
   }
 );
 
 module.exports = [
-  test_012_001_generalLoggingFileOutputOccurs,
-  test_012_002_siteLoggingFileOutputOccurs
+  test_012_001_getCurrentLogFileName_invalidLogDir_undefined,
+  test_012_002_getCurrentLogFileName_invalidLogDir_nonString,
+  test_012_003_getCurrentLogFileName_unreadableLogDir,
+  test_012_004_getCurrentLogFileName_emptyLogDir,
+  test_012_005_getCurrentLogFileName_fileWithLogExtension
 ];
