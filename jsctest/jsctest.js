@@ -316,106 +316,49 @@ function terminateApplication(resolveMessage = '')
 
 function createFile(dirPathList, contents)
 {
-  if (!dirPathList)
+  const filePath = this.getTestFilePath(dirPathList, 'createFile', { errorMessage: 'No file path specified for creation' });
+  if (filePath)
   {
-    console.error('CRITICAL: createFile(): No file path specified for creation');
-    return;
+    fs.writeFileSync(filePath, contents);
   }
-
-  const filePath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
-
-  if (filePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: createFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  fs.writeFileSync(filePath, contents);
 }
 
 function readFile(dirPathList)
 {
-  if (!dirPathList)
+  const filePath = this.getTestFilePath(dirPathList, 'readFile', { errorMessage: 'No file path specified for reading' });
+  if (filePath)
   {
-    console.error('CRITICAL: createFile(): No file path specified for reading');
-    return;
+    return fs.readFileSync(filePath);
   }
-
-  const filePath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
-
-  if (filePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: readFile(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  return fs.readFileSync(filePath);
+  return null;
 }
 
 function chmodFileOrDir(dirPathList, permissionInOctal)
 {
-  if (!dirPathList)
+  const fileOrDirPath = this.getTestFilePath(dirPathList, 'chmodFileOrDir', { errorMessage: 'No file path specified for chmod' });
+  if (fileOrDirPath)
   {
-    console.error('CRITICAL: chmodFileOrDir(): No file path specified for chmod');
-    return;
+    fs.chmodSync(fileOrDirPath, permissionInOctal);
   }
-
-  const fileOrDirPath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
-
-  if (fileOrDirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: chmodFileOrDir(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  fs.chmodSync(fileOrDirPath, permissionInOctal);
 }
 
-function createSymlink(targetPathList, symlinkPathList)
+function createSymlink(unresTrictedTargetPathList, symlinkPathList)
 {
-  if (!targetPathList)
+  const targetFilePath = this.getTestFilePath(unresTrictedTargetPathList, 'createSymlink', { errorMessage: 'No file path specified for target', unrestrictedPath: true });
+  const symlinkFilePath = this.getTestFilePath(symlinkPathList, 'createSymlink', { errorMessage: 'No file path specified for symlink' });
+  if (targetFilePath && symlinkFilePath)
   {
-    console.error('CRITICAL: createSymlink(): No file path specified for target');
-    return;
+    console.log('CHECKING!!!');//__RP
+    fs.symlinkSync(targetFilePath, symlinkFilePath);
   }
-
-  if (!symlinkPathList)
-  {
-    console.error('CRITICAL: createSymlink(): No file path specified for target');
-    return;
-  }
-
-  const targetFilePath = fsPath.join.apply(null, targetPathList);
-
-  const symlinkFilePath = fsPath.join.apply(null, [this.rootDir].concat(symlinkPathList));
-
-  if (symlinkFilePath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: createSymlink(): symlinkPathList: Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  fs.symlinkSync(targetFilePath, symlinkFilePath);
 }
 
 function doEmptyTestDirectory(dirPathList = [], { preserveDirectory = false } = {})
 {
   const rootDir = this.rootDir;
-  const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
+  const dirPath = this.getTestFilePath(dirPathList, 'doEmptyTestDirectory', { errorMessage: 'No directory specified for deletion' });
 
-  if (!dirPath)
-  {
-    console.error('CRITICAL: doEmptyDirectory(): No directory specified for deletion');
-    return;
-  }
-
-  if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: doEmptyDirectory(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  if (fs.existsSync(dirPath))
+  if (dirPath && fs.existsSync(dirPath))
   {
     fs.readdirSync(dirPath).forEach(function(entry)
     {
@@ -439,23 +382,25 @@ function doEmptyTestDirectory(dirPathList = [], { preserveDirectory = false } = 
   }
 }
 
-function getTestFilePath(dirPathList)
+function getTestFilePath(dirPathList, callerName, { errorMessage, unrestrictedPath } = {})
 {
-  const dirPath = fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+  const dirPath = (unrestrictedPath) ?
+    fsPath.join.apply(null, dirPathList) :
+    fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
   if (dirPath)
   {
-    if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) === 0)
+    if ((dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) === 0) || unrestrictedPath)
     {
       return dirPath;
     }
     else
     {
-      console.error('CRITICAL: doCreateDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
+      console.error(`CRITICAL: ${callerName}(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.`);
     }
   }
   else
   {
-    console.error('CRITICAL: doCreateDirectoryFromPathList(): No directory specified for creation');
+    console.error(`CRITICAL: ${callerName}(): ${errorMessage || 'No path specified'}`);
   }
 
   return null;
@@ -482,38 +427,28 @@ function doCreateDirectoryFromPathList(dirPathList)
 
 function doRemoveDirectoryFromPathList(dirPathList, { ignoreIfMissing = false } = {})
 {
-  const rootDir = this.rootDir;
-  const dirPath = fsPath.join.apply(null, [rootDir].concat(dirPathList));
-  if (!dirPath)
+  const dirPath = this.getTestFilePath(dirPathList, 'doRemoveDirectoryFromPathList', { errorMessage: 'No directory specified for removal' });
+  if (dirPath)
   {
-    console.error('CRITICAL: doRemoveDirectoryFromPathList(): No directory specified for removal');
-    return;
-  }
-
-  if (dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) !== 0)
-  {
-    console.error('CRITICAL: doRemoveDirectoryFromPathList(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.');
-    return;
-  }
-
-  let dirPathExists = true;
-  try
-  {
-    fs.statSync(dirPath);
-  }
-  catch (e)
-  {
-    dirPathExists = false;
-    if (!ignoreIfMissing)
+    let dirPathExists = true;
+    try
     {
-      console.error(`CRITICAL: doRemoveDirectoryFromPathList(): Could not delete directory: ${dirPath}`);
-      console.error(e);
+      fs.statSync(dirPath);
     }
-  }
+    catch (e)
+    {
+      dirPathExists = false;
+      if (!ignoreIfMissing)
+      {
+        console.error(`CRITICAL: doRemoveDirectoryFromPathList(): Could not delete directory: ${dirPath}`);
+        console.error(e);
+      }
+    }
 
-  if (dirPathExists)
-  {
-    fs.rmdirSync(dirPath);
+    if (dirPathExists)
+    {
+      fs.rmdirSync(dirPath);
+    }
   }
 }
 

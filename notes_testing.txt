@@ -1,12 +1,6 @@
 List of sanity checks:
 ======================
 
-Test:
-That getTestFilePath does not act outsite testrootdir.
-And also:
-Use getTestFilePath in all test functions, such as doCreateDirectoryFromPathList.
-  - If possible. Some of them may accept optional parameters.
-
 Interesting:  If I do this:
 getCurrentLogFileName(undefined, 0)
 instead of:
