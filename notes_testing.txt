@@ -1,18 +1,18 @@
 List of sanity checks:
 ======================
 
-15.  Test that an actual file is DEFINITELY NOT created when console logging:  general, site.
-
 16.  Test that info in an actual file is APPENDED when file logging:  general, site.
+
+16b.  Test that info in an actual file is NOT appended when file logging:  general, site.
+
+16c. Test that new file is created when .gz exists and at least one .log exists above the threshold.  Do this for both general and per site.  At the same time.
+ - Test the contents too.
 
 17.  Delete the log file and attempt to file log.  It should issue a warning.
 
 18.  Lock the log file (644)  and attempt to file log.  It should issue a warning.
 
 At this point, back up.
-
-19.  Test log archiving.
-  - It will be various tests: if files exist, thresholds, etc.
 
 Comment out all the only: true; check that all tests pass.
  - But also check the actual test output, so that it's true that no console/file output means no console/file output

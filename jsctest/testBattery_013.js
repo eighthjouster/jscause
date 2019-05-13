@@ -189,7 +189,36 @@ const test_013_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFro
   }
 );
 
+const test_013_003_generalSiteLoggingFileOutputDoesNotOccur = Object.assign(testUtils.makeFromBaseTest('Check that general and site file logging output does NOT occur in the file system'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+      this.doEmptyTestDirectory(['sites', 'mysite', 'localLogs'], { preserveDirectory: true });
+
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.perSite.fileOutput = 'per site';
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      siteConfContents.logging.fileOutput = 'disabled';
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+    },
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.isDirectoryEmpty(['logs']) &&
+        this.isDirectoryEmpty(['sites', 'mysite', 'localLogs']);
+    }
+  }
+);
+
 module.exports = [
   test_013_001_generalLoggingFileOutputOccurs,
-  test_013_002_siteLoggingFileOutputOccurs
+  test_013_002_siteLoggingFileOutputOccurs,
+  test_013_003_generalSiteLoggingFileOutputDoesNotOccur
 ];

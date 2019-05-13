@@ -36,6 +36,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.readFile = readFile.bind(jscTestGlobal);
   jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
+  jscTestGlobal.isDirectoryEmpty = isDirectoryEmpty.bind(jscTestGlobal);
 
   let testList = [];
   let onlyTestList = [];
@@ -358,6 +359,30 @@ function terminateApplication(resolveMessage = '')
   jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
 }
 
+function getTestFilePath(dirPathList, callerName, { errorMessage, unrestrictedPath } = {})
+{
+  const dirPath = (unrestrictedPath) ?
+    fsPath.join.apply(null, dirPathList) :
+    fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+  if (dirPath)
+  {
+    if ((dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) === 0) || unrestrictedPath)
+    {
+      return dirPath;
+    }
+    else
+    {
+      console.error(`CRITICAL: ${callerName}(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.`);
+    }
+  }
+  else
+  {
+    console.error(`CRITICAL: ${callerName}(): ${errorMessage || 'No path specified'}`);
+  }
+
+  return null;
+}
+
 function createFile(dirPathList, contents)
 {
   const filePath = this.getTestFilePath(dirPathList, 'createFile', { errorMessage: 'No file path specified for creation' });
@@ -426,25 +451,20 @@ function doEmptyTestDirectory(dirPathList = [], { preserveDirectory = false } = 
   }
 }
 
-function getTestFilePath(dirPathList, callerName, { errorMessage, unrestrictedPath } = {})
+function isDirectoryEmpty(dirPathList = [])
 {
-  const dirPath = (unrestrictedPath) ?
-    fsPath.join.apply(null, dirPathList) :
-    fsPath.join.apply(null, [this.rootDir].concat(dirPathList));
+  const dirPath = this.getTestFilePath(dirPathList, 'doEmptyTestDirectory', { errorMessage: 'No directory specified for checking' });
+
   if (dirPath)
   {
-    if ((dirPath.indexOf(fsPath.join('.', 'jsctest', 'testrootdir')) === 0) || unrestrictedPath)
+    if (fs.existsSync(dirPath))
     {
-      return dirPath;
+      return (fs.readdirSync(dirPath).length === 0);
     }
     else
     {
-      console.error(`CRITICAL: ${callerName}(): Not sure if we are inside the testrootdir sandbox directory.  Stopping.`);
+      console.error('CRITICAL: isDirectoryEmpty(): Directory does not exist');
     }
-  }
-  else
-  {
-    console.error(`CRITICAL: ${callerName}(): ${errorMessage || 'No path specified'}`);
   }
 
   return null;
