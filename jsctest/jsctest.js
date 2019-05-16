@@ -201,6 +201,7 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.waitForContinueTestingCallPasses = 0;
     jscTestGlobal.waitForContinueTestingCallMaxPasses = 60;
     jscTestGlobal.waitForContinueTestingCallHandlerId = undefined;
+    jscTestGlobal.tempTestData = undefined;
     Object.assign(jscTestGlobal, thisTest);
     console.info(`Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
