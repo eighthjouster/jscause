@@ -167,7 +167,7 @@ const test_012_006_getCurrentLogFileName_existingLogFile_withSizeThreshold = Obj
       const aboveThreshold = sizeThreshold + 1;
       const fileNameDateComponent = dateToYYYMMDD_HH0000();
       const existingFileName = `jsc_${fileNameDateComponent}.log`;
-      this.createFile(['logs', existingFileName], 'A'.repeat(aboveThreshold + 1));
+      this.createFile(['logs', existingFileName], 'A'.repeat(aboveThreshold));
       getCurrentLogFileName(this.getTestFilePath(['logs']), sizeThreshold)
         .then((fileName) =>
         {
@@ -201,8 +201,8 @@ const test_012_007_getCurrentLogFileName_existingLogFiles_withSizeThreshold_pt2 
       const fileNameDateComponent = dateToYYYMMDD_HH0000();
       const existingFileName1 = `jsc_${fileNameDateComponent}.log`;
       const existingFileName2 = `jsc_${fileNameDateComponent}--1.log`;
-      this.createFile(['logs', existingFileName1], 'A'.repeat(aboveThreshold + 1));
-      this.createFile(['logs', existingFileName2], 'A'.repeat(aboveThreshold + 1));
+      this.createFile(['logs', existingFileName1], 'A'.repeat(aboveThreshold));
+      this.createFile(['logs', existingFileName2], 'A'.repeat(aboveThreshold));
       getCurrentLogFileName(this.getTestFilePath(['logs']), sizeThreshold)
         .then((fileName) =>
         {

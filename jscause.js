@@ -224,7 +224,7 @@ function dateToYYYMMDD_HH0000({ date, suffix = 0 } = {})
   const secondsRound30 = Math.ceil(d.getSeconds() / 30) * 30;//__RP
 
   //__RP return `${year}-${month}-${day}_${hours}-00-00${determineLogFileSuffix(suffix)}`;
-  //__RP WE YOU UNCOMMENT THE ABOVE, YOU WILL NEED TO UPDATE THE TESTS (jsctest/testBattery_011.js)
+  //__RP WHEN YOU UNCOMMENT THE ABOVE, YOU WILL NEED TO UPDATE THE TESTS (jsctest/testBattery_011.js)
   return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30/* __RP for now */}${determineLogFileSuffix(suffix)}`; //__RP check the comment inside this line.
 }
 
@@ -250,7 +250,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   const currentFileName = `${currentFileNameStem}.log${postExtension}`;
   const currentFilePath = fsPath.join(logDir, currentFileName);
   
-  if (suffix <= maxSuffix) // __RP arbitrary number.
+  if (suffix <= maxSuffix)
   {
     fs.stat(currentFilePath, jscCallback((error, stats) =>
     {
@@ -4012,6 +4012,11 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
     if (typeof(perSiteConsoleOutputEnabled) !== 'undefined')
     {
       loggingConfig.perSiteConsoleOutputEnabled = perSiteConsoleOutputEnabled;
+    }
+
+    if (typeof(logFileSizeThreshold) !== 'undefined')
+    {
+      loggingConfig.logFileSizeThreshold = logFileSizeThreshold;
     }
   }
 

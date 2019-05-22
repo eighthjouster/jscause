@@ -294,9 +294,108 @@ const test_013_004_generalSiteLoggingFileAppendingOccurs = Object.assign(testUti
   }
 );
 
+const test_013_005_generalSiteLoggingFileCreationOccurs = Object.assign(testUtils.makeFromBaseTest('Check that site file creation occurs in the file system when gz and log above threshold exists'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const { jscLib: { dateToYYYMMDD_HH0000 } } = this;
+      const sizeThreshold = 10000;
+      const aboveThreshold = sizeThreshold + 1;
+      
+      this.doEmptyTestDirectory(['logs'], { preserveDirectory: true });
+      this.doEmptyTestDirectory(['sites', 'mysite', 'localLogs'], { preserveDirectory: true });
+
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging.general.fileOutput = 'enabled';
+      jsCauseConfContents.logging.general.logFileSizeThreshold = sizeThreshold;
+
+      jsCauseConfContents.logging.perSite.fileOutput = 'per site';
+      
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      siteConfContents.logging.fileOutput = 'enabled';
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.tempTestData = {};
+
+      // Let's create the general logging files first.
+
+      // Compressed file.
+      const fileNameDateComponent = dateToYYYMMDD_HH0000();
+      const existingCompressedFileName = `jsc_${fileNameDateComponent}.log.gz`;
+      this.createFile(['logs', existingCompressedFileName], 'Some compressed contents.');
+
+      // Log file which recently crossed the threshold.
+      const existingLogAboveThresholdFileName = `jsc_${fileNameDateComponent}--1.log`;
+      this.createFile(['logs', existingLogAboveThresholdFileName], 'A'.repeat(aboveThreshold));
+
+      // And now the site logging files.
+
+      // Compressed file.
+      this.createFile(['sites', 'mysite', 'localLogs', existingCompressedFileName], 'Some compressed contents.');
+
+      // Log file which recently crossed the threshold.
+      this.createFile(['sites', 'mysite', 'localLogs', existingLogAboveThresholdFileName], 'A'.repeat(aboveThreshold));
+
+      // This is the file that must be created in both ./logs and ./sites/mysite/localLogs when the server is invoked.
+      this.tempTestData.newLogFileName = `jsc_${fileNameDateComponent}--2.log`;
+    },
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      const { jscLib: { JSCLOG_DATA, formatLogMessage } } = this;
+      const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
+      this.testPassed = false;
+      if (this.serverDidStart && this.logOutputToServerDirOccurred && this.logOutputToSiteDirOccurred)
+      {
+        const serverLogFileContents = this.readFile(['logs', this.tempTestData.newLogFileName]);
+        const siteLogFileContents = this.readFile(['sites', 'mysite', 'localLogs', this.tempTestData.newLogFileName]);
+
+        if ((serverLogFileContents !== null) && (siteLogFileContents !== null))
+        {
+          const actualLogFileContentsServer = serverLogFileContents.toString();
+          const actualLogFileContentsSite = siteLogFileContents.toString();
+
+          const expectedLogFileContentsServer =
+            [
+              formatLogMessage(infoPrefix, 'Reading configuration for site \'My Site\' from \'jsctest/testrootdir/sites/mysite\''),
+              formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
+              formatLogMessage(infoPrefix, '************ All sites\' configuration read at this point ********************'),
+              formatLogMessage(infoPrefix, 'The following sites were set up successfully:'),
+              formatLogMessage(infoPrefix, '\'My Site\''),
+              formatLogMessage(infoPrefix, 'Will start listening.'),
+              formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
+              ''
+            ].join('\n');
+
+          const expectedLogFileContentsSite =
+            [
+              formatLogMessage(infoPrefix, 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0'),
+              formatLogMessage(infoPrefix, 'Server 0 listening on port 3000'),
+              ''
+            ].join('\n');
+
+          this.testPassed = ((actualLogFileContentsServer === expectedLogFileContentsServer) &&
+                             (actualLogFileContentsSite === expectedLogFileContentsSite));
+        }
+      }
+      else
+      {
+        this.testPassed = false;
+      }
+    }
+  }
+);
+
 module.exports = [
   test_013_001_generalLoggingFileOutputOccurs,
   test_013_002_siteLoggingFileOutputOccurs,
   test_013_003_generalSiteLoggingFileOutputDoesNotOccur,
-  test_013_004_generalSiteLoggingFileAppendingOccurs
+  test_013_004_generalSiteLoggingFileAppendingOccurs,
+  test_013_005_generalSiteLoggingFileCreationOccurs
 ];

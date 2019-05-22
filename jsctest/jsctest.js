@@ -51,7 +51,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
     }
     catch(e)
     {
-      console.error(`Error when trying to load ${currentName}.`);
+      console.error(`ERROR: Error when trying to load ${currentName}.`);
       console.error(e);
       testList = [];
       break;
@@ -256,7 +256,7 @@ function nextTest(jscTestGlobal, list)
 
 function stillWaitingForContinueTestingCall(jscTestGlobal)
 {
-  console.error('Waiting for continue testing signal...');
+  console.info('Waiting for continue testing signal...');
   if (++jscTestGlobal.waitForContinueTestingCallPasses >= jscTestGlobal.waitForContinueTestingCallMaxPasses)
   {
     console.error(`Wait for continue testing call reached the maximum of ${jscTestGlobal.waitForContinueTestingCallMaxPasses} passes.`);
@@ -396,10 +396,12 @@ function createFile(dirPathList, contents)
 function readFile(dirPathList)
 {
   const filePath = this.getTestFilePath(dirPathList, 'readFile', { errorMessage: 'No file path specified for reading' });
-  if (filePath)
+  if (filePath && fs.existsSync(filePath))
   {
     return fs.readFileSync(filePath);
   }
+
+  console.error(`ERROR: ${filePath} does not exist.`);
   return null;
 }
 

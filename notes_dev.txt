@@ -42,6 +42,7 @@ Strange: two slashes in a path will render jscause.conf invalid:
 Why? Parser bug?
 
 - Document: logFileSizeThreshold
+  - general logging only.  perSite logging does not allow it.
 
 There should be one JSCLogMessageQueue and one isJSCLogMessageQueueProcessing per site and for the global server.
 
