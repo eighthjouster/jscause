@@ -1,19 +1,15 @@
 List of sanity checks:
 ======================
 
-*16.  Test that info in an actual file is APPENDED when file logging:  general, site. - DONE.
-
-*16b.  Test that info in an actual file is NOT appended when file logging:  general, site. - NAH.
-
 *16c. Test that new file is created when .gz exists and at least one .log exists above the threshold.  Do this for both general and per site.  At the same time.
  - Test the contents too.
    - DONE.
 
-When was the readme.txt file deleted from testrootdir? Restore it and make sure that it doesn't get deleted again.... unless we did it on purpose?
-
 17.  Delete the log file and attempt to file log.  It should issue a warning.
+  - Do this just with the server logging part.
 
 18.  Lock the log file (644)  and attempt to file log.  It should issue a warning.
+  - Do this just with the server logging part.
 
 At this point, back up.
 

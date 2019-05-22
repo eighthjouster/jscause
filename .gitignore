@@ -1,4 +1,5 @@
 .DS_Store
 npm-debug.log
 sites/mysite/workbench/jscause*
-jsctest/testrootdir/
+jsctest/testrootdir/*
+!jsctest/testrootdir/readme.txt
