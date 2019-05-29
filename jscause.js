@@ -2310,10 +2310,10 @@ function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, s
 function incomingRequestHandler(req, res)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
-  const [/* Deliberately left blank. */, reqHostName, preparsedReqPort] = hostHeader.match(/(.+):(\d+)$/);
+  const { jscContext: { serverPort: reqPort }} = this;
+  const [/* Deliberately left blank. */, reqHostName = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
   const requestMethod = (method || '').toLowerCase();
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
-  const reqPort = parseInt(preparsedReqPort, 10);
   const runningServer = runningServers[reqPort];
   const serverLogging = serverConfig.logging;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
@@ -2712,6 +2712,10 @@ function startServer(siteConfig, jscLogConfigBase)
     
     if (webServer)
     {
+      webServer.jscContext =
+      {
+        serverPort: sitePort
+      };
       runningServer.webServer = webServer;
       runWebServer(runningServer, sitePort, jscLogConfig);
       runningServers[sitePort] = runningServer;
