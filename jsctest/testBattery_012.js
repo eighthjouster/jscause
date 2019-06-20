@@ -220,7 +220,7 @@ const test_012_007_getCurrentLogFileName_existingLogFiles_withSizeThreshold_pt2 
   }
 );
 
-const test_012_008_getCurrentLogFileName_existingGzFile = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file..'),
+const test_012_008_getCurrentLogFileName_existingGzFile = Object.assign(testUtils.makeFromBaseTest('getCurrentLogFileName - Existing gz file.'),
   {
     // only: true,
     onTestBeforeStart()

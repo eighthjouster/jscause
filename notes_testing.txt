@@ -1,20 +1,7 @@
 List of sanity checks:
 ======================
 
-*16c. Test that new file is created when .gz exists and at least one .log exists above the threshold.  Do this for both general and per site.  At the same time.
- - Test the contents too.
-   - DONE.
-
-17.  Delete the log file and attempt to file log.  It should issue a warning.
-  - Do this just with the server logging part.
-
-18.  Lock the log file (644)  and attempt to file log.  It should issue a warning.
-  - Do this just with the server logging part.
-
-At this point, back up.
-
-Comment out all the only: true; check that all tests pass.
- - But also check the actual test output, so that it's true that no console/file output means no console/file output
+Why are we using '!!' in places that are obviously boolean?
 
 ===
 
@@ -35,6 +22,11 @@ Go through the code and see what else needs to be tested that is not directly re
  - Caching user files.
    - Static/dynamic.
      - May need jscCallback/jscThen/jscCatch
+ - Test webServer.jscContext
+ - What else?
+
+At this point, back up and....
+PUBLISH AND ALPHA!
 
 Then, go through the code and start testing content-related stuff:
   - Whether HTML stuff renders.
@@ -62,11 +54,20 @@ Then, go through the code and start testing content-related stuff:
   - Error 400 / Error 500.
     - Static error 400, static error 500.
     - Other errors.
-  - Logging.
-     - Especially the file name auto-generation.
-     - May need jscCallback/jscThen/jscCatch
+  +- Logging.
+     *- Especially the file name auto-generation.
+     *- May need jscCallback/jscThen/jscCatch
+      +- Delete the log file and attempt to file log.  It should issue a warning.
+        - Do this just with the server logging part.
+        - Do this by putting a website with a setTimeout that logs before and after the timeout.
+          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+
+      - Lock the log file (644) and attempt to file log.  It should issue a warning.
+        - Do this just with the server logging part.
+          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+
   - At this point, resume engine development.
-  - Publish an alpha.
+  - Publish another alpha.
 
 Check all the output when running all the tests, in case there are inconsistencies (e.g., test says no console output, but console output ocurred.  Things like that.)
 

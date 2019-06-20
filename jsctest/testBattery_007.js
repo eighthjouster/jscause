@@ -92,6 +92,7 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     },
     expectedLogMessages:
     [
+      [ 'warning', 'Site configuration: Site \'My Site\' has file logging disabled while the server has per-site file logging enabled.' ],
       [ 'info' , 'The following sites were set up successfully:' ],
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
@@ -102,7 +103,7 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages);
     }
   }
 );
@@ -119,6 +120,7 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     },
     expectedLogMessages:
     [
+      [ 'warning', 'Site configuration: Site \'My Site\' has file logging disabled while the server has per-site file logging enabled.' ],
       [ 'info' , 'The following sites were set up successfully:' ],
       [ 'info' , '\'My Site\'' ],
       [ 'info' , 'Server 0 listening on port 3000' ]
@@ -129,7 +131,7 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages);
     }
   }
 );

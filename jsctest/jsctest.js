@@ -203,7 +203,7 @@ function nextTest(jscTestGlobal, list)
     jscTestGlobal.waitForContinueTestingCallHandlerId = undefined;
     jscTestGlobal.tempTestData = undefined;
     Object.assign(jscTestGlobal, thisTest);
-    console.info(`Starting test: ${jscTestGlobal.testName}`);
+    console.info(`####### Starting test: ${jscTestGlobal.testName}`);
     jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
 
     jscTestGlobal.resolveIt = resolve;
@@ -249,7 +249,7 @@ function nextTest(jscTestGlobal, list)
     {
       console.error('CRITICAL: Test application bug found.  We should have never gotten here. Aborting.');
       console.error(e);
-      console.info(`Finished test: ${jscTestGlobal.testName}`);
+      console.info(`####### Finished test: ${jscTestGlobal.testName}`);
       jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
     });
 }
@@ -309,7 +309,7 @@ function endTest(jscTestGlobal, list)
     jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
   }
 
-  console.info(`Finished test: ${jscTestGlobal.testName}`);
+  console.info(`####### Finished test: ${jscTestGlobal.testName}`);
   jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
   nextTest(jscTestGlobal, list);
 }

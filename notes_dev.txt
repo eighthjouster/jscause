@@ -2,6 +2,18 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Sample site:
+ - Ok, backtracking:
+   - And no nginx, no apache (but how to use Vesta, then?)
+   - Install Vesta in the new linode.
+   - All ports closed except for ssh (random one?), 80 and 443.
+   - Install node.
+   - Install jscause, make it work (it should run.)
+   - See if you can access it from outside via HTTP.
+
+- At this point, undo any jscsite work on rppalencia.
+   - And configure https.
+
 Time to convert those tests in notes_testing.txt to actual tests.
 
 The last test should call doEmptyTestDirectory()
@@ -161,6 +173,13 @@ You need to break down incomingRequestHandler.
  - And validateLoggingConfigSection.
  - And definitely startApplication.
 
+Deal with this (it happened on linode; I'm guessing I can get it locally if I upgrade node):
+(node:9833) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+
+Ability to provide an alias for a server, so the same content can served from two host names.  For example, from example.com and www.example.com:
+On the site.json file:
+"hostName": "jscsite.net,www.jscsite.net"
+
 Back up.
 
 Databases.
@@ -227,6 +246,8 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+Easily send e-mail.
 
 When the logging system is looking for the next file to log to ("--1.log", "--2.log", etc), even if it finds one with content size below the threshold, it should make sure that no file exists with the next "--N.log" name before writing.  Otherwise, it must keep searching on.  For instance:  if it finds that "--5.log" is below the threshold, but there exists "--6.log", it must continue with "--6.log".  If that file is below the threshold, and "--7.log" does not exist, then it's okay to use for logging.
 

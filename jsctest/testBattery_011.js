@@ -2,7 +2,7 @@
 
 const testUtils = require('./testBatteryUtils');
 
-const test_011_001_dateToYYYMMDD_HH0000_noSuffix = Object.assign(testUtils.makeFromBaseTest('dateToYYYMMDD_HH0000 - Without suffix'),
+const test_011_001_dateToYYYMMDD_HH0000_noSuffix = Object.assign(testUtils.makeFromBaseTest('dateToYYYMMDD_HH0000 - No suffix'),
   {
     // only: true,
     onTestBeforeStart()

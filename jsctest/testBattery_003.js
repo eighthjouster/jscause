@@ -192,6 +192,7 @@ const test_003_006_siteConfNotfoundCanUpload = Object.assign(testUtils.makeFromB
     expectedLogMessages:
     [
       [ 'error', 'Site configuration:  The following configuration attributes were not found:' ],
+      [ 'error', '- canupload' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
