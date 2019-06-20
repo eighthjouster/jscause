@@ -120,7 +120,7 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -148,7 +148,7 @@ const test_006_002_configFileTwoSitesSameRootDirAndPort = Object.assign(testUtil
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -175,7 +175,7 @@ const test_006_003_configFileTwoSitesSameName = Object.assign(testUtils.makeFrom
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -202,7 +202,7 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -230,7 +230,7 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -257,7 +257,7 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -295,7 +295,7 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );

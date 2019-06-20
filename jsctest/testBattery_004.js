@@ -362,7 +362,7 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );

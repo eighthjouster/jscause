@@ -164,7 +164,7 @@ const test_009_003_siteConfInvalidHTTPSKeyFilePt2 = Object.assign(testUtils.make
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );

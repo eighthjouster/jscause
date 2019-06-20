@@ -1,17 +1,13 @@
 List of sanity checks:
 ======================
 
-Why are we using '!!' in places that are obviously boolean?
+- Simulate a failure in open a log file and/or writing to it:
+   - The simulation must happen here in both openAndWriteToLogFile() and writeLogToFile().
+     - THEN, create a failsafe:  make sure that the log queue doesn't grow indiscriminately because the writing process got stalled.
+       - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
+         - This will need to be tested.  Yup.  This is already in the to-do section at the bottom, but you may want to improve the description.
 
 ===
-
-What happens if opening the log file fails?
-  - Or if the writing fails?
-    - If you can't write tests for this, at least simulate it just to make sure that the log queue doesn't grow indiscriminately because the writing process got stalled.
-      - If it grows, here's a chance to put a failsafe of the sort:
-         - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
-
-At this point, back up.
 
 Test: What if a port is taken? (By some other application.)
 
@@ -78,3 +74,18 @@ Do we ever use doRemoveDirectoryFromPathList()?
  - If not, consider removing it.  Or document its existence somehow.  I dunno...
 
 - Leave this file to document future development that needs corresponding testings created.
+
+In fact:
+
+TO-DO:
+======
+
+(Order by priority)
+
+- Logging:
+  - What happens if opening the log file fails?
+    - Or if the writing fails?
+    - In essence, test: openAndWriteToLogFile() and writeLogToFile()
+
+- Test the log queue failsafe code:
+  - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."

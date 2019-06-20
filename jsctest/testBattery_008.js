@@ -159,7 +159,7 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -289,7 +289,7 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -406,7 +406,7 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -539,7 +539,7 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );

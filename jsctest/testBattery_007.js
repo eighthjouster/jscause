@@ -75,7 +75,7 @@ const test_007_001_serverSiteLogDiscrepanciesFileOutput = Object.assign(testUtil
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!this.serverDidStart && !this.gotWarningMessages;
+      this.testPassed = this.serverDidStart && !this.gotWarningMessages;
     }
   }
 );
@@ -103,7 +103,7 @@ const test_007_002_serverSiteLogDiscrepanciesFileOutput2 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages;
     }
   }
 );
@@ -131,7 +131,7 @@ const test_007_003_serverSiteLogDiscrepanciesFileOutput3 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs && this.gotWarningMessages;
     }
   }
 );
@@ -152,7 +152,7 @@ const test_007_004_serverSiteLogDiscrepanciesFileOutput4 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!this.serverDidStart && !this.gotWarningMessages;
+      this.testPassed = this.serverDidStart && !this.gotWarningMessages;
     }
   }
 );
@@ -179,7 +179,7 @@ const test_007_005_serverSiteLogDiscrepanciesConsoleOutput = Object.assign(testU
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -206,7 +206,7 @@ const test_007_006_serverSiteLogDiscrepanciesConsoleOutput2 = Object.assign(test
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -233,7 +233,7 @@ const test_007_007_serverSiteLogDiscrepanciesConsoleOutput3 = Object.assign(test
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -260,7 +260,7 @@ const test_007_008_serverSiteLogDiscrepanciesConsoleOutput4 = Object.assign(test
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -298,7 +298,7 @@ const test_007_009_serverSiteLogDiscrepanciesFileOutput5 = Object.assign(testUti
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -336,7 +336,7 @@ const test_007_010_serverSiteLogDiscrepanciesConsoleOutput5 = Object.assign(test
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );
@@ -377,7 +377,7 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
     },
     onBeforeTestEnd()
     {
-      this.testPassed = !!(this.serverDidStart && this.gotAllExpectedLogMsgs);
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
 );

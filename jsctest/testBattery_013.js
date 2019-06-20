@@ -159,7 +159,7 @@ const test_013_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFro
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
         const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
         this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
-        getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
+        getCurrentLogFileName(this.getTestFilePath(['sites', 'mysite', 'localLogs']), 0)
           .then((fileName) =>
           {
             const actualLogFileContents = this.readFile(['sites', 'mysite', 'localLogs', fileName]).toString();
