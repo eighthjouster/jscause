@@ -1,14 +1,6 @@
 List of sanity checks:
 ======================
 
-- Simulate a failure in open a log file and/or writing to it:
-   - The simulation must happen here in both openAndWriteToLogFile() and writeLogToFile().
-     - THEN, create a failsafe:  make sure that the log queue doesn't grow indiscriminately because the writing process got stalled.
-       - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
-         - This will need to be tested.  Yup.  This is already in the to-do section at the bottom, but you may want to improve the description.
-
-===
-
 Test: What if a port is taken? (By some other application.)
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
@@ -22,7 +14,7 @@ Go through the code and see what else needs to be tested that is not directly re
  - What else?
 
 At this point, back up and....
-PUBLISH AND ALPHA!
+PUBLISH AN ALPHA!
 
 Then, go through the code and start testing content-related stuff:
   - Whether HTML stuff renders.
@@ -87,5 +79,4 @@ TO-DO:
     - Or if the writing fails?
     - In essence, test: openAndWriteToLogFile() and writeLogToFile()
 
-- Test the log queue failsafe code:
-  - "Queue more than 10000 lines long? Don't add more lines and emit a console warning."
+- Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?

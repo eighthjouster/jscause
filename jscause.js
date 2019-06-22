@@ -41,6 +41,8 @@ const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
 const MAX_CACHED_FILES_PER_SITE = 256;
 const MAX_CACHEABLE_FILE_SIZE_BYTES = 1024 * 512;
 const MAX_COMPRESSION_JOBS_PER_SITE = 4;
+const MAX_FILELOG_QUEUE_ENTRIES = 10 * 1024 * 1000000; // 10MiB queue.  Arbitrary number.
+const LOGQUEUEFULL_WARNING_INTERVAL = 5 * 1000; // How often should the system warn about a full log queue.  In milliseconds.
 
 const JSCLOG_DATA =
 {
@@ -128,6 +130,7 @@ let allLogDirs;
 let allOpenLogFiles;
 let compressLogsDirQueue;
 let JSCLogMessageQueue;
+let JSCLogMessageQueueFullWarningTime;
 let isJSCLogMessageQueueProcessing;
 let isCurrentlyLogDirCompressing;
 let processExitAttempts;
@@ -661,6 +664,7 @@ function formatLogMessage(prefix, message)
 function JSCLogQueueNext()
 {
   const { type, message, logOptions } = JSCLogMessageQueue.shift();
+
   let outputToFile = false;
   if (isTestMode)
   {
@@ -723,7 +727,17 @@ function JSCLogQueueNext()
 
 function JSCLog(type, message, logOptions = {})
 {
-  JSCLogMessageQueue.push({ type, message, logOptions });
+  if (JSCLogMessageQueue.length <= MAX_FILELOG_QUEUE_ENTRIES)
+  {
+    JSCLogMessageQueue.push({ type, message, logOptions });
+  }
+  else if (!JSCLogMessageQueueFullWarningTime || ((Date.now() - JSCLogMessageQueueFullWarningTime) > LOGQUEUEFULL_WARNING_INTERVAL))
+  {
+    console.warn('\nWARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health.');
+    JSCLogMessageQueueFullWarningTime = Date.now();
+    isJSCLogMessageQueueProcessing = false;
+  }
+
   if (!isJSCLogMessageQueueProcessing)
   {
     JSCLogQueueNext();

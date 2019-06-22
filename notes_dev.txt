@@ -249,6 +249,10 @@ Order by priority:
 
 Easily send e-mail.
 
+If there is a log file open/write/append failure, keep the message and wait a few milliseconds before retrying.
+ - With tests.
+ - And if you implement this, make sure that the checks to prevent that JSCLogMessageQueue grows indefinitely are in place and working correctly in this scenario.
+
 When the logging system is looking for the next file to log to ("--1.log", "--2.log", etc), even if it finds one with content size below the threshold, it should make sure that no file exists with the next "--N.log" name before writing.  Otherwise, it must keep searching on.  For instance:  if it finds that "--5.log" is below the threshold, but there exists "--6.log", it must continue with "--6.log".  If that file is below the threshold, and "--7.log" does not exist, then it's okay to use for logging.
 
 Testing battery:
