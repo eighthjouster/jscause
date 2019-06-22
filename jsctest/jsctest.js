@@ -14,7 +14,8 @@ const allTests =
   'testBattery_010',
   'testBattery_011',
   'testBattery_012',
-  'testBattery_013'
+  'testBattery_013',
+  'testBattery_014'
 ];
 
 const fs = require('fs');
@@ -126,9 +127,68 @@ function finishedAllTesting(jscTestGlobal)
   }
 }
 
+function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextStepCall })
+{
+  const testPhaseCallback = jscTestContext[testPhaseCallbackName];
+
+  if (testPhaseCallback)
+  {
+    jscTestContext.testNextAvailableStepCall = nextStepCall;
+    jscTestContext.currentTestPhaseName = testPhaseCallbackName;
+    testPhaseCallback.call(jscTestContext);
+    jscTestContext.testNextAvailableStepCall = undefined;
+  }
+
+  if (!jscTestContext.stepCallToTriggerOnDone)
+  {
+    jscTestContext.currentTestPhaseName = '';
+    nextStepCall.call(jscTestContext);
+  }
+}
+
+function createNewTestPromise(jscTestContext, currentTest)
+{
+  return (resolve) =>
+  {
+    jscTestContext.testNextAvailableStepCall = undefined;
+    jscTestContext.stepCallToTriggerOnDone = undefined;
+    jscTestContext.currentTestPhaseName = '';
+    jscTestContext.onTestBeforeStart = undefined;
+    jscTestContext.onBeforeTestEnd = undefined;
+    jscTestContext.onUnitTestStarted = undefined;
+    jscTestContext.onTestEnd = undefined;
+    jscTestContext.isUnitTest = false;
+    jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
+    jscTestContext.testPassed = false;
+    jscTestContext.gotAllExpectedLogMsgs = false;
+    jscTestContext.gotWarningMessages = false;
+    jscTestContext.gotErrorMessages = false;
+    jscTestContext.serverDidStart = false;
+    jscTestContext.logOutputToConsoleOccurred = false;
+    jscTestContext.logOutputToServerDirOccurred = false;
+    jscTestContext.logOutputToSiteDirOccurred = false;
+    jscTestContext.pendingCallbackTrackingEnabled = true;
+    jscTestContext.pendingCallbacks = 0;
+    jscTestContext.waitForContinueTestingCall = false;
+    jscTestContext.waitForContinueTestingCallPasses = 0;
+    jscTestContext.waitForContinueTestingCallMaxPasses = 60;
+    jscTestContext.waitForContinueTestingCallHandlerId = undefined;
+    jscTestContext.tempTestData = undefined;
+    Object.assign(jscTestContext, currentTest);
+    console.info(`####### Starting test: ${jscTestContext.testName}`);
+
+    callTestPhaseIfAvailable(
+      {
+        jscTestContext,
+        testPhaseCallbackName: 'onTestBeforeStart',
+        nextStepCall: () => { jscTestContext.testPromiseAtStart(resolve); }
+      }
+    );
+  }
+}
+
 function nextTest(jscTestGlobal, list)
 {
-  const { jscLib } = jscTestGlobal;
   jscTestGlobal.testName = `<NOT SET #${jscTestGlobal.totalTestsRun}>`;
   const thisTest = list.shift();
 
@@ -179,35 +239,33 @@ function nextTest(jscTestGlobal, list)
     }
   };
 
-  const testPromise = new Promise((resolve) =>
+  jscTestGlobal.waitForDoneSignal = () =>
   {
-    jscTestGlobal.onTestBeforeStart = undefined;
-    jscTestGlobal.onBeforeTestEnd = undefined;
-    jscTestGlobal.onUnitTestStarted = undefined;
-    jscTestGlobal.onTestEnd = undefined;
-    jscTestGlobal.isUnitTest = false;
-    jscTestGlobal.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
-    jscTestGlobal.testPassed = false;
-    jscTestGlobal.gotAllExpectedLogMsgs = false;
-    jscTestGlobal.gotWarningMessages = false;
-    jscTestGlobal.gotErrorMessages = false;
-    jscTestGlobal.serverDidStart = false;
-    jscTestGlobal.logOutputToConsoleOccurred = false;
-    jscTestGlobal.logOutputToServerDirOccurred = false;
-    jscTestGlobal.logOutputToSiteDirOccurred = false;
-    jscTestGlobal.pendingCallbackTrackingEnabled = true;
-    jscTestGlobal.pendingCallbacks = 0;
-    jscTestGlobal.waitForContinueTestingCall = false;
-    jscTestGlobal.waitForContinueTestingCallPasses = 0;
-    jscTestGlobal.waitForContinueTestingCallMaxPasses = 60;
-    jscTestGlobal.waitForContinueTestingCallHandlerId = undefined;
-    jscTestGlobal.tempTestData = undefined;
-    Object.assign(jscTestGlobal, thisTest);
-    console.info(`####### Starting test: ${jscTestGlobal.testName}`);
-    jscTestGlobal.onTestBeforeStart && jscTestGlobal.onTestBeforeStart();
+    jscTestGlobal.stepCallToTriggerOnDone = jscTestGlobal.testNextAvailableStepCall;
 
+    return jscTestGlobal.sendDoneSignal;
+  }
+
+  jscTestGlobal.sendDoneSignal = () =>
+  {
+    if (jscTestGlobal.stepCallToTriggerOnDone)
+    {
+      jscTestGlobal.currentTestPhaseName = '';
+      jscTestGlobal.testNextAvailableStepCall = undefined;
+      jscTestGlobal.stepCallToTriggerOnDone();
+    }
+    else
+    {
+      console.error('CRITICAL: Test application bug found.  We received a Done signal with no next step callback.');
+      console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
+    }
+  }
+
+  jscTestGlobal.testPromiseAtStart = (resolve) =>
+  {
+    const { jscLib } = jscTestGlobal;
     jscTestGlobal.resolveIt = resolve;
-
+  
     if (jscTestGlobal.isUnitTest)
     {
       jscTestGlobal.pendingCallbackTrackingEnabled = false;
@@ -220,7 +278,7 @@ function nextTest(jscTestGlobal, list)
       {
         resolve(originalOnServerError());
       };
-
+  
       jscLib.startApplication(
         {
           onServerStarted: () =>
@@ -233,7 +291,9 @@ function nextTest(jscTestGlobal, list)
         }
       );
     }
-  });
+  }
+  
+  const testPromise = new Promise(createNewTestPromise(jscTestGlobal, thisTest));
 
   testPromise
     .then((result) =>
@@ -280,15 +340,25 @@ function signalTestEnd(jscTestGlobal, list)
   };
 
   jscTestGlobal.onUnitTestStarted && jscTestGlobal.onUnitTestStarted();
-  jscTestGlobal.onBeforeTestEnd && jscTestGlobal.onBeforeTestEnd();
 
-  if (jscTestGlobal.waitForContinueTestingCall)
+  callTestPhaseIfAvailable(
+    {
+      jscTestContext: jscTestGlobal,
+      testPhaseCallbackName: 'onBeforeTestEnd',
+      nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
+    }
+  );
+}
+
+function wrapUpSignalTestEnd(jscTestContext)
+{
+  if (jscTestContext.waitForContinueTestingCall)
   {
-    jscTestGlobal.waitForContinueTestingCallHandlerId = setInterval(() => { stillWaitingForContinueTestingCall(jscTestGlobal) }, 1000);
+    jscTestContext.waitForContinueTestingCallHandlerId = setInterval(() => { stillWaitingForContinueTestingCall(jscTestContext) }, 1000);
   }
   else
   {
-    jscTestGlobal.continueTesting();
+    jscTestContext.continueTesting();
   }
 }
 

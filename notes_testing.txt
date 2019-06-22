@@ -2,6 +2,9 @@ List of sanity checks:
 ======================
 
 Test: What if a port is taken? (By some other application.)
+ - test_014_001_takenServerPort.js
+ - Ok, we've modified onTestBeforeStart and onBeforeTestEnd.  Modify the rest of the phases.
+   - Then, continue designing the test.
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
  - Reading user files.
