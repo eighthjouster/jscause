@@ -1,9 +1,18 @@
 List of sanity checks:
 ======================
 
+I don't think waitForDoneSignal() can be used more than once (much less nested) in a single phase function.  Confirm this.  And document results.
+ - Perhaps we can put it in the last step of a nested mess?
+
+Then, git commit.
+
 Test: What if a port is taken? (By some other application.)
  - test_014_001_takenServerPort.js
- - Ok, we've modified onTestBeforeStart and onBeforeTestEnd.  Modify the rest of the phases.
+ - Ok, we've modified:
+    - onTestBeforeStart
+    - onBeforeTestEnd
+    - onTestEnd
+      - Modify the rest of the phases.
    - Then, continue designing the test.
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
@@ -83,3 +92,13 @@ TO-DO:
     - In essence, test: openAndWriteToLogFile() and writeLogToFile()
 
 - Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
+
+Documentation:
+==============
+
+If you use methods that require waiting to complete via a callback, use this.waitForDoneSignal() as the callback.  If you want to provide a custom callback, pass it as a parameter of waitForDoneSignal().  For example:
+      testServer.close(this.waitForDoneSignal(() =>
+      {
+        console.log('This is called when close() completes.');
+      }));
+Now, for promises set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.

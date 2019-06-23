@@ -29,6 +29,11 @@ const emptyDir =
   {
     // return 'The server emitted an error.  It might be good or bad, depending on the test.';
   },
+  onUnitTestStarted()
+  {
+    // Called when this.isUnitTest is assigned a value of true - usually in onTestBeforeStart()
+    // Here we can individually test application functions and set this.testPassed accordingly.
+  },
   onBeforeTestEnd()
   {
     // Called just before checking whether the test passed or failed.

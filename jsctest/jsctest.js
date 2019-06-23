@@ -137,12 +137,16 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
     jscTestContext.currentTestPhaseName = testPhaseCallbackName;
     testPhaseCallback.call(jscTestContext);
     jscTestContext.testNextAvailableStepCall = undefined;
-  }
 
-  if (!jscTestContext.stepCallToTriggerOnDone)
+    if (!jscTestContext.stepCallToTriggerOnDone)
+    {
+      jscTestContext.currentTestPhaseName = '';
+      nextStepCall && nextStepCall.call(jscTestContext);
+    }
+  }
+  else
   {
-    jscTestContext.currentTestPhaseName = '';
-    nextStepCall.call(jscTestContext);
+    nextStepCall && nextStepCall.call(jscTestContext);
   }
 }
 
@@ -153,10 +157,6 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.testNextAvailableStepCall = undefined;
     jscTestContext.stepCallToTriggerOnDone = undefined;
     jscTestContext.currentTestPhaseName = '';
-    jscTestContext.onTestBeforeStart = undefined;
-    jscTestContext.onBeforeTestEnd = undefined;
-    jscTestContext.onUnitTestStarted = undefined;
-    jscTestContext.onTestEnd = undefined;
     jscTestContext.isUnitTest = false;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
@@ -208,7 +208,7 @@ function nextTest(jscTestGlobal, list)
       () =>
       {
         jscTestGlobal.gotAllExpectedLogMsgs = true;
-        jscTestGlobal.expectedLogMessagesPass && jscTestGlobal.expectedLogMessagesPass.call(jscTestGlobal);
+        jscTestGlobal.expectedLogMessagesPass.call(jscTestGlobal);
       }
     );
 
@@ -239,27 +239,30 @@ function nextTest(jscTestGlobal, list)
     }
   };
 
-  jscTestGlobal.waitForDoneSignal = () =>
+  jscTestGlobal.waitForDoneSignal = (callbackOnDone) =>
   {
     jscTestGlobal.stepCallToTriggerOnDone = jscTestGlobal.testNextAvailableStepCall;
-
-    return jscTestGlobal.sendDoneSignal;
-  }
-
-  jscTestGlobal.sendDoneSignal = () =>
-  {
-    if (jscTestGlobal.stepCallToTriggerOnDone)
-    {
-      jscTestGlobal.currentTestPhaseName = '';
-      jscTestGlobal.testNextAvailableStepCall = undefined;
-      jscTestGlobal.stepCallToTriggerOnDone();
-    }
-    else
-    {
-      console.error('CRITICAL: Test application bug found.  We received a Done signal with no next step callback.');
-      console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
-    }
-  }
+    return jscTestGlobal.makeSendDoneSignal(callbackOnDone);
+  };
+  
+  jscTestGlobal.makeSendDoneSignal = (callbackOnDone) => {
+    return () => {
+      callbackOnDone && callbackOnDone.call(jscTestGlobal);
+      if (jscTestGlobal.stepCallToTriggerOnDone)
+      {
+        jscTestGlobal.currentTestPhaseName = '';
+        jscTestGlobal.testNextAvailableStepCall = undefined;
+        const triggerOnDoneCb = jscTestGlobal.stepCallToTriggerOnDone;
+        jscTestGlobal.stepCallToTriggerOnDone = undefined; // Need to undefine before calling because checking for undefined might occur even during its call.
+        triggerOnDoneCb.call(jscTestGlobal);
+      }
+      else
+      {
+        console.error('CRITICAL: Test application bug found.  We received a Done signal with no next step callback.');
+        console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
+      }
+    };
+  };
 
   jscTestGlobal.testPromiseAtStart = (resolve) =>
   {
@@ -284,9 +287,9 @@ function nextTest(jscTestGlobal, list)
           onServerStarted: () =>
           {
             jscTestGlobal.serverDidStart = true;
-            jscTestGlobal.onServerStarted && jscTestGlobal.onServerStarted.call(jscTestGlobal);
+            jscTestGlobal.onServerStarted.call(jscTestGlobal);
           },
-          onServerError: jscTestGlobal.onServerError && jscTestGlobal.onServerError.bind(jscTestGlobal),
+          onServerError: jscTestGlobal.onServerError.bind(jscTestGlobal),
           rootDir: jscTestGlobal.rootDir
         }
       );
@@ -310,7 +313,14 @@ function nextTest(jscTestGlobal, list)
       console.error('CRITICAL: Test application bug found.  We should have never gotten here. Aborting.');
       console.error(e);
       console.info(`####### Finished test: ${jscTestGlobal.testName}`);
-      jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
+
+      callTestPhaseIfAvailable(
+        {
+          jscTestContext: jscTestGlobal,
+          testPhaseCallbackName: 'onTestEnd',
+          nextStepCall: () => {}
+        }
+      );
     });
 }
 
@@ -339,7 +349,7 @@ function signalTestEnd(jscTestGlobal, list)
     endTest(jscTestGlobal, list);
   };
 
-  jscTestGlobal.onUnitTestStarted && jscTestGlobal.onUnitTestStarted();
+  jscTestGlobal.onUnitTestStarted();
 
   callTestPhaseIfAvailable(
     {
@@ -364,7 +374,6 @@ function wrapUpSignalTestEnd(jscTestContext)
 
 function endTest(jscTestGlobal, list)
 {
-  console.log('END TEST!!!!');//__RP
   if (jscTestGlobal.testPassed)
   {
     jscTestGlobal.totalTestsPassed++;
@@ -380,8 +389,15 @@ function endTest(jscTestGlobal, list)
   }
 
   console.info(`####### Finished test: ${jscTestGlobal.testName}`);
-  jscTestGlobal.onTestEnd && jscTestGlobal.onTestEnd();
-  nextTest(jscTestGlobal, list);
+
+  callTestPhaseIfAvailable(
+    {
+      jscTestContext: jscTestGlobal,
+      testPhaseCallbackName: 'onTestEnd',
+      nextStepCall: () => { 
+        nextTest(jscTestGlobal, list); }
+    }
+  );
 }
 
 function invokeOnCompletion(jscTestGlobal, resolveMessage)
@@ -490,7 +506,6 @@ function createSymlink(unresTrictedTargetPathList, symlinkPathList)
   const symlinkFilePath = this.getTestFilePath(symlinkPathList, 'createSymlink', { errorMessage: 'No file path specified for symlink' });
   if (targetFilePath && symlinkFilePath)
   {
-    console.log('CHECKING!!!');//__RP
     fs.symlinkSync(targetFilePath, symlinkFilePath);
   }
 }

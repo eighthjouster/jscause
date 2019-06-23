@@ -77,6 +77,9 @@ const test_014_001_takenServerPort = Object.assign(testUtils.makeFromBaseTest('C
     onBeforeTestEnd()
     {
       this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+    },
+    onTestEnd()
+    {
       testServer.close(this.waitForDoneSignal());
     }
   }

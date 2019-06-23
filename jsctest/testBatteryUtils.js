@@ -25,6 +25,19 @@ module.exports = {
       {
         // return 'The server emitted an error.  It might be good or bad, depending on the test.';
       },
+      onUnitTestStarted()
+      {
+        // Called when this.isUnitTest is assigned a value of true - usually in onTestBeforeStart()
+        // Here we can individually test application functions and set this.testPassed accordingly.
+      },
+      onBeforeTestEnd()
+      {
+        // Called just before checking whether the test passed or failed.
+        // It's for last-minute checks.
+        // For example, after the server has been terminated and all messages have been logged.
+        // Happens after expectedLogMessagesPass(), onServerStarted(), onServerError()
+        // this.testPassed = true;
+      },
       onTestEnd()
       {
         // Here we tear down the test.  Config files, sample files, etc
