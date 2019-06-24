@@ -1,19 +1,21 @@
 List of sanity checks:
 ======================
 
-I don't think waitForDoneSignal() can be used more than once (much less nested) in a single phase function.  Confirm this.  And document results.
- - Perhaps we can put it in the last step of a nested mess?
+- Implement (and check!) callTestPhaseIfAvailable() on:
+  *- onTestBeforeStart
+  *- onBeforeTestEnd
+  *- onTestEnd
+  +- expectedLogMessagesPass
+  - onServerStarted
+  - onServerError
+  - onUnitTestStarted
+    - Then, continue designing the test.
+      - test_014_001_takenServerPort.js
 
-Then, git commit.
+expectedLogMessagesPass should be renamed to onExpectedLogMessagesPass.
 
 Test: What if a port is taken? (By some other application.)
- - test_014_001_takenServerPort.js
- - Ok, we've modified:
-    - onTestBeforeStart
-    - onBeforeTestEnd
-    - onTestEnd
-      - Modify the rest of the phases.
-   - Then, continue designing the test.
+ - Test with one site, then with two sites.
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
  - Reading user files.
@@ -102,3 +104,6 @@ If you use methods that require waiting to complete via a callback, use this.wai
         console.log('This is called when close() completes.');
       }));
 Now, for promises set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.
+
+waitForDoneSignal() can only be used once in a single phase function.  Trying to call it more than once will throw a critical error and abort testing.
+ - A workaround would be using it at last nested callback, or put all the callbacks inside a Promise.all(), or similar approach.

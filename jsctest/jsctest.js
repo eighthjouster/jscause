@@ -260,6 +260,7 @@ function nextTest(jscTestGlobal, list)
       {
         console.error('CRITICAL: Test application bug found.  We received a Done signal with no next step callback.');
         console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
+        throw new Error('Cannot continue due to critical error found.');
       }
     };
   };
