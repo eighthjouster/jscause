@@ -1,18 +1,7 @@
 List of sanity checks:
 ======================
 
-- Implement (and check!) callTestPhaseIfAvailable() on:
-  *- onTestBeforeStart
-  *- onBeforeTestEnd
-  *- onTestEnd
-  *- onUnitTestStarted
-  - expectedLogMessagesPass - This one is very tricky.  Might need to move to "the future" - and document if so, that is, indicate that waitForDoneSignal() is not supported here.)
-     - Perhaps this function should be renamed since jscause calls it, and one function that is called and verified from within jsctest *only* is the one to be put in the test battery (which would imply to modify the base in test utils and the example.)
-       - If too much trouble, just move to the future.
-  - onServerStarted - same deal as with expectedLogMessagesPass?
-  - onServerError - same deal as with expectedLogMessagesPass?
-    - Then, continue designing the test.
-      - test_014_001_takenServerPort.js
+Don't call onUnitTestStarted if there is no isUnitTest set to true?
 
 expectedLogMessagesPass should be renamed to onExpectedLogMessagesPass.
 
@@ -99,6 +88,12 @@ TO-DO:
     - In essence, test: openAndWriteToLogFile() and writeLogToFile()
 
 - Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
+
+- Implementing (and checking) callTestPhaseIfAvailable() on the rest of the phase functions:
+  - These implementations cannot be modeled after the ones that are already implemented (i.e., onTestBeforeStart, onBeforeTestEnd, onTestEnd, onUnitTestStarted).  Read on.
+  - expectedLogMessagesPass - This one is very tricky.  It can happen while another function phase is waiting, messing up the current phase state after completing.
+  - onServerStarted - same deal as with expectedLogMessagesPass?
+  - onServerError - same deal as with expectedLogMessagesPass?
 
 Documentation:
 ==============

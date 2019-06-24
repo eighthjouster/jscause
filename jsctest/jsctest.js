@@ -199,18 +199,9 @@ function nextTest(jscTestGlobal, list)
   }
 
   jscTestGlobal.totalTestsRun++;
-  jscTestGlobal.checkExpectedLogMessages = (type, message) =>
+  jscTestGlobal.checkIfExpectedLogMessagesPass = (type, message) =>
   {
-    checkExpectedLogMessages(
-      type,
-      message,
-      jscTestGlobal.expectedLogMessages,
-      () =>
-      {
-        jscTestGlobal.gotAllExpectedLogMsgs = true;
-        jscTestGlobal.expectedLogMessagesPass.call(jscTestGlobal);
-      }
-    );
+    checkExpectedLogMessages(type, message, jscTestGlobal);
 
     if (type === 'warning')
     {
@@ -426,8 +417,9 @@ function checkLogOutputWillOccur(logOptions)
   this.logOutputToSiteDirOccurred = this.logOutputToSiteDirOccurred || !!toSiteDir;
 }
 
-function checkExpectedLogMessages(type, message, expectedLogMessages, expectedLogMessagesPass)
+function checkExpectedLogMessages(type, message, jscTestContext)
 {
+  const { expectedLogMessages } = jscTestContext;
   if (expectedLogMessages && expectedLogMessages.length)
   {
     const [ listType = '', listMessage = '', listMessageType = '' ] = expectedLogMessages[0];
@@ -441,7 +433,8 @@ function checkExpectedLogMessages(type, message, expectedLogMessages, expectedLo
   
       if (expectedLogMessages.length === 0)
       {
-        expectedLogMessagesPass();
+        jscTestContext.gotAllExpectedLogMsgs = true;
+        jscTestContext.expectedLogMessagesPass.call(jscTestContext);
       }
     }
   }

@@ -669,7 +669,7 @@ function JSCLogQueueNext()
   if (isTestMode)
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
-    jscTestGlobal.checkExpectedLogMessages(type, message);
+    jscTestGlobal.checkIfExpectedLogMessagesPass(type, message);
     console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
   }
   //__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
