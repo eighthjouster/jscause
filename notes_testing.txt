@@ -5,10 +5,12 @@ List of sanity checks:
   *- onTestBeforeStart
   *- onBeforeTestEnd
   *- onTestEnd
-  +- expectedLogMessagesPass
-  - onServerStarted
-  - onServerError
-  - onUnitTestStarted
+  *- onUnitTestStarted
+  - expectedLogMessagesPass - This one is very tricky.  Might need to move to "the future" - and document if so, that is, indicate that waitForDoneSignal() is not supported here.)
+     - Perhaps this function should be renamed since jscause calls it, and one function that is called and verified from within jsctest *only* is the one to be put in the test battery (which would imply to modify the base in test utils and the example.)
+       - If too much trouble, just move to the future.
+  - onServerStarted - same deal as with expectedLogMessagesPass?
+  - onServerError - same deal as with expectedLogMessagesPass?
     - Then, continue designing the test.
       - test_014_001_takenServerPort.js
 

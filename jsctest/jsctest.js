@@ -350,13 +350,20 @@ function signalTestEnd(jscTestGlobal, list)
     endTest(jscTestGlobal, list);
   };
 
-  jscTestGlobal.onUnitTestStarted();
-
   callTestPhaseIfAvailable(
     {
       jscTestContext: jscTestGlobal,
-      testPhaseCallbackName: 'onBeforeTestEnd',
-      nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
+      testPhaseCallbackName: 'onUnitTestStarted',
+      nextStepCall: () =>
+      {
+        callTestPhaseIfAvailable(
+          {
+            jscTestContext: jscTestGlobal,
+            testPhaseCallbackName: 'onBeforeTestEnd',
+            nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
+          }
+        );
+      }
     }
   );
 }
