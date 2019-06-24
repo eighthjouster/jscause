@@ -19,6 +19,9 @@ expectedLogMessagesPass should be renamed to onExpectedLogMessagesPass.
 Test: What if a port is taken? (By some other application.)
  - Test with one site, then with two sites.
 
+At this point, uncomment all the test calls:
+// 'testBattery_001',//__RP
+
 Go through the code and see what else needs to be tested that is not directly related to serving files.
  - Reading user files.
    - Static/dynamic.
