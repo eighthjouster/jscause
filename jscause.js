@@ -2611,9 +2611,10 @@ function incomingRequestHandler(req, res)
   })
 }
 
-function runWebServer(runningServer, serverPort, jscLogConfig)
+function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 {
   const { webServer, serverName, sites } = runningServer;
+  
   webServer.on('request', incomingRequestHandler);
 
   webServer.on('error', (e) =>
@@ -2626,15 +2627,27 @@ function runWebServer(runningServer, serverPort, jscLogConfig)
     {
       JSCLog('error', `- Site ${getSiteNameOrNoName(site.siteName)} not started.`, jscLogConfig);
     });
+
+    JSCLogTerminate({ onTerminateComplete: options.onServerError });
+
+    if (isTestMode)
+    {
+      // Because there is a jsCallBack() in webServer.listen() below.
+      jscTestGlobal.callbackCalled();
+    }
   });
 
-  webServer.listen(serverPort, () =>
+  webServer.listen(serverPort, jscCallback(() =>
   {
     JSCLog('info', `Server ${serverName} listening on port ${serverPort}`, jscLogConfig);
-  });
+    if (typeof(options.onServerStarted) === 'function')
+    {
+      options.onServerStarted();
+    }
+  }));
 }
 
-function startServer(siteConfig, jscLogConfigBase)
+function startServer(siteConfig, jscLogConfigBase, options)
 {
   const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
@@ -2731,7 +2744,7 @@ function startServer(siteConfig, jscLogConfigBase)
         serverPort: sitePort
       };
       runningServer.webServer = webServer;
-      runWebServer(runningServer, sitePort, jscLogConfig);
+      runWebServer(runningServer, sitePort, jscLogConfig, options);
       runningServers[sitePort] = runningServer;
     }
   }
@@ -4669,7 +4682,7 @@ function startApplication(options = { rootDir: undefined })
   serverConfig.sites = allSiteConfigs || [];
   serverConfig.sites.forEach((site) =>
   {
-    if (startServer(site, jscLogBase))
+    if (startServer(site, jscLogBase, options))
     {
       atLeastOneSiteStarted = true;
     }
@@ -4706,10 +4719,6 @@ function startApplication(options = { rootDir: undefined })
   if (atLeastOneSiteStarted)
   {
     JSCLog('info', 'Will start listening.', jscLogBase);
-    if (typeof(options.onServerStarted) === 'function')
-    {
-      options.onServerStarted();
-    }
   }
   else
   {

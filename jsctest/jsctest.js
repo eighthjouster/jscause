@@ -282,7 +282,7 @@ function nextTest(jscTestGlobal, list)
       const originalOnServerError = jscTestGlobal.onServerError;
       jscTestGlobal.onServerError = () =>
       {
-        resolve(originalOnServerError());
+        resolve(originalOnServerError.call(jscTestGlobal));
       };
   
       jscLib.startApplication(
@@ -406,7 +406,6 @@ function endTest(jscTestGlobal, list)
     }
     jscTestGlobal.failedTestNames.push(jscTestGlobal.testName);
   }
-
   console.info(`####### Finished test: ${jscTestGlobal.testName}`);
 
   callTestPhaseIfAvailable(

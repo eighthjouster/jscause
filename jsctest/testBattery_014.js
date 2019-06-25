@@ -64,11 +64,11 @@ const test_014_001_takenServerPort = Object.assign(testUtils.makeFromBaseTest('C
 
       testServer = testHttp.createServer();
 
-      testServer.listen(3003, this.waitForDoneSignal());
+      testServer.listen(3000, this.waitForDoneSignal());
     },
     expectedLogMessages:
     [
-      [ 'info' , 'Server 0 listening on port 3000' ]
+      [ 'error' , 'Server 0 could not start listening on port 3000.' ]
     ],
     onServerStarted()
     {
@@ -76,7 +76,7 @@ const test_014_001_takenServerPort = Object.assign(testUtils.makeFromBaseTest('C
     },
     onBeforeTestEnd()
     {
-      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
     },
     onTestEnd()
     {
