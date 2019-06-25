@@ -232,8 +232,19 @@ function nextTest(jscTestGlobal, list)
 
   jscTestGlobal.waitForDoneSignal = (callbackOnDone) =>
   {
-    jscTestGlobal.stepCallToTriggerOnDone = jscTestGlobal.testNextAvailableStepCall;
-    return jscTestGlobal.makeSendDoneSignal(callbackOnDone);
+    if (jscTestGlobal.stepCallToTriggerOnDone)
+    {
+      console.error('CRITICAL: Test application bug found.  waitForDoneSignal() called in wrong place, or more than once in the same phase callback function.  This is not allowed.');
+      console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
+      console.error('If the above phase has one call only, chances are the offending call is in a previous, non-allowed phase.');
+      console.error('Cannot continue due to critical error found.');
+      process.exit();
+    }
+    else
+    {
+      jscTestGlobal.stepCallToTriggerOnDone = jscTestGlobal.testNextAvailableStepCall;
+      return jscTestGlobal.makeSendDoneSignal(callbackOnDone);
+    }
   };
   
   jscTestGlobal.makeSendDoneSignal = (callbackOnDone) => {
@@ -434,7 +445,7 @@ function checkExpectedLogMessages(type, message, jscTestContext)
       if (expectedLogMessages.length === 0)
       {
         jscTestContext.gotAllExpectedLogMsgs = true;
-        jscTestContext.expectedLogMessagesPass.call(jscTestContext);
+        jscTestContext.onExpectedLogMessagesPass.call(jscTestContext);
       }
     }
   }

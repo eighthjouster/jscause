@@ -1,9 +1,9 @@
 List of sanity checks:
 ======================
 
-Don't call onUnitTestStarted if there is no isUnitTest set to true?
+Don't call onUnitTestStarted if there is no isUnitTest set to true.
 
-expectedLogMessagesPass should be renamed to onExpectedLogMessagesPass.
+Back up at this point.
 
 Test: What if a port is taken? (By some other application.)
  - Test with one site, then with two sites.
@@ -91,9 +91,9 @@ TO-DO:
 
 - Implementing (and checking) callTestPhaseIfAvailable() on the rest of the phase functions:
   - These implementations cannot be modeled after the ones that are already implemented (i.e., onTestBeforeStart, onBeforeTestEnd, onTestEnd, onUnitTestStarted).  Read on.
-  - expectedLogMessagesPass - This one is very tricky.  It can happen while another function phase is waiting, messing up the current phase state after completing.
-  - onServerStarted - same deal as with expectedLogMessagesPass?
-  - onServerError - same deal as with expectedLogMessagesPass?
+  - onExpectedLogMessagesPass - This one is very tricky.  It can happen while another function phase is waiting, messing up the current phase state after completing.
+  - onServerStarted - same deal as with onExpectedLogMessagesPass?
+  - onServerError - same deal as with onExpectedLogMessagesPass?
 
 Documentation:
 ==============

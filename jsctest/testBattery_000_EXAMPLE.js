@@ -14,7 +14,7 @@ const emptyDir =
     // and right after all battery of tests are performed.
     // this.doEmptyTestDirectory();
   },
-  expectedLogMessagesPass()
+  onExpectedLogMessagesPass()
   {
     // We got all the sequence of log messages we were expecting.
     // It's generally a good thing.  But it will depened on the test.
@@ -39,7 +39,7 @@ const emptyDir =
     // Called just before checking whether the test passed or failed.
     // It's for last-minute checks.
     // For example, after the server has been terminated and all messages have been logged.
-    // Happens after expectedLogMessagesPass(), onServerStarted(), onServerError()
+    // Happens after onExpectedLogMessagesPass(), onServerStarted(), onServerError()
     // this.testPassed = true;
   },
   onTestEnd()
