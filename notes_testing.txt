@@ -1,10 +1,6 @@
 List of sanity checks:
 ======================
 
-Don't call onUnitTestStarted if there is no isUnitTest set to true.
-
-Back up at this point.
-
 Test: What if a port is taken? (By some other application.)
  - Test with one site, then with two sites.
 

@@ -352,22 +352,31 @@ function signalTestEnd(jscTestGlobal, list)
     endTest(jscTestGlobal, list);
   };
 
-  callTestPhaseIfAvailable(
-    {
-      jscTestContext: jscTestGlobal,
-      testPhaseCallbackName: 'onUnitTestStarted',
-      nextStepCall: () =>
+  const onBeforeEndTestCall = () =>
+  {
+    callTestPhaseIfAvailable(
       {
-        callTestPhaseIfAvailable(
-          {
-            jscTestContext: jscTestGlobal,
-            testPhaseCallbackName: 'onBeforeTestEnd',
-            nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
-          }
-        );
+        jscTestContext: jscTestGlobal,
+        testPhaseCallbackName: 'onBeforeTestEnd',
+        nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
       }
-    }
-  );
+    );
+  };
+
+  if (jscTestGlobal.isUnitTest)
+  {
+    callTestPhaseIfAvailable(
+      {
+        jscTestContext: jscTestGlobal,
+        testPhaseCallbackName: 'onUnitTestStarted',
+        nextStepCall: onBeforeEndTestCall
+      }
+    );
+  }
+  else
+  {
+    onBeforeEndTestCall();
+  }
 }
 
 function wrapUpSignalTestEnd(jscTestContext)
