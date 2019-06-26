@@ -133,6 +133,7 @@ let JSCLogMessageQueue;
 let JSCLogMessageQueueFullWarningTime;
 let isJSCLogMessageQueueProcessing;
 let isCurrentlyLogDirCompressing;
+let applicationIsTerminating;
 let processExitAttempts;
 let serverConfig;
 let runningServers;
@@ -206,6 +207,7 @@ function initializeGlobals()
   JSCLogMessageQueue = [];
   isJSCLogMessageQueueProcessing = false;
   isCurrentlyLogDirCompressing = false;
+  applicationIsTerminating = false;
   processExitAttempts = 0;
   serverConfig = {};
   runningServers = {};
@@ -765,7 +767,7 @@ function waitForLogFileCompressionBeforeTerminate(options)
         Promise.all(
           Object.values(runningServers)
             .map(
-              (thisServer) => thisServer.webServer.close(() => Promise.resolve())
+              (thisServer) => thisServer.webServer.close(jscCallback(() => Promise.resolve()))
             )
         )
           .then(jscThen(() =>
@@ -796,6 +798,12 @@ function waitForLogFileCompressionBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
+  if (applicationIsTerminating)
+  {
+    return;
+  }
+  applicationIsTerminating = true;
+
   console.log('TERMINATING?!?!?!');//__RP
   Object.keys(allOpenLogFiles).forEach((key) =>
   {
@@ -4749,6 +4757,10 @@ function exitApplication(options = {})
   else if (processExitAttempts === 2)
   {
     console.log('\nStill cleaning on exit.  Try again to exit right away...');
+    if (isTestMode)
+    {
+      console.log('\nWARNING - WARNING - WARNING:  Were we supposed to get here during testing?');
+    }
   }
   else
   {
