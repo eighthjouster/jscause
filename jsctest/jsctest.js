@@ -2,20 +2,21 @@
 
 const allTests =
 [
-  'testBattery_001',
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
-  'testBattery_014'
+  // 'testBattery_001', //__RP
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
+  // 'testBattery_014',
+  'testBattery_015'
 ];
 
 const fs = require('fs');
@@ -154,6 +155,7 @@ function createNewTestPromise(jscTestContext, currentTest)
 {
   return (resolve) =>
   {
+    jscTestContext.maxFilesOrDirInDirectory = undefined;
     jscTestContext.testNextAvailableStepCall = undefined;
     jscTestContext.stepCallToTriggerOnDone = undefined;
     jscTestContext.currentTestPhaseName = '';

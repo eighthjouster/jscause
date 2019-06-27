@@ -3468,7 +3468,7 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
   return soFarSoGood;
 }
 
-function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, jscLogConfig)
+function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig)
 {
   let { soFarSoGood, directoriesToProcess, pushedFiles } = state;
   const { siteName } = siteConfig;
@@ -3527,14 +3527,14 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
       }
       else
       {
-        if (pushedFiles < MAX_FILES_OR_DIRS_IN_DIRECTORY)
+        if (pushedFiles < maxFilesOrDirInDirectory)
         {
           allFiles.push({ fileName, simlinkTarget: linkedPath });
           pushedFiles++;
         }
         else
         {
-          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${MAX_FILES_OR_DIRS_IN_DIRECTORY}) in directory (circular reference?):`, jscLogConfig);
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${maxFilesOrDirInDirectory}) in directory (circular reference?):`, jscLogConfig);
           JSCLog('error', `- ${currentDirectoryPath}`, jscLogConfig);
           soFarSoGood = false;
         }
@@ -3601,8 +3601,9 @@ function prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, cur
   }
 }
 
-function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogConfig)
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig)
 {
+  const { siteName } = siteConfig;
   let
     {
       directoriesProcessedSoFar, soFarSoGood, directoriesToProcess,
@@ -3631,7 +3632,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   }
   else if (stats.isSymbolicLink())
   {
-    Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, jscLogConfig));
+    Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig));
   }
   else if (fileName.match(/\.jscm$/)) // Ignore jscm files.
   {
@@ -3655,8 +3656,17 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
 
     if (soFarSoGood)
     {
-      prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
-      filePathsList.push(fileEntry);
+      if (filePathsList.length < maxFilesOrDirInDirectory)
+      {
+        prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
+        filePathsList.push(fileEntry);
+      }
+      else
+      {
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${maxFilesOrDirInDirectory}) in directory:`, jscLogConfig);
+        JSCLog('error', `- ${currentDirectoryPath}`, jscLogConfig);
+        soFarSoGood = false;
+      }
     }
   }
 
@@ -4517,6 +4527,8 @@ function startApplication(options = { rootDir: undefined })
 
             const websiteRoot = fsPath.join(siteJSONFilePath, JSCAUSE_WEBSITE_PATH);
 
+            const maxFilesOrDirInDirectory = (isTestMode) ? jscTestGlobal.maxUserFilesOrDirs || MAX_FILES_OR_DIRS_IN_DIRECTORY : MAX_FILES_OR_DIRS_IN_DIRECTORY;
+
             do
             {
               let currentDirectoryPath;
@@ -4593,7 +4605,7 @@ function startApplication(options = { rootDir: undefined })
 
                   if (state.soFarSoGood)
                   {
-                    Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, jscLogBaseWithSite));
+                    Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogBaseWithSite));
                   }
                   else
                   {
