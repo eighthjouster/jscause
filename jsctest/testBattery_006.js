@@ -114,9 +114,12 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
       [ 'info' , 'Server 0 listening on port 3000' ],
       [ 'info' , 'Server 1 listening on port 3001' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {
@@ -142,9 +145,9 @@ const test_006_002_configFileTwoSitesSameRootDirAndPort = Object.assign(testUtil
       [ 'error', 'Site \'My Site 2\' not started.' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
@@ -169,9 +172,9 @@ const test_006_003_configFileTwoSitesSameName = Object.assign(testUtils.makeFrom
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
@@ -196,9 +199,9 @@ const test_006_004_configFileTwoSitesDifferentProtocolSamePort = Object.assign(t
       [ 'warning', 'Site configuration: Site \'My Site 2\' is using HTTP in an already assigned HTTPS port, 3000' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
@@ -224,9 +227,9 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
       [ 'warning', 'Site configuration: Site \'My Site 2\' is using HTTPS in an already assigned HTTPS port, 3000' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
@@ -251,9 +254,9 @@ const test_006_006_configFileTwoSitesDifferentProtocolSamePort2 = Object.assign(
       [ 'error', 'Site configuration: Site \'My Site 2\' is attempting to use HTTPS in an already assigned HTTP port, 3000' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
@@ -289,9 +292,9 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
       [ 'error', 'Site configuration: \'My Site 2\', 3000 is already in use' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {

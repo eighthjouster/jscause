@@ -158,9 +158,12 @@ const test_009_003_siteConfInvalidHTTPSKeyFilePt2 = Object.assign(testUtils.make
       [ 'error', '- \'My Site\'' ],
       [ 'info', 'Server 0 listening on port 3001' ]
     ],
-    onServerStarted()
+    onServerStartedOrError()
     {
-      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {

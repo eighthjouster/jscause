@@ -163,6 +163,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.gotAllExpectedLogMsgs = false;
     jscTestContext.gotWarningMessages = false;
     jscTestContext.gotErrorMessages = false;
+    jscTestContext.numberOfServersInvokedSofar = 0;
     jscTestContext.serverDidStart = false;
     jscTestContext.logOutputToConsoleOccurred = false;
     jscTestContext.logOutputToServerDirOccurred = false;
@@ -279,10 +280,21 @@ function nextTest(jscTestGlobal, list)
     }
     else
     {
+      const originalOnServerStartedOrError = jscTestGlobal.onServerStartedOrError;
+      jscTestGlobal.onServerStartedOrError = () =>
+      {
+        jscTestGlobal.numberOfServersInvokedSofar++;
+        originalOnServerStartedOrError.call(jscTestGlobal)
+      };
+  
       const originalOnServerError = jscTestGlobal.onServerError;
       jscTestGlobal.onServerError = () =>
       {
         resolve(originalOnServerError.call(jscTestGlobal));
+        if (typeof(jscTestGlobal.onServerStartedOrError) === 'function')
+        {
+          jscTestGlobal.onServerStartedOrError.call(jscTestGlobal);
+        }
       };
   
       jscLib.startApplication(
@@ -293,6 +305,7 @@ function nextTest(jscTestGlobal, list)
             jscTestGlobal.onServerStarted.call(jscTestGlobal);
           },
           onServerError: jscTestGlobal.onServerError.bind(jscTestGlobal),
+          onServerStartedOrError: jscTestGlobal.onServerStartedOrError.bind(jscTestGlobal),
           rootDir: jscTestGlobal.rootDir
         }
       );
@@ -358,7 +371,10 @@ function signalTestEnd(jscTestGlobal, list)
       {
         jscTestContext: jscTestGlobal,
         testPhaseCallbackName: 'onBeforeTestEnd',
-        nextStepCall: () => { wrapUpSignalTestEnd(jscTestGlobal); }
+        nextStepCall: () =>
+        {
+          wrapUpSignalTestEnd(jscTestGlobal);
+        }
       }
     );
   };

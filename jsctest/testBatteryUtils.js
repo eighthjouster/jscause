@@ -25,6 +25,11 @@ module.exports = {
       {
         // return 'The server emitted an error.  It might be good or bad, depending on the test.';
       },
+      onServerStartedOrError()
+      {
+        // Useful call for when dealing with more than one server and some cleanup needs to happen when all have been invoked.
+        // Usually combined with this.numberOfServersInvokedSofar
+      },
       onUnitTestStarted()
       {
         // Called when this.isUnitTest is assigned a value of true - usually in onTestBeforeStart()

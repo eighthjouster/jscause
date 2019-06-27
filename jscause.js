@@ -2652,6 +2652,10 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     {
       options.onServerStarted();
     }
+    if (typeof(options.onServerStartedOrError) === 'function')
+    {
+      options.onServerStartedOrError();
+    }
   }));
 }
 

@@ -63,11 +63,6 @@ const test_014_001_takenServerPortOneServerOneSite = Object.assign(testUtils.mak
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
-
       testServer = testHttp.createServer();
 
       testServer.listen(3000, this.waitForDoneSignal());
@@ -76,19 +71,13 @@ const test_014_001_takenServerPortOneServerOneSite = Object.assign(testUtils.mak
     [
       [ 'error' , 'Server 0 could not start listening on port 3000.' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
       this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     },
     onTestEnd()
     {
@@ -128,11 +117,6 @@ const test_014_002_takenServerPortOneServerTwoSites = Object.assign(testUtils.ma
         });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
-
       testServer = testHttp.createServer();
 
       testServer.listen(3100, this.waitForDoneSignal());
@@ -144,19 +128,13 @@ const test_014_002_takenServerPortOneServerTwoSites = Object.assign(testUtils.ma
       [ 'info' , '\'My Site 2\'' ],
       [ 'error' , 'Server 0 could not start listening on port 3100.' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      this.terminateApplication();
     },
     onBeforeTestEnd()
     {
       this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     },
     onTestEnd()
     {
@@ -190,11 +168,6 @@ const test_014_003_takenServerPortTwoServersTwoSites_Pt1 = Object.assign(testUti
         });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
-
       testServer = testHttp.createServer();
 
       testServer.listen(3200, this.waitForDoneSignal());
@@ -204,19 +177,16 @@ const test_014_003_takenServerPortTwoServersTwoSites_Pt1 = Object.assign(testUti
       [ 'error' , 'Server 0 could not start listening on port 3200.' ],
       [ 'info' , 'Server 1 listening on port 3299' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {
       this.testPassed = this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     },
     onTestEnd()
     {
@@ -249,11 +219,6 @@ const test_014_004_takenServerPortTwoServersTwoSites_Pt2 = Object.assign(testUti
         });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
-
       testServer = testHttp.createServer();
 
       testServer.listen(3399, this.waitForDoneSignal());
@@ -263,19 +228,16 @@ const test_014_004_takenServerPortTwoServersTwoSites_Pt2 = Object.assign(testUti
       [ 'info' , 'Server 0 listening on port 3300' ],
       [ 'error' , 'Server 1 could not start listening on port 3399.' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {
       this.testPassed = this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     },
     onTestEnd()
     {
@@ -308,11 +270,6 @@ const test_014_005_takenServerPortTwoServersTwoSites_Pt3 = Object.assign(testUti
         });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
-
       testServer = testHttp.createServer();
       testServer2 = testHttp.createServer();
 
@@ -328,19 +285,16 @@ const test_014_005_takenServerPortTwoServersTwoSites_Pt3 = Object.assign(testUti
       [ 'error' , 'Server 0 could not start listening on port 3400.' ],
       [ 'error' , 'Server 1 could not start listening on port 3499.' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {
       this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     },
     onTestEnd()
     {
@@ -379,29 +333,22 @@ const test_014_006_TwoServersTwoSitesAllGood = Object.assign(testUtils.makeFromB
         });
       this.createFile(['sites', 'mysite2', 'configuration', 'site.json'], JSON.stringify(siteConfContents2));
 
-      this.tempTestData =
-      {
-        gotServerError: false
-      };
     },
     expectedLogMessages:
     [
       [ 'info' , 'Server 0 listening on port 3400' ],
       [ 'info' , 'Server 1 listening on port 3499' ]
     ],
-    onServerError()
+    onServerStartedOrError()
     {
-      this.tempTestData.gotServerError = true;
+      if (this.numberOfServersInvokedSofar === 2)
+      {
+        this.terminateApplication();
+      }
     },
     onBeforeTestEnd()
     {
       this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
-      if (!this.tempTestData.gotServerError)
-      {
-        // If we didn't get any server errors, the application didn't get a
-        // termination signal.  Let's terminate it ourselves.
-        this.terminateApplication();
-      }
     }
   }
 );
