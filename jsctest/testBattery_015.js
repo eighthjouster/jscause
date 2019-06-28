@@ -1,7 +1,5 @@
 'use strict';
 
-const testHttp = require('http');
-
 const testUtils = require('./testBatteryUtils');
 
 const makeBaseSite = (extra = {}) =>
@@ -80,7 +78,7 @@ const test_015_001_UserFilesReading_MaxFiles_noThresholdPassed = Object.assign(t
   }
 );
 
-const test_015_002_UserFilesReading_MaxFiles_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of files; no threshold passed.'),
+const test_015_002_UserFilesReading_MaxFiles_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of files; threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -108,7 +106,182 @@ const test_015_002_UserFilesReading_MaxFiles_thresholdPassed = Object.assign(tes
   }
 );
 
+const test_015_003_UserFilesReading_MaxDirs_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; no threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_02']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03']);
+    },
+    expectedLogMessages:
+    [
+      [ 'info' , 'Server 0 listening on port 3000' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_004_UserFilesReading_MaxDirs_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_02']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_04']);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Too many files and/or directories (> 3) in directory:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; no threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.createFile(['sites', 'mysite', 'website', 'file_02'], '');
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03']);
+    },
+    expectedLogMessages:
+    [
+      [ 'info' , 'Server 0 listening on port 3000' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.createFile(['sites', 'mysite', 'website', 'file_02'], '');
+      this.createFile(['sites', 'mysite', 'website', 'file_03'], '');
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_04']);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Too many files and/or directories (> 3) in directory:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; no threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 5;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.createFile(['sites', 'mysite', 'website', 'dir_01', 'file_02'], '');
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03', 'dir_04']);
+      this.createFile(['sites', 'mysite', 'website', 'dir_03', 'dir_04', 'file_05'], '');
+    },
+    expectedLogMessages:
+    [
+      [ 'info' , 'Server 0 listening on port 3000' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 5;
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_01']);
+      this.createFile(['sites', 'mysite', 'website', 'dir_01', 'file_02'], '');
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03']);
+      this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website', 'dir_03', 'dir_04']);
+      this.createFile(['sites', 'mysite', 'website', 'dir_03', 'dir_04', 'file_05'], '');
+      this.createFile(['sites', 'mysite', 'website', 'file_06'], '');
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Too many files and/or directories (> 5) in directory:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
 module.exports = [
   test_015_001_UserFilesReading_MaxFiles_noThresholdPassed,
-  test_015_002_UserFilesReading_MaxFiles_thresholdPassed
+  test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
+  test_015_003_UserFilesReading_MaxDirs_nothresholdPassed,
+  test_015_004_UserFilesReading_MaxDirs_thresholdPassed,
+  test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed,
+  test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
+  test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
+  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed
 ];

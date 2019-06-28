@@ -3656,10 +3656,11 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
 
     if (soFarSoGood)
     {
-      if (filePathsList.length < maxFilesOrDirInDirectory)
+      if (pushedFiles < maxFilesOrDirInDirectory)
       {
         prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
         filePathsList.push(fileEntry);
+        pushedFiles++;
       }
       else
       {
@@ -4544,8 +4545,21 @@ function startApplication(options = { rootDir: undefined })
               }
 
               state.soFarSoGood = false;
-              let allFiles;
               const isWebsiteRoot = (websiteRoot === currentDirectoryPath);
+
+              if (!isWebsiteRoot)
+              {
+                state.pushedFiles++;
+              }
+
+              if (state.pushedFiles > maxFilesOrDirInDirectory)
+              {
+                JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${maxFilesOrDirInDirectory}) in directory:`, jscLogSite);
+                JSCLog('error', `- ${currentDirectoryPath}`, jscLogSite);
+                break;
+              }
+
+              let allFiles;
               try
               {
                 allFiles = fs.readdirSync(currentDirectoryPath);
@@ -4563,9 +4577,7 @@ function startApplication(options = { rootDir: undefined })
                   allFiles = allFiles.map(fileName => ({ fileName }));
                 }
 
-
                 let stats;
-                state.pushedFiles = 0;
                 let fullPath;
                 while (allFiles.length)
                 {
