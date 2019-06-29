@@ -11,9 +11,8 @@ Go through the code and see what else needs to be tested that is not directly re
            *- Just directories.
            *- Files and directories.
            +- Including symbolic links.
-             - Test for:
-               - Too many "file symbolic redirections."
-               - Circular references.
+             +- Test for:
+               +- Circular references.
      - Reach max file size.
      - Check that user modules compile.
        - Shouldn't there be a check for jscmFilesList length as well?

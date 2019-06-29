@@ -2,7 +2,7 @@
 
 const allTests =
 [
-  // 'testBattery_001', //__RP
+  // 'testBattery_001',//__RP
   // 'testBattery_002',
   // 'testBattery_003',
   // 'testBattery_004',
@@ -35,6 +35,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.getTestFilePath = getTestFilePath.bind(jscTestGlobal);
   jscTestGlobal.doRemoveDirectoryFromPathList = doRemoveDirectoryFromPathList.bind(jscTestGlobal);
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
+  jscTestGlobal.deleteFile = deleteFile.bind(jscTestGlobal);
   jscTestGlobal.readFile = readFile.bind(jscTestGlobal);
   jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
@@ -514,6 +515,15 @@ function createFile(dirPathList, contents)
   if (filePath)
   {
     fs.writeFileSync(filePath, contents);
+  }
+}
+
+function deleteFile(dirPathList, contents)
+{
+  const filePath = this.getTestFilePath(dirPathList, 'deleteFile', { errorMessage: 'No file path specified for deletion' });
+  if (filePath)
+  {
+    fs.unlinkSync(filePath);
   }
 }
 

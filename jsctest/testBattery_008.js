@@ -164,7 +164,39 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
   }
 );
 
-const test_008_005_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a file'),
+const test_008_005_siteConfTempWorkDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a circular symlink'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'tempWorkDirectory': './workbench_dir_s_2'
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      this.createFile([ 'sites', 'mysite', 'workbench_dir_s_1' ], '');
+      this.createSymlink([ '.', 'workbench_dir_s_1' ], [ 'sites', 'mysite', 'workbench_dir_s_2' ]);
+      this.deleteFile([ 'sites', 'mysite', 'workbench_dir_s_1' ]);
+      this.createSymlink([ '.', 'workbench_dir_s_2' ], [ 'sites', 'mysite', 'workbench_dir_s_1' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Cannot find directory:', 'prefix' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_008_006_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -191,7 +223,7 @@ const test_008_005_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(test
   }
 );
 
-const test_008_006_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is non-writeable'),
+const test_008_007_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -218,7 +250,7 @@ const test_008_006_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testU
   }
 );
 
-const test_008_007_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute site root directory path'),
+const test_008_008_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute site root directory path'),
   {
     // only: true,
     onTestBeforeStart()
@@ -241,7 +273,7 @@ const test_008_007_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUti
   }
 );
 
-const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
+const test_008_009_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -266,7 +298,7 @@ const test_008_008_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.mak
   }
 );
 
-const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
+const test_008_010_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -294,7 +326,36 @@ const test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
   }
 );
 
-const test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
+const test_008_011_siteConfSiteRootDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.sites[0].rootDirectoryName = 'mysite_dir_s_1';
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.createFile([ 'sites', 'mysite_dir_s_1' ], '');
+      this.createSymlink([ '.', 'mysite_dir_s_1' ], [ 'sites', 'mysite_dir_s_2' ]);
+      this.deleteFile([ 'sites', 'mysite_dir_s_1' ]);
+      this.createSymlink([ '.', 'mysite_dir_s_2' ], [ 'sites', 'mysite_dir_s_1' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Cannot find directory:', 'prefix' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_008_012_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -319,7 +380,7 @@ const test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(test
   }
 );
 
-const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
+const test_008_013_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -347,7 +408,7 @@ const test_008_011_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testU
   }
 );
 
-const test_008_012_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is file'),
+const test_008_014_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -377,7 +438,7 @@ const test_008_012_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBa
   }
 );
 
-const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a directory'),
+const test_008_015_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -411,7 +472,42 @@ const test_008_013_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
   }
 );
 
-const test_008_014_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a file'),
+const test_008_016_serverLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Server log directory is a circular symlink'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      jsCauseConfContents.logging =
+      {
+        general:
+        {
+          'directoryName': 'logs_dir_s_1'
+        }
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      this.createFile([ '.', 'logs_dir_s_1' ], '');
+      this.createSymlink([ '.', 'logs_dir_s_1' ], [ '.', 'logs_dir_s_2' ]);
+      this.deleteFile([ '.', 'logs_dir_s_1' ]);
+      this.createSymlink([ '.', 'logs_dir_s_2' ], [ '.', 'logs_dir_s_1' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Server configuration: Logging: directoryName: Cannot find directory:', 'prefix' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_008_017_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -441,7 +537,7 @@ const test_008_014_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.m
   }
 );
 
-const test_008_015_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Server log directory is non-writeable'),
+const test_008_018_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Server log directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -475,7 +571,7 @@ const test_008_015_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.ma
   }
 );
 
-const test_008_016_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
+const test_008_019_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -508,7 +604,7 @@ const test_008_016_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFrom
   }
 );
 
-const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
+const test_008_020_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -544,7 +640,45 @@ const test_008_017_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
   }
 );
 
-const test_008_018_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
+const test_008_021_siteConfLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          logging:
+          {
+            'directoryName': './localLogs_dir_s_2'
+          }
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      this.createFile([ 'sites', 'mysite', 'localLogs_dir_s_1' ], '');
+      this.createSymlink([ '.', 'localLogs_dir_s_1' ], [ 'sites', 'mysite', 'localLogs_dir_s_2' ]);
+      this.deleteFile([ 'sites', 'mysite', 'localLogs_dir_s_1' ]);
+      this.createSymlink([ '.', 'localLogs_dir_s_2' ], [ 'sites', 'mysite', 'localLogs_dir_s_1' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site configuration: \'My Site\' logging: directoryName: Cannot find directory:', 'prefix' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_008_022_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -577,7 +711,7 @@ const test_008_018_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils
   }
 );
 
-const test_008_019_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
+const test_008_023_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -619,19 +753,23 @@ module.exports = [
   test_008_002_siteConfAbsoluteTempWorkDirectoryPath,
   test_008_003_siteConfTempWorkDirectoryIsFile,
   test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir,
-  test_008_005_siteConfTempWorkDirectoryIsSymlinkToFile,
-  test_008_006_siteConfTempWorkDirectoryIsNonWriteable,
-  test_008_007_siteConfAbsoluteSiteRootDirectoryPath,
-  test_008_008_siteConfSiteRootDirectoryIsFile,
-  test_008_009_siteConfSiteRootDirectoryIsSymlinkToDir,
-  test_008_010_siteConfSiteRootDirectoryIsSymlinkToFile,
-  test_008_011_siteConfSiteRootDirectoryIsNonWriteable,
-  test_008_012_serverLogDirectoryIsFile,
-  test_008_013_serverLogDirectoryIsSymlinkToDir,
-  test_008_014_serverLogDirectoryIsSymlinkToFile,
-  test_008_015_serverLogDirectoryIsNonWriteable,
-  test_008_016_siteConfLogDirectoryIsFile,
-  test_008_017_siteConfLogDirectoryIsSymlinkToDir,
-  test_008_018_siteConfLogDirectoryIsSymlinkToFile,
-  test_008_019_siteConfLogDirectoryIsNonWriteable
+  test_008_005_siteConfTempWorkDirectoryIsCircularSymlink,
+  test_008_006_siteConfTempWorkDirectoryIsSymlinkToFile,
+  test_008_007_siteConfTempWorkDirectoryIsNonWriteable,
+  test_008_008_siteConfAbsoluteSiteRootDirectoryPath,
+  test_008_009_siteConfSiteRootDirectoryIsFile,
+  test_008_010_siteConfSiteRootDirectoryIsSymlinkToDir,
+  test_008_011_siteConfSiteRootDirectoryIsCircularSymlink,
+  test_008_012_siteConfSiteRootDirectoryIsSymlinkToFile,
+  test_008_013_siteConfSiteRootDirectoryIsNonWriteable,
+  test_008_014_serverLogDirectoryIsFile,
+  test_008_015_serverLogDirectoryIsSymlinkToDir,
+  test_008_016_serverLogDirectoryIsCircularSymlink,
+  test_008_017_serverLogDirectoryIsSymlinkToFile,
+  test_008_018_serverLogDirectoryIsNonWriteable,
+  test_008_019_siteConfLogDirectoryIsFile,
+  test_008_020_siteConfLogDirectoryIsSymlinkToDir,
+  test_008_021_siteConfLogDirectoryIsCircularSymlink,
+  test_008_022_siteConfLogDirectoryIsSymlinkToFile,
+  test_008_023_siteConfLogDirectoryIsNonWriteable
 ];
