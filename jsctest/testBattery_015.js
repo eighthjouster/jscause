@@ -106,7 +106,35 @@ const test_015_002_UserFilesReading_MaxFiles_thresholdPassed = Object.assign(tes
   }
 );
 
-const test_015_003_UserFilesReading_MaxDirs_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; no threshold passed.'),
+const test_015_003_UserFilesReading_MaxFiles_withModules_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of files, including user modules; threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.createFile(['sites', 'mysite', 'website', 'file_01'], '');
+      this.createFile(['sites', 'mysite', 'website', 'file_02'], '');
+      this.createFile(['sites', 'mysite', 'website', 'file_03'], '');
+      this.createFile(['sites', 'mysite', 'website', 'file_04.jscm'], '');
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Too many files and/or directories (> 3) in directory:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_004_UserFilesReading_MaxDirs_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; no threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -133,7 +161,7 @@ const test_015_003_UserFilesReading_MaxDirs_nothresholdPassed = Object.assign(te
   }
 );
 
-const test_015_004_UserFilesReading_MaxDirs_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; threshold passed.'),
+const test_015_005_UserFilesReading_MaxDirs_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories; threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -161,7 +189,7 @@ const test_015_004_UserFilesReading_MaxDirs_thresholdPassed = Object.assign(test
   }
 );
 
-const test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; no threshold passed.'),
+const test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; no threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -188,7 +216,7 @@ const test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.a
   }
 );
 
-const test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; threshold passed.'),
+const test_015_007_UserFilesReading_MaxDirsAndFiles_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -216,7 +244,7 @@ const test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed = Object.ass
   }
 );
 
-const test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; no threshold passed.'),
+const test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; no threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -245,7 +273,7 @@ const test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed = 
   }
 );
 
-const test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; threshold passed.'),
+const test_015_009_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; nesting; threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -275,7 +303,7 @@ const test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed = Ob
   }
 );
 
-const test_015_009_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; no threshold passed.'),
+const test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; no threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -302,7 +330,7 @@ const test_015_009_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed =
   }
 );
 
-const test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; threshold passed.'),
+const test_015_011_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; threshold passed.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -330,7 +358,7 @@ const test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed = O
   }
 );
 
-const test_015_011_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; circular symlinks.'),
+const test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; circular symlinks.'),
   {
     // only: true,
     onTestBeforeStart()
@@ -360,13 +388,14 @@ const test_015_011_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.as
 module.exports = [
   test_015_001_UserFilesReading_MaxFiles_noThresholdPassed,
   test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
-  test_015_003_UserFilesReading_MaxDirs_nothresholdPassed,
-  test_015_004_UserFilesReading_MaxDirs_thresholdPassed,
-  test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed,
-  test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
-  test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
-  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed,
-  test_015_009_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed,
-  test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed,
-  test_015_011_UserFilesReading_MaxDirsAndFiles_circularSymlinks
+  test_015_003_UserFilesReading_MaxFiles_withModules_thresholdPassed,
+  test_015_004_UserFilesReading_MaxDirs_nothresholdPassed,
+  test_015_005_UserFilesReading_MaxDirs_thresholdPassed,
+  test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed,
+  test_015_007_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
+  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
+  test_015_009_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed,
+  test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed,
+  test_015_011_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed,
+  test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks
 ];

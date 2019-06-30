@@ -16,7 +16,8 @@ const allTests =
   // 'testBattery_012',
   // 'testBattery_013',
   // 'testBattery_014',
-  'testBattery_015'
+  // 'testBattery_015',
+  'testBattery_016'
 ];
 
 const fs = require('fs');
@@ -518,7 +519,7 @@ function createFile(dirPathList, contents)
   }
 }
 
-function deleteFile(dirPathList, contents)
+function deleteFile(dirPathList)
 {
   const filePath = this.getTestFilePath(dirPathList, 'deleteFile', { errorMessage: 'No file path specified for deletion' });
   if (filePath)

@@ -3642,9 +3642,19 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   else if (fileName.match(/\.jscm$/)) // Ignore jscm files.
   {
     // But let's process them in case they have compile-time errors.
-    let fileEntry = {};
-    prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
-    jscmFilesList.push(fileEntry);
+    if (pushedFiles < maxFilesOrDirInDirectory)
+    {
+      let fileEntry = {};
+      prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
+      jscmFilesList.push(fileEntry);
+      pushedFiles++;
+    }
+    else
+    {
+      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Too many files and/or directories (> ${maxFilesOrDirInDirectory}) in directory:`, jscLogConfig);
+      JSCLog('error', `- ${currentDirectoryPath}`, jscLogConfig);
+      soFarSoGood = false;
+    }
   }
   else
   {
