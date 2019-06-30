@@ -275,6 +275,88 @@ const test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed = Ob
   }
 );
 
+const test_015_009_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; no threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.createFile(['sites', 'mysite', 'website', 'file_01'], '');
+      this.createSymlink([ '.', 'file_01' ], [ 'sites', 'mysite', 'website', 'file_s_02' ]);
+      this.createSymlink([ '.', 'file_s_02' ], [ 'sites', 'mysite', 'website', 'file_s_03' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'info' , 'Server 0 listening on port 3000' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; symlinks; threshold passed.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.maxUserFilesOrDirs = 3;
+      this.createFile(['sites', 'mysite', 'website', 'file_01'], '');
+      this.createSymlink([ '.', 'file_01' ], [ 'sites', 'mysite', 'website', 'file_s_02' ]);
+      this.createSymlink([ '.', 'file_s_02' ], [ 'sites', 'mysite', 'website', 'file_s_03' ]);
+      this.createSymlink([ '.', 'file_s_03' ], [ 'sites', 'mysite', 'website', 'file_s_04' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Too many files and/or directories (> 3) in directory:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
+const test_015_011_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; circular symlinks.'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
+
+      this.createFile(['sites', 'mysite', 'website', 'file_s_01'], '');
+      this.createSymlink([ '.', 'file_s_01' ], [ 'sites', 'mysite', 'website', 'file_s_02' ]);
+      this.deleteFile([ 'sites', 'mysite', 'website', 'file_s_01' ]);
+      this.createSymlink([ '.', 'file_s_02' ], [ 'sites', 'mysite', 'website', 'file_s_01' ]);
+    },
+    expectedLogMessages:
+    [
+      [ 'error' , 'Site \'My Site\': Circular symbolic link reference:' ]
+    ],
+    onServerStarted()
+    {
+      this.terminateApplication();
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    }
+  }
+);
+
 module.exports = [
   test_015_001_UserFilesReading_MaxFiles_noThresholdPassed,
   test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
@@ -283,5 +365,8 @@ module.exports = [
   test_015_005_UserFilesReading_MaxDirsAndFiles_nothresholdPassed,
   test_015_006_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
   test_015_007_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
-  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed
+  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed,
+  test_015_009_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed,
+  test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed,
+  test_015_011_UserFilesReading_MaxDirsAndFiles_circularSymlinks
 ];

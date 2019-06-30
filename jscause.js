@@ -3530,7 +3530,10 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
         if (pushedFiles < maxFilesOrDirInDirectory)
         {
           allFiles.push({ fileName, simlinkTarget: linkedPath });
-          pushedFiles++;
+          if (!linkedPath) // No need to count them here because they will be counted elsewhere.
+          {
+            pushedFiles++;
+          }
         }
         else
         {
@@ -3633,6 +3636,8 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
   else if (stats.isSymbolicLink())
   {
     Object.assign(state, analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, currentDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig));
+    pushedFiles = state.pushedFiles;
+    soFarSoGood = state.soFarSoGood;
   }
   else if (fileName.match(/\.jscm$/)) // Ignore jscm files.
   {
@@ -3652,6 +3657,8 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     {
       // Static files.
       Object.assign(state, processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig));
+      soFarSoGood = state.soFarSoGood;
+      cachedStaticFilesSoFar = state.cachedStaticFilesSoFar;
     }
 
     if (soFarSoGood)

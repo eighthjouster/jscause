@@ -2,17 +2,10 @@ List of sanity checks:
 ======================
 
 Go through the code and see what else needs to be tested that is not directly related to serving files.
- - Reading user files.
-   - Static/dynamic.
+ +- Reading user files.
+   +- Static/dynamic.
      - May need jscCallback/jscThen/jscCatch
-     +- Reach max number of files/directories.
-       *- Done with no symbolic links and files only.
-         +- Do it with:
-           *- Just directories.
-           *- Files and directories.
-           +- Including symbolic links.
-             +- Test for:
-               +- Circular references.
+     *- Reach max number of files/directories.
      - Reach max file size.
      - Check that user modules compile.
        - Shouldn't there be a check for jscmFilesList length as well?
