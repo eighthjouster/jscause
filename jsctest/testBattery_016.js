@@ -97,6 +97,10 @@ const test_016_002_UserFilesReading_UserModules_CompileError = Object.assign(tes
     onBeforeTestEnd()
     {
       this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
+    },
+    onTestEnd()
+    {
+      this.deleteFile(['sites', 'mysite', 'website', 'file_01.jscm']);
     }
   }
 );
