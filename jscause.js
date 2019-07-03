@@ -3549,8 +3549,13 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
   return { soFarSoGood, directoriesToProcess, pushedFiles };
 }
 
-function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig)
+function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext = {})
 {
+  const
+    {
+      JSCLog: JSCLogFn = JSCLog,
+      maxCacheableFileSizeBytes = MAX_CACHEABLE_FILE_SIZE_BYTES
+    } = unitTestingContext;
   const { siteName } = siteConfig;
   let { soFarSoGood, cachedStaticFilesSoFar } = state;
   fileEntry.fileType = 'static';
@@ -3563,7 +3568,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
 
   const fileSize = stats.size;
 
-  if (fileSize <= MAX_CACHEABLE_FILE_SIZE_BYTES)
+  if (fileSize <= maxCacheableFileSizeBytes)
   {
     cachedStaticFilesSoFar++;
     if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
@@ -3574,7 +3579,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
       }
       catch(e)
       {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
+        JSCLogFn('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
         soFarSoGood = false;
       }
     }
@@ -3582,7 +3587,7 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
     {
       if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
       {
-        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
+        JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
       }
     }
   }
@@ -4823,6 +4828,7 @@ function getAllElementsToSupportTesting()
     exitApplication,
     formatLogMessage,
     getCurrentLogFileName,
+    processStaticFile,
     startApplication
   };
   return allElementsToSupportTesting;

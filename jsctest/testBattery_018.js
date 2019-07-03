@@ -1,0 +1,150 @@
+'use strict';
+
+const testUtils = require('./testBatteryUtils');
+
+const prepareProcessStaticFileParams = ({ fileSize, maxCacheableFileSizeBytes: maxCacheableFileSizeBytesParam, cachedStaticFilesSoFar }) =>
+{
+  const preparedParams =
+    {
+      state: { soFarSoGood: true, cachedStaticFilesSoFar },
+      siteConfig: { mimeTypes: { list: {} } },
+      fileEntry: {},
+      stats: { size: fileSize },
+      jscLogConfig: { toConsole: false },
+      unitTestingContext: { JSCLog: () => {}, maxCacheableFileSizeBytes: maxCacheableFileSizeBytesParam }
+    };
+
+  return preparedParams;
+};
+
+const test_018_001_processStaticFile_maxCacheableFileSize_noThresholdPassed = Object.assign(testUtils.makeFromBaseTest('processStaticFile - max cacheable file size; no threshold passed; smaller size'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const fileName = 'some_static_file_name';
+      const fullPathComponents = ['.', fileName];
+
+      this.doEmptyTestDirectory();
+      this.tempTestData =
+      {
+        fileName,
+        fullPathComponents
+      };
+      this.createFile(fullPathComponents, 'some file contents');
+      this.isUnitTest = true;
+    },
+    onUnitTestStarted()
+    {
+      const maxCacheableFileSizeBytes = Math.random() * 20 + 10;
+      const testFileSize = maxCacheableFileSizeBytes - 1;
+      const { jscLib: { processStaticFile } } = this;
+      const { fileName, fullPathComponents } = this.tempTestData;
+      const fullPath = this.getTestFilePath(fullPathComponents, 'onUnitTestStarted');
+
+      if (fullPath)
+      {
+        const cacheStateParams = {
+          cachedStaticFilesSoFar: 7,
+          fileSize: testFileSize,
+          maxCacheableFileSizeBytes
+        };
+
+        const { state, siteConfig, fileEntry, stats, jscLogConfig, unitTestingContext } = prepareProcessStaticFileParams(cacheStateParams);
+        const { soFarSoGood, cachedStaticFilesSoFar } = processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext) || {};
+        
+        this.testPassed = soFarSoGood && (cachedStaticFilesSoFar === 8);
+      }
+    }
+  }
+);
+
+const test_018_002_processStaticFile_maxCacheableFileSize_noThresholdPassed_pt2 = Object.assign(testUtils.makeFromBaseTest('processStaticFile - max cacheable file size; no threshold passed; same size'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const fileName = 'some_static_file_name_2';
+      const fullPathComponents = ['.', fileName];
+
+      this.doEmptyTestDirectory();
+      this.tempTestData =
+      {
+        fileName,
+        fullPathComponents
+      };
+      this.createFile(fullPathComponents, 'some file contents');
+      this.isUnitTest = true;
+    },
+    onUnitTestStarted()
+    {
+      const maxCacheableFileSizeBytes = Math.random() * 20 + 10;
+      const testFileSize = maxCacheableFileSizeBytes;
+      const { jscLib: { processStaticFile } } = this;
+      const { fileName, fullPathComponents } = this.tempTestData;
+      const fullPath = this.getTestFilePath(fullPathComponents, 'onUnitTestStarted');
+
+      if (fullPath)
+      {
+        const cacheStateParams = {
+          cachedStaticFilesSoFar: 7,
+          fileSize: testFileSize,
+          maxCacheableFileSizeBytes
+        };
+
+        const { state, siteConfig, fileEntry, stats, jscLogConfig, unitTestingContext } = prepareProcessStaticFileParams(cacheStateParams);
+        const { soFarSoGood, cachedStaticFilesSoFar } = processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext) || {};
+        
+        this.testPassed = soFarSoGood && (cachedStaticFilesSoFar === 8);
+      }
+    }
+  }
+);
+
+const test_018_003_processStaticFile_maxCacheableFileSize_thresholdPassed = Object.assign(testUtils.makeFromBaseTest('processStaticFile - max cacheable file size; threshold passed; bigger size'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const fileName = 'some_static_file_name_2';
+      const fullPathComponents = ['.', fileName];
+
+      this.doEmptyTestDirectory();
+      this.tempTestData =
+      {
+        fileName,
+        fullPathComponents
+      };
+      this.createFile(fullPathComponents, 'some file contents');
+      this.isUnitTest = true;
+    },
+    onUnitTestStarted()
+    {
+      const maxCacheableFileSizeBytes = Math.random() * 20 + 10;
+      const testFileSize = maxCacheableFileSizeBytes + 1;
+      const { jscLib: { processStaticFile } } = this;
+      const { fileName, fullPathComponents } = this.tempTestData;
+      const fullPath = this.getTestFilePath(fullPathComponents, 'onUnitTestStarted');
+
+      if (fullPath)
+      {
+        const cacheStateParams = {
+          cachedStaticFilesSoFar: 7,
+          fileSize: testFileSize,
+          maxCacheableFileSizeBytes
+        };
+
+        const { state, siteConfig, fileEntry, stats, jscLogConfig, unitTestingContext } = prepareProcessStaticFileParams(cacheStateParams);
+        const { soFarSoGood, cachedStaticFilesSoFar } = processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext) || {};
+        
+        this.testPassed = soFarSoGood && (cachedStaticFilesSoFar === 7);
+      }
+    }
+  }
+);
+
+module.exports = [
+  test_018_001_processStaticFile_maxCacheableFileSize_noThresholdPassed,
+  test_018_002_processStaticFile_maxCacheableFileSize_noThresholdPassed_pt2,
+  test_018_003_processStaticFile_maxCacheableFileSize_thresholdPassed
+];
