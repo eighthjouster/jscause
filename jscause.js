@@ -3551,10 +3551,12 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
 
 function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext = {})
 {
+  console.log('------ 1');//__RP
   const
     {
       JSCLog: JSCLogFn = JSCLog,
-      maxCacheableFileSizeBytes = MAX_CACHEABLE_FILE_SIZE_BYTES
+      maxCacheableFileSizeBytes = MAX_CACHEABLE_FILE_SIZE_BYTES,
+      maxCachedFilesPerSite = MAX_CACHED_FILES_PER_SITE
     } = unitTestingContext;
   const { siteName } = siteConfig;
   let { soFarSoGood, cachedStaticFilesSoFar } = state;
@@ -3568,11 +3570,14 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
 
   const fileSize = stats.size;
 
+  console.log('------ 2');//__RP
   if (fileSize <= maxCacheableFileSizeBytes)
   {
+    console.log('------ 3');//__RP
     cachedStaticFilesSoFar++;
-    if (cachedStaticFilesSoFar < MAX_CACHED_FILES_PER_SITE)
+    if (cachedStaticFilesSoFar < maxCachedFilesPerSite)
     {
+      console.log('------ 4');//__RP
       try
       {
         fileContents = fs.readFileSync(fullPath);
@@ -3585,18 +3590,22 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
     }
     else
     {
-      if (cachedStaticFilesSoFar === MAX_CACHED_FILES_PER_SITE)
+      console.log('------ 5');//__RP
+      if (cachedStaticFilesSoFar === maxCachedFilesPerSite)
       {
         JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
       }
     }
   }
 
+  console.log('------ 6');//__RP
   if (soFarSoGood)
   {
+    console.log('------ 7');//__RP
     Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
   }
 
+  console.log('------ 8');//__RP
   return { soFarSoGood, cachedStaticFilesSoFar }
 }
 

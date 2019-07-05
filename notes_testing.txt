@@ -9,8 +9,15 @@ Go through the code and see what else needs to be tested that is not directly re
        *- Shouldn't there be a check for jscmFilesList length as well?
      *- The presence of errorXXX files in other directories (should throw a warning.)
  +- Caching user files.
-     *- Reach max cacheable file size.
+     +- Reach max cacheable file size.
+       - DONE, BUT CHECK THAT A FILE IS ACTUALLY CACHED/NOT CACHED IN EVERY SCENARIO.
      +- Reach max number of cacheable files.
+       - CHECK THAT A FILE IS ACTUALLY CACHED/NOT CACHED IN EVERY SCENARIO.
+ What about testing processStaticFile() with files non-existing files or files with insufficient read permissions?
+ Deal with: //__RP THIS SHOULD BE MATH.RANDOM()!!
+
+ At this point, back up.
+ 
  - Test webServer.jscContext
  - What else?
    - Again, go through the code from top to bottom.  Anything that's not related to the actual operation of serving files and processing requests (uploading, json serving, etc.)

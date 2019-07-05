@@ -247,6 +247,9 @@ Version 0.7.1b here!
 
 Order by priority:
 
+You should make sure that error4XX and 5XX files are cached (if they're within the threshold).  That is, they should be considered first.
+ - And test for this.
+
 Easily send e-mail.
 
 If there is a log file open/write/append failure, keep the message and wait a few milliseconds before retrying.
