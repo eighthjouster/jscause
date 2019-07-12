@@ -3583,10 +3583,13 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
         soFarSoGood = false;
       }
 
-      cachedStaticFilesSoFar++;
-      if (cachedStaticFilesSoFar === maxCachedFilesPerSite)
+      if (soFarSoGood)
       {
-        JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${maxCachedFilesPerSite}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
+        cachedStaticFilesSoFar++;
+        if (cachedStaticFilesSoFar === maxCachedFilesPerSite)
+        {
+          JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${maxCachedFilesPerSite}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
+        }
       }
     }
   }
