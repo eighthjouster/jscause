@@ -3551,7 +3551,6 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
 
 function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext = {})
 {
-  console.log('------ 1');//__RP
   const
     {
       JSCLog: JSCLogFn = JSCLog,
@@ -3570,23 +3569,16 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
 
   const fileSize = stats.size;
 
-  console.log('------ 2');//__RP
   if (fileSize <= maxCacheableFileSizeBytes)
   {
-    console.log('------ 3');//__RP
-    console.log(cachedStaticFilesSoFar, maxCachedFilesPerSite);//__RP
     if (cachedStaticFilesSoFar < maxCachedFilesPerSite)
     {
-      console.log('------ 4');//__RP
       try
       {
-        console.log('------ 4.1');//__RP
         fileContents = fs.readFileSync(fullPath);
-        console.log('------ 4.2');//__RP
       }
       catch(e)
       {
-        console.log('------ 4.3');//__RP
         JSCLogFn('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
         soFarSoGood = false;
       }
@@ -3594,19 +3586,16 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
       cachedStaticFilesSoFar++;
       if (cachedStaticFilesSoFar === maxCachedFilesPerSite)
       {
-        JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
+        JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${maxCachedFilesPerSite}). The rest of static files will be loaded and served upon request.`, jscLogConfig);
       }
     }
   }
 
-  console.log('------ 6');//__RP
   if (soFarSoGood)
   {
-    console.log('------ 7');//__RP
     Object.assign(fileEntry, { fileContents, fileContentType, fullPath, fileSize });
   }
 
-  console.log('------ 8');//__RP
   return { soFarSoGood, cachedStaticFilesSoFar }
 }
 
