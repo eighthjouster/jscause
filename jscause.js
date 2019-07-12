@@ -3574,9 +3574,8 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
   if (fileSize <= maxCacheableFileSizeBytes)
   {
     console.log('------ 3');//__RP
-    cachedStaticFilesSoFar++;
     console.log(cachedStaticFilesSoFar, maxCachedFilesPerSite);//__RP
-    if (cachedStaticFilesSoFar <= maxCachedFilesPerSite)
+    if (cachedStaticFilesSoFar < maxCachedFilesPerSite)
     {
       console.log('------ 4');//__RP
       try
@@ -3591,10 +3590,8 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
         JSCLogFn('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
         soFarSoGood = false;
       }
-    }
-    else
-    {
-      console.log('------ 5');//__RP
+
+      cachedStaticFilesSoFar++;
       if (cachedStaticFilesSoFar === maxCachedFilesPerSite)
       {
         JSCLogFn('warning', `Site ${getSiteNameOrNoName(siteName)}: Reached the maximum amount of cached static files (${MAX_CACHED_FILES_PER_SITE}). The rest of static files will be loaded and served upon request.`, jscLogConfig);

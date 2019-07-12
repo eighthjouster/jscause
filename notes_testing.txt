@@ -13,7 +13,10 @@ Go through the code and see what else needs to be tested that is not directly re
      +- Reach max number of cacheable files.
        - One test.  We need a couple of more.
  What about testing processStaticFile() with files non-existing files or files with insufficient read permissions?
- 
+
+Are we testing that we get to the following message?
+ - "The rest of static files will be loaded and served upon request."
+
  At this point, back up.
  
  - Test webServer.jscContext
