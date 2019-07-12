@@ -3575,15 +3575,19 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
   {
     console.log('------ 3');//__RP
     cachedStaticFilesSoFar++;
-    if (cachedStaticFilesSoFar < maxCachedFilesPerSite)
+    console.log(cachedStaticFilesSoFar, maxCachedFilesPerSite);//__RP
+    if (cachedStaticFilesSoFar <= maxCachedFilesPerSite)
     {
       console.log('------ 4');//__RP
       try
       {
+        console.log('------ 4.1');//__RP
         fileContents = fs.readFileSync(fullPath);
+        console.log('------ 4.2');//__RP
       }
       catch(e)
       {
+        console.log('------ 4.3');//__RP
         JSCLogFn('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot load ${fullPath} file.`, Object.assign({ e }, jscLogConfig));
         soFarSoGood = false;
       }
