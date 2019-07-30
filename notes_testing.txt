@@ -1,10 +1,9 @@
 List of sanity checks:
 ======================
 
-- Test webServer.jscContext
- - What else?
-   - Again, go through the code from top to bottom.  Anything that's not related to the actual operation of serving files and processing requests (uploading, json serving, etc.), do test at this point.
-     - rtContext? The non user-serving parts.
+Testing:  What's left?
+- Again, go through the code from top to bottom.  Anything that's not related to the actual operation of serving files and processing requests (uploading, json serving, etc.), do test at this point.
+   - rtContext? The non user-serving parts.
 
 Uncomment:
 // 'testBattery_001', //__RP

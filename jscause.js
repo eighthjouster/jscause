@@ -2329,24 +2329,17 @@ function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, s
   res.end(response);
 }
 
-function incomingRequestHandler(req, res)
+function incomingRequestHandler(req, res, sitesInServer)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
-  const { jscContext: { serverPort: reqPort }} = this;
   const [/* Deliberately left blank. */, reqHostName = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
   const requestMethod = (method || '').toLowerCase();
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
-  const runningServer = runningServers[reqPort];
   const serverLogging = serverConfig.logging;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
-  let identifiedSite;
-
-  if (runningServer)
-  {
-    identifiedSite = runningServer.sites[reqHostName];
-  }
+  const identifiedSite = sitesInServer[reqHostName];
 
   if (!identifiedSite || !reqMethodIsValid)
   {
@@ -2621,9 +2614,9 @@ function incomingRequestHandler(req, res)
 
 function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 {
-  const { webServer, serverName, sites } = runningServer;
+  const { webServer, serverName, sites: sitesInServer } = runningServer;
   
-  webServer.on('request', incomingRequestHandler);
+  webServer.on('request', (res, req) => { incomingRequestHandler(res, req, sitesInServer) });
 
   webServer.on('error', (e) =>
   {
@@ -2631,7 +2624,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     JSCLog('error', 'Error returned by the server follows:', jscLogConfig);
     JSCLog('error', e.message, jscLogConfig);
     JSCLog('error', `Server ${serverName} (port: ${serverPort}) not started.`, jscLogConfig);
-    Object.values(sites).forEach((site) =>
+    Object.values(sitesInServer).forEach((site) =>
     {
       JSCLog('error', `- Site ${getSiteNameOrNoName(site.siteName)} not started.`, jscLogConfig);
     });
@@ -2751,10 +2744,6 @@ function startServer(siteConfig, jscLogConfigBase, options)
     
     if (webServer)
     {
-      webServer.jscContext =
-      {
-        serverPort: sitePort
-      };
       runningServer.webServer = webServer;
       runWebServer(runningServer, sitePort, jscLogConfig, options);
       runningServers[sitePort] = runningServer;
