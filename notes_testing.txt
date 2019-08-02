@@ -1,44 +1,30 @@
 List of sanity checks:
 ======================
 
-Testing:  What's left?
-- Again, go through the code from top to bottom.  Anything that's not related to the actual operation of serving files and processing requests (uploading, json serving, etc.), do test at this point.
-   - rtContext? The non user-serving parts.
+Test:
+- rtContext.compileTimeError
+- serverConfig.sites
+- runningServer.serverName
+- runningServer.webServer
+- startServer()
+  - The non-user related parts.
+  - If there are user-related parts, put a similar entry on the user testing section.
+- runWebServer()
+  - The non-user related parts.
+  - If there are user-related parts, put a similar entry on the user testing section.
+
+Why did I write Simlink?? It should be Symlink, or even SymLink.
 
 Uncomment:
 // 'testBattery_001', //__RP
 
 At this point, _manually test_ the rest (uploads, serving error files, etc.)
+ - Maybe you can document your steps, for reference when implementing more tests in the future.
 
 At this point, back up and....
 PUBLISH AN ALPHA!
 
-Then, go through the code and start testing content-related stuff:
-  - Whether HTML stuff renders.
-  - Forms / GET / POST.
-     - Use big files just to make sure that processes don't go past the next test.
-     - May need jscCallback/jscThen/jscCatch
-  - JSON stuff.
-  - File uploads.
-    - Temporary upload files should be deleted.
-     - May need jscCallback/jscThen/jscCatch
-     - Use big files just to make sure that processes don't go past the next test.
-  - Limits exceeded.  Timeouts.
-     - May need jscCallback/jscThen/jscCatch
-  - Callbacks.
-     - May need jscCallback/jscThen/jscCatch
-  - waitFor().
-     - May need jscCallback/jscThen/jscCatch
-  - rtThen() / rtCatch().
-     - May need jscCallback/jscThen/jscCatch
-  - Other rt's.
-  - File operations.
-     - May need jscCallback/jscThen/jscCatch
-  - Redirects.
-  - Cookies.
-  - Error 400 / Error 500.
-    - Static error 400, static error 500.
-    - Other errors.
+More testing:
   +- Logging.
      *- Especially the file name auto-generation.
      *- May need jscCallback/jscThen/jscCatch
@@ -72,6 +58,96 @@ TO-DO:
 ======
 
 (Order by priority)
+
+To test:
+ - Each section, see where they're being used, and test that part first.
+ - To test: (But more in the context of e2e - like, "upload file, then what happens?")
+   - startApplication()
+      - The user-related parts.
+   - createRunTime():
+     - All the methods it defines.
+   - processSourceFile().
+     - compileSource() and surroundings.
+   - analyzeFileStats()
+   - processStaticFile()
+   - incomingRequestHandler()
+   - rtContext? The user-serving parts.
+     - Practically almost all of them.  Check a base declaration with all the possible attributes in responder().
+   - assignAppHeaders
+   - finishUpHeaders, as part of the header delivery testing.
+   - sendPayLoadExceeded()
+   - sendUploadIsForbidden()
+   - makeRTPromise()
+   - And makeRTPromiseHandler(), another possibly complicated one.
+     - makeCustomRtPromiseActor()?
+   - And createWaitForCallback(), another possibly complicated one.
+   - Test cancelDefaultRTPromises() and when it should be called.
+   - Run time exceptions.
+   - makeRTOnSuccessOnErrorHandlers() - See where this is used, and test that one first.
+   - extractErrorFromRuntimeObject()?
+   - handleCustomError()
+     - And callers, and callers of those callers.
+   - serveStaticContent()
+     - responderStatic()
+   - sanitizeForHTMLOutput and surroundings (callers).
+     - symbolsToSanitize()
+   - print / print queue
+   - runAfter / nesting (if allowed? Depending on the documentation.  If not allowed, test that it is indeed being not allowed.)
+   - responder() and callers.
+   - responderStaticFileError()
+   - resEnd()
+      - Logging of requests, request results (400/500), etc.
+   - doneWith() - this will be interesting because it's used in different scenarios.
+     - doneWithPromiseCounterActor()?
+   - doDeleteFile, part of deleteUnhandledFiles, which is called after upload request completed.  So, test this when testing uploads.
+     - setTempWorkDirectory
+   - Make sure that the config files are being honored.
+     - For instance, if set httppoweredbyheader to false, will it really be hidden from the headers?
+     - If we hide the jscp extension, will retrieving a file including that extension throw a 404 error?
+   - Check that, if HTTPS is enabled, requests are served through HTTPS.
+   - Check that we can use JSCM modules no problem.
+     - Check that the app fails as soon as it's found that modules won't compile (if we don't do this already.)
+   - Check that we can't access files configured for another website, even if we use the same port (if this is possible at all.)
+   - Check that we cannot break away from the site directory (no accessing the rest of the file system via a request.)
+   - Check that we cannot browser directories.
+   - Check that we can't access files that start with '.' (hidden files.)
+     - Or directories.
+   - Check that if a site fails being set up, it's really not-accessible from the internet.  We wouldn't want to give access to a site with undefined state.
+   - Did we really test actual file log compression? Like, verifying that a file is compressed correctly...
+
+More testing, go through the code and start testing content-related stuff.  Check what we haven't tested yet:
+  - Whether HTML stuff renders.
+  - Forms / GET / POST.
+     - Use big files just to make sure that processes don't go past the next test.
+     - May need jscCallback/jscThen/jscCatch
+  - JSON stuff.
+  - File uploads.
+    - Temporary upload files should be deleted.
+     - May need jscCallback/jscThen/jscCatch
+     - Use big files just to make sure that processes don't go past the next test.
+  - Limits exceeded.  Timeouts.
+     - May need jscCallback/jscThen/jscCatch
+  - Callbacks.
+     - May need jscCallback/jscThen/jscCatch
+  - waitFor().
+     - May need jscCallback/jscThen/jscCatch
+  - rtThen() / rtCatch().
+     - May need jscCallback/jscThen/jscCatch
+  - Other rt's.
+  - File operations.
+     - May need jscCallback/jscThen/jscCatch
+  - Redirects.
+  - Cookies.
+  - Error 400 / Error 500.
+    - Static error 400, static error 500.
+    - Other errors.
+ - Test loadVendorModules()
+ - exitApplication()
+    - waitForLogFileCompressionBeforeTerminate?
+    - Is closeLogFile() being called at the very end?
+    - In what circumstances is it called?
+       - Are the objects it refers to cleaned up like it says in there?
+       Example: delete allOpenLogFiles[filePath];
 
 Test that users get the following message when the log queue is, for some reason, full:
  - "WARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health."
