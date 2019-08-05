@@ -303,9 +303,6 @@ const test_012_010_getCurrentLogFileName_existingGzFileLogFile_noSizeThreshold =
       getCurrentLogFileName(this.getTestFilePath(['logs']))
         .then((fileName) =>
         {
-          console.log(existingFileName1);//__RP
-          console.log(existingFileName2);//__RP
-          console.log(fileName);//__RP
           this.testPassed = (fileName === `jsc_${fileNameDateComponent}--1.log`);
           this.continueTesting();
         })

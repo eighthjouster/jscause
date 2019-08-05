@@ -244,9 +244,7 @@ const test_018_005_processStaticFile_maxCachedFilesPerSite_noThresholdPassed_pt2
           if ((type === 'warning') && (message === `Site (no name): Reached the maximum amount of cached static files (${maxCachedFilesPerSite}). The rest of static files will be loaded and served upon request.`))
           {
             gotThresholdWarning = true;
-
           }
-          console.log('lol', type, message);//__RP
         };
         const { soFarSoGood, cachedStaticFilesSoFar } = processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPath, jscLogConfig, unitTestingContext) || {};
         this.testPassed = soFarSoGood && gotThresholdWarning && !!fileEntry.fileContents && (cachedStaticFilesSoFar === targetCachedStaticFilesSoFar);

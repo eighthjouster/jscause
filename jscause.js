@@ -43,6 +43,7 @@ const MAX_CACHEABLE_FILE_SIZE_BYTES = 1024 * 512;
 const MAX_COMPRESSION_JOBS_PER_SITE = 4;
 const MAX_FILELOG_QUEUE_ENTRIES = 10 * 1024 * 1000000; // 10MiB queue.  Arbitrary number.
 const LOGQUEUEFULL_WARNING_INTERVAL = 5 * 1000; // How often should the system warn about a full log queue.  In milliseconds.
+const DEFAULT_LOGFILENAME_MAX_SUFFIX = 10;
 
 const JSCLOG_DATA =
 {
@@ -225,12 +226,7 @@ function dateToYYYMMDD_HH0000({ date, suffix = 0 } = {})
   const day = (d.getDate()).toString().padStart(2, '0');
   const year = d.getFullYear();
   const hours = d.getHours().toString().padStart(2, '0');
-
-  const secondsRound30 = Math.ceil(d.getSeconds() / 30) * 30;//__RP
-
-  //__RP return `${year}-${month}-${day}_${hours}-00-00${determineLogFileSuffix(suffix)}`;
-  //__RP WHEN YOU UNCOMMENT THE ABOVE, YOU WILL NEED TO UPDATE THE TESTS (jsctest/testBattery_011.js)
-  return `${year}-${month}-${day}_${hours}-00-00-${secondsRound30/* __RP for now */}${determineLogFileSuffix(suffix)}`; //__RP check the comment inside this line.
+  return `${year}-${month}-${day}_${hours}-00-00${determineLogFileSuffix(suffix)}`;
 }
 
 function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject, suffix = 0, maxSuffix, postExtension = '')
@@ -296,7 +292,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   }
 }
 
-function getCurrentLogFileName(logDir, fileSizeThreshold, maxSuffix = 10) //__RP maxSuffix optional value is arbitrary here.
+function getCurrentLogFileName(logDir, fileSizeThreshold, maxSuffix = DEFAULT_LOGFILENAME_MAX_SUFFIX)
 {
   return new Promise((resolve, reject) =>
   {
@@ -672,7 +668,6 @@ function JSCLogQueueNext()
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
     jscTestGlobal.checkIfExpectedLogMessagesPass(type, message);
-    console.log('....................'.substr(0, Math.floor(Math.random() * 20 + 1)));
   }
   //__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
   {
@@ -690,7 +685,7 @@ function JSCLogQueueNext()
       }
       else
       {
-        console.log('WEIRD! NO CONSOLE FUNCTION! THIS SHOULD NEVER HAPPEN.');//__RP
+        console.warn(`\nWARNING!  No console output function for type: ${type}`);
       }
     }
 
@@ -776,9 +771,8 @@ function waitForLogFileCompressionBeforeTerminate(options)
           }))
           .catch(jscCatch((e) =>
           {
-            console.log('ERROR ON SERVER LISTENING TERMINATION? SHOULD WE EVER GET HERE?');//__RP
-            console.log(e);//__RP
-
+            console.error('ERROR:  Error on server listening termination:');
+            console.error(e);
           }));
       }
       else
@@ -804,14 +798,12 @@ function JSCLogTerminate(options)
   }
   applicationIsTerminating = true;
 
-  console.log('TERMINATING?!?!?!');//__RP
   Object.keys(allOpenLogFiles).forEach((key) =>
   {
     const fileObj = allOpenLogFiles[key];
-    console.log('CLOSING LOG FILE');//__RP
-    //__RP do we need try/catch here?
+
+    // TO-DO: We need try/catch here. If error, include ${key} on the reporting.
     fs.closeSync(fileObj.fd);
-    // If error.... make reference to ${key} //__RP
   });
   setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }), 0);
 }
@@ -3493,9 +3485,9 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
     {
       if (linkStats.isDirectory())
       {
-        const simlinkSourceDirElements = [...currentDirectoryElements, fileName];
-        const dirElements = (linkIsFullPath) ? [linkedPath] : simlinkSourceDirElements;
-        directoriesToProcess.push({ simlinkSourceDirElements, dirElements });
+        const symlinkSourceDirElements = [...currentDirectoryElements, fileName];
+        const dirElements = (linkIsFullPath) ? [linkedPath] : symlinkSourceDirElements;
+        directoriesToProcess.push({ symlinkSourceDirElements, dirElements });
       }
       else if (linkStats.isSymbolicLink())
       {
@@ -3518,7 +3510,7 @@ function analyzeSymbolicLinkStats(state, siteConfig, fileName, currentDirectoryP
       {
         if (pushedFiles < maxFilesOrDirInDirectory)
         {
-          allFiles.push({ fileName, simlinkTarget: linkedPath });
+          allFiles.push({ fileName, symlinkTarget: linkedPath });
           if (!linkedPath) // No need to count them here because they will be counted elsewhere.
           {
             pushedFiles++;
@@ -3591,16 +3583,16 @@ function processStaticFile(state, siteConfig, fileEntry, fileName, stats, fullPa
   return { soFarSoGood, cachedStaticFilesSoFar }
 }
 
-function prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements)
+function prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSymlinkSourceDirectoryElements)
 {
   fileEntry.filePath = [...currentDirectoryElements, fileName];
-  if (currentSimlinkSourceDirectoryElements)
+  if (currentSymlinkSourceDirectoryElements)
   {
-    fileEntry.simlinkSourceFilePath = [...currentSimlinkSourceDirectoryElements, fileName];
+    fileEntry.symlinkSourceFilePath = [...currentSymlinkSourceDirectoryElements, fileName];
   }
 }
 
-function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig)
+function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSymlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogConfig)
 {
   const { siteName } = siteConfig;
   let
@@ -3641,7 +3633,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     if (pushedFiles < maxFilesOrDirInDirectory)
     {
       let fileEntry = {};
-      prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
+      prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSymlinkSourceDirectoryElements);
       jscmFilesList.push(fileEntry);
       pushedFiles++;
     }
@@ -3671,7 +3663,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     {
       if (pushedFiles < maxFilesOrDirInDirectory)
       {
-        prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSimlinkSourceDirectoryElements);
+        prepareStatFileEntry(fileEntry, fileName, currentDirectoryElements, currentSymlinkSourceDirectoryElements);
         filePathsList.push(fileEntry);
         pushedFiles++;
       }
@@ -4546,7 +4538,7 @@ function startApplication(options = { rootDir: undefined })
             do
             {
               let currentDirectoryPath;
-              const { simlinkSourceDirElements: currentSimlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = state.directoriesToProcess.shift();
+              const { symlinkSourceDirElements: currentSymlinkSourceDirectoryElements, dirElements: currentDirectoryElements } = state.directoriesToProcess.shift();
               const directoryPath = fsPath.join(...currentDirectoryElements);
               if (fsPath.isAbsolute(directoryPath)) // It can happen if more directories were inserted during this iteration.
               {
@@ -4594,7 +4586,7 @@ function startApplication(options = { rootDir: undefined })
                 let fullPath;
                 while (allFiles.length)
                 {
-                  const { fileName, simlinkTarget } = allFiles.shift();
+                  const { fileName, symlinkTarget } = allFiles.shift();
                   if (fileName.substr(0, 1) === '.')
                   {
                     // Assumed hidden file.  Skip it.
@@ -4609,9 +4601,9 @@ function startApplication(options = { rootDir: undefined })
                     JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: ${fileName} detected in ${currentDirectoryPath} subdirectory. Only error files in the root directory will be used to display custom errors.`, jscLogBaseWithSite);
                   }
             
-                  if (simlinkTarget)
+                  if (symlinkTarget)
                   {
-                    fullPath = simlinkTarget;
+                    fullPath = symlinkTarget;
                   }
                   else
                   {
@@ -4630,7 +4622,7 @@ function startApplication(options = { rootDir: undefined })
 
                   if (state.soFarSoGood)
                   {
-                    Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSimlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogBaseWithSite));
+                    Object.assign(state, analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, allFiles, fullPath, stats, filePathsList, jscmFilesList, currentDirectoryElements, currentSymlinkSourceDirectoryElements, maxFilesOrDirInDirectory, jscLogBaseWithSite));
                   }
                   else
                   {
@@ -4661,9 +4653,9 @@ function startApplication(options = { rootDir: undefined })
             {
               filePathsList.every((fileEntry) =>
               {
-                const { filePath, simlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
+                const { filePath, symlinkSourceFilePath, fileType, fileContentType, fileContents, fullPath, fileSize } = fileEntry;
     
-                const webPath = encodeURI((simlinkSourceFilePath || filePath).join('/').normalize('NFD'));
+                const webPath = encodeURI((symlinkSourceFilePath || filePath).join('/').normalize('NFD'));
                 if (fileType === 'jscp')
                 {
                   const processedSourceFile = processSourceFile(filePath, siteJSONFilePath, jscLogBaseWithSite);

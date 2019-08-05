@@ -285,6 +285,21 @@ In regards of 'this':
  - If you use setInterval(), you will see that the 'this' can be modified and its modified content will be available next time the callback is ran.  This is normal behavior.  That setInterval() is occurring inside the execution environment of the request that started it.
  - When a function is defined inside a script (or imported with rt.module()), the 'this' inside it will be the system's.  This behavior could change in a future version; perhaps not completely, but there might be some optional configuration directive to make it an empty object.
  
+Testing related:
+================
+
+If you use methods that require waiting to complete via a callback, use this.waitForDoneSignal() as the callback.  If you want to provide a custom callback, pass it as a parameter of waitForDoneSignal().  For example:
+      testServer.close(this.waitForDoneSignal(() =>
+      {
+        console.log('This is called when close() completes.');
+      }));
+Now, for promises set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.
+
+waitForDoneSignal() can only be used once in a single phase function.  Trying to call it more than once will throw a critical error and abort testing.
+ - A workaround would be using it at last nested callback, or put all the callbacks inside a Promise.all(), or similar approach.
+
+Some on() calls could be called more than once if more than one server is started during the test.  Using onServerStartedOrError() and this.numberOfServersInvokedSofar to keep track of server invocations can help handle scenarios, well, post-server invocations.
+
 Known issues:
 =============
 

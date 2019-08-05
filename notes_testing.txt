@@ -1,28 +1,12 @@
-List of sanity checks:
-======================
-
-Test:
-- rtContext.compileTimeError
-- serverConfig.sites
-- runningServer.serverName
-- runningServer.webServer
-- startServer()
-  - The non-user related parts.
-  - If there are user-related parts, put a similar entry on the user testing section.
-- runWebServer()
-  - The non-user related parts.
-  - If there are user-related parts, put a similar entry on the user testing section.
-
-Why did I write Simlink?? It should be Symlink, or even SymLink.
+Pending:
+========
 
 Uncomment:
-// 'testBattery_001', //__RP
-
-At this point, _manually test_ the rest (uploads, serving error files, etc.)
- - Maybe you can document your steps, for reference when implementing more tests in the future.
-
-At this point, back up and....
-PUBLISH AN ALPHA!
+//__RP else // Comment this line out to allow actual JSCLog() output when debugging  tests.
+  - It will stall.  Do two things:
+    - One, perfect time to implement a timeout failsafe.
+    - Two, this is because file writing is not happening, and JSCLogQueueNext() is not  being called, or JSCLogMessageQueue.length is not being checked.
+  - Once fixed, re-comment "else" line.
 
 More testing:
   +- Logging.
@@ -39,13 +23,32 @@ More testing:
         - Do this just with the server logging part.
           - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
 
-  - At this point, resume engine development.
+- Logging (if too much, move to the future):
+  - What happens if opening the log file fails?
+    - Or if the writing fails?
+    - In essence, test: openAndWriteToLogFile() and writeLogToFile()
+
+- Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
+
+Test that users get the following message when the log queue is, for some reason, full:
+ - "WARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health."
+   - This can be a unit test.
+
+Uncomment:
+//__RP else // Comment this line out to allow actual JSCLog() output when debugging  tests.
+  - Check that tests run okay (no stalling.)
+
+At this point, _manually test_ the rest (uploads, serving error files, etc.)
+ - Maybe you can document your steps, for reference when implementing more tests in the future.
+   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
+
+At this point, back up and....
+PUBLISH AN ALPHA!
+
+- At this point, resume engine development.
   - Publish another alpha.
 
-Check all the output when running all the tests, in case there are inconsistencies (e.g., test says no console output, but console output ocurred.  Things like that.)
-
 In the end, jscause_backup.conf can be either restored or deleted.
-
 
 Do we ever use doRemoveDirectoryFromPathList()?
  - If not, consider removing it.  Or document its existence somehow.  I dunno...
@@ -64,10 +67,16 @@ To test:
  - To test: (But more in the context of e2e - like, "upload file, then what happens?")
    - startApplication()
       - The user-related parts.
+   - startServer()
+      - If there are user-related parts.
+   - runWebServer()
+      - If there are user-related parts.
    - createRunTime():
      - All the methods it defines.
    - processSourceFile().
      - compileSource() and surroundings.
+     - What happens when there's a compile-time error?
+       - How does the server respond to a request involving a file with a compile-time error?
    - analyzeFileStats()
    - processStaticFile()
    - incomingRequestHandler()
@@ -149,18 +158,7 @@ More testing, go through the code and start testing content-related stuff.  Chec
        - Are the objects it refers to cleaned up like it says in there?
        Example: delete allOpenLogFiles[filePath];
 
-Test that users get the following message when the log queue is, for some reason, full:
- - "WARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health."
-   - This can be a unit test.
-
 Test that html 4xx/5xx error files prevail over jscp 4xx/5xx error files.
-
-- Logging:
-  - What happens if opening the log file fails?
-    - Or if the writing fails?
-    - In essence, test: openAndWriteToLogFile() and writeLogToFile()
-
-- Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
 
 - Implementing (and checking) callTestPhaseIfAvailable() on the rest of the phase functions:
   - These implementations cannot be modeled after the ones that are already implemented (i.e., onTestBeforeStart, onBeforeTestEnd, onTestEnd, onUnitTestStarted).  Read on.
@@ -169,19 +167,3 @@ Test that html 4xx/5xx error files prevail over jscp 4xx/5xx error files.
   - onServerError - same deal as with onExpectedLogMessagesPass?
 
  - Security-related testing:  poke for vulnerabilities; test that the app is secure.
-
-Documentation:
-==============
-
-If you use methods that require waiting to complete via a callback, use this.waitForDoneSignal() as the callback.  If you want to provide a custom callback, pass it as a parameter of waitForDoneSignal().  For example:
-      testServer.close(this.waitForDoneSignal(() =>
-      {
-        console.log('This is called when close() completes.');
-      }));
-Now, for promises set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.
-
-waitForDoneSignal() can only be used once in a single phase function.  Trying to call it more than once will throw a critical error and abort testing.
- - A workaround would be using it at last nested callback, or put all the callbacks inside a Promise.all(), or similar approach.
-
-Some on() calls could be called more than once if more than one server is started during the test.  Using onServerStartedOrError() and this.numberOfServersInvokedSofar to keep track of server invocations can help handle scenarios, well, post-server invocations.
-

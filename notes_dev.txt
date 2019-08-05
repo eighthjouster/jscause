@@ -25,12 +25,6 @@ In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.
   - Does this still count?  Check the testing.
 
-Once you're done debugging writing tests, uncomment:
-//__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
-  - It may stall.  So, if it happens, do two things:
-    - One, perfect time to implement a timeout failsafe.
-    - Two, this is because file writing is not happening, and JSCLogQueueNext() is not being called, or JSCLogMessageQueue.length is not being checked.
-
 Did you know that site names can be anything? Like "{}" will be converted to "[Object object]".
  - If we decide to leave this, document.
    - If we decide to correct it, update the tests to check that this behavior doesn't happen.
@@ -77,9 +71,6 @@ In the docs so far:
     - That check about whether we're on the right file to log? Do it _before_ debouncing.
       - Same with archiving checks.
     - Document this behavior.
-
-Address the arbitrary value here:
-function getCurrentLogFileName(logDir, fileSizeThreshold, maxSuffix = 10) //__RP maxSuffix optional value is arbitrary here.
 
 Do we need this?
 else if (process.argv[2] === 'testmode')
@@ -246,6 +237,9 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+Address:
+// TO-DO: We need try/catch here. If error, include ${key} on the reporting.
 
 You should make sure that error4XX and 5XX files are cached (if they're within the threshold).  That is, they should be considered first.
  - And test for this.
