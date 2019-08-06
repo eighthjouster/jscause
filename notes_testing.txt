@@ -1,13 +1,6 @@
 Pending:
 ========
 
-Uncomment:
-//__RP else // Comment this line out to allow actual JSCLog() output when debugging  tests.
-  - It will stall.  Do two things:
-    - One, perfect time to implement a timeout failsafe.
-    - Two, this is because file writing is not happening, and JSCLogQueueNext() is not  being called, or JSCLogMessageQueue.length is not being checked.
-  - Once fixed, re-comment "else" line.
-
 More testing:
   +- Logging.
      *- Especially the file name auto-generation.

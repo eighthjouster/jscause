@@ -664,52 +664,54 @@ function JSCLogQueueNext()
   const { type, message, logOptions } = JSCLogMessageQueue.shift();
 
   let outputToFile = false;
+  let consoleOutputDuringTest = true;
   if (isTestMode)
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
     jscTestGlobal.checkIfExpectedLogMessagesPass(type, message);
+    consoleOutputDuringTest = false;
   }
-  //__RP else // Comment this line out to allow actual JSCLog() output when debugging tests.
-  {
-    const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
-    const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
-    if (toConsole)
-    {
-      if (outputToConsole)
-      {
-        outputToConsole(formatLogMessage(consolePrefix, message));
-        if (e)
-        {
-          outputToConsole(e);
-        }
-      }
-      else
-      {
-        console.warn(`\nWARNING!  No console output function for type: ${type}`);
-      }
-    }
 
-    if (toServerDir || toSiteDir)
+  const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
+  const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
+
+  // consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output when to the console debugging tests.
+  if (toConsole && consoleOutputDuringTest)
+  {
+    if (outputToConsole)
     {
-      const formattedMessage = formatLogMessage(messagePrefix, message);
-      if (toServerDir)
+      outputToConsole(formatLogMessage(consolePrefix, message));
+      if (e)
       {
-        outputLogToDir(toServerDir, fileSizeThreshold, formattedMessage, toConsole);
-        if (e)
-        {
-          outputLogToDir(toServerDir, fileSizeThreshold, e, toConsole);
-        }
+        outputToConsole(e);
       }
-      if (toSiteDir)
-      {
-        outputLogToDir(toSiteDir, fileSizeThreshold, formattedMessage, toConsole);
-        if (e)
-        {
-          outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
-        }
-      }
-      outputToFile = true;
     }
+    else
+    {
+      console.warn(`\nWARNING!  No console output function for type: ${type}`);
+    }
+  }
+
+  if (toServerDir || toSiteDir)
+  {
+    const formattedMessage = formatLogMessage(messagePrefix, message);
+    if (toServerDir)
+    {
+      outputLogToDir(toServerDir, fileSizeThreshold, formattedMessage, toConsole);
+      if (e)
+      {
+        outputLogToDir(toServerDir, fileSizeThreshold, e, toConsole);
+      }
+    }
+    if (toSiteDir)
+    {
+      outputLogToDir(toSiteDir, fileSizeThreshold, formattedMessage, toConsole);
+      if (e)
+      {
+        outputLogToDir(toSiteDir, fileSizeThreshold, e, toConsole);
+      }
+    }
+    outputToFile = true;
   }
 
   if (outputToFile)
