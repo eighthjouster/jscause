@@ -1,35 +1,29 @@
 Pending:
 ========
 
-More testing:
-  +- Logging.
-     *- Especially the file name auto-generation.
-     *- May need jscCallback/jscThen/jscCatch
-      +- Delete the log file and attempt to file log.  It should issue a warning.
-        - Do this just with the server logging part.
-        - Hasn't this been implemented already?
-        - Do this by putting a website with a setTimeout that logs before and after the timeout.
-          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+Manual testing of user-related files:
+ - I'm documenting so we can one day automate it:
+   *1. One single site, one single, empty index.jscp file.
+     Expected: Output: Blank page.  0 bytes.
+   *2. index.jscp just with one line:
+     console.log(1);
+     Expected: Server console prints 1 with each request.
+   *3. index.jscp with just one line:
+     rt.print(1);
+     Expected: Page showing '1'.
+   *4. index.jscp with just one line:
+     p
+     Expected: Error 500.
 
-      - Lock the log file (444 or whatever) and attempt to file log.  It should issue a warning.
-        - Hasn't this been implemented already?
-        - Do this just with the server logging part.
-          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+Pending manual testing:
+ - Uploads:
+  - Two sites, two separate temp upload directories, right?
+ - POST requests.
+ - Handling PUT/DELETE requests (which I think aren't supported.)
+ - Stalling the page with a setTimeout.
+ - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
 
-- Logging (if too much, move to the future):
-  - What happens if opening the log file fails?
-    - Or if the writing fails?
-    - In essence, test: openAndWriteToLogFile() and writeLogToFile()
 
-- Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
-
-Test that users get the following message when the log queue is, for some reason, full:
- - "WARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health."
-   - This can be a unit test.
-
-Uncomment:
-//__RP else // Comment this line out to allow actual JSCLog() output when debugging  tests.
-  - Check that tests run okay (no stalling.)
 
 At this point, _manually test_ the rest (uploads, serving error files, etc.)
  - Maybe you can document your steps, for reference when implementing more tests in the future.
@@ -158,5 +152,29 @@ Test that html 4xx/5xx error files prevail over jscp 4xx/5xx error files.
   - onExpectedLogMessagesPass - This one is very tricky.  It can happen while another function phase is waiting, messing up the current phase state after completing.
   - onServerStarted - same deal as with onExpectedLogMessagesPass?
   - onServerError - same deal as with onExpectedLogMessagesPass?
+
+More testing:
+  +- Logging.
+      +- Delete the log file and attempt to file log.  It should issue a warning.
+        - Do this just with the server logging part.
+        - Hasn't this been implemented already?
+        - Do this by putting a website with a setTimeout that logs before and after the timeout.
+          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+
+      - Lock the log file (444 or whatever) and attempt to file log.  It should issue a warning.
+        - Hasn't this been implemented already?
+        - Do this just with the server logging part.
+          - The first log is fine, the second log should happen when the file has been deleted (maybe half way through the timeout wait.)
+
+- Logging (if too much, move to the future):
+  - What happens if opening the log file fails?
+    - Or if the writing fails?
+    - In essence, test: openAndWriteToLogFile() and writeLogToFile()
+
+- Test the log queue failsafe code.  What happens when MAX_FILELOG_QUEUE_ENTRIES is reached?  Is it being handled as expected?
+
+Test that users get the following message when the log queue is, for some reason, full:
+ - "WARNING! Log message queue full.  No entries are being logged to file.  Check permissions, storage space and/or filesystem health."
+   - This can be a unit test.
 
  - Security-related testing:  poke for vulnerabilities; test that the app is secure.

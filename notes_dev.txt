@@ -2,6 +2,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Can POST/PUT/DELETE requests refer to error4xx and error5xx files? What to do in these cases?
+  - Allow it?!?!
+
 Sample site:
  - Ok, backtracking:
    - And no nginx, no apache (but how to use Vesta, then?)

@@ -2003,19 +2003,21 @@ function extractErrorFromRuntimeObject(e)
 
 function responder(serverConfig, identifiedSite, baseResContext, { formContext, postContext } = {})
 {
-  const {
-    formFiles,
-    formData,
-    maxSizeExceeded: formMaxSizeExceeded = false,
-    forbiddenUploadAttempted: formForbiddenUploadAttempted = false
-  } = formContext || {};
+  const
+    {
+      formFiles,
+      formData,
+      maxSizeExceeded: formMaxSizeExceeded = false,
+      forbiddenUploadAttempted: formForbiddenUploadAttempted = false
+    } = formContext || {};
   
-  const {
-    requestBody,
-    statusCode,
-    maxSizeExceeded = formMaxSizeExceeded,
-    forbiddenUploadAttempted = formForbiddenUploadAttempted
-  } = postContext || {};
+  const
+    {
+      requestBody,
+      statusCode,
+      maxSizeExceeded = formMaxSizeExceeded,
+      forbiddenUploadAttempted = formForbiddenUploadAttempted
+    } = postContext || {};
 
   let postParams;
   let uploadedFiles = {};
@@ -2247,7 +2249,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
     runFileName = compiledFileName;
 
-    if (compiledFiles && typeof(compiledFiles[runFileName] !== 'undefined'))
+    if (compiledFiles && (typeof(compiledFiles[runFileName]) !== 'undefined'))
     {
       const resContext =
       {
