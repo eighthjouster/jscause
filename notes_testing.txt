@@ -2,32 +2,11 @@ Pending:
 ========
 
 Manual testing of user-related files:
- - I'm documenting so we can one day automate it:
-   *1. One single site, one single, empty index.jscp file.
-     Expected: Output: Blank page.  0 bytes.
-   *2. index.jscp just with one line:
-     console.log(1);
-     Expected: Server console prints 1 with each request.
-   *3. index.jscp with just one line:
-     rt.print(1);
-     Expected: Page showing '1'.
-   *4. index.jscp with just one line:
-     p
-     Expected: Error 500.
-
-Pending manual testing:
- - Uploads:
-  - Two sites, two separate temp upload directories, right?
- - POST requests.
- - Handling PUT/DELETE requests (which I think aren't supported.)
- - Stalling the page with a setTimeout.
- - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
+See notes_manual_testing.txt RIGHT NOW.
 
 
-
-At this point, _manually test_ the rest (uploads, serving error files, etc.)
- - Maybe you can document your steps, for reference when implementing more tests in the future.
-   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
+Take care of this:
+DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead
 
 At this point, back up and....
 PUBLISH AN ALPHA!
