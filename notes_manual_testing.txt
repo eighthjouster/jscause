@@ -1,6 +1,10 @@
 Pending:
 ========
 
+ - I think it's better if we start incorporating these in the testing suite.
+   - Starting with step 1 below.
+     - Ok.  Laid out a lot of ground work.  Please proceed with test building.
+
  - I'm documenting so we can one day automate it:
 *1. One single site, one single, empty index.jscp file.
   Expected: Output: Blank page.  0 bytes.
@@ -115,6 +119,18 @@ Hello
     - Console output showing:
 1
 
+
+Before continuing:
+ - Run all tests.  All good?
+ - Document onReadyForRequests().  Put it in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
+   - Used to test requests to the server.  Invoke http.request() and/or https.request() here.
+   - When this call is used, jscTest will automatically do this:
+      - this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get invoked endlessly due to req.end() triggering a bunch of jscCallback calls.
+      - this.doneRequestsTesting() will be available for invocation.  It *MUST* be invoked at some point during the phase, or else we will never advance to the next phase and the test battery will remain stuck waiting indefinitely.
+        - Recommended places: res.on('end', ...) and req.on('error', ...).
+        - Note: this.doneRequestsTesting has the result of invoking this.waitForDoneSignal().  So, it's sort of syntactic sugar.
+  - It is highly recommended that no other phases other than onTestBeforeStart() and onTestEnd() are used when onReadyForRequests() is present due to the nature of doneRequestsTesting() (see the documentation on waitForDoneSignal(), especifically the triggerDoneSignal() limitation workaround trick.)
+
 Pending manual testing:
  - GET parameters.
  - POST requests.
@@ -125,9 +141,6 @@ Pending manual testing:
  - Uploads:
   - Two sites, two separate temp upload directories, right?
  - At this point, release the alpha.
-
- - I think it's better if we start incorporating these in the testing suite.
-   - Starting with step 1 above.
 
  - Handling PUT/DELETE requests (which I think aren't supported.)
  - Stalling the page with a setTimeout.

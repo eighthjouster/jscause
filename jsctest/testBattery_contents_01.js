@@ -61,10 +61,9 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
       
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '<html />p');
     },
-    onBeforeTestEnd()
+    onReadyForRequests()
     {
-      console.log('started!');
-      this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
+      console.log('started!');//__RP
       const req = http.request(
         {
           hostname: 'jscausesite1',
@@ -74,17 +73,17 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
         },
         (res) =>
         {
-          console.log('AHA');
+          console.log('AHA');//__RP
           res.on('data', (data) =>
           {
-            console.log('data?');
-            console.log(data.toString());
+            console.log('data?');//__RP
+            console.log(data.toString());//__RP
           });
 
           res.on('end', () =>
           {
-            console.log('end?');
-            this.continueTesting();
+            console.log('end?');//__RP
+            this.doneRequestsTesting();
           });
 
         }
@@ -92,13 +91,12 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
 
       req.on('error', (error) =>
       {
-        console.log('error?');
-        console.log(error);
+        console.log('error?');//__RP
+        console.log(error);//__RP should be console.error, maybe.
+        this.doneRequestsTesting();
       });
       req.end();
-      //setTimeout(this.waitForDoneSignal(), 3000);
       
-      this.waitForContinueTestingCall = true;
 
 //      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     },

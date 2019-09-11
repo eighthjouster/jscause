@@ -2629,7 +2629,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 
     if (isTestMode)
     {
-      // Because there is a jsCallBack() in webServer.listen() below.
+      // Because there is a jscCallBack() in webServer.listen() below.
       jscTestGlobal.callbackCalled();
     }
   });

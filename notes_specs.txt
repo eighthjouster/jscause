@@ -297,6 +297,11 @@ Now, for promises set this.waitForContinueTestingCall to true in the promise dec
 
 waitForDoneSignal() can only be used once in a single phase function.  Trying to call it more than once will throw a critical error and abort testing.
  - A workaround would be using it at last nested callback, or put all the callbacks inside a Promise.all(), or similar approach.
+ - You could also do something like:
+   const triggerDoneSignal = this.waitForDoneSignal();
+   then call triggerDoneSignal() anywhere you want.
+     - This will immediately move on to the next test, though (no waiting for pending callbacks).  So be judicious.  For example:  if the test battery is at a later phase, and an old triggerDoneSignal() from a previous phase is triggered, well, it will be as if it was invoked in the current test and the battery will unexpectedly move on to the next phase.
+     That's why this trick is recommended to be used on tests involving onTestBeforeStart()/onReadyForRequests()/onTestEnd() only.
 
 Some on() calls could be called more than once if more than one server is started during the test.  Using onServerStartedOrError() and this.numberOfServersInvokedSofar to keep track of server invocations can help handle scenarios, well, post-server invocations.
 

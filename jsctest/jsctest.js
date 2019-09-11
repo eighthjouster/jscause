@@ -2,24 +2,25 @@
 
 const allTests =
 [
-  'testBattery_001',
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
-  'testBattery_014',
-  'testBattery_015',
-  'testBattery_016',
-  'testBattery_017',
-  'testBattery_018'
+  // 'testBattery_001',
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
+  // 'testBattery_014',
+  // 'testBattery_015',
+  // 'testBattery_016',
+  // 'testBattery_017',
+  // 'testBattery_018',
+  'testBattery_contents_01'
 ];
 
 const fs = require('fs');
@@ -138,6 +139,17 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
 
   if (testPhaseCallback)
   {
+    jscTestContext.doneRequestsTesting = undefined;
+
+    if (testPhaseCallbackName === 'onReadyForRequests')
+    {
+      jscTestContext.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered endlessly while testing requests.
+      jscTestContext.doneRequestsTesting = jscTestContext.waitForDoneSignal( // An alias can only be used within onReadyForRequests().
+        () => {
+          console.info('onReadyForRequests: this.doneRequestsTesting() invoked!  Moving on.');
+        });
+      console.info('onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...');
+    }
     jscTestContext.testNextAvailableStepCall = nextStepCall;
     jscTestContext.currentTestPhaseName = testPhaseCallbackName;
     testPhaseCallback.call(jscTestContext);
@@ -371,6 +383,17 @@ function signalTestEnd(jscTestGlobal, list)
     endTest(jscTestGlobal, list);
   };
 
+  const onReadyForRequestsCall = () =>
+  {
+    callTestPhaseIfAvailable(
+      {
+        jscTestContext: jscTestGlobal,
+        testPhaseCallbackName: 'onReadyForRequests',
+        nextStepCall: onBeforeEndTestCall
+      }
+    );
+  };
+
   const onBeforeEndTestCall = () =>
   {
     callTestPhaseIfAvailable(
@@ -397,7 +420,7 @@ function signalTestEnd(jscTestGlobal, list)
   }
   else
   {
-    onBeforeEndTestCall();
+    onReadyForRequestsCall();
   }
 }
 
