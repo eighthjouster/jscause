@@ -109,6 +109,8 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+      
+      this.isRequestsTest = true;
     },
     onReadyForRequests()
     {

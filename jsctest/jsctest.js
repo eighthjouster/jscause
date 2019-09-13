@@ -5,7 +5,7 @@ const allTests =
   // 'testBattery_001',
   // 'testBattery_002',
   // 'testBattery_003',
-  // 'testBattery_004',
+  'testBattery_004',
   // 'testBattery_005',
   // 'testBattery_006',
   // 'testBattery_007',
@@ -20,7 +20,7 @@ const allTests =
   // 'testBattery_016',
   // 'testBattery_017',
   // 'testBattery_018',
-  'testBattery_contents_01'
+  // 'testBattery_contents_01'
 ];
 
 const fs = require('fs');
@@ -142,7 +142,7 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
     jscTestContext.doneRequestsTesting = undefined;
 
     jscTestContext.testNextAvailableStepCall = nextStepCall;
-    if (testPhaseCallbackName === 'onReadyForRequests')
+    if ((testPhaseCallbackName === 'onReadyForRequests') && jscTestContext.isRequestsTest)
     {
       jscTestContext.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered endlessly while testing requests.
       jscTestContext.doneRequestsTesting = jscTestContext.waitForDoneSignal( // An alias can only be used within onReadyForRequests().
@@ -176,6 +176,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.stepCallToTriggerOnDone = undefined;
     jscTestContext.currentTestPhaseName = '';
     jscTestContext.isUnitTest = false;
+    jscTestContext.isRequestsTest = false;
     jscTestContext.isRequestTest = false;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
@@ -257,6 +258,7 @@ function nextTest(jscTestGlobal, list)
     {
       console.error('CRITICAL: Test application bug found.  waitForDoneSignal() called in wrong place, or more than once in the same phase callback function.  This is not allowed.');
       console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
+      console.error('If the above phase is onReadyForRequests and there is non in the file it is in, it is possible that isRequestsTest is erroneously set to true elsewhere.');
       console.error('If the above phase has one call only, chances are the offending call is in a previous, non-allowed phase.');
       console.error('Cannot continue due to critical error found.');
       process.exit();
@@ -409,7 +411,7 @@ function signalTestEnd(jscTestGlobal, list)
 
   const onBeforeEndTestCall = () =>
   {
-    if (!jscTestGlobal.serverDidTerminate)
+    if (!jscTestGlobal.serverDidTerminate && jscTestGlobal.serverDidStart)
     {
       console.warn('WARNING: The server did not terminate by the time all testing was completed.');
     }
@@ -527,7 +529,7 @@ function checkExpectedLogMessages(type, message, jscTestContext)
   }
 }
 
-function terminateApplication({resolveMessage = '', onComplete})
+function terminateApplication({resolveMessage = '', onComplete} = {})
 {
   const jscTestGlobal = this;
   const { jscLib } = jscTestGlobal;
