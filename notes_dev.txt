@@ -396,7 +396,7 @@ Implement: GET and POST.
  - Static pages.
 Implement: Submit form data.
  - Ajax.
-Implement: Talk to a databse.
+Implement: Talk to a database.
 Implement:
  - https
  - redirections

@@ -8,6 +8,8 @@ Pending:
  - I'm documenting so we can one day automate it:
 *1. One single site, one single, empty index.jscp file.
   Expected: Output: Blank page.  0 bytes.
+  - Don't we have to shut down the server at some point?
+    - this.terminateApplication();
 
 *2. index.jscp just with one line:
 console.log(1);
@@ -119,6 +121,8 @@ Hello
     - Console output showing:
 1
 
+
+AT THIS POINT: BACK UP.
 
 Before continuing:
  - Run all tests.  All good?

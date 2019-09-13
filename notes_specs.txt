@@ -22,7 +22,7 @@ Each site contains:
     - A configuration/site.json file:  Site name, domain name, ssl, etc.
     - A website/ folder, which will contain files that can be requested directly by the browser.
       - Files with a JSCP extension (for example, index.jscp) will be executed first, with its output sent to the browser.  They can only live inside website/
-      - Module files with a JSCM extension (for example, module.jscp) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
+      - Module files with a JSCM extension (for example, module.jscm) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
       - The file name is case-sensitive (if the file system allows it).  A file will be considered JSCP only if its extension is lower case (that is, .jscp is valid, but .JSCP is not.)  Same with JSCM.
     - The configuration/ folder may have extra configuration files:
       - database.json:  Database connection info.
@@ -40,7 +40,7 @@ Or this:
 
 - Anything outside of <js /js> will be printed out as is (regular text or HTML).
 <h2><js rt.print('WHOA 4!'); /js></h2>
-- To '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
+- To output '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
 - '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
 - If there are no tags, the whole file is considered Javascript.
 - If there are no tags, but there is an <html/> tag at the top of the file, the file is considered HTML.
@@ -66,8 +66,8 @@ Or this:
     - rt.uploadedFiles['myFile'].name
     - rt.uploadedFiles['myFile'][0].name
   - If the canUpload server configuration value is set to false, any attempts to upload anything will immediately close the connection.  The application will try to send a 403 forbidden error, but this is not guaranteed.
-    - Same thing with max file size.  If this is not desired, is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)
-  - A maxPayloadSizeBytes server config value of 0 indicated unlimited upload size.  Fewer than 0 is as if canUpload is false.  Use the 0 value with caution.
+    - Same thing with max file size.  If this is not desired, it is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)
+  - A maxPayloadSizeBytes server config value of 0 indicates unlimited upload size.  Less than 0 is as if canUpload is false.  Use the 0 value with caution.
   - When POSTing, if the content-type header is set to application/json, the app will do its best to parse it.  If it fails, rt.additional.jsonParseError will be true.  If it succeeds, the json object will be available as rt.postParams.
   - If when POSTing the content-type header is set to anything other than application/json o form encoded, the payload will be available as rt.postParams.data.  If the user is sure it will be a string, they should do rt.postParams.data.toString() before processing.
   - contentType can be whatever the content-type header is set to, except for:
@@ -142,7 +142,7 @@ HTTPS:
 - Be _very_ clear that the certs provided should NOT be used in production.
   - As the matter of fact, I wonder if there is a way to detect them when the server starts and emit a warning if they are attempted to be used (by comparing them with a hash?) And only if https is attempted to be used.
   - Direct users to nodejs documentation on how to generate their own certs.
-- Disclaimer: very basic https implementation.  Something more robust/more exhaustive might be implenented in a future version.
+- Disclaimer: very basic https implementation.  Something more robust/more exhaustive might be implemented in a future version.
 - httpsCertFile and httpsKeyFile are required if enableHTTPS is true.  Otherwise, they can be omited (BUT if included, their values must be valid; e.g., not empty string).
 - If two servers share the same HTTPS port, only the httpsCertFile and httpsKeyFile of the first server listed in jscause.conf will be taken into account to configure the SSL connection.
   - FAQ: Why aren't httpsCertFile and/or httpsKeyFile reported as invalid when they are invalid?
@@ -282,7 +282,7 @@ Redirection:
 In regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.
- - If you use setInterval(), you will see that the 'this' can be modified and its modified content will be available next time the callback is ran.  This is normal behavior.  That setInterval() is occurring inside the execution environment of the request that started it.
+ - If you use setInterval(), you will see that the 'this' can be modified and its modified content will be available next time the callback is run.  This is normal behavior.  That setInterval() is occurring inside the execution environment of the request that started it.
  - When a function is defined inside a script (or imported with rt.module()), the 'this' inside it will be the system's.  This behavior could change in a future version; perhaps not completely, but there might be some optional configuration directive to make it an empty object.
  
 Testing related:
