@@ -11,8 +11,6 @@ Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
  - I'm documenting so we can one day automate it:
 *1. One single site, one single, empty index.jscp file.
   Expected: Output: Blank page.  0 bytes.
-  - Don't we have to shut down the server at some point?
-    - this.terminateApplication();
 
 *2. index.jscp just with one line:
 console.log(1);
@@ -131,7 +129,7 @@ Before continuing:
  - Run all tests.  All good?
  - Document onReadyForRequests().  Put it in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
    - Used to test requests to the server.  Invoke http.request() and/or https.request() here.
-   - You MUST call this.setupRequestTesting() inside onReadyForRequests() at the very top.
+   - You MUST set this.isRequestsTest to true inside onTestBeforeStart().
    - When this call is used, jscTest will automatically do this:
       - this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get invoked endlessly due to req.end() triggering a bunch of jscCallback calls.
       - this.doneRequestsTesting() will be available for invocation.  It *MUST* be invoked at some point during the phase, or else we will never advance to the next phase and the test battery will remain stuck waiting indefinitely.
