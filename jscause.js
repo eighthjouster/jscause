@@ -332,7 +332,11 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
         allOpenLogFiles[filePath] = { errorStatus: 'unable to write to this file', fd: null };
         if (canOutputErrorsToConsole)
         {
-          consoleWarning([`${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`]);
+          consoleWarning(
+            [
+              `${TERMINAL_WARNING_STRING}:  Unable to write to this log file: ${filePath}`,
+              `${TERMINAL_WARNING_STRING}:  The message was: ${message}`
+            ]);
         }
       }
   
@@ -675,7 +679,7 @@ function JSCLogQueueNext()
   const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
 
-  // consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output when to the console debugging tests.
+  // consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output to the console when debugging tests.
   if (toConsole && consoleOutputDuringTest)
   {
     if (outputToConsole)

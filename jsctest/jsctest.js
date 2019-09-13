@@ -141,6 +141,7 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
   {
     jscTestContext.doneRequestsTesting = undefined;
 
+    jscTestContext.testNextAvailableStepCall = nextStepCall;
     if (testPhaseCallbackName === 'onReadyForRequests')
     {
       jscTestContext.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered endlessly while testing requests.
@@ -150,7 +151,6 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
         });
       console.info('onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...');
     }
-    jscTestContext.testNextAvailableStepCall = nextStepCall;
     jscTestContext.currentTestPhaseName = testPhaseCallbackName;
     testPhaseCallback.call(jscTestContext);
     jscTestContext.testNextAvailableStepCall = undefined;
@@ -176,6 +176,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.stepCallToTriggerOnDone = undefined;
     jscTestContext.currentTestPhaseName = '';
     jscTestContext.isUnitTest = false;
+    jscTestContext.isRequestTest = false;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
     jscTestContext.gotAllExpectedLogMsgs = false;
@@ -183,6 +184,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.gotErrorMessages = false;
     jscTestContext.numberOfServersInvokedSofar = 0;
     jscTestContext.serverDidStart = false;
+    jscTestContext.serverDidTerminate = false;
     jscTestContext.logOutputToConsoleOccurred = false;
     jscTestContext.logOutputToServerDirOccurred = false;
     jscTestContext.logOutputToSiteDirOccurred = false;
@@ -383,19 +385,35 @@ function signalTestEnd(jscTestGlobal, list)
     endTest(jscTestGlobal, list);
   };
 
+  const onAllRequestsEndedCall = () =>
+  {
+    callTestPhaseIfAvailable(
+      {
+        jscTestContext: jscTestGlobal,
+        testPhaseCallbackName: 'onAllRequestsEnded',
+        nextStepCall: onBeforeEndTestCall
+      }
+    );
+  };
+
   const onReadyForRequestsCall = () =>
   {
     callTestPhaseIfAvailable(
       {
         jscTestContext: jscTestGlobal,
         testPhaseCallbackName: 'onReadyForRequests',
-        nextStepCall: onBeforeEndTestCall
+        nextStepCall: onAllRequestsEndedCall
       }
     );
   };
 
   const onBeforeEndTestCall = () =>
   {
+    if (!jscTestGlobal.serverDidTerminate)
+    {
+      console.warn('WARNING: The server did not terminate by the time all testing was completed.');
+    }
+
     callTestPhaseIfAvailable(
       {
         jscTestContext: jscTestGlobal,
@@ -417,6 +435,10 @@ function signalTestEnd(jscTestGlobal, list)
         nextStepCall: onBeforeEndTestCall
       }
     );
+  }
+  else if (jscTestGlobal.currentTestPhaseName === 'onAllRequestsEnded')
+  {
+    onBeforeEndTestCall();
   }
   else
   {
@@ -458,7 +480,8 @@ function endTest(jscTestGlobal, list)
       jscTestContext: jscTestGlobal,
       testPhaseCallbackName: 'onTestEnd',
       nextStepCall: () => { 
-        nextTest(jscTestGlobal, list); }
+        nextTest(jscTestGlobal, list);
+      }
     }
   );
 }
@@ -504,11 +527,19 @@ function checkExpectedLogMessages(type, message, jscTestContext)
   }
 }
 
-function terminateApplication(resolveMessage = '')
+function terminateApplication({resolveMessage = '', onComplete})
 {
   const jscTestGlobal = this;
   const { jscLib } = jscTestGlobal;
-  jscLib.exitApplication({ onTerminateComplete() { invokeOnCompletion(jscTestGlobal, resolveMessage); } });
+  jscLib.exitApplication(
+    {
+      onTerminateComplete()
+      {
+        invokeOnCompletion(jscTestGlobal, resolveMessage);
+        jscTestGlobal.serverDidTerminate = true;
+        onComplete && onComplete();
+      }
+    });
 }
 
 function getTestFilePath(dirPathList, callerName, { errorMessage, unrestrictedPath } = {})

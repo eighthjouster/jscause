@@ -46,6 +46,8 @@ module.exports = {
         // For example, after the server has been terminated and all messages have been logged.
         // Happens after onExpectedLogMessagesPass(), onServerStarted(), onServerError()
         // this.testPassed = true;
+        // Do not call functions here that may trigger signalTestEnd() (e.g. this.terminateApplication())
+        // Do use this.waitForDoneSignal() here.
       },
       onTestEnd()
       {

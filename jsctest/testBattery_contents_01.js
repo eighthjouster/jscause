@@ -37,6 +37,55 @@ const makeBaseSiteConfContents = (extra = {}) =>
     }, extra
   );
 
+const makeBaseRequest = (extra = {}) =>
+  Object.assign(
+    {
+      hostname: 'jscausesite1',
+      port: 3000,
+      path: '/',
+      method: 'GET'
+    }, extra
+  );
+
+function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
+{
+  const requestContext =
+  {
+    dataReceived: []
+  }
+
+  const { dataReceived } = requestContext;
+  const req = http.request(makeBaseRequest(),
+    (res) =>
+    {
+      if (res.statusCode === 200)
+      {
+        res.on('data', (data) => dataReceived.push(data));
+
+        res.on('end', () =>
+        {
+          onResponseEndCb && onResponseEndCb(requestContext);
+          this.doneRequestsTesting();
+        });
+      }
+      else
+      {
+        console.error(`The response status code is not 200 OK.  It is ${res.statusCode} instead.`);
+        this.doneRequestsTesting();
+      }
+    }
+  );
+
+  req.on('error', (error) =>
+  {
+    console.error('An error ocurred during the request.');
+    console.error(error);
+    this.doneRequestsTesting();
+  });
+
+  req.end();
+}
+
 const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; empty'),
   {
     // only: true,
@@ -59,46 +108,26 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '<html />p');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
     },
     onReadyForRequests()
     {
-      console.log('started!');//__RP
-      const req = http.request(
+      this.testPassed = false;
+      performTestRequestAndOutput.call(this,
         {
-          hostname: 'jscausesite1',
-          port: 3000,
-          path: '/',
-          method: 'GET'
-        },
-        (res) =>
-        {
-          console.log('AHA');//__RP
-          res.on('data', (data) =>
+          onResponseEnd: ({ dataReceived }) =>
           {
-            console.log('data?');//__RP
-            console.log(data.toString());//__RP
-          });
-
-          res.on('end', () =>
-          {
-            console.log('end?');//__RP
-            this.doneRequestsTesting();
-          });
-
-        }
-      );
-
-      req.on('error', (error) =>
-      {
-        console.log('error?');//__RP
-        console.log(error);//__RP should be console.error, maybe.
-        this.doneRequestsTesting();
-      });
-      req.end();
-      
-
-//      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
+            this.testPassed = !dataReceived.length;
+          }
+        });
+    },
+    onAllRequestsEnded()
+    {
+      this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.testPassed && this.serverDidTerminate;
     },
     onTestEnd()
     {

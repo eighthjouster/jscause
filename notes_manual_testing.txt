@@ -1,6 +1,13 @@
 Pending:
 ========
 
+Why are we still getting messages about being unable to write to log files?
+ - I don't think this is because of the tests, but because of the app termination code:
+   - It just ends even though there are pending logging calls.
+
+Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
+ - And the fact that terminateApplication() can have an onComplete callback.
+
  - I think it's better if we start incorporating these in the testing suite.
    - Starting with step 1 below.
      - Ok.  Laid out a lot of ground work.  Please proceed with test building.
@@ -128,6 +135,7 @@ Before continuing:
  - Run all tests.  All good?
  - Document onReadyForRequests().  Put it in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
    - Used to test requests to the server.  Invoke http.request() and/or https.request() here.
+   - You MUST call this.setupRequestTesting() inside onReadyForRequests() at the very top.
    - When this call is used, jscTest will automatically do this:
       - this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get invoked endlessly due to req.end() triggering a bunch of jscCallback calls.
       - this.doneRequestsTesting() will be available for invocation.  It *MUST* be invoked at some point during the phase, or else we will never advance to the next phase and the test battery will remain stuck waiting indefinitely.
