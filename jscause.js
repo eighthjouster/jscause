@@ -35,6 +35,8 @@ const LOGFILE_ERROR_STRING = 'ERROR';
 const LOGFILE_INFO_STRING = 'INFO';
 const LOGFILE_WARNING_STRING = 'WARNING';
 
+const MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES = 180; // Combined with the 125ms each retry wait takes, this makes a timeout of 30 seconds.
+
 const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
 const MAX_PROCESSED_DIRECTORIES_THRESHOLD = 1024;
@@ -135,6 +137,7 @@ let JSCLogMessageQueueFullWarningTime;
 let isJSCLogMessageQueueProcessing;
 let isCurrentlyLogDirCompressing;
 let applicationIsTerminating;
+let jsclogTerminateRetries;
 let processExitAttempts;
 let serverConfig;
 let runningServers;
@@ -210,6 +213,7 @@ function initializeGlobals()
   isCurrentlyLogDirCompressing = false;
   applicationIsTerminating = false;
   processExitAttempts = 0;
+  jsclogTerminateRetries = 0;
   serverConfig = {};
   runningServers = {};
 }
@@ -798,6 +802,19 @@ function waitForLogFileCompressionBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
+  if (jscTestGlobal.pendingCallbacks)
+  {
+    if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
+    {
+      jsclogTerminateRetries++;
+      setTimeout(() => { JSCLogTerminate(options) }, 125);
+      return;
+    }
+    else
+    {
+      console.warn(`\nWARNING!  Reached the amount of log termination retries due to pending callbacks (${MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES}).  Giving up.`);
+    }
+  }
   if (applicationIsTerminating)
   {
     return;
@@ -810,6 +827,7 @@ function JSCLogTerminate(options)
 
     // TO-DO: We need try/catch here. If error, include ${key} on the reporting.
     fs.closeSync(fileObj.fd);
+    allOpenLogFiles[key] = null;
   });
   setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }), 0);
 }

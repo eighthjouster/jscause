@@ -1,10 +1,6 @@
 Pending:
 ========
 
-Why are we still getting messages about being unable to write to log files?
- - I don't think this is because of the tests, but because of the app termination code:
-   - It just ends even though there are pending logging calls.
-
 Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
  - And the fact that terminateApplication() can have an onComplete callback.
 
