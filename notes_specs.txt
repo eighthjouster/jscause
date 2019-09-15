@@ -53,7 +53,7 @@ Or this:
   - rt.waitFor()'s can be nested.
   - rt.waitFor() will correctly pass down the arguments it receives to its callback parameter.
   - If a runtime exception happens while a callback is still pending, JSCause will wait until the blocking call is happening.  When it comes back, it won't execute the callback.
-- rt.queryParams is an object containing the GET query parameters.
+- rt.getParams is an object containing the GET query parameters.
 - rt.postParams is an object containing the POST form parameters.
 - rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.
   - Each object could be a file or an array of files (if the form element accepts multiple files.)

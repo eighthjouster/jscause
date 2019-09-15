@@ -2,6 +2,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Wait, why does serving "index.html" in / throw a 404 error if we go to "http://whatever.com/"?
+
+Strange that "Uploading is forbidden" is shown even with form POST methods without a file type.  Is this correct?  If it is, fine.  If it isn't, at least put in bugs list.
+
+And make sure that error 500s are logged (either to console of to file) if the corresponding logging configuration value is set.
+
 Can POST/PUT/DELETE requests refer to error4xx and error5xx files? What to do in these cases?
   - Allow it?!?!
 

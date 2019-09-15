@@ -1,6 +1,8 @@
 Pending:
 ========
 
+Continue fixing that warning on test battery 004.
+
 Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
  - And the fact that terminateApplication() can have an onComplete callback.
 

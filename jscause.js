@@ -1319,11 +1319,11 @@ function sanitizeForHTMLOutput(inputText)
 
 function setTempWorkDirectory(siteConfig, jscLogConfig)
 {
-  let  { siteName, tempWorkDirectory } = siteConfig;
+  let { canUpload, siteName, tempWorkDirectory } = siteConfig;
 
-  let setupSuccess = (!siteConfig || !siteConfig.canUpload);
+  let setupSuccess = true;
 
-  if (setupSuccess)
+  if (tempWorkDirectory && canUpload)
   {
     if (fsPath.isAbsolute(tempWorkDirectory))
     {
@@ -2996,7 +2996,7 @@ function compileSource(sourceData, jscLogConfig)
       
         if (printedStuff)
         {
-          processedDataArray.push(`rt.unsafePrint('${printedStuff}');`);
+          processedDataArray.push(`;rt.unsafePrint('${printedStuff}');`);
         }
 
         processingContext = CONTEXT_JAVASCRIPT;
