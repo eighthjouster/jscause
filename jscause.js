@@ -158,9 +158,16 @@ const jscTestGlobal = {};
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
 const jscCallback = (isTestMode) ?
-  (cb) =>
+  (cb, { triggerLogTerminationWait = false } = {}) =>
   {
-    jscTestGlobal.pendingCallbacks++;
+    if (triggerLogTerminationWait)
+    {
+      jscTestGlobal.waitingForLogTermination = true;
+    }
+    else
+    {
+      jscTestGlobal.pendingCallbacks++;
+    }
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
@@ -808,7 +815,7 @@ function JSCLogTerminate(options)
     if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
     {
       jsclogTerminateRetries++;
-      setTimeout(() => { JSCLogTerminate(options) }, 125);
+      setTimeout(jscCallback(() => { JSCLogTerminate(options) }, { triggerLogTerminationWait: true }), 125);
       return;
     }
     else
