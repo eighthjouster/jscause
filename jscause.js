@@ -158,11 +158,11 @@ const jscTestGlobal = {};
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
 const jscCallback = (isTestMode) ?
-  (cb, { triggerLogTerminationWait = false } = {}) =>
+  (cb, { isPostTerminationCallback = false } = {}) =>
   {
-    if (triggerLogTerminationWait)
+    if (isPostTerminationCallback)
     {
-      jscTestGlobal.waitingForLogTermination = true;
+      jscTestGlobal.pendingTerminationCallbacks++;
     }
     else
     {
@@ -691,7 +691,7 @@ function JSCLogQueueNext()
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
 
   //__RP
-  //consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output to the console when debugging tests.  
+  consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output to the console when debugging tests.  
   if (toConsole && consoleOutputDuringTest)
   {
     if (outputToConsole)
@@ -761,10 +761,12 @@ function JSCLog(type, message, logOptions = {})
 
 function waitForLogFileCompressionBeforeTerminate(options)
 {
+  console.log('waitForLogFileCompressionBeforeTerminate CALLED!');//__RP
   if (isCurrentlyLogDirCompressing)
   {
     console.log('Waiting for the current log file compression file to terminate...');
-    setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options); }), 5000);
+    console.log('SETTING TIME OUT FOR: waitForLogFileCompressionBeforeTerminate 22');//__RP
+    setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options); }, { isPostTerminationCallback: true }), 5000);
   }
   else
   {
@@ -780,13 +782,15 @@ function waitForLogFileCompressionBeforeTerminate(options)
         Promise.all(
           Object.values(runningServers)
             .map(
-              (thisServer) => thisServer.webServer.close(jscCallback(() => Promise.resolve()))
+              (thisServer) => {
+                thisServer.webServer.close(jscCallback(() => Promise.resolve()), { isPostTerminationCallback: true });
+              }
             )
         )
           .then(jscThen(() =>
           {
             options.onTerminateComplete();
-          }))
+          }, { isPostTerminationCallback: true }))
           .catch(jscCatch((e) =>
           {
             console.error('ERROR:  Error on server listening termination:');
@@ -810,12 +814,18 @@ function waitForLogFileCompressionBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
-  if (jscTestGlobal.pendingCallbacks)
+  console.log('JSCLogTerminate CALLED!');//__RP
+  if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
   {
     if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
     {
       jsclogTerminateRetries++;
-      setTimeout(jscCallback(() => { JSCLogTerminate(options) }, { triggerLogTerminationWait: true }), 125);
+      console.log('&&& TERMINATING');//__RP
+      console.log(jsclogTerminateRetries);//__RP
+      console.log('SETTING UP SETTIMEOUT FOR: JSCLogTerminate');//__RP
+      setTimeout(jscCallback(() => { 
+        console.log('DID I CALL YOU?! 4');//__RP
+JSCLogTerminate(options) }, { isPostTerminationCallback: true }), 3000);//__RP 10 should be 125.
       return;
     }
     else
@@ -837,7 +847,8 @@ function JSCLogTerminate(options)
     fs.closeSync(fileObj.fd);
     allOpenLogFiles[key] = null;
   });
-  setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }), 0);
+  console.log('SETTING TIME OUT FOR: waitForLogFileCompressionBeforeTerminate 11');//__RP
+  setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }, { isPostTerminationCallback: true }), 1000);//__RP 2000 should be 0.
 }
 
 function vendor_require(vendorModuleName)
@@ -2654,7 +2665,12 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     {
       JSCLog('error', `- Site ${getSiteNameOrNoName(site.siteName)} not started.`, jscLogConfig);
     });
-
+    if (typeof(options.onServerStartedOrError) === 'function')
+    {
+      console.log('SERVERSTARTEDONERROR ERROR INVOKED!');//__RP
+      options.onServerStartedOrError();
+    }
+    console.log('DID I CALL YOU?! 1');//__RP
     JSCLogTerminate({ onTerminateComplete: options.onServerError });
 
     if (isTestMode)
@@ -4798,6 +4814,7 @@ function startApplication(options = { rootDir: undefined })
   else
   {
     JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
+    console.log('DID I CALL YOU?! 2');//__RP
     JSCLogTerminate({ onTerminateComplete: options.onServerError });
   }
 
@@ -4812,6 +4829,7 @@ function startApplication(options = { rootDir: undefined })
 
 function exitApplication(options = {})
 {
+  console.log('%%% ABOUT TO EXIT APPLICATION...!');//__RP
   processExitAttempts++;
   if (processExitAttempts === 1)
   {
@@ -4819,6 +4837,7 @@ function exitApplication(options = {})
     {
       console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
     }
+    console.log('DID I CALL YOU?! 3');//__RP
     JSCLogTerminate(options);
   }
   else if (processExitAttempts === 2)

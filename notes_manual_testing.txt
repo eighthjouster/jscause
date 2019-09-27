@@ -1,7 +1,15 @@
 Pending:
 ========
 
-Continue fixing that warning on test battery 004.
+AHA: When setting up the timeout for waitForLogFileCompressionBeforeTerminate, the testing battery doesn't wait for it to complete.  Fix this.
+  - Why did the jscCallback() not work in this instance?
+
+Also, when the server errors out, jsclogterminate() is invoked.
+  - This is problematic since jsclogterminate() is invoked during testing thanks to terminateapplication(), I think.  If the waitForLogFileCompressionBeforeTerminate mitigates race conditions, you may want to put this in the future fixes section, alongside a way to reproduce, or things to look out for.
+
+If you change the 125 number, change the 125 comment (how to make it future-proof? Constant?)
+
+When tests testBattery_014 and testBattery_015 are the only ones uncommented, tests fail randomly.  What gives?
 
 Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
  - And the fact that terminateApplication() can have an onComplete callback.

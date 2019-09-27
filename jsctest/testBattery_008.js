@@ -26,7 +26,7 @@ const makeBaseSiteConfContents = (extra = {}) =>
   Object.assign(
     {
       'hostName': 'jscausesite1',
-      'canUpload': false,
+      'canUpload': true,
       'maxPayloadSizeBytes': 0,
       'jscpExtensionRequired': 'optional',
       'httpPoweredByHeader': 'include',
@@ -81,7 +81,28 @@ const test_008_001_siteConfMissingTempWorkDirectoryInFs = Object.assign(testUtil
   }
 );
 
-const test_008_002_siteConfAbsoluteTempWorkDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute temp work directory path'),
+const test_008_002_siteConfMissingTempWorkDirectoryInFs_pt2 = Object.assign(testUtils.makeFromBaseTest('Site config, missing temp work directory path in file system, pt. 2: canUpload is false'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'canUpload': false,
+          'tempWorkDirectory': './workbench_MISSING'
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+    },
+    onServerStarted()
+    {
+      this.testPassed = true;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
+const test_008_003_siteConfAbsoluteTempWorkDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute temp work directory path'),
   {
     // only: true,
     onTestBeforeStart()
@@ -107,7 +128,7 @@ const test_008_002_siteConfAbsoluteTempWorkDirectoryPath = Object.assign(testUti
   }
 );
 
-const test_008_003_siteConfTempWorkDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a file'),
+const test_008_004_siteConfTempWorkDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -134,7 +155,7 @@ const test_008_003_siteConfTempWorkDirectoryIsFile = Object.assign(testUtils.mak
   }
 );
 
-const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a directory'),
+const test_008_005_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -164,7 +185,7 @@ const test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir = Object.assign(testU
   }
 );
 
-const test_008_005_siteConfTempWorkDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a circular symlink'),
+const test_008_006_siteConfTempWorkDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a circular symlink'),
   {
     // only: true,
     onTestBeforeStart()
@@ -196,7 +217,7 @@ const test_008_005_siteConfTempWorkDirectoryIsCircularSymlink = Object.assign(te
   }
 );
 
-const test_008_006_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a file'),
+const test_008_007_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -223,7 +244,7 @@ const test_008_006_siteConfTempWorkDirectoryIsSymlinkToFile = Object.assign(test
   }
 );
 
-const test_008_007_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is non-writeable'),
+const test_008_008_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, temp work directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -250,7 +271,7 @@ const test_008_007_siteConfTempWorkDirectoryIsNonWriteable = Object.assign(testU
   }
 );
 
-const test_008_008_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute site root directory path'),
+const test_008_009_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUtils.makeFromBaseTest('Site config, absolute site root directory path'),
   {
     // only: true,
     onTestBeforeStart()
@@ -273,7 +294,7 @@ const test_008_008_siteConfAbsoluteSiteRootDirectoryPath = Object.assign(testUti
   }
 );
 
-const test_008_009_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
+const test_008_010_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -298,7 +319,7 @@ const test_008_009_siteConfSiteRootDirectoryIsFile = Object.assign(testUtils.mak
   }
 );
 
-const test_008_010_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
+const test_008_011_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -326,7 +347,7 @@ const test_008_010_siteConfSiteRootDirectoryIsSymlinkToDir = Object.assign(testU
   }
 );
 
-const test_008_011_siteConfSiteRootDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
+const test_008_012_siteConfSiteRootDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
   {
     // only: true,
     onTestBeforeStart()
@@ -355,7 +376,7 @@ const test_008_011_siteConfSiteRootDirectoryIsCircularSymlink = Object.assign(te
   }
 );
 
-const test_008_012_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
+const test_008_013_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -380,7 +401,7 @@ const test_008_012_siteConfSiteRootDirectoryIsSymlinkToFile = Object.assign(test
   }
 );
 
-const test_008_013_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
+const test_008_014_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -408,7 +429,7 @@ const test_008_013_siteConfSiteRootDirectoryIsNonWriteable = Object.assign(testU
   }
 );
 
-const test_008_014_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is file'),
+const test_008_015_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -438,7 +459,7 @@ const test_008_014_serverLogDirectoryIsFile = Object.assign(testUtils.makeFromBa
   }
 );
 
-const test_008_015_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a directory'),
+const test_008_016_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -472,7 +493,7 @@ const test_008_015_serverLogDirectoryIsSymlinkToDir = Object.assign(testUtils.ma
   }
 );
 
-const test_008_016_serverLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Server log directory is a circular symlink'),
+const test_008_017_serverLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Server log directory is a circular symlink'),
   {
     // only: true,
     onTestBeforeStart()
@@ -507,7 +528,7 @@ const test_008_016_serverLogDirectoryIsCircularSymlink = Object.assign(testUtils
   }
 );
 
-const test_008_017_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a file'),
+const test_008_018_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Server log directory is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -537,7 +558,7 @@ const test_008_017_serverLogDirectoryIsSymlinkToFile = Object.assign(testUtils.m
   }
 );
 
-const test_008_018_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Server log directory is non-writeable'),
+const test_008_019_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Server log directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -571,7 +592,7 @@ const test_008_018_serverLogDirectoryIsNonWriteable = Object.assign(testUtils.ma
   }
 );
 
-const test_008_019_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
+const test_008_020_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -604,7 +625,7 @@ const test_008_019_siteConfLogDirectoryIsFile = Object.assign(testUtils.makeFrom
   }
 );
 
-const test_008_020_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
+const test_008_021_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a directory'),
   {
     // only: true,
     onTestBeforeStart()
@@ -640,7 +661,7 @@ const test_008_020_siteConfLogDirectoryIsSymlinkToDir = Object.assign(testUtils.
   }
 );
 
-const test_008_021_siteConfLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
+const test_008_022_siteConfLogDirectoryIsCircularSymlink = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a circular symlink'),
   {
     // only: true,
     onTestBeforeStart()
@@ -678,7 +699,7 @@ const test_008_021_siteConfLogDirectoryIsCircularSymlink = Object.assign(testUti
   }
 );
 
-const test_008_022_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
+const test_008_023_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory name is a symlink to a file'),
   {
     // only: true,
     onTestBeforeStart()
@@ -711,7 +732,7 @@ const test_008_022_siteConfLogDirectoryIsSymlinkToFile = Object.assign(testUtils
   }
 );
 
-const test_008_023_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
+const test_008_024_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.makeFromBaseTest('Site config, site root directory is non-writeable'),
   {
     // only: true,
     onTestBeforeStart()
@@ -750,26 +771,27 @@ const test_008_023_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.
 
 module.exports = [
   test_008_001_siteConfMissingTempWorkDirectoryInFs,
-  test_008_002_siteConfAbsoluteTempWorkDirectoryPath,
-  test_008_003_siteConfTempWorkDirectoryIsFile,
-  test_008_004_siteConfTempWorkDirectoryIsSymlinkToDir,
-  test_008_005_siteConfTempWorkDirectoryIsCircularSymlink,
-  test_008_006_siteConfTempWorkDirectoryIsSymlinkToFile,
-  test_008_007_siteConfTempWorkDirectoryIsNonWriteable,
-  test_008_008_siteConfAbsoluteSiteRootDirectoryPath,
-  test_008_009_siteConfSiteRootDirectoryIsFile,
-  test_008_010_siteConfSiteRootDirectoryIsSymlinkToDir,
-  test_008_011_siteConfSiteRootDirectoryIsCircularSymlink,
-  test_008_012_siteConfSiteRootDirectoryIsSymlinkToFile,
-  test_008_013_siteConfSiteRootDirectoryIsNonWriteable,
-  test_008_014_serverLogDirectoryIsFile,
-  test_008_015_serverLogDirectoryIsSymlinkToDir,
-  test_008_016_serverLogDirectoryIsCircularSymlink,
-  test_008_017_serverLogDirectoryIsSymlinkToFile,
-  test_008_018_serverLogDirectoryIsNonWriteable,
-  test_008_019_siteConfLogDirectoryIsFile,
-  test_008_020_siteConfLogDirectoryIsSymlinkToDir,
-  test_008_021_siteConfLogDirectoryIsCircularSymlink,
-  test_008_022_siteConfLogDirectoryIsSymlinkToFile,
-  test_008_023_siteConfLogDirectoryIsNonWriteable
+  test_008_002_siteConfMissingTempWorkDirectoryInFs_pt2,
+  test_008_003_siteConfAbsoluteTempWorkDirectoryPath,
+  test_008_004_siteConfTempWorkDirectoryIsFile,
+  test_008_005_siteConfTempWorkDirectoryIsSymlinkToDir,
+  test_008_006_siteConfTempWorkDirectoryIsCircularSymlink,
+  test_008_007_siteConfTempWorkDirectoryIsSymlinkToFile,
+  test_008_008_siteConfTempWorkDirectoryIsNonWriteable,
+  test_008_009_siteConfAbsoluteSiteRootDirectoryPath,
+  test_008_010_siteConfSiteRootDirectoryIsFile,
+  test_008_011_siteConfSiteRootDirectoryIsSymlinkToDir,
+  test_008_012_siteConfSiteRootDirectoryIsCircularSymlink,
+  test_008_013_siteConfSiteRootDirectoryIsSymlinkToFile,
+  test_008_014_siteConfSiteRootDirectoryIsNonWriteable,
+  test_008_015_serverLogDirectoryIsFile,
+  test_008_016_serverLogDirectoryIsSymlinkToDir,
+  test_008_017_serverLogDirectoryIsCircularSymlink,
+  test_008_018_serverLogDirectoryIsSymlinkToFile,
+  test_008_019_serverLogDirectoryIsNonWriteable,
+  test_008_020_siteConfLogDirectoryIsFile,
+  test_008_021_siteConfLogDirectoryIsSymlinkToDir,
+  test_008_022_siteConfLogDirectoryIsCircularSymlink,
+  test_008_023_siteConfLogDirectoryIsSymlinkToFile,
+  test_008_024_siteConfLogDirectoryIsNonWriteable
 ];

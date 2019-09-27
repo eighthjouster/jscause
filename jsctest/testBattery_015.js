@@ -189,11 +189,22 @@ const test_015_005_UserFilesReading_MaxDirs_thresholdPassed = Object.assign(test
   }
 );
 
-const test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; no threshold passed.'),
+//__RP const test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('User files; max number of directories and files; no threshold passed.'),
+const test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.assign(testUtils.makeFromBaseTest('___UUUUUser files; max number of directories and files; no threshold passed.'),//__RP
   {
     // only: true,
     onTestBeforeStart()
     {
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
+      console.log('************ HERE WE GO');//__RP
       this.doEmptyTestDirectory(['sites', 'mysite', 'website'], { preserveDirectory: true });
 
       this.maxUserFilesOrDirs = 3;
@@ -211,6 +222,8 @@ const test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed = Object.a
     },
     onBeforeTestEnd()
     {
+      console.log(this.serverDidStart);//__RP
+      console.log(this.gotAllExpectedLogMsgs);//__RP
       this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
     }
   }
@@ -387,15 +400,15 @@ const test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.as
 
 module.exports = [
   test_015_001_UserFilesReading_MaxFiles_noThresholdPassed,
-  test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
-  test_015_003_UserFilesReading_MaxFiles_withModules_thresholdPassed,
-  test_015_004_UserFilesReading_MaxDirs_nothresholdPassed,
-  test_015_005_UserFilesReading_MaxDirs_thresholdPassed,
+  // test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
+  // test_015_003_UserFilesReading_MaxFiles_withModules_thresholdPassed,
+  // test_015_004_UserFilesReading_MaxDirs_nothresholdPassed,
+  // test_015_005_UserFilesReading_MaxDirs_thresholdPassed,
   test_015_006_UserFilesReading_MaxDirsAndFiles_nothresholdPassed,
-  test_015_007_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
-  test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
-  test_015_009_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed,
-  test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed,
-  test_015_011_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed,
-  test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks
+  // test_015_007_UserFilesReading_MaxDirsAndFiles_thresholdPassed,
+  // test_015_008_UserFilesReading_MaxDirsAndFiles_nesting_noThresholdPassed,
+  // test_015_009_UserFilesReading_MaxDirsAndFiles_nesting_thresholdPassed,
+  // test_015_010_UserFilesReading_MaxDirsAndFiles_symlinks_noThresholdPassed,
+  // test_015_011_UserFilesReading_MaxDirsAndFiles_symlinks_thresholdPassed,
+  // test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks
 ];

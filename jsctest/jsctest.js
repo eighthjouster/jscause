@@ -2,24 +2,24 @@
 
 const allTests =
 [
-  'testBattery_001',
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
+  // 'testBattery_001',
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
   'testBattery_014',
   'testBattery_015',
-  'testBattery_016',
-  'testBattery_017',
-  'testBattery_018',
+  // 'testBattery_016',
+  // 'testBattery_017',
+  // 'testBattery_018',
   // 'testBattery_contents_01'
 ];
 
@@ -191,7 +191,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.logOutputToSiteDirOccurred = false;
     jscTestContext.pendingCallbackTrackingEnabled = true;
     jscTestContext.pendingCallbacks = 0;
-    jscTestContext.waitingForLogTermination = false;
+    jscTestContext.pendingTerminationCallbacks = 0;
     jscTestContext.waitForContinueTestingCall = false;
     jscTestContext.waitForContinueTestingCallPasses = 0;
     jscTestContext.waitForContinueTestingCallMaxPasses = 60;
@@ -238,12 +238,20 @@ function nextTest(jscTestGlobal, list)
 
   jscTestGlobal.areCallbacksStillPending = () =>
   {
-    return jscTestGlobal.pendingCallbacks > ((jscTestGlobal.waitingForLogTermination) ? -1 : 0);
+    return ((jscTestGlobal.pendingCallbacks > 0) ||
+            (jscTestGlobal.pendingTerminationCallbacks > 0));
   }
 
   jscTestGlobal.callbackCalled = () =>
   {
-    jscTestGlobal.pendingCallbacks--;
+    if (jscTestGlobal.pendingTerminationCallbacks > 0)
+    {
+      jscTestGlobal.pendingTerminationCallbacks--;
+    }
+    else
+    {
+      jscTestGlobal.pendingCallbacks--;
+    }
     if (!jscTestGlobal.areCallbacksStillPending())
     {
       if (jscTestGlobal.pendingCallbackTrackingEnabled)

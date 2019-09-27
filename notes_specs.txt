@@ -60,7 +60,7 @@ Or this:
   - The filename in the client is under the .name attribute.
   - The whole path, including a temp name assigned by JSCause, is under the .path attribute.
   - The developer is responsible to do something with the file during the execution of the script.  Once the script is done (and all the waitFor() callbacks completed), the files will be deleted from their temporary location.
-    - The temporary location is specified by tempWorkDirectory.  The default is './workbench'.  A relative path must be provided, which will be relative to the site's directory.  An absolute path CANNOT be specified.
+    - The temporary location is specified by tempWorkDirectory.  The default is './workbench'.  A relative path must be provided, which will be relative to the site's directory.  An absolute path CANNOT be specified.  It must be valid if 'canUpload' is true.
     - So, copy the file somewhere else if you plan to save it.  Do it asynchronously if possible (in combination with waitFor().)
   - Examples:
     - rt.uploadedFiles['myFile'].name
@@ -293,7 +293,8 @@ If you use methods that require waiting to complete via a callback, use this.wai
       {
         console.log('This is called when close() completes.');
       }));
-Now, for promises set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.
+
+For promises that assume that the test will end when a .then() or a .catch() is invoked, set this.waitForContinueTestingCall to true in the promise declaration, and call this.continueTesting() at the very end of the then() and catch() blocks.  Remember:  This will end the current test, and move on to the next one, no waiting at all.
 
 waitForDoneSignal() can only be used once in a single phase function.  Trying to call it more than once will throw a critical error and abort testing.
  - A workaround would be using it at last nested callback, or put all the callbacks inside a Promise.all(), or similar approach.
