@@ -153,11 +153,82 @@ const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
-
+let whatever = 0;
+let whateverTally = {};
 // jscCallback, jscThen and jscCatch are needed during testing so we wait for
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
 const jscCallback = (isTestMode) ?
+  (cb, { isPostTerminationCallback = false, webserverListen = false } = {}) =>
+  {
+    if (isPostTerminationCallback)
+    {
+      jscTestGlobal.pendingTerminationCallbacks++;
+    }
+    else
+    {
+      jscTestGlobal.pendingCallbacks++;
+    }
+    console.log('ADDING CALL BACK!');//__RP
+    const iii=whatever++;//__RP
+    if (iii === 3) 
+    {
+      console.trace(iii);//__RP
+    }
+    else
+    {
+      console.log(iii);//__RP
+    }
+    whateverTally[iii] = webserverListen;//__RP
+    console.log(whateverTally);//__RP
+    // console.log(isPostTerminationCallback);//__RP
+    // console.log(jscTestGlobal.pendingCallbacks);//__RP
+    // console.trace(jscTestGlobal.pendingTerminationCallbacks);//__RP
+    return function() // It must be a function object instead of an arrow one because of the arguments object.
+    {
+      cb(...arguments);
+      //jscTestGlobal.callbackCalled();//__RP
+      jscTestGlobal.callbackCalled(undefined, iii, whateverTally);//__RP
+    };
+  } :
+  (cb) => cb;
+
+const jscThen = (isTestMode) ?
+  (cb, { isPostTerminationCallback = false, webserverListen = false } = {}) =>
+  {
+    if (isPostTerminationCallback)
+    {
+      jscTestGlobal.pendingTerminationCallbacks++;
+    }
+    else
+    {
+      jscTestGlobal.pendingCallbacks++;
+    }
+    console.log('ADDING THEN CALL BACK!');//__RP
+    const iii=whatever++;//__RP
+    if (iii === 3) 
+    {
+      console.trace(iii);//__RP
+    }
+    else
+    {
+      console.log(iii);//__RP
+    }
+    whateverTally[iii] = webserverListen;//__RP
+    console.log(whateverTally);//__RP
+    // console.log(isPostTerminationCallback);//__RP
+    // console.log(jscTestGlobal.pendingCallbacks);//__RP
+    // console.trace(jscTestGlobal.pendingTerminationCallbacks);//__RP
+    return function() // It must be a function object instead of an arrow one because of the arguments object.
+    {
+      cb(...arguments);
+      //jscTestGlobal.callbackCalled({ isThenOrCatch: true });//__RP
+      jscTestGlobal.callbackCalled({ isThenOrCatch: true, isThen: true /*__RP */ }, iii, whateverTally);//__RP
+    };
+  } :
+  (cb) => cb;
+
+const jscCatch = (isTestMode) ?
   (cb, { isPostTerminationCallback = false } = {}) =>
   {
     if (isPostTerminationCallback)
@@ -168,22 +239,23 @@ const jscCallback = (isTestMode) ?
     {
       jscTestGlobal.pendingCallbacks++;
     }
+    console.log('ADDING **CATCH** CALL BACK!');//__RP
+    const iii=whatever++;//__RP
+    if ([/*2, */3, /*9, 14, 19, 21*/].includes(iii)) 
+    {
+      console.trace(iii);//__RP
+    }
+    else
+    {
+      console.log(iii);//__RP
+    }
+    whateverTally[iii] = false;//__RP
+    console.log(whateverTally);//__RP
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
-      jscTestGlobal.callbackCalled();
-    };
-  } :
-  (cb) => cb;
-
-const jscThen = jscCallback;
-const jscCatch = (isTestMode) ?
-  (cb) =>
-  {
-    return function() // It must be a function object instead of an arrow one because of the arguments object.
-    {
-      cb(...arguments);
-      jscTestGlobal.callbackCalled();
+      //jscTestGlobal.callbackCalled({ isThenOrCatch: true });//__RP
+      jscTestGlobal.callbackCalled({ isThenOrCatch: true }, iii, whateverTally);//__RP
     };
   } :
   (cb) => cb;
@@ -795,7 +867,7 @@ function waitForLogFileCompressionBeforeTerminate(options)
           {
             console.error('ERROR:  Error on server listening termination:');
             console.error(e);
-          }));
+          }), { isPostTerminationCallback: true });
       }
       else
       {
@@ -815,6 +887,8 @@ function waitForLogFileCompressionBeforeTerminate(options)
 function JSCLogTerminate(options)
 {
   console.log('JSCLogTerminate CALLED!');//__RP
+  console.log(jscTestGlobal.pendingCallbacks);//__RP
+  console.log(jscTestGlobal.pendingTerminationCallbacks);//__RP
   if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
   {
     if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
@@ -823,9 +897,35 @@ function JSCLogTerminate(options)
       console.log('&&& TERMINATING');//__RP
       console.log(jsclogTerminateRetries);//__RP
       console.log('SETTING UP SETTIMEOUT FOR: JSCLogTerminate');//__RP
-      setTimeout(jscCallback(() => { 
-        console.log('DID I CALL YOU?! 4');//__RP
-JSCLogTerminate(options) }, { isPostTerminationCallback: true }), 3000);//__RP 10 should be 125.
+      setTimeout(jscCallback(() =>
+      { 
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log('________________________DID I CALL YOU?! 4');//__RP
+        console.log(jscTestGlobal.pendingCallbacks);//__RP
+        console.log(jscTestGlobal.pendingTerminationCallbacks);//__RP
+
+        // Let's check if there is one single callback pending.
+        // If that is the case, then it's this one.  Let's take care of it ourselves.
+        if (jscTestGlobal.pendingCallbacks === 1)
+        {
+          jscTestGlobal.pendingCallbacks = 0;
+        }
+        else if (jscTestGlobal.pendingTerminationCallbacks === 1)
+        {
+          jscTestGlobal.pendingTerminationCallbacks = 0;
+        }
+        JSCLogTerminate(options);
+      },
+      { isPostTerminationCallback: true }), 10);//__RP 10 should be 125.
       return;
     }
     else
@@ -2676,7 +2776,8 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     if (isTestMode)
     {
       // Because there is a jscCallBack() in webServer.listen() below.
-      jscTestGlobal.callbackCalled();
+      //jscTestGlobal.callbackCalled();//__RP
+      jscTestGlobal.callbackCalled(undefined, 'WEBSERVERLISTEN', whateverTally);//__RP
     }
   });
 
@@ -2691,7 +2792,8 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     {
       options.onServerStartedOrError();
     }
-  }));
+  //}));//__RP
+  }, { webserverListen: true }));//__RP
 }
 
 function startServer(siteConfig, jscLogConfigBase, options)
