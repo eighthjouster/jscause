@@ -159,7 +159,7 @@ let whateverTally = {};
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
 const jscCallback = (isTestMode) ?
-  (cb, { isPostTerminationCallback = false, webserverListen = false } = {}) =>
+  (cb, { isPostTerminationCallback = false } = {}) =>
   {
     if (isPostTerminationCallback)
     {
@@ -169,32 +169,16 @@ const jscCallback = (isTestMode) ?
     {
       jscTestGlobal.pendingCallbacks++;
     }
-    console.log('ADDING CALL BACK!');//__RP
-    const iii=whatever++;//__RP
-    if (iii === 3) 
-    {
-      console.trace(iii);//__RP
-    }
-    else
-    {
-      console.log(iii);//__RP
-    }
-    whateverTally[iii] = webserverListen;//__RP
-    console.log(whateverTally);//__RP
-    // console.log(isPostTerminationCallback);//__RP
-    // console.log(jscTestGlobal.pendingCallbacks);//__RP
-    // console.trace(jscTestGlobal.pendingTerminationCallbacks);//__RP
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
-      //jscTestGlobal.callbackCalled();//__RP
-      jscTestGlobal.callbackCalled(undefined, iii, whateverTally);//__RP
+      jscTestGlobal.callbackCalled();
     };
   } :
   (cb) => cb;
 
 const jscThen = (isTestMode) ?
-  (cb, { isPostTerminationCallback = false, webserverListen = false } = {}) =>
+  (cb, { isPostTerminationCallback = false } = {}) =>
   {
     if (isPostTerminationCallback)
     {
@@ -204,26 +188,11 @@ const jscThen = (isTestMode) ?
     {
       jscTestGlobal.pendingCallbacks++;
     }
-    console.log('ADDING THEN CALL BACK!');//__RP
-    const iii=whatever++;//__RP
-    if (iii === 3) 
-    {
-      console.trace(iii);//__RP
-    }
-    else
-    {
-      console.log(iii);//__RP
-    }
-    whateverTally[iii] = webserverListen;//__RP
-    console.log(whateverTally);//__RP
-    // console.log(isPostTerminationCallback);//__RP
-    // console.log(jscTestGlobal.pendingCallbacks);//__RP
-    // console.trace(jscTestGlobal.pendingTerminationCallbacks);//__RP
+
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
-      //jscTestGlobal.callbackCalled({ isThenOrCatch: true });//__RP
-      jscTestGlobal.callbackCalled({ isThenOrCatch: true, isThen: true /*__RP */ }, iii, whateverTally);//__RP
+      jscTestGlobal.callbackCalled({ isThenOrCatch: true });
     };
   } :
   (cb) => cb;
@@ -239,23 +208,11 @@ const jscCatch = (isTestMode) ?
     {
       jscTestGlobal.pendingCallbacks++;
     }
-    console.log('ADDING **CATCH** CALL BACK!');//__RP
-    const iii=whatever++;//__RP
-    if ([/*2, */3, /*9, 14, 19, 21*/].includes(iii)) 
-    {
-      console.trace(iii);//__RP
-    }
-    else
-    {
-      console.log(iii);//__RP
-    }
-    whateverTally[iii] = false;//__RP
-    console.log(whateverTally);//__RP
+
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
-      //jscTestGlobal.callbackCalled({ isThenOrCatch: true });//__RP
-      jscTestGlobal.callbackCalled({ isThenOrCatch: true }, iii, whateverTally);//__RP
+      jscTestGlobal.callbackCalled({ isThenOrCatch: true });
     };
   } :
   (cb) => cb;
@@ -831,17 +788,29 @@ function JSCLog(type, message, logOptions = {})
   }
 }
 
-function waitForLogFileCompressionBeforeTerminate(options)
+function waitForLogsProcessingBeforeTerminate(options)
 {
-  console.log('waitForLogFileCompressionBeforeTerminate CALLED!');//__RP
-  if (isCurrentlyLogDirCompressing)
+  if (isCurrentlyLogDirCompressing || isJSCLogMessageQueueProcessing)
   {
     console.log('Waiting for the current log file compression file to terminate...');
-    console.log('SETTING TIME OUT FOR: waitForLogFileCompressionBeforeTerminate 22');//__RP
-    setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options); }, { isPostTerminationCallback: true }), 5000);
+    console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 22');//__RP
+    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }, { isPostTerminationCallback: true }), 5000);//__RP is that 5000 correct? Should it be 0?
   }
   else
   {
+    console.log(';;;;;;; ALRIGHT; ARE WE STILL PROCESSING LOG MESSAGES?', isJSCLogMessageQueueProcessing);//__RP
+    Object.keys(allOpenLogFiles).forEach((key) =>
+    {
+      const fileObj = allOpenLogFiles[key];
+      if (fileObj)
+      {
+        // TO-DO: We need try/catch here. If error, include ${key} on the reporting.
+        fs.closeSync(fileObj.fd);
+      }
+      allOpenLogFiles[key] = null;
+    });
+    allOpenLogFiles = {};
+
     if (processExitAttempts)
     {
       if (!isTestMode)
@@ -886,46 +855,29 @@ function waitForLogFileCompressionBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
-  console.log('JSCLogTerminate CALLED!');//__RP
-  console.log(jscTestGlobal.pendingCallbacks);//__RP
-  console.log(jscTestGlobal.pendingTerminationCallbacks);//__RP
   if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
   {
     if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
     {
       jsclogTerminateRetries++;
-      console.log('&&& TERMINATING');//__RP
-      console.log(jsclogTerminateRetries);//__RP
-      console.log('SETTING UP SETTIMEOUT FOR: JSCLogTerminate');//__RP
       setTimeout(jscCallback(() =>
       { 
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log('________________________DID I CALL YOU?! 4');//__RP
-        console.log(jscTestGlobal.pendingCallbacks);//__RP
-        console.log(jscTestGlobal.pendingTerminationCallbacks);//__RP
-
         // Let's check if there is one single callback pending.
         // If that is the case, then it's this one.  Let's take care of it ourselves.
-        if (jscTestGlobal.pendingCallbacks === 1)
+        if ((jscTestGlobal.pendingCallbacks + jscTestGlobal.pendingTerminationCallbacks) === 1)
         {
-          jscTestGlobal.pendingCallbacks = 0;
-        }
-        else if (jscTestGlobal.pendingTerminationCallbacks === 1)
-        {
-          jscTestGlobal.pendingTerminationCallbacks = 0;
+          if (jscTestGlobal.pendingCallbacks === 1)
+          {
+            jscTestGlobal.pendingCallbacks = 0;
+          }
+          else if (jscTestGlobal.pendingTerminationCallbacks === 1)
+          {
+            jscTestGlobal.pendingTerminationCallbacks = 0;
+          }
         }
         JSCLogTerminate(options);
       },
-      { isPostTerminationCallback: true }), 10);//__RP 10 should be 125.
+      { isPostTerminationCallback: true }), 0);//__RP is 0 okay?
       return;
     }
     else
@@ -939,16 +891,8 @@ function JSCLogTerminate(options)
   }
   applicationIsTerminating = true;
 
-  Object.keys(allOpenLogFiles).forEach((key) =>
-  {
-    const fileObj = allOpenLogFiles[key];
-
-    // TO-DO: We need try/catch here. If error, include ${key} on the reporting.
-    fs.closeSync(fileObj.fd);
-    allOpenLogFiles[key] = null;
-  });
-  console.log('SETTING TIME OUT FOR: waitForLogFileCompressionBeforeTerminate 11');//__RP
-  setTimeout(jscCallback(() => { waitForLogFileCompressionBeforeTerminate(options) }, { isPostTerminationCallback: true }), 1000);//__RP 2000 should be 0.
+  console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 11');//__RP
+  setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options) }, { isPostTerminationCallback: true }), 0);
 }
 
 function vendor_require(vendorModuleName)
@@ -2765,19 +2709,18 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     {
       JSCLog('error', `- Site ${getSiteNameOrNoName(site.siteName)} not started.`, jscLogConfig);
     });
+
     if (typeof(options.onServerStartedOrError) === 'function')
     {
-      console.log('SERVERSTARTEDONERROR ERROR INVOKED!');//__RP
       options.onServerStartedOrError();
     }
-    console.log('DID I CALL YOU?! 1');//__RP
+
     JSCLogTerminate({ onTerminateComplete: options.onServerError });
 
     if (isTestMode)
     {
       // Because there is a jscCallBack() in webServer.listen() below.
-      //jscTestGlobal.callbackCalled();//__RP
-      jscTestGlobal.callbackCalled(undefined, 'WEBSERVERLISTEN', whateverTally);//__RP
+      jscTestGlobal.callbackCalled();
     }
   });
 
@@ -2792,8 +2735,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
     {
       options.onServerStartedOrError();
     }
-  //}));//__RP
-  }, { webserverListen: true }));//__RP
+  }));
 }
 
 function startServer(siteConfig, jscLogConfigBase, options)
@@ -4916,7 +4858,6 @@ function startApplication(options = { rootDir: undefined })
   else
   {
     JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-    console.log('DID I CALL YOU?! 2');//__RP
     JSCLogTerminate({ onTerminateComplete: options.onServerError });
   }
 
@@ -4931,7 +4872,6 @@ function startApplication(options = { rootDir: undefined })
 
 function exitApplication(options = {})
 {
-  console.log('%%% ABOUT TO EXIT APPLICATION...!');//__RP
   processExitAttempts++;
   if (processExitAttempts === 1)
   {
@@ -4939,7 +4879,7 @@ function exitApplication(options = {})
     {
       console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
     }
-    console.log('DID I CALL YOU?! 3');//__RP
+
     JSCLogTerminate(options);
   }
   else if (processExitAttempts === 2)

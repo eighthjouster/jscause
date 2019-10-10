@@ -3,7 +3,7 @@
 const allTests =
 [
   // 'testBattery_001',
-  'testBattery_002',//__RP
+  // 'testBattery_002',
   // 'testBattery_003',
   // 'testBattery_004',
   // 'testBattery_005',
@@ -15,8 +15,8 @@ const allTests =
   // 'testBattery_011',
   // 'testBattery_012',
   // 'testBattery_013',
-  //'testBattery_014',//__RP
-  //'testBattery_015',//__RP
+  // 'testBattery_014',//__RP
+  'testBattery_015',//__RP
   // 'testBattery_016',
   // 'testBattery_017',
   // 'testBattery_018',
@@ -242,19 +242,9 @@ function nextTest(jscTestGlobal, list)
             (jscTestGlobal.pendingTerminationCallbacks > 0));
   }
 
-  //jscTestGlobal.callbackCalled = (options) =>//__RP
-  jscTestGlobal.callbackCalled = (options, idid, whateverTally) =>//__RP
+  jscTestGlobal.callbackCalled = (options) =>
   {
     const { isThenOrCatch = false , isThen = false} = options || {};
-    let cbId;
-    if (idid === 'WEBSERVERLISTEN') {//__RP
-      cbId = Object.keys(whateverTally).find(e=>e);
-      console.log('OOOH REMOVNG WEBSERVERLISTEN');//__RP
-    }
-    else {
-      cbId = idid;
-    }
-
     let passes = isThenOrCatch ? 2 : 1;
     do
     {
@@ -269,25 +259,6 @@ function nextTest(jscTestGlobal, list)
       passes--;
     }
     while (passes > 0);
-
-    console.log('___________REMOVING CALL BACK!');//__RP
-    console.log(cbId);//__RP
-    delete whateverTally[cbId];//__RP
-    if (isThen)
-    {
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      console.log('___________AHA, IT HAS A CATCH!');//__RP
-      delete whateverTally[cbId+1];//__RP
-    }
-    console.log(whateverTally);//__RP
-    console.log(jscTestGlobal.pendingCallbacks);//__RP
-    //console.trace(jscTestGlobal.pendingTerminationCallbacks);//__RP
 
     if (!jscTestGlobal.areCallbacksStillPending())
     {

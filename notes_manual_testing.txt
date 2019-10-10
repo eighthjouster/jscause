@@ -2,6 +2,8 @@ Pending:
 ========
 
 If I use a very small number different from 3000 or 125, say, 10, some tests fail.  Why?
+ - testBattery_003:  It's failing with 125.  Fix.
+   - Hint: Logs are not being, well, outputted by the time the test ends.  But why?!
 
 *Ok, two things:
 *- One: jscCatch callback must be removed if the associated jscThen runs into completion and thus removed.
@@ -12,7 +14,7 @@ If I use a very small number different from 3000 or 125, say, 10, some tests fai
   *- Done.
 
 Also, when the server errors out, jsclogterminate() is invoked.
-  - This is problematic since jsclogterminate() is invoked during testing thanks to terminateapplication(), I think.  If the waitForLogFileCompressionBeforeTerminate mitigates race conditions, you may want to put this in the future fixes section, alongside a way to reproduce, or things to look out for.
+  - This is problematic since jsclogterminate() is invoked during testing thanks to terminateapplication(), I think.  If the waitForLogsProcessingBeforeTerminate mitigates race conditions, you may want to put this in the future fixes section, alongside a way to reproduce, or things to look out for.
 
 If you change the 125 number, change the 125 comment (how to make it future-proof? Constant?)
 

@@ -118,7 +118,7 @@ More testing, go through the code and start testing content-related stuff.  Chec
     - Other errors.
  - Test loadVendorModules()
  - exitApplication()
-    - waitForLogFileCompressionBeforeTerminate?
+    - waitForLogsProcessingBeforeTerminate?
     - Is closeLogFile() being called at the very end?
     - In what circumstances is it called?
        - Are the objects it refers to cleaned up like it says in there?
