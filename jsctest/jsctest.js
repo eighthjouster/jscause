@@ -192,6 +192,8 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.pendingCallbackTrackingEnabled = true;
     jscTestContext.pendingCallbacks = 0;
     jscTestContext.pendingTerminationCallbacks = 0;
+    jscTestContext.isWaitingForLogTermination = false;
+    jscTestContext.signalTestEndInvoked = false;
     jscTestContext.waitForContinueTestingCall = false;
     jscTestContext.waitForContinueTestingCallPasses = 0;
     jscTestContext.waitForContinueTestingCallMaxPasses = 60;
@@ -244,7 +246,7 @@ function nextTest(jscTestGlobal, list)
 
   jscTestGlobal.callbackCalled = (options) =>
   {
-    const { isThenOrCatch = false , isThen = false} = options || {};
+    const { isThenOrCatch = false } = options || {};
     let passes = isThenOrCatch ? 2 : 1;
     do
     {
@@ -264,6 +266,7 @@ function nextTest(jscTestGlobal, list)
     {
       if (jscTestGlobal.pendingCallbackTrackingEnabled)
       {
+        console.log('SIGNALING END!');//__RP
         signalTestEnd(jscTestGlobal, list);
       }
     }
@@ -360,6 +363,7 @@ function nextTest(jscTestGlobal, list)
 
       if (!jscTestGlobal.areCallbacksStillPending())
       {
+        console.log('SIGNALING TEST END 2!!');//__RP
         signalTestEnd(jscTestGlobal, list);
       }
     })
@@ -391,77 +395,93 @@ function stillWaitingForContinueTestingCall(jscTestGlobal)
   }
 }
 
-function signalTestEnd(jscTestGlobal, list)
+function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
 {
-  jscTestGlobal.continueTesting = () =>
+  if (jscTestGlobal.signalTestEndInvoked && !followUpCall)
   {
-    jscTestGlobal.waitForContinueTestingCall = false;
-    if (jscTestGlobal.waitForContinueTestingCallHandlerId)
-    {
-      clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
-      jscTestGlobal.waitForContinueTestingCallHandlerId = null;
-    }
-    endTest(jscTestGlobal, list);
-  };
-
-  const onAllRequestsEndedCall = () =>
-  {
-    callTestPhaseIfAvailable(
-      {
-        jscTestContext: jscTestGlobal,
-        testPhaseCallbackName: 'onAllRequestsEnded',
-        nextStepCall: onBeforeEndTestCall
-      }
-    );
-  };
-
-  const onReadyForRequestsCall = () =>
-  {
-    callTestPhaseIfAvailable(
-      {
-        jscTestContext: jscTestGlobal,
-        testPhaseCallbackName: 'onReadyForRequests',
-        nextStepCall: onAllRequestsEndedCall
-      }
-    );
-  };
-
-  const onBeforeEndTestCall = () =>
-  {
-    if (!jscTestGlobal.serverDidTerminate && jscTestGlobal.serverDidStart)
-    {
-      console.warn('WARNING: The server did not terminate by the time all testing was completed.');
-    }
-
-    callTestPhaseIfAvailable(
-      {
-        jscTestContext: jscTestGlobal,
-        testPhaseCallbackName: 'onBeforeTestEnd',
-        nextStepCall: () =>
-        {
-          wrapUpSignalTestEnd(jscTestGlobal);
-        }
-      }
-    );
-  };
-
-  if (jscTestGlobal.isUnitTest)
-  {
-    callTestPhaseIfAvailable(
-      {
-        jscTestContext: jscTestGlobal,
-        testPhaseCallbackName: 'onUnitTestStarted',
-        nextStepCall: onBeforeEndTestCall
-      }
-    );
+    return;
   }
-  else if (jscTestGlobal.currentTestPhaseName === 'onAllRequestsEnded')
+
+  jscTestGlobal.signalTestEndInvoked = true;
+
+  if (jscTestGlobal.isWaitingForLogTermination)
   {
-    onBeforeEndTestCall();
+    console.log('WAITING FOR LOGS TO TERMINATE......');//__RP
+    setTimeout(() => { signalTestEnd(jscTestGlobal, list, { followUpCall: true }) }, 125);//__RP should be 0
   }
   else
   {
-    onReadyForRequestsCall();
+    console.log('LIBERATED......');//__RP
+    jscTestGlobal.continueTesting = () =>
+    {
+      jscTestGlobal.waitForContinueTestingCall = false;
+      if (jscTestGlobal.waitForContinueTestingCallHandlerId)
+      {
+        clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
+        jscTestGlobal.waitForContinueTestingCallHandlerId = null;
+      }
+      endTest(jscTestGlobal, list);
+    };
+
+    const onAllRequestsEndedCall = () =>
+    {
+      callTestPhaseIfAvailable(
+        {
+          jscTestContext: jscTestGlobal,
+          testPhaseCallbackName: 'onAllRequestsEnded',
+          nextStepCall: onBeforeEndTestCall
+        }
+      );
+    };
+
+    const onReadyForRequestsCall = () =>
+    {
+      callTestPhaseIfAvailable(
+        {
+          jscTestContext: jscTestGlobal,
+          testPhaseCallbackName: 'onReadyForRequests',
+          nextStepCall: onAllRequestsEndedCall
+        }
+      );
+    };
+
+    const onBeforeEndTestCall = () =>
+    {
+      if (!jscTestGlobal.serverDidTerminate && jscTestGlobal.serverDidStart)
+      {
+        console.warn('WARNING: The server did not terminate by the time all testing was completed.');
+      }
+
+      callTestPhaseIfAvailable(
+        {
+          jscTestContext: jscTestGlobal,
+          testPhaseCallbackName: 'onBeforeTestEnd',
+          nextStepCall: () =>
+          {
+            wrapUpSignalTestEnd(jscTestGlobal);
+          }
+        }
+      );
+    };
+
+    if (jscTestGlobal.isUnitTest)
+    {
+      callTestPhaseIfAvailable(
+        {
+          jscTestContext: jscTestGlobal,
+          testPhaseCallbackName: 'onUnitTestStarted',
+          nextStepCall: onBeforeEndTestCall
+        }
+      );
+    }
+    else if (jscTestGlobal.currentTestPhaseName === 'onAllRequestsEnded')
+    {
+      onBeforeEndTestCall();
+    }
+    else
+    {
+      onReadyForRequestsCall();
+    }
   }
 }
 
@@ -556,6 +576,7 @@ function terminateApplication({resolveMessage = '', onComplete} = {})
       {
         invokeOnCompletion(jscTestGlobal, resolveMessage);
         jscTestGlobal.serverDidTerminate = true;
+        jscTestGlobal.isWaitingForLogTermination = false;
         onComplete && onComplete();
       }
     });

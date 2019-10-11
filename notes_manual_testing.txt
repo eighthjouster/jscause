@@ -1,17 +1,17 @@
 Pending:
 ========
 
-If I use a very small number different from 3000 or 125, say, 10, some tests fail.  Why?
- - testBattery_003:  It's failing with 125.  Fix.
-   - Hint: Logs are not being, well, outputted by the time the test ends.  But why?!
+Fixed.  Now, use 0 instead of 125 and see if that works.
 
-*Ok, two things:
-*- One: jscCatch callback must be removed if the associated jscThen runs into completion and thus removed.
-   *- And vice-versa?
-   *- So, there must be a way to link them together.
-     *- Done.
- *- Two: the first setTimeout(jscCallback(() => ()} increases the callback pending count and, well, it's responsible for the stalling.  Which is ironic, because this piece of code is supposed to wait for _other_ callbacks to complete.  Not its own.  Perhaps it should monitor its own as well?  Or skip the pending count increase altogether?  Should it increase that other pendingTerminationCallbacks variable instead? We shall see.
-  *- Done.
+Why is the test_015_004_UserFilesReading_MaxDirs_nothresholdPassed test not passing?
+ - Once you fix it, check the rest in that file that are marked with __RP.
+
+If:
+{ isPostTerminationCallback: true }), 0);//__RP should this be 0?
+should be really 0, then MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES should be way more than 185.
+
+Do we still need isPostTerminationCallback?
+ - And pendingTerminationCallbacks?
 
 Also, when the server errors out, jsclogterminate() is invoked.
   - This is problematic since jsclogterminate() is invoked during testing thanks to terminateapplication(), I think.  If the waitForLogsProcessingBeforeTerminate mitigates race conditions, you may want to put this in the future fixes section, alongside a way to reproduce, or things to look out for.

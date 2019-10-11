@@ -153,8 +153,7 @@ const { cookies, formidable, sanitizeFilename } = loadVendorModules();
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
-let whatever = 0;
-let whateverTally = {};
+
 // jscCallback, jscThen and jscCatch are needed during testing so we wait for
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
@@ -794,7 +793,7 @@ function waitForLogsProcessingBeforeTerminate(options)
   {
     console.log('Waiting for the current log file compression file to terminate...');
     console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 22');//__RP
-    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }, { isPostTerminationCallback: true }), 5000);//__RP is that 5000 correct? Should it be 0?
+    setTimeout(() => { waitForLogsProcessingBeforeTerminate(options); }, 5000);
   }
   else
   {
@@ -824,19 +823,19 @@ function waitForLogsProcessingBeforeTerminate(options)
           Object.values(runningServers)
             .map(
               (thisServer) => {
-                thisServer.webServer.close(jscCallback(() => Promise.resolve()), { isPostTerminationCallback: true });
+                thisServer.webServer.close(() => Promise.resolve());
               }
             )
         )
-          .then(jscThen(() =>
+          .then(() =>
           {
             options.onTerminateComplete();
-          }, { isPostTerminationCallback: true }))
-          .catch(jscCatch((e) =>
+          })
+          .catch((e) =>
           {
             console.error('ERROR:  Error on server listening termination:');
             console.error(e);
-          }), { isPostTerminationCallback: true });
+          });
       }
       else
       {
@@ -855,29 +854,14 @@ function waitForLogsProcessingBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
+//  console.trace('huh', jsclogTerminateRetries);//__RP
+  jscTestGlobal.isWaitingForLogTermination = true;
   if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
   {
     if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
     {
       jsclogTerminateRetries++;
-      setTimeout(jscCallback(() =>
-      { 
-        // Let's check if there is one single callback pending.
-        // If that is the case, then it's this one.  Let's take care of it ourselves.
-        if ((jscTestGlobal.pendingCallbacks + jscTestGlobal.pendingTerminationCallbacks) === 1)
-        {
-          if (jscTestGlobal.pendingCallbacks === 1)
-          {
-            jscTestGlobal.pendingCallbacks = 0;
-          }
-          else if (jscTestGlobal.pendingTerminationCallbacks === 1)
-          {
-            jscTestGlobal.pendingTerminationCallbacks = 0;
-          }
-        }
-        JSCLogTerminate(options);
-      },
-      { isPostTerminationCallback: true }), 0);//__RP is 0 okay?
+      setTimeout(() => { JSCLogTerminate(options); }, 125); // No need for jscCallback() //__RP should this be 0?
       return;
     }
     else
@@ -892,7 +876,7 @@ function JSCLogTerminate(options)
   applicationIsTerminating = true;
 
   console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 11');//__RP
-  setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options) }, { isPostTerminationCallback: true }), 0);
+  waitForLogsProcessingBeforeTerminate(options);
 }
 
 function vendor_require(vendorModuleName)
