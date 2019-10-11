@@ -179,7 +179,7 @@ const test_014_003_takenServerPortTwoServersTwoSites_Pt1 = Object.assign(testUti
     ],
     onServerStartedOrError()
     {
-      if (this.numberOfServersInvokedSofar === 2)
+      if (this.numberOfServersInvokedSofar === 1)
       {
         this.terminateApplication();
       }
@@ -230,7 +230,7 @@ const test_014_004_takenServerPortTwoServersTwoSites_Pt2 = Object.assign(testUti
     ],
     onServerStartedOrError()
     {
-      if (this.numberOfServersInvokedSofar === 2)
+      if (this.numberOfServersInvokedSofar === 1)
       {
         this.terminateApplication();
       }
@@ -287,14 +287,8 @@ const test_014_005_takenServerPortTwoServersTwoSites_Pt3 = Object.assign(testUti
     ],
     onServerStartedOrError()
     {
-      console.log('>>>>>>>>>>> SERVER STARTED OR ERROR');//__RP
-      console.log('>>>>>>>>>>> SERVER STARTED OR ERROR');//__RP
-      console.log('>>>>>>>>>>> SERVER STARTED OR ERROR');//__RP
-      console.log('>>>>>>>>>>> SERVER STARTED OR ERROR');//__RP
-      console.log(this.numberOfServersInvokedSofar);//__RP
-      if (this.numberOfServersInvokedSofar === 2)
+      if (this.numberOfServersInvokedSofar === 1)
       {
-        console.log('SERVERS INVOKED SO FAR REACHED!');//__RP
         this.terminateApplication();
       }
     },
@@ -347,7 +341,7 @@ const test_014_006_TwoServersTwoSitesAllGood = Object.assign(testUtils.makeFromB
     ],
     onServerStartedOrError()
     {
-      if (this.numberOfServersInvokedSofar === 2)
+      if (this.numberOfServersInvokedSofar === 1)
       {
         this.terminateApplication();
       }

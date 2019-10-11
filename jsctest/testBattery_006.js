@@ -116,7 +116,7 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
     ],
     onServerStartedOrError()
     {
-      if (this.numberOfServersInvokedSofar === 2)
+      if (this.numberOfServersInvokedSofar === 1)
       {
         this.terminateApplication();
       }

@@ -2,25 +2,25 @@
 
 const allTests =
 [
-  // 'testBattery_001',
-  // 'testBattery_002',
-  // 'testBattery_003',
-  // 'testBattery_004',
-  // 'testBattery_005',
-  // 'testBattery_006',
-  // 'testBattery_007',
-  // 'testBattery_008',
-  'testBattery_009', //__RP
-  // 'testBattery_010',
-  // 'testBattery_011',
-  // 'testBattery_012',
-  // 'testBattery_013',
-  // 'testBattery_014',
-  // 'testBattery_015',
-  // 'testBattery_016',
-  // 'testBattery_017',
-  // 'testBattery_018',
-  // 'testBattery_contents_01'
+  'testBattery_001',
+  'testBattery_002',
+  'testBattery_003',
+  'testBattery_004',
+  'testBattery_005',
+  'testBattery_006',
+  'testBattery_007',
+  'testBattery_008',
+  'testBattery_009',
+  'testBattery_010',
+  'testBattery_011',
+  'testBattery_012',
+  'testBattery_013',
+  'testBattery_014',
+  'testBattery_015',
+  'testBattery_016',
+  'testBattery_017',
+  'testBattery_018',
+  'testBattery_contents_01'
 ];
 
 const fs = require('fs');
@@ -191,7 +191,6 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.logOutputToSiteDirOccurred = false;
     jscTestContext.pendingCallbackTrackingEnabled = true;
     jscTestContext.pendingCallbacks = 0;
-    jscTestContext.pendingTerminationCallbacks = 0;
     jscTestContext.isWaitingForLogTermination = false;
     jscTestContext.signalTestEndInvoked = false;
     jscTestContext.waitForContinueTestingCall = false;
@@ -240,33 +239,18 @@ function nextTest(jscTestGlobal, list)
 
   jscTestGlobal.areCallbacksStillPending = () =>
   {
-    return ((jscTestGlobal.pendingCallbacks > 0) ||
-            (jscTestGlobal.pendingTerminationCallbacks > 0));
+    return (jscTestGlobal.pendingCallbacks > 0);
   }
 
   jscTestGlobal.callbackCalled = (options) =>
   {
     const { isThenOrCatch = false } = options || {};
-    let passes = isThenOrCatch ? 2 : 1;
-    do
-    {
-      if (jscTestGlobal.pendingTerminationCallbacks > 0)
-      {
-        jscTestGlobal.pendingTerminationCallbacks--;
-      }
-      else
-      {
-        jscTestGlobal.pendingCallbacks--;
-      }
-      passes--;
-    }
-    while (passes > 0);
+    jscTestGlobal.pendingCallbacks -= (isThenOrCatch) ? 2 : 1;
 
     if (!jscTestGlobal.areCallbacksStillPending())
     {
       if (jscTestGlobal.pendingCallbackTrackingEnabled)
       {
-        console.log('SIGNALING END!');//__RP
         signalTestEnd(jscTestGlobal, list);
       }
     }
@@ -363,7 +347,6 @@ function nextTest(jscTestGlobal, list)
 
       if (!jscTestGlobal.areCallbacksStillPending())
       {
-        console.log('SIGNALING TEST END 2!!');//__RP
         signalTestEnd(jscTestGlobal, list);
       }
     })
@@ -406,12 +389,10 @@ function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
 
   if (jscTestGlobal.isWaitingForLogTermination)
   {
-    console.log('WAITING FOR LOGS TO TERMINATE......', jscTestGlobal.isWaitingForLogTermination);//__RP
-    setTimeout(() => { signalTestEnd(jscTestGlobal, list, { followUpCall: true }) }, 125);//__RP should be 0
+    setTimeout(() => { signalTestEnd(jscTestGlobal, list, { followUpCall: true }) }, 0);
   }
   else
   {
-    console.log('LIBERATED......');//__RP
     jscTestGlobal.continueTesting = () =>
     {
       jscTestGlobal.waitForContinueTestingCall = false;
@@ -574,7 +555,6 @@ function terminateApplication({resolveMessage = '', onComplete} = {})
     {
       onTerminateComplete()
       {
-        console.log('YOU REALLY COMPLETE ME!', jscTestGlobal.isWaitingForLogTermination);//__RP
         invokeOnCompletion(jscTestGlobal, resolveMessage);
         onComplete && onComplete();
       }

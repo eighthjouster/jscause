@@ -35,7 +35,8 @@ const LOGFILE_ERROR_STRING = 'ERROR';
 const LOGFILE_INFO_STRING = 'INFO';
 const LOGFILE_WARNING_STRING = 'WARNING';
 
-const MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES = 600; // Combined with the 50ms each retry wait takes, this makes a timeout of 30 seconds.
+const LOGTERMINATE_WAIT_MS = 50; // It should NEVER be 0.
+const MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES = (30 * 1000) / LOGTERMINATE_WAIT_MS; // 30 seconds max.
 
 const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
@@ -158,16 +159,9 @@ const jscTestGlobal = {};
 // all the callbacks to complete (file operations, networking) before going to the
 // next test.
 const jscCallback = (isTestMode) ?
-  (cb, { isPostTerminationCallback = false } = {}) =>
+  (cb) =>
   {
-    if (isPostTerminationCallback)
-    {
-      jscTestGlobal.pendingTerminationCallbacks++;
-    }
-    else
-    {
-      jscTestGlobal.pendingCallbacks++;
-    }
+    jscTestGlobal.pendingCallbacks++;
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
       cb(...arguments);
@@ -177,16 +171,9 @@ const jscCallback = (isTestMode) ?
   (cb) => cb;
 
 const jscThen = (isTestMode) ?
-  (cb, { isPostTerminationCallback = false } = {}) =>
+  (cb) =>
   {
-    if (isPostTerminationCallback)
-    {
-      jscTestGlobal.pendingTerminationCallbacks++;
-    }
-    else
-    {
-      jscTestGlobal.pendingCallbacks++;
-    }
+    jscTestGlobal.pendingCallbacks++;
 
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
@@ -197,16 +184,9 @@ const jscThen = (isTestMode) ?
   (cb) => cb;
 
 const jscCatch = (isTestMode) ?
-  (cb, { isPostTerminationCallback = false } = {}) =>
+  (cb) =>
   {
-    if (isPostTerminationCallback)
-    {
-      jscTestGlobal.pendingTerminationCallbacks++;
-    }
-    else
-    {
-      jscTestGlobal.pendingCallbacks++;
-    }
+    jscTestGlobal.pendingCallbacks++;
 
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
@@ -815,7 +795,6 @@ function waitForLogsProcessingBeforeTerminate(options)
       }
 
       jscTestGlobal.serverDidTerminate = true;
-      console.log('SETTING IT TO FALSE!');//__RP
       jscTestGlobal.isWaitingForLogTermination = false;
       if (typeof(options.onTerminateComplete) === 'function')
       {
@@ -844,7 +823,6 @@ function waitForLogsProcessingBeforeTerminate(options)
     }
     else
     {
-      console.log('SETTING IT TO FALSE!');//__RP
       jscTestGlobal.serverDidTerminate = true;
       jscTestGlobal.isWaitingForLogTermination = false;
       if (typeof(options.onTerminateComplete) === 'function')
@@ -859,14 +837,13 @@ function JSCLogTerminate(options)
 {
   if (!jscTestGlobal.serverDidTerminate)
   {
-    console.log('SETTING IT TO TRUE!');//__RP
     jscTestGlobal.isWaitingForLogTermination = true;
-    if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
+    if (jscTestGlobal.pendingCallbacks)
     {
       if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
       {
         jsclogTerminateRetries++;
-        setTimeout(() => { JSCLogTerminate(options); }, 50);
+        setTimeout(() => { JSCLogTerminate(options); }, LOGTERMINATE_WAIT_MS);
         return;
       }
       else
