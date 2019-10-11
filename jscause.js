@@ -35,7 +35,7 @@ const LOGFILE_ERROR_STRING = 'ERROR';
 const LOGFILE_INFO_STRING = 'INFO';
 const LOGFILE_WARNING_STRING = 'WARNING';
 
-const MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES = 180; // Combined with the 125ms each retry wait takes, this makes a timeout of 30 seconds.
+const MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES = 600; // Combined with the 50ms each retry wait takes, this makes a timeout of 30 seconds.
 
 const MAX_FILES_OR_DIRS_IN_DIRECTORY = 2048;
 const MAX_DIRECTORIES_TO_PROCESS = 4096;
@@ -791,13 +791,10 @@ function waitForLogsProcessingBeforeTerminate(options)
 {
   if (isCurrentlyLogDirCompressing || isJSCLogMessageQueueProcessing)
   {
-    console.log('Waiting for the current log file compression file to terminate...');
-    console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 22');//__RP
     setTimeout(() => { waitForLogsProcessingBeforeTerminate(options); }, 5000);
   }
   else
   {
-    console.log(';;;;;;; ALRIGHT; ARE WE STILL PROCESSING LOG MESSAGES?', isJSCLogMessageQueueProcessing);//__RP
     Object.keys(allOpenLogFiles).forEach((key) =>
     {
       const fileObj = allOpenLogFiles[key];
@@ -817,6 +814,9 @@ function waitForLogsProcessingBeforeTerminate(options)
         console.log('Terminated.');
       }
 
+      jscTestGlobal.serverDidTerminate = true;
+      console.log('SETTING IT TO FALSE!');//__RP
+      jscTestGlobal.isWaitingForLogTermination = false;
       if (typeof(options.onTerminateComplete) === 'function')
       {
         Promise.all(
@@ -844,6 +844,9 @@ function waitForLogsProcessingBeforeTerminate(options)
     }
     else
     {
+      console.log('SETTING IT TO FALSE!');//__RP
+      jscTestGlobal.serverDidTerminate = true;
+      jscTestGlobal.isWaitingForLogTermination = false;
       if (typeof(options.onTerminateComplete) === 'function')
       {
         options.onTerminateComplete();
@@ -854,29 +857,31 @@ function waitForLogsProcessingBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
-//  console.trace('huh', jsclogTerminateRetries);//__RP
-  jscTestGlobal.isWaitingForLogTermination = true;
-  if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
+  if (!jscTestGlobal.serverDidTerminate)
   {
-    if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
+    console.log('SETTING IT TO TRUE!');//__RP
+    jscTestGlobal.isWaitingForLogTermination = true;
+    if ((jscTestGlobal.pendingCallbacks > 0) || (jscTestGlobal.pendingTerminationCallbacks > 0))
     {
-      jsclogTerminateRetries++;
-      setTimeout(() => { JSCLogTerminate(options); }, 125); // No need for jscCallback() //__RP should this be 0?
+      if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
+      {
+        jsclogTerminateRetries++;
+        setTimeout(() => { JSCLogTerminate(options); }, 50);
+        return;
+      }
+      else
+      {
+        console.warn(`\nWARNING!  Reached the amount of log termination retries due to pending callbacks (${MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES}).  Giving up.`);
+      }
+    }
+    if (applicationIsTerminating)
+    {
       return;
     }
-    else
-    {
-      console.warn(`\nWARNING!  Reached the amount of log termination retries due to pending callbacks (${MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES}).  Giving up.`);
-    }
-  }
-  if (applicationIsTerminating)
-  {
-    return;
-  }
-  applicationIsTerminating = true;
+    applicationIsTerminating = true;
 
-  console.log('SETTING TIME OUT FOR: waitForLogsProcessingBeforeTerminate 11');//__RP
-  waitForLogsProcessingBeforeTerminate(options);
+    waitForLogsProcessingBeforeTerminate(options);
+  }
 }
 
 function vendor_require(vendorModuleName)

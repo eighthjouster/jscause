@@ -10,13 +10,13 @@ const allTests =
   // 'testBattery_006',
   // 'testBattery_007',
   // 'testBattery_008',
-  // 'testBattery_009',
+  'testBattery_009', //__RP
   // 'testBattery_010',
   // 'testBattery_011',
   // 'testBattery_012',
   // 'testBattery_013',
-  // 'testBattery_014',//__RP
-  'testBattery_015',//__RP
+  // 'testBattery_014',
+  // 'testBattery_015',
   // 'testBattery_016',
   // 'testBattery_017',
   // 'testBattery_018',
@@ -406,7 +406,7 @@ function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
 
   if (jscTestGlobal.isWaitingForLogTermination)
   {
-    console.log('WAITING FOR LOGS TO TERMINATE......');//__RP
+    console.log('WAITING FOR LOGS TO TERMINATE......', jscTestGlobal.isWaitingForLogTermination);//__RP
     setTimeout(() => { signalTestEnd(jscTestGlobal, list, { followUpCall: true }) }, 125);//__RP should be 0
   }
   else
@@ -574,9 +574,8 @@ function terminateApplication({resolveMessage = '', onComplete} = {})
     {
       onTerminateComplete()
       {
+        console.log('YOU REALLY COMPLETE ME!', jscTestGlobal.isWaitingForLogTermination);//__RP
         invokeOnCompletion(jscTestGlobal, resolveMessage);
-        jscTestGlobal.serverDidTerminate = true;
-        jscTestGlobal.isWaitingForLogTermination = false;
         onComplete && onComplete();
       }
     });

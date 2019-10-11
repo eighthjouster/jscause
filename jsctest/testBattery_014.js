@@ -251,15 +251,6 @@ const test_014_005_takenServerPortTwoServersTwoSites_Pt3 = Object.assign(testUti
     // only: true,
     onTestBeforeStart()
     {
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
-      console.log('** 14');//__RP
       const jsCauseConfContents = makeBaseJsCauseConfContents();
       jsCauseConfContents.sites[0].port = 3400;
       jsCauseConfContents.sites.push(makeBaseSite(
@@ -371,8 +362,8 @@ const test_014_006_TwoServersTwoSitesAllGood = Object.assign(testUtils.makeFromB
 module.exports = [
   test_014_001_takenServerPortOneServerOneSite,
   test_014_002_takenServerPortOneServerTwoSites,
-  // test_014_003_takenServerPortTwoServersTwoSites_Pt1,
-  // test_014_004_takenServerPortTwoServersTwoSites_Pt2,
+  test_014_003_takenServerPortTwoServersTwoSites_Pt1,
+  test_014_004_takenServerPortTwoServersTwoSites_Pt2,
   test_014_005_takenServerPortTwoServersTwoSites_Pt3,
-  // test_014_006_TwoServersTwoSitesAllGood
+  test_014_006_TwoServersTwoSitesAllGood
 ];
