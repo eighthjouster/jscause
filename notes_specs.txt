@@ -302,9 +302,26 @@ waitForDoneSignal() can only be used once in a single phase function.  Trying to
    const triggerDoneSignal = this.waitForDoneSignal();
    then call triggerDoneSignal() anywhere you want.
      - This will immediately move on to the next test, though (no waiting for pending callbacks).  So be judicious.  For example:  if the test battery is at a later phase, and an old triggerDoneSignal() from a previous phase is triggered, well, it will be as if it was invoked in the current test and the battery will unexpectedly move on to the next phase.
-     That's why this trick is recommended to be used on tests involving onTestBeforeStart()/onReadyForRequests()/onTestEnd() only.
+     Therefore, this trick is recommended to be used on tests involving onTestBeforeStart()/onReadyForRequests()/onTestEnd() only.
 
 Some on() calls could be called more than once if more than one server is started during the test.  Using onServerStartedOrError() and this.numberOfServersInvokedSofar to keep track of server invocations can help handle scenarios, well, post-server invocations.
+
+When testing server requests:
+ - Use onReadyForRequests() to start making requests to the server.
+   - onReadyForRequests() is used to test requests to the server.  Invoke http.request() and/or https.request() here.
+   - You MUST set this.isRequestsTest to true inside onTestBeforeStart().
+   - When this call is used, jscTest will automatically do this:
+      - this.doneRequestsTesting() will be available for invocation.  It *MUST* be invoked at some point during the phase, or else we will never advance to the next phase and the test battery will remain stuck waiting indefinitely.
+        - Recommended places: res.on('end', ...) and req.on('error', ...).
+        - Note: this.doneRequestsTesting has the result of invoking this.waitForDoneSignal().  So, it's sort of syntactic sugar.
+  - It is highly recommended that no other phases other than onTestBeforeStart() and onTestEnd() are used when onReadyForRequests() is present due to the nature of doneRequestsTesting() (see the documentation on waitForDoneSignal(), especifically the triggerDoneSignal() limitation workaround trick.)
+ - When doneRequestsTesting() is called, then onAllRequestsEnded() is invoked.
+   - So, onAllRequestsEnded is invoked when no more requests and responses are pending from the server.
+ - Use onAllRequestsEnded() to terminate the application as follows:
+   - this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+     - waitForDoneSignal() is crucial here, otherwise the server will still be open when the next test starts.  This could lead to port conflicts and similar errors that could cause following tests to fail.
+
+
 
 Known issues:
 =============

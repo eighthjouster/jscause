@@ -2,24 +2,24 @@
 
 const allTests =
 [
-  'testBattery_001',
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
-  'testBattery_014',
-  'testBattery_015',
-  'testBattery_016',
-  'testBattery_017',
-  'testBattery_018',
+  // 'testBattery_001',
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
+  // 'testBattery_014',
+  // 'testBattery_015',
+  // 'testBattery_016',
+  // 'testBattery_017',
+  // 'testBattery_018',
   'testBattery_contents_01'
 ];
 
@@ -144,8 +144,7 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
     jscTestContext.testNextAvailableStepCall = nextStepCall;
     if ((testPhaseCallbackName === 'onReadyForRequests') && jscTestContext.isRequestsTest)
     {
-      jscTestContext.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered endlessly while testing requests.
-      jscTestContext.doneRequestsTesting = jscTestContext.waitForDoneSignal( // An alias can only be used within onReadyForRequests().
+      jscTestContext.doneRequestsTesting = jscTestContext.waitForDoneSignal( // This can only be used within onReadyForRequests().
         () => {
           console.info('onReadyForRequests: this.doneRequestsTesting() invoked!  Moving on.');
         });
@@ -189,7 +188,6 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.logOutputToConsoleOccurred = false;
     jscTestContext.logOutputToServerDirOccurred = false;
     jscTestContext.logOutputToSiteDirOccurred = false;
-    jscTestContext.pendingCallbackTrackingEnabled = true;
     jscTestContext.pendingCallbacks = 0;
     jscTestContext.isWaitingForLogTermination = false;
     jscTestContext.signalTestEndInvoked = false;
@@ -249,10 +247,7 @@ function nextTest(jscTestGlobal, list)
 
     if (!jscTestGlobal.areCallbacksStillPending())
     {
-      if (jscTestGlobal.pendingCallbackTrackingEnabled)
-      {
-        signalTestEnd(jscTestGlobal, list);
-      }
+      signalTestEnd(jscTestGlobal, list);
     }
   };
 
@@ -301,7 +296,6 @@ function nextTest(jscTestGlobal, list)
   
     if (jscTestGlobal.isUnitTest)
     {
-      jscTestGlobal.pendingCallbackTrackingEnabled = false;
       jscTestGlobal.resolveIt();
     }
     else

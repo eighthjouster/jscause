@@ -90,7 +90,6 @@ const test_013_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
         waitForContinueTestingCall = true;
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
         const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
-        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
         getCurrentLogFileName(this.getTestFilePath(['logs']), 0)
           .then((fileName) =>
           {
@@ -158,7 +157,6 @@ const test_013_002_siteLoggingFileOutputOccurs = Object.assign(testUtils.makeFro
         waitForContinueTestingCall = true;
         const { jscLib: { JSCLOG_DATA, getCurrentLogFileName, formatLogMessage } } = this;
         const { info: { messagePrefix: infoPrefix } } = JSCLOG_DATA;
-        this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get triggered twice.
         getCurrentLogFileName(this.getTestFilePath(['sites', 'mysite', 'localLogs']), 0)
           .then((fileName) =>
           {

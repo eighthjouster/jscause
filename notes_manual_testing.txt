@@ -1,12 +1,33 @@
 Pending:
 ========
 
-Is this still relevant?
- - When the server errors out, jsclogterminate() is invoked.
-   - This is problematic since jsclogterminate() is invoked during testing thanks to terminateapplication(), I think.  If the waitForLogsProcessingBeforeTerminate mitigates race conditions, you may want to put this in the future fixes section, alongside a way to reproduce, or things to look out for.
+Ok, new bug.
+Scenario:
+ - When replacing:
+    this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+  with:
+    this.terminateApplication();
+  the application moves on to the next test, and the next test fails because the port is already in use.
+What should happen:
+  - The error is displayed, the test fails and we move on to the next test.
+What happens instead:
+  - The failing tests "freezes" the application.  Eventually, it will throw a "Reached the amount of log termination retries due to pending callbacks" error, and even then the test won't move on.
+    - Ultimately, we get the "onReadyForRequests: this.doneRequestsTesting() invoked!  Moving on." message, but nothing seems to be happening.
 
-Document onAllRequestsEnded().  Put it on testBattery_000 and testBatteryUtils.
+Steps:
+ - Fix:  See if we can make it move on at that late stage.
+ - Then fix the "reached" issue: If the problem persists after the previous fix (which it should, by the way).
+
+When this is all done, remove test_contents_002_TEST and restore this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+ - And check that all tests pass again.
+
+===
+
+Document onAllRequestsEnded().
  - And the fact that terminateApplication() can have an onComplete callback.
+
+- Put onReadyForRequests() in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
+  - Also onAllRequestsEnded().
 
 Document:
 For the dev docs:
@@ -16,6 +37,8 @@ IMPORTANT: Every use of jscThen() requires using jscCatch(), even if the latter 
  - I think it's better if we start incorporating these in the testing suite.
    - Starting with step 1 below.
      - Ok.  Laid out a lot of ground work.  Please proceed with test building.
+
+At this point:  BACKUP!!!!
 
  - I'm documenting so we can one day automate it:
 *1. One single site, one single, empty index.jscp file.
@@ -136,15 +159,6 @@ AT THIS POINT: BACK UP.
 
 Before continuing:
  - Run all tests.  All good?
- - Document onReadyForRequests().  Put it in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
-   - Used to test requests to the server.  Invoke http.request() and/or https.request() here.
-   - You MUST set this.isRequestsTest to true inside onTestBeforeStart().
-   - When this call is used, jscTest will automatically do this:
-      - this.pendingCallbackTrackingEnabled = false; // Required so signalTestEnd() doesn't get invoked endlessly due to req.end() triggering a bunch of jscCallback calls.
-      - this.doneRequestsTesting() will be available for invocation.  It *MUST* be invoked at some point during the phase, or else we will never advance to the next phase and the test battery will remain stuck waiting indefinitely.
-        - Recommended places: res.on('end', ...) and req.on('error', ...).
-        - Note: this.doneRequestsTesting has the result of invoking this.waitForDoneSignal().  So, it's sort of syntactic sugar.
-  - It is highly recommended that no other phases other than onTestBeforeStart() and onTestEnd() are used when onReadyForRequests() is present due to the nature of doneRequestsTesting() (see the documentation on waitForDoneSignal(), especifically the triggerDoneSignal() limitation workaround trick.)
 
 Pending manual testing:
  - GET parameters.
@@ -169,8 +183,6 @@ Pending manual testing:
    - Default index.jscp
  - Static files.
  - Static files requested with POST.
-
-
 
 At this point, _manually test_ the rest (uploads, serving error files, etc.)
  - Maybe you can document your steps, for reference when implementing more tests in the future.
