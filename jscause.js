@@ -771,7 +771,7 @@ function waitForLogsProcessingBeforeTerminate(options)
 {
   if (isCurrentlyLogDirCompressing || isJSCLogMessageQueueProcessing)
   {
-    setTimeout(() => { waitForLogsProcessingBeforeTerminate(options); }, 5000);
+    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }), 0);
   }
   else
   {
@@ -835,10 +835,10 @@ function waitForLogsProcessingBeforeTerminate(options)
 
 function JSCLogTerminate(options)
 {
-  if (!jscTestGlobal.serverDidTerminate)
+  if (jscTestGlobal.serverDidStart && !jscTestGlobal.serverDidTerminate)
   {
     jscTestGlobal.isWaitingForLogTermination = true;
-    if (jscTestGlobal.pendingCallbacks)
+    if (jscTestGlobal.pendingCallbacks > 0)
     {
       if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
       {
@@ -856,9 +856,9 @@ function JSCLogTerminate(options)
       return;
     }
     applicationIsTerminating = true;
-
-    waitForLogsProcessingBeforeTerminate(options);
   }
+
+  waitForLogsProcessingBeforeTerminate(options);
 }
 
 function vendor_require(vendorModuleName)

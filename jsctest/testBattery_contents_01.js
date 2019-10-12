@@ -115,49 +115,20 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
     onReadyForRequests()
     {
       this.testPassed = false;
-      performTestRequestAndOutput.call(this,
-        {
-          onResponseEnd: ({ dataReceived }) =>
+      if (this.serverDidStart)
+      {
+        performTestRequestAndOutput.call(this,
           {
-            this.testPassed = !dataReceived.length;
-          }
-        });
-    },
-    onAllRequestsEnded()
-    {
-      this.terminateApplication();
-    },
-    onBeforeTestEnd()
-    {
-      //__RP this.terminateApplication({ onComplete: this.waitForDoneSignal() });
-      this.testPassed = this.testPassed && this.serverDidTerminate; //__RP
-    },
-    onTestEnd()
-    {
-      this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
-    }
-  }
-);
-
-const test_contents_002_TEST = Object.assign(testUtils.makeFromBaseTest('WHATEVAH'),
-  {
-    // only: true,
-    onTestBeforeStart()
-    {
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
-      
-      this.isRequestsTest = true;
-    },
-    onReadyForRequests()
-    {
-      this.testPassed = false;
-      performTestRequestAndOutput.call(this,
-        {
-          onResponseEnd: ({ dataReceived }) =>
-          {
-            this.testPassed = !dataReceived.length;
-          }
-        });
+            onResponseEnd: ({ dataReceived }) =>
+            {
+              this.testPassed = !dataReceived.length;
+            }
+          });
+      }
+      else
+      {
+        this.doneRequestsTesting();
+      }
     },
     onAllRequestsEnded()
     {
@@ -175,6 +146,5 @@ const test_contents_002_TEST = Object.assign(testUtils.makeFromBaseTest('WHATEVA
 );
 
 module.exports = [
-  test_contents_001_jscp_index_empty,
-  test_contents_002_TEST
+  test_contents_001_jscp_index_empty
 ];

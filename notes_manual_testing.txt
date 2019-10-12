@@ -1,28 +1,6 @@
 Pending:
 ========
 
-Ok, new bug.
-Scenario:
- - When replacing:
-    this.terminateApplication({ onComplete: this.waitForDoneSignal() });
-  with:
-    this.terminateApplication();
-  the application moves on to the next test, and the next test fails because the port is already in use.
-What should happen:
-  - The error is displayed, the test fails and we move on to the next test.
-What happens instead:
-  - The failing tests "freezes" the application.  Eventually, it will throw a "Reached the amount of log termination retries due to pending callbacks" error, and even then the test won't move on.
-    - Ultimately, we get the "onReadyForRequests: this.doneRequestsTesting() invoked!  Moving on." message, but nothing seems to be happening.
-
-Steps:
- - Fix:  See if we can make it move on at that late stage.
- - Then fix the "reached" issue: If the problem persists after the previous fix (which it should, by the way).
-
-When this is all done, remove test_contents_002_TEST and restore this.terminateApplication({ onComplete: this.waitForDoneSignal() });
- - And check that all tests pass again.
-
-===
-
 Document onAllRequestsEnded().
  - And the fact that terminateApplication() can have an onComplete callback.
 

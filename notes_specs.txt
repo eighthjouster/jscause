@@ -319,7 +319,7 @@ When testing server requests:
    - So, onAllRequestsEnded is invoked when no more requests and responses are pending from the server.
  - Use onAllRequestsEnded() to terminate the application as follows:
    - this.terminateApplication({ onComplete: this.waitForDoneSignal() });
-     - waitForDoneSignal() is crucial here, otherwise the server will still be open when the next test starts.  This could lead to port conflicts and similar errors that could cause following tests to fail.
+     - waitForDoneSignal() is crucial here, otherwise the server will still be open when the next test starts.  This could lead to port conflicts and similar errors that could cause later tests to fail.
 
 
 
