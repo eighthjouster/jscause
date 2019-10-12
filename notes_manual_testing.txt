@@ -1,27 +1,8 @@
 Pending:
 ========
 
-Document onAllRequestsEnded().
- - And the fact that terminateApplication() can have an onComplete callback.
+Please continue with the actual test building:
 
-- Put onReadyForRequests() in the example and in the battery utils (look for: // TO-DO: EXPLAIN HERE.)
-  - Also onAllRequestsEnded().
-
-Document:
-For the dev docs:
-IMPORTANT: Every use of jscThen() requires using jscCatch(), even if the latter is empty!!
- - This is because they both decrease the pending callback counts by two (since only one will actually be executed; so the other one needs to be 'discarded'.)
-
-For the test dev docs:
-The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
-
- - I think it's better if we start incorporating these in the testing suite.
-   - Starting with step 1 below.
-     - Ok.  Laid out a lot of ground work.  Please proceed with test building.
-
-At this point:  BACKUP!!!!
-
- - I'm documenting so we can one day automate it:
 **1. One single site, one single, empty index.jscp file.
   Expected: Output: Blank page.  0 bytes.
 
@@ -136,6 +117,9 @@ Hello
 1
 
 
+Put in the test dev docs:
+The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
+
 AT THIS POINT: BACK UP.
 
 Before continuing:
@@ -165,7 +149,7 @@ Pending manual testing:
  - Static files.
  - Static files requested with POST.
 
-At this point, _manually test_ the rest (uploads, serving error files, etc.)
+At this point, _manually test_ (for real) the rest (uploads, serving error files, etc.)
  - Maybe you can document your steps, for reference when implementing more tests in the future.
    - And then check that entries are already documented elsewhere in the document, and delete duplicates.
 

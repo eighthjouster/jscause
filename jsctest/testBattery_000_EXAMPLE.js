@@ -13,6 +13,7 @@ const emptyDir =
     // In theory, the following function must be called right before
     // and right after all battery of tests are performed.
     // this.doEmptyTestDirectory();
+    // this.isRequestsTest = true; // Uncomment this is you're planning to use onReadyForRequests()
   },
   onExpectedLogMessagesPass()
   {
@@ -41,7 +42,17 @@ const emptyDir =
   },
   onReadyForRequests()
   {
-    // TO-DO: EXPLAIN HERE.
+    // Called when this.isRequestsTest is set to true in onTestBeforeStart, when the server
+    // has finished starting up, setting up all sites and is ready to take client requests.
+    // You can use http.request() and/or https.request() here.
+    // When you get a response and you're done with the request (either on a pass or fail capacity),
+    // call this.doneRequestsTesting()
+  },
+  onAllRequestsEnded()
+  {
+    // Called when all requests and responses invoked in onReadyForRequests() have completed.
+    // this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+    // waitForDoneSignal() is crucial above so that application terminates before we move on to the next test.
   },
   onBeforeTestEnd()
   {

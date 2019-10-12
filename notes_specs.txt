@@ -306,6 +306,11 @@ waitForDoneSignal() can only be used once in a single phase function.  Trying to
 
 Some on() calls could be called more than once if more than one server is started during the test.  Using onServerStartedOrError() and this.numberOfServersInvokedSofar to keep track of server invocations can help handle scenarios, well, post-server invocations.
 
+ - terminateApplication() can have an onComplete callback.
+   - As follows:
+     - this.terminateApplication({ onComplete: myCallBackHere });
+   - The callback gets called when the application has terminated, with no file or connection closing activity pending; that is, no logging or request/response/listening activity pending.
+
 When testing server requests:
  - Use onReadyForRequests() to start making requests to the server.
    - onReadyForRequests() is used to test requests to the server.  Invoke http.request() and/or https.request() here.
@@ -321,7 +326,7 @@ When testing server requests:
    - this.terminateApplication({ onComplete: this.waitForDoneSignal() });
      - waitForDoneSignal() is crucial here, otherwise the server will still be open when the next test starts.  This could lead to port conflicts and similar errors that could cause later tests to fail.
 
-
+Very important: Every use of jscThen() requires using jscCatch(), even if the latter is empty.  This is because each one counts as one pending callback. And since only one will actually be executed, the other one needs to be 'discarded', so the system must assume that _two_ pending callbacks were addressed.  Therefore, if you omit a jscCatch(), the pending callbacks count will stop being accurate, potentially making the test to end prematuraly and without cleaning up, which can adversely affect the next tests in line.
 
 Known issues:
 =============
