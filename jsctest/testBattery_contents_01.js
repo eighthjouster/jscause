@@ -47,6 +47,24 @@ const makeBaseRequest = (extra = {}) =>
     }, extra
   );
 
+function makeTestEndBoilerplate()
+{
+  return {
+    onAllRequestsEnded()
+    {
+      this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+    },
+    onBeforeTestEnd()
+    {
+      this.testPassed = this.testPassed && this.serverDidTerminate;
+    },
+    onTestEnd()
+    {
+      this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
+    }
+  };
+}
+
 function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
 {
   const requestContext =
@@ -87,6 +105,7 @@ function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
 }
 
 const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; empty'),
+  makeTestEndBoilerplate.call(this),
   {
     // only: true,
     onTestBeforeStart()
@@ -129,18 +148,6 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
       {
         this.doneRequestsTesting();
       }
-    },
-    onAllRequestsEnded()
-    {
-      this.terminateApplication({ onComplete: this.waitForDoneSignal() });
-    },
-    onBeforeTestEnd()
-    {
-      this.testPassed = this.testPassed && this.serverDidTerminate;
-    },
-    onTestEnd()
-    {
-      this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
     }
   }
 );
