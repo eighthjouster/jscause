@@ -104,6 +104,22 @@ function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
   req.end();
 }
 
+function processResponse(onResponseEndCb)
+{
+  this.testPassed = false;
+  if (this.serverDidStart)
+  {
+    performTestRequestAndOutput.call(this,
+      {
+        onResponseEnd: onResponseEndCb
+      });
+  }
+  else
+  {
+    this.doneRequestsTesting();
+  }
+}
+
 const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; empty'),
   makeTestEndBoilerplate.call(this),
   {
@@ -133,21 +149,10 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
     },
     onReadyForRequests()
     {
-      this.testPassed = false;
-      if (this.serverDidStart)
+      processResponse.call(this, ({ dataReceived }) =>
       {
-        performTestRequestAndOutput.call(this,
-          {
-            onResponseEnd: ({ dataReceived }) =>
-            {
-              this.testPassed = !dataReceived.length;
-            }
-          });
-      }
-      else
-      {
-        this.doneRequestsTesting();
-      }
+        this.testPassed = !dataReceived.length;
+      });
     }
   }
 );
