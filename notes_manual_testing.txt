@@ -12,6 +12,9 @@ For the dev docs:
 IMPORTANT: Every use of jscThen() requires using jscCatch(), even if the latter is empty!!
  - This is because they both decrease the pending callback counts by two (since only one will actually be executed; so the other one needs to be 'discarded'.)
 
+For the test dev docs:
+The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
+
  - I think it's better if we start incorporating these in the testing suite.
    - Starting with step 1 below.
      - Ok.  Laid out a lot of ground work.  Please proceed with test building.
@@ -19,10 +22,10 @@ IMPORTANT: Every use of jscThen() requires using jscCatch(), even if the latter 
 At this point:  BACKUP!!!!
 
  - I'm documenting so we can one day automate it:
-*1. One single site, one single, empty index.jscp file.
+**1. One single site, one single, empty index.jscp file.
   Expected: Output: Blank page.  0 bytes.
 
-*2. index.jscp just with one line:
+**2. index.jscp just with one line:
 console.log(1);
   Expected: Server console prints 1 with each request.
 

@@ -69,7 +69,8 @@ function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
 {
   const requestContext =
   {
-    dataReceived: []
+    dataReceived: [],
+    consoleLogOutput: undefined
   }
 
   const { dataReceived } = requestContext;
@@ -82,6 +83,7 @@ function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
 
         res.on('end', () =>
         {
+          requestContext.consoleLogOutput = endConsoleLogCapture();
           onResponseEndCb && onResponseEndCb(requestContext);
           this.doneRequestsTesting();
         });
@@ -120,6 +122,29 @@ function processResponse(onResponseEndCb)
   }
 }
 
+function initConsoleLogCapture()
+{
+  const originalConsoleLog = console.log;
+  console.log = (message) => { console.log.output.push(message); };
+  console.log.original = originalConsoleLog;
+  console.log.output = [];
+}
+
+function endConsoleLogCapture()
+{
+  let consoleLogOutput;
+  if (console.log.original)
+  {
+    consoleLogOutput = { lines: console.log.output, status: 'captured' };
+    console.log = console.log.original;
+  }
+  else
+  {
+    consoleLogOutput = { lines: [], status: 'No console output.  Call initConsoleLogCapture() inside onTestBeforeStart() to capture.' };
+  }
+  return consoleLogOutput;
+}
+
 const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; empty'),
   makeTestEndBoilerplate.call(this),
   {
@@ -144,7 +169,6 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
-      
       this.isRequestsTest = true;
     },
     onReadyForRequests()
@@ -157,6 +181,30 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
   }
 );
 
+const test_contents_002_jscp_index_console_log = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; console.log'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(1);');
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      processResponse.call(this, ({ dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          (consoleLogOutput.lines.length === 1) &&
+          (consoleLogOutput.lines.pop() === 1);
+      });
+    }
+  }
+);
+
 module.exports = [
-  test_contents_001_jscp_index_empty
+  test_contents_001_jscp_index_empty,
+  test_contents_002_jscp_index_console_log
 ];
