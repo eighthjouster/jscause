@@ -10,19 +10,19 @@ Please continue with the actual test building:
 console.log(1);
   Expected: Server console prints 1 with each request.
 
-*3. index.jscp with just one line:
+**3. index.jscp with just one line:
 rt.print(1);
   Expected: Page showing '1'.
 
-*4. index.jscp with just one line:
+**4. index.jscp with just one line:
 p
   Expected: Error 500.
 
-*5. index.jscp with just one line:
+**5. index.jscp with just one line:
 /js>p
   Expected: Page showing 'p'.
 
-*6. index.jscp:
+**6. index.jscp:)
 console.log('\<js');
 console.log('\/js>');
 rt.print('\<js');

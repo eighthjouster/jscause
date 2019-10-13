@@ -65,34 +65,37 @@ function makeTestEndBoilerplate()
   };
 }
 
+function areFlatArraysEqual(a, b)
+{
+  return a.every((line, i) => b[i] === line);
+}
+
 function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
 {
   const requestContext =
   {
     dataReceived: [],
-    consoleLogOutput: undefined
+    consoleLogOutput: undefined,
+    statusCode: undefined
   }
 
   const { dataReceived } = requestContext;
   const req = http.request(makeBaseRequest(),
     (res) =>
     {
-      if (res.statusCode === 200)
+      if (res.statusCode >= 400)
       {
-        res.on('data', (data) => dataReceived.push(data));
+        console.error(`The response status code is an error ${res.statusCode}.`);
+      }
+      res.on('data', (data) => dataReceived.push(data));
 
-        res.on('end', () =>
-        {
-          requestContext.consoleLogOutput = endConsoleLogCapture();
-          onResponseEndCb && onResponseEndCb(requestContext);
-          this.doneRequestsTesting();
-        });
-      }
-      else
+      res.on('end', () =>
       {
-        console.error(`The response status code is not 200 OK.  It is ${res.statusCode} instead.`);
+        requestContext.consoleLogOutput = endConsoleLogCapture();
+        requestContext.statusCode = res.statusCode;
+        onResponseEndCb && onResponseEndCb(requestContext);
         this.doneRequestsTesting();
-      }
+      });
     }
   );
 
@@ -204,7 +207,114 @@ const test_contents_002_jscp_index_console_log = Object.assign(testUtils.makeFro
   }
 );
 
+const test_contents_003_jscp_index_rt_print = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; output "1" on page'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'rt.print(1);');
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      processResponse.call(this, ({ dataReceived }) =>
+      {
+        this.testPassed = ((dataReceived.length === 1) &&
+                           (dataReceived[0].toString() === '1'));
+      });
+    }
+  }
+);
+
+const test_contents_004_jscp_index_syntax_error = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; "p" source'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'p');
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      processResponse.call(this, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 500);
+      });
+    }
+  }
+);
+
+const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; output "p" on page'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '/js>p');
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      processResponse.call(this, ({ dataReceived }) =>
+      {
+        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        this.testPassed = areFlatArraysEqual(outputLines,
+          [
+            ' ',
+            ' p ',
+            ' '
+          ]);
+      });
+    }
+  }
+);
+
+const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; special "<>" in strings.'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'],
+        [
+          'console.log(\'\\<js\');',
+          'console.log(\'\\/js>\');',
+          'rt.print(\'\\<js\');',
+          'rt.print(\'\\/js>\');'
+        ].join('\n'));
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { jscLib: { sanitizeForHTMLOutput } } = this;
+      processResponse.call(this, ({ dataReceived, consoleLogOutput }) =>
+      {
+        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        this.testPassed = (
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              '<js',
+              '/js>',
+            ]) &&
+          areFlatArraysEqual(outputLines,
+            [
+              '<js/js>'
+            ].map(sanitizeForHTMLOutput))
+        );
+      });
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_jscp_index_empty,
-  test_contents_002_jscp_index_console_log
+  test_contents_002_jscp_index_console_log,
+  test_contents_003_jscp_index_rt_print,
+  test_contents_004_jscp_index_syntax_error,
+  test_contents_005_jscp_index_rt_print_pt2,
+  test_contents_006_jscp_index_special_symbols_in_strings
 ];

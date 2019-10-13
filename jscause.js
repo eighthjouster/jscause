@@ -4873,7 +4873,8 @@ function getAllElementsToSupportTesting()
     formatLogMessage,
     getCurrentLogFileName,
     processStaticFile,
-    startApplication
+    startApplication,
+    sanitizeForHTMLOutput
   };
   return allElementsToSupportTesting;
 }
