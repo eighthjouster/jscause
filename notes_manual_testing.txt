@@ -3,10 +3,6 @@ Pending:
 
 Please continue with the actual test building:
 
- - GET parameters.
-   - Any limitations we need to test?
-     - Parameters with no values. ?param1=abc&param2=&param3=cde
-       - What should param2 return? ''?
  - POST requests (in another file.)
    - POST parameters.
      - As forms.

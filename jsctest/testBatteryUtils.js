@@ -140,7 +140,7 @@ const testUtils =
   initConsoleLogCapture()
   {
     const originalConsoleLog = console.log;
-    console.log = (message) => { console.log.output.push(message); };
+    console.log = function() { console.log.output.push(Object.values(arguments).reduce((a,b)=> `${a} ${b}`)); };
     console.log.original = originalConsoleLog;
     console.log.output = [];
   },
