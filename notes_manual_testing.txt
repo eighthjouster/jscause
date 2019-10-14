@@ -4,7 +4,10 @@ Pending:
 Please continue with the actual test building:
 
  - GET parameters.
- - POST requests.
+   - Any limitations we need to test?
+     - Parameters with no values. ?param1=abc&param2=&param3=cde
+       - What should param2 return? ''?
+ - POST requests (in another file.)
    - POST parameters.
      - As forms.
      - As JSON.
@@ -19,7 +22,7 @@ AT THIS POINT: BACK UP.
   - Two sites, two separate temp upload directories, right?
  - At this point, release the alpha.
 
- - Handling PUT/DELETE requests (which I think aren't supported.)
+ - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
  - Stalling the page with a setTimeout.
  - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
    - Nesting.

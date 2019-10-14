@@ -55,7 +55,6 @@ const
     areFlatArraysEqual
   } = testUtils;
 
-  //__RP TO-DO: MAKE THE ACTUAL TEST.
 const test_contents_001_get_params = Object.assign(makeFromBaseTest('Contents; JSCP file; GET parameters'),
   makeTestEndBoilerplate.call(this),
   {
@@ -79,14 +78,130 @@ const test_contents_001_get_params = Object.assign(makeFromBaseTest('Contents; J
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+      initConsoleLogCapture();
+      this.tempTestData = { paramValue: Math.random().toString() };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.getParams[\'paramValue\']);');
+
       this.isRequestsTest = true;
     },
     onReadyForRequests()
     {
-      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
+      const { paramValue } = this.tempTestData;
+      const reqUrl = `/?paramValue=${paramValue}`;
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length;
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              paramValue
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_002_two_get_params = Object.assign(makeFromBaseTest('Contents; JSCP file; two GET parameters'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.tempTestData =
+        {
+          paramValue1: Math.random().toString(),
+          paramValue2: Math.random().toString()
+        };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '[1, 2, 3].forEach(n => console.log(rt.getParams[`paramValue${n}`]));');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { paramValue1, paramValue2 } = this.tempTestData;
+      const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              paramValue1,
+              paramValue2
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_003_two_get_params_one_undefined_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; two GET parameters, one undefined; part 1'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const someDefaultNumber = Math.random().toString();
+      this.tempTestData =
+        {
+          paramValue1: Math.random().toString(),
+          paramValue2: Math.random().toString(),
+          someDefaultNumber
+        };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `[1, 2, 3].forEach(n => console.log(rt.getParams[\`paramValue\${n}\`] || '${someDefaultNumber}'));`);
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { paramValue1, paramValue2, someDefaultNumber } = this.tempTestData;
+      const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              paramValue1,
+              paramValue2,
+              someDefaultNumber
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_003_two_get_params_one_undefined_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; two GET parameters, one undefined; part 2'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.tempTestData =
+        {
+          paramValue1: Math.random().toString(),
+          paramValue2: Math.random().toString()
+        };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '[1, 2, 3].forEach(n => console.log(rt.getParams[`paramValue${n}`]));');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { paramValue1, paramValue2 } = this.tempTestData;
+      const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              paramValue1,
+              paramValue2,
+              undefined
+            ]);
       });
     }
   }
@@ -94,4 +209,7 @@ const test_contents_001_get_params = Object.assign(makeFromBaseTest('Contents; J
 
 module.exports = [
   test_contents_001_get_params,
+  test_contents_002_two_get_params,
+  test_contents_003_two_get_params_one_undefined_pt1,
+  test_contents_003_two_get_params_one_undefined_pt2
 ];
