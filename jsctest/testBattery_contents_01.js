@@ -1,7 +1,6 @@
 'use strict';
 
 const testUtils = require('./testBatteryUtils');
-const http = require('http');
 
 const makeBaseSite = (extra = {}) =>
   Object.assign(
@@ -47,108 +46,16 @@ const makeBaseRequest = (extra = {}) =>
     }, extra
   );
 
-function makeTestEndBoilerplate()
-{
-  return {
-    onAllRequestsEnded()
-    {
-      this.terminateApplication({ onComplete: this.waitForDoneSignal() });
-    },
-    onBeforeTestEnd()
-    {
-      this.testPassed = this.testPassed && this.serverDidTerminate;
-    },
-    onTestEnd()
-    {
-      this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
-    }
-  };
-}
-
-function areFlatArraysEqual(a, b)
-{
-  return a.every((line, i) => b[i] === line) && (a.length || !b.length);
-}
-
-function performTestRequestAndOutput({ onResponseEnd: onResponseEndCb })
-{
-  const requestContext =
+const
   {
-    dataReceived: [],
-    consoleLogOutput: undefined,
-    statusCode: undefined
-  }
+    makeFromBaseTest,
+    makeTestEndBoilerplate,
+    processResponse,
+    initConsoleLogCapture,
+    areFlatArraysEqual
+  } = testUtils;
 
-  const { dataReceived } = requestContext;
-  const req = http.request(makeBaseRequest(),
-    (res) =>
-    {
-      if (res.statusCode >= 400)
-      {
-        console.error(`The response status code is an error ${res.statusCode}.`);
-      }
-      res.on('data', (data) => dataReceived.push(data));
-
-      res.on('end', () =>
-      {
-        requestContext.consoleLogOutput = endConsoleLogCapture();
-        requestContext.statusCode = res.statusCode;
-        onResponseEndCb && onResponseEndCb(requestContext);
-        this.doneRequestsTesting();
-      });
-    }
-  );
-
-  req.on('error', (error) =>
-  {
-    console.error('An error ocurred during the request.');
-    console.error(error);
-    this.doneRequestsTesting();
-  });
-
-  req.end();
-}
-
-function processResponse(onResponseEndCb)
-{
-  this.testPassed = false;
-  if (this.serverDidStart)
-  {
-    performTestRequestAndOutput.call(this,
-      {
-        onResponseEnd: onResponseEndCb
-      });
-  }
-  else
-  {
-    this.doneRequestsTesting();
-  }
-}
-
-function initConsoleLogCapture()
-{
-  const originalConsoleLog = console.log;
-  console.log = (message) => { console.log.output.push(message); };
-  console.log.original = originalConsoleLog;
-  console.log.output = [];
-}
-
-function endConsoleLogCapture()
-{
-  let consoleLogOutput;
-  if (console.log.original)
-  {
-    consoleLogOutput = { lines: console.log.output, status: 'captured' };
-    console.log = console.log.original;
-  }
-  else
-  {
-    consoleLogOutput = { lines: [], status: 'No console output.  Call initConsoleLogCapture() inside onTestBeforeStart() to capture.' };
-  }
-  return consoleLogOutput;
-}
-
-const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; empty'),
+const test_contents_001_jscp_index_empty = Object.assign(makeFromBaseTest('Contents; JSCP file; index; empty'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -176,7 +83,7 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
     },
     onReadyForRequests()
     {
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         this.testPassed = !dataReceived.length;
       });
@@ -184,7 +91,7 @@ const test_contents_001_jscp_index_empty = Object.assign(testUtils.makeFromBaseT
   }
 );
 
-const test_contents_002_jscp_index_console_log = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; console.log'),
+const test_contents_002_jscp_index_console_log = Object.assign(makeFromBaseTest('Contents; JSCP file; index; console.log'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -196,7 +103,7 @@ const test_contents_002_jscp_index_console_log = Object.assign(testUtils.makeFro
     },
     onReadyForRequests()
     {
-      processResponse.call(this, ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived, consoleLogOutput }) =>
       {
         this.testPassed = !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
@@ -207,7 +114,7 @@ const test_contents_002_jscp_index_console_log = Object.assign(testUtils.makeFro
   }
 );
 
-const test_contents_003_jscp_index_rt_print = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; output "1" on page'),
+const test_contents_003_jscp_index_rt_print = Object.assign(makeFromBaseTest('Contents; JSCP file; index; output "1" on page'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -218,7 +125,7 @@ const test_contents_003_jscp_index_rt_print = Object.assign(testUtils.makeFromBa
     },
     onReadyForRequests()
     {
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         this.testPassed = ((dataReceived.length === 1) &&
                            (dataReceived[0].toString() === '1'));
@@ -227,7 +134,7 @@ const test_contents_003_jscp_index_rt_print = Object.assign(testUtils.makeFromBa
   }
 );
 
-const test_contents_004_jscp_index_syntax_error = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; "p" source'),
+const test_contents_004_jscp_index_syntax_error = Object.assign(makeFromBaseTest('Contents; JSCP file; index; "p" source'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -238,7 +145,7 @@ const test_contents_004_jscp_index_syntax_error = Object.assign(testUtils.makeFr
     },
     onReadyForRequests()
     {
-      processResponse.call(this, ({ statusCode }) =>
+      processResponse(this, makeBaseRequest(), ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 500);
       });
@@ -246,7 +153,7 @@ const test_contents_004_jscp_index_syntax_error = Object.assign(testUtils.makeFr
   }
 );
 
-const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; output "p" on page'),
+const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; index; output "p" on page'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -257,7 +164,7 @@ const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(testUtils.makeFr
     },
     onReadyForRequests()
     {
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = areFlatArraysEqual(outputLines,
@@ -271,7 +178,7 @@ const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(testUtils.makeFr
   }
 );
 
-const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; special "<>" in strings.'),
+const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(makeFromBaseTest('Contents; JSCP file; index; special "<>" in strings.'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -290,7 +197,7 @@ const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(te
     onReadyForRequests()
     {
       const { jscLib: { sanitizeForHTMLOutput } } = this;
-      processResponse.call(this, ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived, consoleLogOutput }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = (
@@ -310,7 +217,7 @@ const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(te
   }
 );
 
-const test_contents_007_jscp_index_multiple_output_tests = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; mutiple output tests.'),
+const test_contents_007_jscp_index_multiple_output_tests = Object.assign(makeFromBaseTest('Contents; JSCP file; index; mutiple output tests.'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -358,7 +265,7 @@ const test_contents_007_jscp_index_multiple_output_tests = Object.assign(testUti
     onReadyForRequests()
     {
       const { jscLib: { sanitizeForHTMLOutput } } = this;
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = (
@@ -385,7 +292,7 @@ const test_contents_007_jscp_index_multiple_output_tests = Object.assign(testUti
   }
 );
 
-const test_contents_008_jscp_index_html_indicator = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; initial html indicator.'),
+const test_contents_008_jscp_index_html_indicator = Object.assign(makeFromBaseTest('Contents; JSCP file; index; initial html indicator.'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -401,7 +308,7 @@ const test_contents_008_jscp_index_html_indicator = Object.assign(testUtils.make
     onReadyForRequests()
     {
       const { jscLib: { sanitizeForHTMLOutput } } = this;
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = (
@@ -417,7 +324,7 @@ const test_contents_008_jscp_index_html_indicator = Object.assign(testUtils.make
   }
 );
 
-const test_contents_009_jscp_index_html_indicator_pt2 = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; initial html indicator, part 2.'),
+const test_contents_009_jscp_index_html_indicator_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; index; initial html indicator, part 2.'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -434,7 +341,7 @@ const test_contents_009_jscp_index_html_indicator_pt2 = Object.assign(testUtils.
     onReadyForRequests()
     {
       const { jscLib: { sanitizeForHTMLOutput } } = this;
-      processResponse.call(this, ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = (
@@ -450,7 +357,7 @@ const test_contents_009_jscp_index_html_indicator_pt2 = Object.assign(testUtils.
   }
 );
 
-const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(testUtils.makeFromBaseTest('Contents; JSCP file; index; initial html indicator, part 3.'),
+const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; index; initial html indicator, part 3.'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -468,7 +375,7 @@ const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(testUtils.
     onReadyForRequests()
     {
       const { jscLib: { sanitizeForHTMLOutput } } = this;
-      processResponse.call(this, ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest(), ({ dataReceived, consoleLogOutput }) =>
       {
         const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
         this.testPassed = (

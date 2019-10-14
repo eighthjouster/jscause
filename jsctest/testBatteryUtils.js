@@ -1,7 +1,10 @@
 'use strict';
 
+const http = require('http');
+
 // If there is only one test, then there will be no need to put it in an array.
-module.exports = {
+const testUtils =
+{
   makeFromBaseTest: (testName) =>
   {
     return {
@@ -132,5 +135,111 @@ module.exports = {
       'BAD CONTENTS',
       '-----END RSA PRIVATE KEY-----',
       ''
-    ].join('\n')
+    ].join('\n'),
+
+  initConsoleLogCapture()
+  {
+    const originalConsoleLog = console.log;
+    console.log = (message) => { console.log.output.push(message); };
+    console.log.original = originalConsoleLog;
+    console.log.output = [];
+  },
+    
+  endConsoleLogCapture()
+  {
+    let consoleLogOutput;
+    if (console.log.original)
+    {
+      consoleLogOutput = { lines: console.log.output, status: 'captured' };
+      console.log = console.log.original;
+    }
+    else
+    {
+      consoleLogOutput = { lines: [], status: 'No console output.  Call initConsoleLogCapture() inside onTestBeforeStart() to capture.' };
+    }
+    return consoleLogOutput;
+  },
+
+  areFlatArraysEqual(a, b)
+  {
+    return a.every((line, i) => b[i] === line) && (a.length || !b.length);
+  },
+
+  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext })
+  {
+    const requestContext =
+    {
+      dataReceived: [],
+      consoleLogOutput: undefined,
+      statusCode: undefined
+    }
+
+    const { dataReceived } = requestContext;
+    const req = http.request(request,
+      (res) =>
+      {
+        if (res.statusCode >= 400)
+        {
+          console.error(`The response status code is an error ${res.statusCode}.`);
+        }
+        res.on('data', (data) => dataReceived.push(data));
+
+        res.on('end', () =>
+        {
+          requestContext.consoleLogOutput = testUtils.endConsoleLogCapture();
+          requestContext.statusCode = res.statusCode;
+          onResponseEndCb && onResponseEndCb(requestContext);
+          testContext.doneRequestsTesting();
+        });
+      }
+    );
+
+    req.on('error', (error) =>
+    {
+      console.error('An error ocurred during the request.');
+      console.error(error);
+      testContext.doneRequestsTesting();
+    });
+
+    req.end();
+  },
+
+  makeTestEndBoilerplate()
+  {
+    return {
+      onAllRequestsEnded()
+      {
+        this.terminateApplication({ onComplete: this.waitForDoneSignal() });
+      },
+      onBeforeTestEnd()
+      {
+        this.testPassed = this.testPassed && this.serverDidTerminate;
+      },
+      onTestEnd()
+      {
+        this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
+      }
+    };
+  },
+
+  processResponse(context, request, onResponseEndCb)
+  {
+    context.testPassed = false;
+    if (context.serverDidStart)
+    {
+      testUtils.performTestRequestAndOutput(
+        {
+          onResponseEnd: onResponseEndCb,
+          request,
+          doneRequestsTesting: context.doneRequestsTesting,
+          context
+        });
+    }
+    else
+    {
+      context.doneRequestsTesting();
+    }
+  }
 };
+
+module.exports = testUtils;

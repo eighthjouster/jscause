@@ -2,7 +2,7 @@
 
 const allTests =
 [
-  // 'testBattery_001',
+  // 'testBattery_001', //__RP
   // 'testBattery_002',
   // 'testBattery_003',
   // 'testBattery_004',
@@ -20,7 +20,8 @@ const allTests =
   // 'testBattery_016',
   // 'testBattery_017',
   // 'testBattery_018',
-  'testBattery_contents_01'
+  // 'testBattery_contents_01',
+  'testBattery_contents_02'
 ];
 
 const fs = require('fs');
