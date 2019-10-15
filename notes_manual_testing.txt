@@ -3,15 +3,19 @@ Pending:
 
 Please continue with the actual test building:
 
- - POST requests (in another file.)
-   - POST parameters.
-     - As forms.
-       - Limit exceeds.
-     - As JSON.
-       - Limit exceeds.
-     - As some other format (it should throw error 500, I think?)
-       - Limit exceeds.
-   - Forbidden uploads options.
++- POST parameters.
+  +- As forms.
+    *- Simple test.
+    *- Forbidden uploads options.
+    +- Limit exceeds.
+  - As JSON.
+    - Simple test.
+    - Forbidden uploads options.
+    - Limit exceeds.
+  - As some other format (it should throw error 500, I think?)
+    - Simple test.
+    - Forbidden uploads options.
+    - Limit exceeds.
 
 Make sure that when you specify a get param, it appears in getParams ONLY.  Same with postParams.
 
@@ -20,9 +24,12 @@ The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
 
 AT THIS POINT: BACK UP.
 
- - Uploads:
+ - File uploads:
   - Two sites, two separate temp upload directories, right?
   - Forbidden uploads.
+  - Slooow upload (do we have a timeout option?)
+  - Limit exceeds.
+  - Upload interrupted by client.
  - At this point, release the alpha.
 
  - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
