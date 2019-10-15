@@ -165,13 +165,18 @@ const testUtils =
     return a.every((line, i) => b[i] === line) && (a.length || !b.length);
   },
 
-  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext })
+  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData } = {})
   {
     const requestContext =
     {
       dataReceived: [],
       consoleLogOutput: undefined,
       statusCode: undefined
+    }
+
+    if ((request.method === 'POST') && (typeof(postData) === 'undefined'))
+    {
+      console.warn('WARNING: The request method is POST, and postData is undefined; in case this is not deliberate.');
     }
 
     const { dataReceived } = requestContext;
@@ -201,6 +206,11 @@ const testUtils =
       testContext.doneRequestsTesting();
     });
 
+    if (typeof(postData) !== 'undefined')
+    {
+      req.write(postData);
+    }
+
     req.end();
   },
 
@@ -222,7 +232,7 @@ const testUtils =
     };
   },
 
-  processResponse(context, request, onResponseEndCb)
+  processResponse(context, request, onResponseEndCb, postData)
   {
     context.testPassed = false;
     if (context.serverDidStart)
@@ -232,7 +242,8 @@ const testUtils =
           onResponseEnd: onResponseEndCb,
           request,
           doneRequestsTesting: context.doneRequestsTesting,
-          context
+          context,
+          postData
         });
     }
     else

@@ -227,7 +227,7 @@ const test_contents_004_two_get_params_one_empty = Object.assign(makeFromBaseTes
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              ['1', '', '3'].join(' '),
+              ['1', '', '3'].join(' ')
             ]);
       });
     }

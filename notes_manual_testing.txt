@@ -6,8 +6,14 @@ Please continue with the actual test building:
  - POST requests (in another file.)
    - POST parameters.
      - As forms.
+       - Limit exceeds.
      - As JSON.
+       - Limit exceeds.
      - As some other format (it should throw error 500, I think?)
+       - Limit exceeds.
+   - Forbidden uploads options.
+
+Make sure that when you specify a get param, it appears in getParams ONLY.  Same with postParams.
 
 Put in the test dev docs:
 The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
@@ -16,6 +22,7 @@ AT THIS POINT: BACK UP.
 
  - Uploads:
   - Two sites, two separate temp upload directories, right?
+  - Forbidden uploads.
  - At this point, release the alpha.
 
  - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
@@ -30,6 +37,7 @@ AT THIS POINT: BACK UP.
    - Default index.jscp
  - Static files.
  - Static files requested with POST.
+ - Headers.
 
 At this point, _manually test_ (for real) the rest (uploads, serving error files, etc.)
  - Maybe you can document your steps, for reference when implementing more tests in the future.

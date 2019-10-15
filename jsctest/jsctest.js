@@ -21,7 +21,8 @@ const allTests =
   // 'testBattery_017',
   // 'testBattery_018',
   // 'testBattery_contents_01',
-  'testBattery_contents_02'
+  // 'testBattery_contents_02',
+  'testBattery_contents_03'
 ];
 
 const fs = require('fs');
