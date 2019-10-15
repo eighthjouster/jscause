@@ -3,34 +3,43 @@ Pending:
 
 Please continue with the actual test building:
 
-+- POST parameters.
-  *- As forms.
-    *- Simple test.
-    *- Forbidden uploads options.
-    *- Limit exceeds.
-  - As JSON.
-    - Simple test.
-    - Forbidden uploads options.
-    - Limit exceeds.
-  - As some other format (it should throw error 500, I think?)
+UP NEXT:
+  +- What if the client says "json" but sends form data?  And vice-versa?
+  
+- What if we try to POST with some format other than json and form?
+  - It should throw error 500, I think?  If not, then:
     - Simple test.
     - Forbidden uploads options.
     - Limit exceeds.
 
+AT THIS POINT: BACK UP.
+
 Make sure that when you specify a get param, it appears in getParams ONLY.  Same with postParams.
+
+ - File uploads:
+  - Simple test.
+    - Check that temp files are erased.
+  - Forbidden uploads.
+    - Check that temp files are erased.
+  - Slooow upload (do we have a timeout option?)
+  - Limit exceeds.
+  - Upload interrupted by client.
+    - Check that temp files are erased.
+  - Test malformed/"evil attacker" filenames.
+  - Check that uploaded can be copied elsewhere.
+ - Two sites, two separate temp upload directories, right?
 
 Put in the test dev docs:
 The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
 
 AT THIS POINT: BACK UP.
 
- - File uploads:
-  - Two sites, two separate temp upload directories, right?
-  - Forbidden uploads.
-  - Slooow upload (do we have a timeout option?)
-  - Limit exceeds.
-  - Upload interrupted by client.
  - At this point, release the alpha.
+
+Then:
+_Manually test_ (for real) the rest (uploads, serving error files, etc.)
+ - Maybe you can document your steps, for reference when implementing more tests in the future.
+   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
 
  - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
  - Stalling the page with a setTimeout.
@@ -45,9 +54,5 @@ AT THIS POINT: BACK UP.
  - Static files.
  - Static files requested with POST.
  - Headers.
-
-At this point, _manually test_ (for real) the rest (uploads, serving error files, etc.)
- - Maybe you can document your steps, for reference when implementing more tests in the future.
-   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
 
 Then, refer to notes_testing.txt
