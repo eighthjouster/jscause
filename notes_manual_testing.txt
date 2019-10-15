@@ -4,10 +4,10 @@ Pending:
 Please continue with the actual test building:
 
 +- POST parameters.
-  +- As forms.
+  *- As forms.
     *- Simple test.
     *- Forbidden uploads options.
-    +- Limit exceeds.
+    *- Limit exceeds.
   - As JSON.
     - Simple test.
     - Forbidden uploads options.

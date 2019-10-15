@@ -209,8 +209,167 @@ const test_contents_003_post_params_form_pt3 = Object.assign(makeFromBaseTest('C
   }
 );
 
+const test_contents_004_post_params_form_maxpayload_precheck_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form; max payload; under threshold; must pass'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterIdLength = Math.floor(Math.random() * 10) + 10;
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const preMaxPayloadSizeBytes = parameterIdLength + parameterValueLength + 1; // Add 1 for the equal sign in the parameters.
+      const maxPayloadSizeBytes = preMaxPayloadSizeBytes + 1;
+
+      this.tempTestData = { parameterIdLength, parameterValueLength, maxPayloadSizeBytes };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { parameterIdLength, parameterValueLength } = this.tempTestData;
+      const parameterName = 'a'.repeat(parameterIdLength);
+      const postData = querystring.stringify(
+        {
+          [parameterName]: 'B'.repeat(parameterValueLength)
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_005_post_params_form_maxpayload_precheck_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form; max payload; reached threshold; must pass'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterIdLength = Math.floor(Math.random() * 10) + 10;
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const preMaxPayloadSizeBytes = parameterIdLength + parameterValueLength + 1; // Add 1 for the equal sign in the parameters.
+      const maxPayloadSizeBytes = preMaxPayloadSizeBytes;
+
+      this.tempTestData = { parameterIdLength, parameterValueLength, maxPayloadSizeBytes };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { parameterIdLength, parameterValueLength } = this.tempTestData;
+      const parameterName = 'a'.repeat(parameterIdLength);
+      const postData = querystring.stringify(
+        {
+          [parameterName]: 'B'.repeat(parameterValueLength)
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_006_post_params_form_maxpayload_actualcheck = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form; max payload; above threshold; must fail'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterIdLength = Math.floor(Math.random() * 10) + 10;
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const preMaxPayloadSizeBytes = parameterIdLength + parameterValueLength + 1; // Add 1 for the equal sign in the parameters.
+      const maxPayloadSizeBytes = preMaxPayloadSizeBytes - 1;
+
+      this.tempTestData = { parameterIdLength, parameterValueLength, maxPayloadSizeBytes };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { parameterIdLength, parameterValueLength } = this.tempTestData;
+      const parameterName = 'a'.repeat(parameterIdLength);
+      const postData = querystring.stringify(
+        {
+          [parameterName]: 'B'.repeat(parameterValueLength)
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 413);
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_pt1,
   test_contents_002_post_params_form_pt2_forbidden,
-  test_contents_003_post_params_form_pt3
+  test_contents_003_post_params_form_pt3,
+  test_contents_004_post_params_form_maxpayload_precheck_pt1,
+  test_contents_005_post_params_form_maxpayload_precheck_pt2,
+  test_contents_006_post_params_form_maxpayload_actualcheck
 ];

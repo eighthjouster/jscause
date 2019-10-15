@@ -2483,7 +2483,7 @@ function incomingRequestHandler(req, res, sitesInServer)
     
     const postedFormData = { params: {}, files: {}, pendingWork: { pendingRenaming: 0 } };
 
-    if (contentLength && maxPayloadSizeBytes && (contentLength >= maxPayloadSizeBytes))
+    if (contentLength && maxPayloadSizeBytes && (contentLength > maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
       sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
@@ -2537,7 +2537,7 @@ function incomingRequestHandler(req, res, sitesInServer)
 
       postedForm.on('progress', function(bytesReceived)
       {
-        if (maxPayloadSizeBytes && (bytesReceived >= maxPayloadSizeBytes))
+        if (maxPayloadSizeBytes && (bytesReceived > maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
           sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
@@ -2607,7 +2607,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         {
           const futureBodyLength = bodyLength + chunk.length;
 
-          if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength >= maxPayloadSizeBytes))
+          if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength > maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
             sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
