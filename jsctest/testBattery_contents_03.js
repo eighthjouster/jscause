@@ -159,7 +159,7 @@ const test_contents_002_post_params_form_pt2_forbidden = Object.assign(makeFromB
   }
 );
 
-const test_contents_003_post_params_form_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; part 3; random values'),
+const test_contents_003_post_params_form_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form; part 3; random values'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -459,7 +459,7 @@ const test_contents_008_post_params_json_pt2_forbidden = Object.assign(makeFromB
   }
 );
 
-const test_contents_009_post_params_json_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; part 3; random values'),
+const test_contents_009_post_params_json_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; json; part 3; random values'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -668,6 +668,273 @@ const test_contents_012_post_params_json_maxpayload_actualcheck = Object.assign(
   }
 );
 
+const test_contents_013_post_params_raw_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; part 1; random octets'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'rt.postParams[\'data\'].toJSON().data.forEach(c=>console.log(c));');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postDataArray = [...Array(5)].map(() => Math.floor(Math.random() * 256));
+      const postData = Buffer.from(postDataArray);
+      this.tempTestData = { postDataArray };
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ dataReceived, consoleLogOutput }) =>
+      {
+        const { postDataArray } = this.tempTestData;
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines, postDataArray);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_014_post_params_raw_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; part 2; random string'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.postParams[\'data\'].toString());');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postDataArray = [...Array(5)].map(() => Math.floor(Math.random() * 26) + 65);
+      const postData = Buffer.from(postDataArray).toString();
+
+      this.tempTestData = { postData };
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              postData
+            ]);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_015_post_params_raw_pt3_forbidden = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; part 3; forbidden uploads'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'canUpload': false
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postDataArray = [...Array(5)].map(() => 65);
+      const postData = Buffer.from(postDataArray);
+      this.tempTestData = { postDataArray };
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 403);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_016_post_params_raw_maxpayload_precheck_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; max payload; under threshold; must pass'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const payLoad = Buffer.from([...Array(parameterValueLength)].map(() => 65));
+      const maxPayloadSizeBytes = parameterValueLength + 1;
+
+      this.tempTestData = { payLoad };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { payLoad } = this.tempTestData;
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(payLoad)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200);
+      }, payLoad);
+    }
+  }
+);
+
+const test_contents_017_post_params_raw_maxpayload_precheck_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; max payload; reached threshold; must pass'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const payLoad = Buffer.from([...Array(parameterValueLength)].map(() => 65));
+      const maxPayloadSizeBytes = parameterValueLength;
+
+      this.tempTestData = { payLoad };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { payLoad } = this.tempTestData;
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(payLoad)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200);
+      }, payLoad);
+    }
+  }
+);
+
+const test_contents_018_post_params_raw_maxpayload_actualcheck = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; raw; max payload; above threshold; must fail'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const parameterValueLength = Math.floor(Math.random() * 10) + 10;
+      const payLoad = Buffer.from([...Array(parameterValueLength)].map(() => 65));
+      const maxPayloadSizeBytes = parameterValueLength - 1;
+
+      this.tempTestData = { payLoad };
+
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'maxPayloadSizeBytes': maxPayloadSizeBytes
+        }
+      );
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { payLoad } = this.tempTestData;
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': Buffer.byteLength(payLoad)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 413);
+      }, payLoad);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_pt1,
   test_contents_002_post_params_form_pt2_forbidden,
@@ -680,5 +947,11 @@ module.exports = [
   test_contents_009_post_params_json_pt3,
   test_contents_010_post_params_json_maxpayload_precheck_pt1,
   test_contents_011_post_params_json_maxpayload_precheck_pt2,
-  test_contents_012_post_params_json_maxpayload_actualcheck
+  test_contents_012_post_params_json_maxpayload_actualcheck,
+  test_contents_013_post_params_raw_pt1,
+  test_contents_014_post_params_raw_pt2,
+  test_contents_015_post_params_raw_pt3_forbidden,
+  test_contents_016_post_params_raw_maxpayload_precheck_pt1,
+  test_contents_017_post_params_raw_maxpayload_precheck_pt2,
+  test_contents_018_post_params_raw_maxpayload_actualcheck
 ];

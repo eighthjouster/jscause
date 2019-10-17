@@ -4,14 +4,8 @@ Pending:
 Please continue with the actual test building:
 
 UP NEXT:
-  +- What if the client says "json" but sends form data?  And vice-versa?
+- What if the client says "json" but sends form data?  And vice-versa?
   
-- What if we try to POST with some format other than json and form?
-  - It should throw error 500, I think?  If not, then:
-    - Simple test.
-    - Forbidden uploads options.
-    - Limit exceeds.
-
 AT THIS POINT: BACK UP.
 
 Make sure that when you specify a get param, it appears in getParams ONLY.  Same with postParams.

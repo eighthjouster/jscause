@@ -700,7 +700,7 @@ function JSCLogQueueNext()
 
   //__RP
   consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output to the console when debugging tests.  
-  if (toConsole && consoleOutputDuringTest)
+  if (toConsole || consoleOutputDuringTest)
   {
     if (outputToConsole)
     {
@@ -2110,7 +2110,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       break;
 
     default:
-      // Assumed postData (text/plain).  Pass it raw.
+      // Assumed postData (application/octet-stream).  Pass it raw.
       postParams = { data: Buffer.concat(requestBody) };
   }
 
