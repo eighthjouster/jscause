@@ -969,7 +969,9 @@ const test_contents_019_post_params_discrepancies_form_json = Object.assign(make
 
       processResponse(this, postRequest, ({ consoleLogOutput, statusCode }) =>
       {
-        this.testPassed = (statusCode === 200) && areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
+        this.testPassed = (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
       }, postData);
     }
   }
@@ -1004,7 +1006,9 @@ const test_contents_020_post_params_discrepancies_form_raw = Object.assign(makeF
 
       processResponse(this, postRequest, ({ consoleLogOutput, statusCode }) =>
       {
-        this.testPassed = (statusCode === 200) && areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
+        this.testPassed = (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
       }, postData);
     }
   }
@@ -1078,6 +1082,127 @@ const test_contents_022_post_params_discrepancies_json_raw = Object.assign(makeF
   }
 );
 
+const test_contents_023_get_post_params_get_no_post = Object.assign(makeFromBaseTest('Contents; JSCP file; GET in GET params, not POST params'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.getParams[\'a\']);console.log(rt.postParams[\'a\']);');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const reqUrl = '/?a=123';
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              '123',
+              undefined
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_024_get_post_params_post_no_get = Object.assign(makeFromBaseTest('Contents; JSCP file; POST in POST params, not GET params'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.getParams[\'b\']);console.log(rt.postParams[\'b\']);');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postData = querystring.stringify(
+        {
+          'b': '456'
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              undefined,
+              '456'
+            ]);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_025_get_post_params_getpost_no_crossing = Object.assign(makeFromBaseTest('Contents; JSCP file; POST in POST params, GET in GET params'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.getParams[\'c\']);console.log(rt.postParams[\'c\']);console.log(rt.getParams[\'d\']);console.log(rt.postParams[\'d\']);');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const reqUrl = '/?c=789';
+      const postData = querystring.stringify(
+        {
+          'd': '012'
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          path: reqUrl,
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              '789',
+              undefined,
+              undefined,
+              '012'
+            ]);
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_pt1,
   test_contents_002_post_params_form_pt2_forbidden,
@@ -1100,5 +1225,8 @@ module.exports = [
   test_contents_019_post_params_discrepancies_form_json,
   test_contents_020_post_params_discrepancies_form_raw,
   test_contents_021_post_params_discrepancies_json_form,
-  test_contents_022_post_params_discrepancies_json_raw
+  test_contents_022_post_params_discrepancies_json_raw,
+  test_contents_023_get_post_params_get_no_post,
+  test_contents_024_get_post_params_post_no_get,
+  test_contents_025_get_post_params_getpost_no_crossing
 ];

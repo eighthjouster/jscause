@@ -3,8 +3,6 @@ Pending:
 
 Please continue with the actual test building:
 
-Make sure that when you specify a get param, it appears in getParams ONLY.  Same with postParams.
-
  - File uploads:
   - Simple test.
     - Check that temp files are erased.
