@@ -935,6 +935,149 @@ const test_contents_018_post_params_raw_maxpayload_actualcheck = Object.assign(m
   }
 );
 
+const test_contents_019_post_params_discrepancies_form_json = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; discrepancies; expects form, gets json'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `console.log(rt.postParams['{"a":"b"}']); console.log(rt.postParams['${Math.random()}']);`);
+
+      initConsoleLogCapture();
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postData = JSON.stringify(
+        {
+          'a': 'b'
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ consoleLogOutput, statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200) && areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_020_post_params_discrepancies_form_raw = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; discrepancies; expects form, gets raw'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const rawString = Math.random().toString();
+      this.tempTestData = { rawString };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `console.log(rt.postParams['${rawString}']); console.log(rt.postParams['${Math.random()}']);`);
+
+      initConsoleLogCapture();
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { rawString: postData } = this.tempTestData;
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ consoleLogOutput, statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200) && areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_021_post_params_discrepancies_json_form = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; discrepancies; expects json, gets form'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postData = querystring.stringify(
+        {
+          'txt_name': 'some_name'
+        }
+      );
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 400);
+      }, postData);
+    }
+  }
+);
+
+const test_contents_022_post_params_discrepancies_json_raw = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; discrepancies; expects json, gets raw'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const postData = `whatever${Math.random()}`.toString();
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 400);
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_pt1,
   test_contents_002_post_params_form_pt2_forbidden,
@@ -953,5 +1096,9 @@ module.exports = [
   test_contents_015_post_params_raw_pt3_forbidden,
   test_contents_016_post_params_raw_maxpayload_precheck_pt1,
   test_contents_017_post_params_raw_maxpayload_precheck_pt2,
-  test_contents_018_post_params_raw_maxpayload_actualcheck
+  test_contents_018_post_params_raw_maxpayload_actualcheck,
+  test_contents_019_post_params_discrepancies_form_json,
+  test_contents_020_post_params_discrepancies_form_raw,
+  test_contents_021_post_params_discrepancies_json_form,
+  test_contents_022_post_params_discrepancies_json_raw
 ];
