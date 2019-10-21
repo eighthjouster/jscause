@@ -3,9 +3,15 @@ Pending:
 
 Please continue with the actual test building:
 
- - File uploads:
-  - Simple test.
+Before continuing:
+Huh, when there is a form upload parsing error ('Form upload related error.'), the test battery stalls.  At least, it should do a timeout or something.  Fix this.
+
+ +- File uploads:
+  *- Simple test: Just one text field.
+  +- Simple test: Two text fields.
+  - Simple test: Harcoded "upload" data, just text.
     - Check that temp files are erased.
+  - What else?  Two uploaded files in the same request?  Actual binary data?  Large files? File and fields?  FileS and fields?
   - Forbidden uploads.
     - Check that temp files are erased.
   - Slooow upload (do we have a timeout option?)
@@ -19,6 +25,8 @@ Please continue with the actual test building:
 Put in the test dev docs:
 The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
 
+Do we have access to the requester's user agent? User-Agent header entry?
+
 AT THIS POINT: BACK UP.
 
  - At this point, release the alpha.
@@ -29,6 +37,7 @@ _Manually test_ (for real) the rest (uploads, serving error files, etc.)
    - And then check that entries are already documented elsewhere in the document, and delete duplicates.
 
  - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
+   - They must return error 405.
  - Stalling the page with a setTimeout.
  - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
    - Nesting.
