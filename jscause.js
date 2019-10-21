@@ -2591,7 +2591,7 @@ function incomingRequestHandler(req, res, sitesInServer)
           }
         }
 
-        if (!isUpload || !formFilesKeys)
+        if (!isUpload || !formFilesKeys || !formFilesKeys.length)
         {
           responder(serverConfig, identifiedSite, resContext, { formContext });
         }
