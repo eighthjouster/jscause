@@ -1483,7 +1483,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogDir, siteLogDir });
       }
 
-      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
+      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode, formUploadErrorOccurred } = ctx;
 
       if (runtimeException)
       {
@@ -1498,7 +1498,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
           });
       }
 
-      if (runtimeException || compileTimeError)
+      if (runtimeException || compileTimeError || formUploadErrorOccurred)
       {
         handleError5xx(reqObject, resObject, serverConfig, identifiedSite);
         return;
@@ -2059,7 +2059,8 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       formFiles,
       formData,
       maxSizeExceeded: formMaxSizeExceeded = false,
-      forbiddenUploadAttempted: formForbiddenUploadAttempted = false
+      forbiddenUploadAttempted: formForbiddenUploadAttempted = false,
+      formUploadErrorOccurred = false
     } = formContext || {};
   
   const
@@ -2125,6 +2126,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       redirection: { willHappen: false },
       runAfterQueue: undefined,
       runtimeException: undefined,
+      formUploadErrorOccurred,
       statusCode: statusCode || 200,
       uploadedFiles,
       waitForNextId: 1,
@@ -2141,28 +2143,35 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
-    const { compiledFiles } = identifiedSite;
-    const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
-    if (compiledCode)
+    if (formUploadErrorOccurred)
     {
-      printInit(resContext);
-      runAfterInit(resContext);
-      try
-      {
-        compiledCode.call({}, runTime);
-      }
-      catch (e)
-      {
-        resContext.runtimeException = e;
-      }
-
-      assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
-
-      finishUpHeaders(resContext);
+      resContext.statusCode = 500;
     }
     else
     {
-      resContext.compileTimeError = true;
+      const { compiledFiles } = identifiedSite;
+      const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
+      if (compiledCode)
+      {
+        printInit(resContext);
+        runAfterInit(resContext);
+        try
+        {
+          compiledCode.call({}, runTime);
+        }
+        catch (e)
+        {
+          resContext.runtimeException = e;
+        }
+
+        assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
+
+        finishUpHeaders(resContext);
+      }
+      else
+      {
+        resContext.compileTimeError = true;
+      }
     }
   }
   
@@ -2499,18 +2508,6 @@ function incomingRequestHandler(req, res, sitesInServer)
 
       postedForm.parse(req);
 
-      postedForm.on('error', (err) =>
-      {
-        JSCLog('error', 'Form upload related error.',
-          {
-            e: err,
-            toConsole: doLogToConsole,
-            toServerDir: serverLogDir,
-            toSiteDir: siteLogDir,
-            fileSizeThreshold: logFileSizeThreshold
-          });
-      });
-
       postedForm.on('field', (name, value) =>
       {
         postedFormData.params[name] = value;
@@ -2544,10 +2541,24 @@ function incomingRequestHandler(req, res, sitesInServer)
         }
       });
 
-      postedForm.on('end', () =>
+      const formEnd = (err) =>
       {
         const { params: formData, files: formFiles, pendingWork } = postedFormData;
         const postType = (isUpload) ? 'formDataWithUpload' : 'formData';
+        let formUploadErrorOccurred = false;
+
+        if (err)
+        {
+          JSCLog('error', 'Form upload related error.',
+            {
+              e: err,
+              toConsole: doLogToConsole,
+              toServerDir: serverLogDir,
+              toSiteDir: siteLogDir,
+              fileSizeThreshold: logFileSizeThreshold
+            });
+          formUploadErrorOccurred = true;
+        }
 
         const resContext =
         {
@@ -2563,7 +2574,8 @@ function incomingRequestHandler(req, res, sitesInServer)
           formFiles,
           formData,
           maxSizeExceeded,
-          forbiddenUploadAttempted
+          forbiddenUploadAttempted,
+          formUploadErrorOccurred
         };
 
         let formFilesKeys;
@@ -2595,7 +2607,11 @@ function incomingRequestHandler(req, res, sitesInServer)
         {
           responder(serverConfig, identifiedSite, resContext, { formContext });
         }
-      });
+      };
+
+      postedForm.on('error', formEnd);
+
+      postedForm.on('end', formEnd);
     }
     else
     {

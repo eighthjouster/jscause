@@ -1,7 +1,5 @@
 'use strict';
 
-const querystring = require('querystring');
-
 const testUtils = require('./testBatteryUtils');
 
 const makeBaseSite = (extra = {}) =>
@@ -121,6 +119,86 @@ const test_contents_001_post_params_form_uploading_pt1 = Object.assign(makeFromB
   }
 );
 
+const test_contents_002_post_params_form_uploading_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one text field; malformed request'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="some_field_name"',
+        '',
+        'some_field_value',
+        `--${formBoundary}`,
+      ].join('\n'); // \r\n is required by HTTP specs.  Deliberating using \n so the form upload fails.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = statusCode === 500;
+      }, postData);
+    }
+  }
+);
+
+const test_contents_003_post_params_form_uploading_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one text field; malformed request, part 2'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const formBoundary = 'some_boundary_123';
+      const postData = // Deliberately leaving formBoundary out of postData to trigger an error.
+      [
+        'Content-Disposition: form-data; name="some_field_name"',
+        '',
+        'some_field_value'
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = statusCode === 500;
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
-  test_contents_001_post_params_form_uploading_pt1
+  test_contents_001_post_params_form_uploading_pt1,
+  test_contents_002_post_params_form_uploading_pt2,
+  test_contents_003_post_params_form_uploading_pt3
 ];

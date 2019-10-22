@@ -3,9 +3,6 @@ Pending:
 
 Please continue with the actual test building:
 
-Before continuing:
-Huh, when there is a form upload parsing error ('Form upload related error.'), the test battery stalls.  At least, it should do a timeout or something.  Fix this.
-
  +- File uploads:
   *- Simple test: Just one text field.
   +- Simple test: Two text fields.
@@ -15,6 +12,7 @@ Huh, when there is a form upload parsing error ('Form upload related error.'), t
   - Forbidden uploads.
     - Check that temp files are erased.
   - Slooow upload (do we have a timeout option?)
+    - Or when maxlength is wrong (never ending upload; there should be a timeout, right?)
   - Limit exceeds.
   - Upload interrupted by client.
     - Check that temp files are erased.
