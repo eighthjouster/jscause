@@ -1546,7 +1546,7 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
     {
       try
       {
-        cb.call({}, ...params);
+        cb.apply({}, params);
       }
       catch(e)
       {
@@ -1610,7 +1610,7 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
     {
       try
       {
-        actorCallback.call({}, ...params);
+        actorCallback.apply({}, params);
       }
       catch(e)
       {
@@ -1688,11 +1688,11 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
   });
 
   new Promise(rtPromise)
-    .then(jscThen(() =>
+    .then(jscThen((...params) =>
     {
       if (promiseContext.successWaitForId)
       {
-        rtContext.waitForQueue[promiseContext.successWaitForId]();
+        rtContext.waitForQueue[promiseContext.successWaitForId].apply({}, params);
       }
       else
       {

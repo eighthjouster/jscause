@@ -5,19 +5,25 @@ Please continue with the actual test building:
 
  +- File uploads:
   *- Simple test: Just one text field.
-  +- Simple test: Two text fields.
-  - Simple test: Harcoded "upload" data, just text.
-    - Check that temp files are erased.
+  *- Simple test: Two text fields.
+  *- Simple test: Harcoded "upload" data, just text.
+    +- Check that temp files are erased.
+     - The one provided by the application.
+     - And the one provided by formidable, if applies.
   - What else?  Two uploaded files in the same request?  Actual binary data?  Large files? File and fields?  FileS and fields?
   - Forbidden uploads.
     - Check that temp files are erased.
+     - The one provided by the application.
+     - And the one provided by formidable, if applies.
   - Slooow upload (do we have a timeout option?)
     - Or when maxlength is wrong (never ending upload; there should be a timeout, right?)
   - Limit exceeds.
   - Upload interrupted by client.
     - Check that temp files are erased.
+     - The one provided by the application.
+     - And the one provided by formidable, if applies.
   - Test malformed/"evil attacker" filenames.
-  - Check that uploaded can be copied elsewhere.
+  - Check that uploaded files can be copied elsewhere.
  - Two sites, two separate temp upload directories, right?
 
 Put in the test dev docs:
