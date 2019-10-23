@@ -1,24 +1,22 @@
 Pending:
 ========
 
-Document:
-monitoredLogMessages
-and
-onMonitoredLogMessageFound().
-Put them in 000_EXAMPLE and makeFromBaseTest().
-and the use of functionCallListeners.
-
 Please continue with the actual test building:
 
  +- File uploads:
   *- Simple test: Just one text field.
   *- Simple test: Two text fields.
   *- Simple test: Harcoded "upload" data, just text.
-NEXT UP: IMPORTANT:  - CHECK that the file name is sanitized.
   *- Check that temp files are erased.
     *- The one provided by the application.
     *- And the one provided by formidable, if applies.
-  - What else?  Two uploaded files in the same request?  Actual binary data?  Large files? File and fields?  FileS and fields?
+  +- Check that two files with the same name (not file name, but same field name) is handled gracefully.
+    - Right now, doDeleteFile barfs, and the test don't even complete.
+      - First step:  Make the steps complete (and not passing, of course.)
+      - Second step: Add a warning or something.
+      - Third step: Handle this gracefully.
+        - Extend this to functions in the same league as doDeleteFile?
+  - What else?  Actual binary data?  Large files? File and fields?  FileS and fields?
   - Forbidden uploads.
     - Check that temp files are erased.
      - The one provided by the application.
@@ -30,12 +28,7 @@ NEXT UP: IMPORTANT:  - CHECK that the file name is sanitized.
     - Check that temp files are erased.
      - The one provided by the application.
      - And the one provided by formidable, if applies.
-  - Test malformed/"evil attacker" filenames.
-  - Check that uploaded files can be copied elsewhere.
  - Two sites, two separate temp upload directories, right?
-
-Put in the test dev docs:
-The use of initConsoleLogCapture(), endConsoleLogCapture() and processResponse()
 
 Do we have access to the requester's user agent? User-Agent header entry?
 

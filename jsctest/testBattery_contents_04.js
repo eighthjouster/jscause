@@ -398,11 +398,102 @@ const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.a
   }
 );
 
+const test_contents_007_post_params_form_uploading_one_file_field_unsafe_name = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; unsafe name'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const testCode =
+      [
+        'console.log(rt.uploadedFiles[\'file1\'].unsafeName);',
+        'console.log(rt.uploadedFiles[\'file1\'].name);',
+        'console.log(rt.uploadedFiles[\'file2\'].unsafeName);',
+        'console.log(rt.uploadedFiles[\'file2\'].name);',
+        'console.log(rt.uploadedFiles[\'file3\'].unsafeName);',
+        'console.log(rt.uploadedFiles[\'file3\'].name);',
+        'console.log(rt.uploadedFiles[\'file4\'].unsafeName);',
+        'console.log(rt.uploadedFiles[\'file4\'].name);',
+        'console.log(rt.uploadedFiles[\'file5\'].unsafeName);',
+        'console.log(rt.uploadedFiles[\'file5\'].name);'
+      ].join('\n');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file1"; filename="f<>\u0000*?/.txt"',
+        'Content-Type: text/plain',
+        '',
+        'placeholder content',
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file2"; filename="."',
+        'Content-Type: text/plain',
+        '',
+        'placeholder content',
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file3"; filename=".."',
+        'Content-Type: text/plain',
+        '',
+        'placeholder content',
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file4"; filename="CON"',
+        'Content-Type: text/plain',
+        '',
+        'placeholder content',
+        `--${formBoundary}`,
+        `Content-Disposition: form-data; name="file5"; filename="${'A'.repeat(300)}"`,
+        'Content-Type: text/plain',
+        '',
+        'placeholder content',
+        `--${formBoundary}`
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              'f<>\u0000*?/.txt',
+              'f______.txt',
+              '.',
+              '_',
+              '..',
+              '_',
+              'CON',
+              '_',
+              'A'.repeat(300),
+              'A'.repeat(255)
+            ]);
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_simple,
   test_contents_002_post_params_form_uploading_malformed_pt1,
   test_contents_003_post_params_form_uploading_malformed_pt2,
   test_contents_004_post_params_form_uploading_two_fields,
   test_contents_005_post_params_form_uploading_one_file_field_pt1,
-  test_contents_006_post_params_form_uploading_one_file_field_pt2
+  test_contents_006_post_params_form_uploading_one_file_field_pt2,
+  test_contents_007_post_params_form_uploading_one_file_field_unsafe_name
 ];
