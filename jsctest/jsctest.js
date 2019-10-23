@@ -199,6 +199,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.waitForContinueTestingCallMaxPasses = 60;
     jscTestContext.waitForContinueTestingCallHandlerId = undefined;
     jscTestContext.tempTestData = undefined;
+    jscTestContext.functionCallListeners = {};
     Object.assign(jscTestContext, currentTest);
     console.info(`####### Starting test: ${jscTestContext.testName}`);
 
@@ -224,6 +225,12 @@ function nextTest(jscTestGlobal, list)
   }
 
   jscTestGlobal.totalTestsRun++;
+
+  jscTestGlobal.checkIfSpecificLogMessagesFound = (type, message) =>
+  {
+    checkForSpecificLogMessages(type, message, jscTestGlobal);
+  };
+
   jscTestGlobal.checkIfExpectedLogMessagesPass = (type, message) =>
   {
     checkExpectedLogMessages(type, message, jscTestGlobal);
@@ -539,6 +546,32 @@ function checkExpectedLogMessages(type, message, jscTestContext)
       {
         jscTestContext.gotAllExpectedLogMsgs = true;
         jscTestContext.onExpectedLogMessagesPass.call(jscTestContext);
+      }
+    }
+  }
+}
+
+function checkForSpecificLogMessages(type, message, jscTestContext)
+{
+  const { monitoredLogMessages } = jscTestContext;
+  if (monitoredLogMessages && monitoredLogMessages.length)
+  {
+    for (let i = 0; i < monitoredLogMessages.length; i++)
+    {
+      if (typeof(monitoredLogMessages[i]) === 'undefined')
+      {
+        continue;
+      }
+      const [ listType = '', listMessage = '', listMessageType = '' ] = monitoredLogMessages[i];
+      if ((type === listType) &&
+          ((message === listMessage) ||
+          ((listMessageType === 'prefix') && message.startsWith(listMessage)) ||
+          ((listMessageType === 'suffix') && message.endsWith(listMessage))
+          ))
+      {
+        monitoredLogMessages[i] = undefined;
+        jscTestContext.onMonitoredLogMessageFound.call(jscTestContext);
+        break;
       }
     }
   }

@@ -1,15 +1,23 @@
 Pending:
 ========
 
+Document:
+monitoredLogMessages
+and
+onMonitoredLogMessageFound().
+Put them in 000_EXAMPLE and makeFromBaseTest().
+and the use of functionCallListeners.
+
 Please continue with the actual test building:
 
  +- File uploads:
   *- Simple test: Just one text field.
   *- Simple test: Two text fields.
   *- Simple test: Harcoded "upload" data, just text.
-    +- Check that temp files are erased.
-     - The one provided by the application.
-     - And the one provided by formidable, if applies.
+NEXT UP: IMPORTANT:  - CHECK that the file name is sanitized.
+  *- Check that temp files are erased.
+    *- The one provided by the application.
+    *- And the one provided by formidable, if applies.
   - What else?  Two uploaded files in the same request?  Actual binary data?  Large files? File and fields?  FileS and fields?
   - Forbidden uploads.
     - Check that temp files are erased.

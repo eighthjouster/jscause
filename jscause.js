@@ -691,6 +691,7 @@ function JSCLogQueueNext()
   if (isTestMode)
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
+    jscTestGlobal.checkIfSpecificLogMessagesFound(type, message);
     jscTestGlobal.checkIfExpectedLogMessagesPass(type, message);
     consoleOutputDuringTest = false;
   }
@@ -1394,7 +1395,7 @@ function doDeleteFile(thisFile, jscLogConfig)
   }));
 }
 
-function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
+function moveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
 {
   const { logging: { siteLogDir, doLogToConsole }, tempWorkDirectory } = identifiedSite;
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
@@ -1431,6 +1432,15 @@ function doMoveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, 
     }
   }));
 }
+
+const doMoveToTempWorkDir = (isTestMode) ?
+  (...params) =>
+  {
+    const { functionCallListeners: { doMoveToTempWorkDir: { beforeCb } = {} } = {} } = jscTestGlobal;
+    beforeCb && beforeCb.apply(null, params);
+    moveToTempWorkDir.apply({}, params);
+  } :
+  moveToTempWorkDir;
 
 function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
 {

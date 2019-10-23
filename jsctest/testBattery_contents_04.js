@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const testUtils = require('./testBatteryUtils');
 
 const makeBaseSite = (extra = {}) =>
@@ -211,7 +212,7 @@ const test_contents_004_post_params_form_uploading_two_fields = Object.assign(ma
     onReadyForRequests()
     {
       const formBoundary = 'some_boundary_123';
-      const postData = // Deliberately leaving formBoundary out of postData to trigger an error.
+      const postData =
       [
         `--${formBoundary}`,
         'Content-Disposition: form-data; name="some_field_name_1"',
@@ -249,7 +250,7 @@ const test_contents_004_post_params_form_uploading_two_fields = Object.assign(ma
   }
 );
 
-const test_contents_005_post_params_form_uploading_one_file_field = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; text'),
+const test_contents_005_post_params_form_uploading_one_file_field_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; text'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -276,7 +277,7 @@ const test_contents_005_post_params_form_uploading_one_file_field = Object.assig
       const { file1Contents } = this.tempTestData;
 
       const formBoundary = 'some_boundary_123';
-      const postData = // Deliberately leaving formBoundary out of postData to trigger an error.
+      const postData =
       [
         `--${formBoundary}`,
         'Content-Disposition: form-data; name="file1"; filename="filename1.txt"',
@@ -315,11 +316,93 @@ const test_contents_005_post_params_form_uploading_one_file_field = Object.assig
   }
 );
 
+const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; text; temp files erased'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const file1Contents = 'some text file, line 1\nsome text file, line 2.\n';
+      this.tempTestData = { file1Contents, moveToTempWorkDirData: { actualFilePath: '', systemUploadFileExistedBefore: false, moveErrorOccurred: false } };
+      const testCode =
+      [
+        'console.log(rt.uploadedFiles[\'file1\']);',
+      ].join('\n');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+      this.isRequestsTest = true;
+
+      const { tempTestData } = this;
+
+      this.functionCallListeners.doMoveToTempWorkDir =
+      {
+        beforeCb(thisActualFile)
+        {
+          const { moveToTempWorkDirData } = tempTestData;
+          moveToTempWorkDirData.actualFilePath = thisActualFile.path;
+          moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
+        }
+      };
+    },
+    monitoredLogMessages:
+    [
+      [ 'error', 'Could not rename unhandled uploaded file: filename1.txt' ]
+    ],
+    onMonitoredLogMessageFound()
+    {
+      this.tempTestData.moveToTempWorkDirData.moveErrorOccurred = true;
+    },
+    onReadyForRequests()
+    {
+      const { file1Contents } = this.tempTestData;
+
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file1"; filename="filename1.txt"',
+        'Content-Type: text/plain',
+        '',
+        file1Contents,
+        `--${formBoundary}`
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore, moveErrorOccurred } } = this.tempTestData;
+
+        const systemUploadFileExistedAfter = fs.existsSync(actualFilePath);
+        const jsCauseUploadFileExistedAfter = fs.existsSync(consoleLogOutput.lines[0].path);
+
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          !moveErrorOccurred &&
+          systemUploadFileExistedBefore &&
+          !systemUploadFileExistedAfter &&
+          !jsCauseUploadFileExistedAfter;
+            
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_simple,
   test_contents_002_post_params_form_uploading_malformed_pt1,
   test_contents_003_post_params_form_uploading_malformed_pt2,
   test_contents_004_post_params_form_uploading_two_fields,
-  test_contents_005_post_params_form_uploading_one_file_field
-
+  test_contents_005_post_params_form_uploading_one_file_field_pt1,
+  test_contents_006_post_params_form_uploading_one_file_field_pt2
 ];
