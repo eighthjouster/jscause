@@ -1,6 +1,10 @@
 Pending:
 ========
 
+- monitoredLogMessages and onMonitoredLogMessageFound()
+   - Put them in 000_EXAMPLE and makeFromBaseTest().
+     - If not already.
+
 Please continue with the actual test building:
 
  +- File uploads:

@@ -383,14 +383,17 @@ const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.a
         const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore, moveErrorOccurred } } = this.tempTestData;
 
         const systemUploadFileExistedAfter = fs.existsSync(actualFilePath);
-        const jsCauseUploadFileExistedAfter = fs.existsSync(consoleLogOutput.lines[0].path);
+        const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
+        const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
 
         this.testPassed = !dataReceived.length &&
           (statusCode === 200) &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
           systemUploadFileExistedBefore &&
+          actualFilePath &&
           !systemUploadFileExistedAfter &&
+          jsCauseUploadFilePath &&
           !jsCauseUploadFileExistedAfter;
             
       }, postData);
@@ -488,7 +491,7 @@ const test_contents_007_post_params_form_uploading_one_file_field_unsafe_name = 
   }
 );
 
-const test_contents_007_post_params_form_uploading_two_files = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text; temp files erased'),
+const test_contents_007_post_params_form_uploading_two_files = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -500,6 +503,8 @@ const test_contents_007_post_params_form_uploading_two_files = Object.assign(mak
       this.tempTestData = { file1Contents, file2Contents, moveErrorOccurred: false };
       const testCode =
       [
+        'console.log(rt.uploadedFiles[\'file1\']);',
+        'console.log(rt.uploadedFiles[\'file2\']);',
         'console.log(rt.uploadedFiles[\'file1\'].name);',
         'console.log(rt.uploadedFiles[\'file2\'].name);',
         'rt.readFile(rt.uploadedFiles[\'file1\'].path).rtOnSuccess((response) => { console.log(response);',
@@ -550,16 +555,21 @@ const test_contents_007_post_params_form_uploading_two_files = Object.assign(mak
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        const jsCauseUploadFile1ExistedAfter = fs.existsSync(consoleLogOutput.lines[0].path);
-        const jsCauseUploadFile2ExistedAfter = fs.existsSync(consoleLogOutput.lines[1].path);
+        const jsCauseUploadFile1Path = consoleLogOutput.lines[0].path;
+        const jsCauseUploadFile1ExistedAfter = fs.existsSync(jsCauseUploadFile1Path);
+        const jsCauseUploadFile2Path = consoleLogOutput.lines[1].path;
+        const jsCauseUploadFile2ExistedAfter = fs.existsSync(jsCauseUploadFile2Path);
 
+        const consoleLogOutputLinesButFirstTwo = consoleLogOutput.lines.slice(2);
         this.testPassed = !dataReceived.length &&
           (statusCode === 200) &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
+          jsCauseUploadFile1Path &&
           !jsCauseUploadFile1ExistedAfter &&
+          jsCauseUploadFile2Path &&
           !jsCauseUploadFile2ExistedAfter &&
-          areFlatArraysEqual(consoleLogOutput.lines,
+          areFlatArraysEqual(consoleLogOutputLinesButFirstTwo,
             [
               'filename1.txt',
               'filename2.txt',
@@ -572,13 +582,68 @@ const test_contents_007_post_params_form_uploading_two_files = Object.assign(mak
   }
 );
 
+const test_contents_008_post_params_form_uploading_two_files_same_filename = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text; same file names'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const file1Contents = 'some text file, line 1\nsome text file, line 2.\n';
+      const file2Contents = 'some other text file, line 1\nsome text file, line 2.\n';
+      this.tempTestData = { file1Contents, file2Contents };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { file1Contents, file2Contents, moveErrorOccurred } = this.tempTestData;
+      const sameFileFieldName = 'some_file_field_name';
+
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        `Content-Disposition: form-data; name="${sameFileFieldName}"; filename="filename1.txt"`,
+        'Content-Type: text/plain',
+        '',
+        file1Contents,
+        `--${formBoundary}`,
+        `Content-Disposition: form-data; name="${sameFileFieldName}"; filename="filename2.txt"`,
+        'Content-Type: text/plain',
+        '',
+        file2Contents,
+        `--${formBoundary}`
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived }) =>
+      {
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200);
+            
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_simple,
-  test_contents_002_post_params_form_uploading_malformed_pt1,
-  test_contents_003_post_params_form_uploading_malformed_pt2,
-  test_contents_004_post_params_form_uploading_two_fields,
-  test_contents_005_post_params_form_uploading_one_file_field_pt1,
-  test_contents_006_post_params_form_uploading_one_file_field_pt2,
-  test_contents_007_post_params_form_uploading_one_file_field_unsafe_name,
-  test_contents_007_post_params_form_uploading_two_files
+  // test_contents_002_post_params_form_uploading_malformed_pt1,
+  // test_contents_003_post_params_form_uploading_malformed_pt2,
+  // test_contents_004_post_params_form_uploading_two_fields,
+  // test_contents_005_post_params_form_uploading_one_file_field_pt1,
+  // test_contents_006_post_params_form_uploading_one_file_field_pt2,
+  // test_contents_007_post_params_form_uploading_one_file_field_unsafe_name,
+  // test_contents_007_post_params_form_uploading_two_files,
+  test_contents_008_post_params_form_uploading_two_files_same_filename
 ];

@@ -47,8 +47,8 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
   jscTestGlobal.isDirectoryEmpty = isDirectoryEmpty.bind(jscTestGlobal);
-
-  let testList = [];
+  jscTestGlobal.signalTestEnd = signalTestEnd.bind(jscTestGlobal);
+  jscTestGlobal.testList = [];
   let onlyTestList = [];
 
   for (let i = 0; i < allTests.length; i++)
@@ -63,7 +63,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
     {
       console.error(`ERROR: Error when trying to load ${currentName}.`);
       console.error(e);
-      testList = [];
+      jscTestGlobal.testList = [];
       break;
     }
 
@@ -77,7 +77,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
         }
         else
         {
-          testList.push(thisTest);
+          jscTestGlobal.testList.push(thisTest);
         }
       });
     }
@@ -89,7 +89,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
       }
       else
       {
-        testList.push(currentTest);
+        jscTestGlobal.testList.push(currentTest);
       }
     }
   }
@@ -97,14 +97,14 @@ const start = (jscTestGlobal, onCompletionCb) =>
   if (onlyTestList.length)
   {
     console.info('\'only\' directive detected.  Only hand-picked tests will be performed.');
-    testList = onlyTestList;
+    jscTestGlobal.testList = onlyTestList;
   }
 
-  if (testList.length)
+  if (jscTestGlobal.testList.length)
   {
     console.info('Testing started.');
 
-    nextTest(jscTestGlobal, testList);
+    nextTest(jscTestGlobal);
   }
   else
   {
@@ -179,7 +179,6 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.currentTestPhaseName = '';
     jscTestContext.isUnitTest = false;
     jscTestContext.isRequestsTest = false;
-    jscTestContext.isRequestTest = false;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
     jscTestContext.gotAllExpectedLogMsgs = false;
@@ -213,10 +212,10 @@ function createNewTestPromise(jscTestContext, currentTest)
   }
 }
 
-function nextTest(jscTestGlobal, list)
+function nextTest(jscTestGlobal)
 {
   jscTestGlobal.testName = `<NOT SET #${jscTestGlobal.totalTestsRun}>`;
-  const thisTest = list.shift();
+  const thisTest = jscTestGlobal.testList.shift();
 
   if (!thisTest)
   {
@@ -257,7 +256,7 @@ function nextTest(jscTestGlobal, list)
 
     if (!jscTestGlobal.areCallbacksStillPending())
     {
-      signalTestEnd(jscTestGlobal, list);
+      signalTestEnd(jscTestGlobal);
     }
   };
 
@@ -267,7 +266,7 @@ function nextTest(jscTestGlobal, list)
     {
       console.error('CRITICAL: Test application bug found.  waitForDoneSignal() called in wrong place, or more than once in the same phase callback function.  This is not allowed.');
       console.error(`Current test phase: ${jscTestGlobal.currentTestPhaseName || '<unknown>'}`);
-      console.error('If the above phase is onReadyForRequests and there is non in the file it is in, it is possible that isRequestsTest is erroneously set to true elsewhere.');
+      console.error('If the above phase is onReadyForRequests and there is none in the file it is in, it is possible that isRequestsTest is erroneously set to true elsewhere.');
       console.error('If the above phase has one call only, chances are the offending call is in a previous, non-allowed phase.');
       console.error('Cannot continue due to critical error found.');
       process.exit();
@@ -351,7 +350,7 @@ function nextTest(jscTestGlobal, list)
 
       if (!jscTestGlobal.areCallbacksStillPending())
       {
-        signalTestEnd(jscTestGlobal, list);
+        signalTestEnd(jscTestGlobal);
       }
     })
     .catch((e) =>
@@ -382,9 +381,9 @@ function stillWaitingForContinueTestingCall(jscTestGlobal)
   }
 }
 
-function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
+function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = false } = {})
 {
-  if (jscTestGlobal.signalTestEndInvoked && !followUpCall)
+  if (jscTestGlobal.signalTestEndInvoked && !followUpCall && !generalError)
   {
     return;
   }
@@ -393,7 +392,7 @@ function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
 
   if (jscTestGlobal.isWaitingForLogTermination)
   {
-    setTimeout(() => { signalTestEnd(jscTestGlobal, list, { followUpCall: true }) }, 0);
+    setTimeout(() => { signalTestEnd(jscTestGlobal, { followUpCall: true }) }, 0);
   }
   else
   {
@@ -405,7 +404,7 @@ function signalTestEnd(jscTestGlobal, list, { followUpCall = false } = {})
         clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
         jscTestGlobal.waitForContinueTestingCallHandlerId = null;
       }
-      endTest(jscTestGlobal, list);
+      endTest(jscTestGlobal);
     };
 
     const onAllRequestsEndedCall = () =>
@@ -482,7 +481,7 @@ function wrapUpSignalTestEnd(jscTestContext)
   }
 }
 
-function endTest(jscTestGlobal, list)
+function endTest(jscTestGlobal)
 {
   if (jscTestGlobal.testPassed)
   {
@@ -504,7 +503,7 @@ function endTest(jscTestGlobal, list)
       jscTestContext: jscTestGlobal,
       testPhaseCallbackName: 'onTestEnd',
       nextStepCall: () => { 
-        nextTest(jscTestGlobal, list);
+        nextTest(jscTestGlobal);
       }
     }
   );

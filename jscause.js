@@ -164,8 +164,18 @@ const jscCallback = (isTestMode) ?
     jscTestGlobal.pendingCallbacks++;
     return function() // It must be a function object instead of an arrow one because of the arguments object.
     {
-      cb(...arguments);
-      jscTestGlobal.callbackCalled();
+      try
+      {
+        cb(...arguments);
+        jscTestGlobal.callbackCalled();
+      }
+      catch(e)
+      {
+        JSCLog('error', 'CRITICAL:  An application error ocurred when processing a callback.');
+        JSCLog('error', e);
+        console.error(e);
+        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
+      }
     };
   } :
   (cb) => cb;
@@ -2689,7 +2699,22 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 {
   const { webServer, serverName, sites: sitesInServer } = runningServer;
   
-  webServer.on('request', (res, req) => { incomingRequestHandler(res, req, sitesInServer) });
+  webServer.on('request', (isTestMode) ?
+    (res, req) =>
+    {
+      try
+      {
+        incomingRequestHandler(res, req, sitesInServer);
+      }
+      catch (e)
+      {
+        JSCLog('error', 'CRITICAL:  An application error ocurred when processing an incoming request.');
+        JSCLog('error', e);
+        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
+      }
+    } :
+    (res, req) => { incomingRequestHandler(res, req, sitesInServer) }
+  );
 
   webServer.on('error', (e) =>
   {
