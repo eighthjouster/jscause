@@ -488,6 +488,90 @@ const test_contents_007_post_params_form_uploading_one_file_field_unsafe_name = 
   }
 );
 
+const test_contents_007_post_params_form_uploading_two_files = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text; temp files erased'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const file1Contents = 'some text file, line 1\nsome text file, line 2.\n';
+      const file2Contents = 'some other text file, line 1\nsome text file, line 2.\n';
+      this.tempTestData = { file1Contents, file2Contents, moveErrorOccurred: false };
+      const testCode =
+      [
+        'console.log(rt.uploadedFiles[\'file1\'].name);',
+        'console.log(rt.uploadedFiles[\'file2\'].name);',
+        'rt.readFile(rt.uploadedFiles[\'file1\'].path).rtOnSuccess((response) => { console.log(response);',
+        '  rt.readFile(rt.uploadedFiles[\'file2\'].path).rtOnSuccess((response) => { console.log(response);});',
+        '});'
+      ].join('\n');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+      this.isRequestsTest = true;
+    },
+    monitoredLogMessages:
+    [
+      [ 'error', 'Could not rename unhandled uploaded file: filename1.txt' ]
+    ],
+    onMonitoredLogMessageFound()
+    {
+      this.tempTestData.moveErrorOccurred = true;
+    },
+    onReadyForRequests()
+    {
+      const { file1Contents, file2Contents, moveErrorOccurred } = this.tempTestData;
+
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file1"; filename="filename1.txt"',
+        'Content-Type: text/plain',
+        '',
+        file1Contents,
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file2"; filename="filename2.txt"',
+        'Content-Type: text/plain',
+        '',
+        file2Contents,
+        `--${formBoundary}`
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        const jsCauseUploadFile1ExistedAfter = fs.existsSync(consoleLogOutput.lines[0].path);
+        const jsCauseUploadFile2ExistedAfter = fs.existsSync(consoleLogOutput.lines[1].path);
+
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          !moveErrorOccurred &&
+          !jsCauseUploadFile1ExistedAfter &&
+          !jsCauseUploadFile2ExistedAfter &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              'filename1.txt',
+              'filename2.txt',
+              'some text file, line 1\nsome text file, line 2.\n',
+              'some other text file, line 1\nsome text file, line 2.\n'
+            ]);
+            
+      }, postData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_simple,
   test_contents_002_post_params_form_uploading_malformed_pt1,
@@ -495,5 +579,6 @@ module.exports = [
   test_contents_004_post_params_form_uploading_two_fields,
   test_contents_005_post_params_form_uploading_one_file_field_pt1,
   test_contents_006_post_params_form_uploading_one_file_field_pt2,
-  test_contents_007_post_params_form_uploading_one_file_field_unsafe_name
+  test_contents_007_post_params_form_uploading_one_file_field_unsafe_name,
+  test_contents_007_post_params_form_uploading_two_files
 ];

@@ -342,6 +342,7 @@ When testing server requests:
    const output = testUtils.endConsoleLogCapture();
    - If you use processResponse(), you this call will happen automatically and available as a consoleLogOutput variable.
    - For easy output log comparison, areFlatArraysEqual() is available.
+   - NOTE: if you use initConsoleLogCapture(), console.log() will be redefined for capture.  If you need to debug your test while building, use console.info() as an alternative to console.log() so that you can print debug messages in the terminal.
 
 
 Very important: Every use of jscThen() requires using jscCatch(), even if the latter is empty.  This is because each one counts as one pending callback. And since only one will actually be executed, the other one needs to be 'discarded', so the system must assume that _two_ pending callbacks were addressed.  Therefore, if you omit a jscCatch(), the pending callbacks count will stop being accurate, potentially making the test to end prematuraly and without cleaning up, which can adversely affect the next tests in line.
