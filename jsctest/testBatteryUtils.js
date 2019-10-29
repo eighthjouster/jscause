@@ -20,6 +20,12 @@ const testUtils =
         // It's generally a good thing.  But it will depened on the test.
         this.testPassed = true;
       },
+      onMonitoredLogMessageFound()
+      {
+        // We got one of the log messages found in the monitoredLogMessages array.
+        // Typically useful when testing server requests and want to make sure that
+        // no errors appear in the server console.
+      },
       onServerStarted()
       {
         // The server started okay.  It might be good or bad, depending on the test.
@@ -193,7 +199,15 @@ const testUtils =
         {
           requestContext.consoleLogOutput = testUtils.endConsoleLogCapture();
           requestContext.statusCode = res.statusCode;
-          onResponseEndCb && onResponseEndCb(requestContext);
+          try
+          {
+            onResponseEndCb && onResponseEndCb(requestContext);
+          }
+          catch(e)
+          {
+            console.error('An error occurred when executing processResponse/onResponseEnd:');
+            console.error(e);
+          }
           testContext.doneRequestsTesting();
         });
       }
@@ -201,7 +215,7 @@ const testUtils =
 
     req.on('error', (error) =>
     {
-      console.error('An error ocurred during the request.');
+      console.error('An error occurred during the request.');
       console.error(error);
       testContext.doneRequestsTesting();
     });

@@ -112,7 +112,7 @@ const test_013_001_generalLoggingFileOutputOccurs = Object.assign(testUtils.make
           })
           .catch(e =>
           {
-            console.error('An error ocurred while retrieving log file name:');
+            console.error('An error occurred while retrieving log file name:');
             console.error(e);
             this.testPassed = false;
             this.continueTesting();

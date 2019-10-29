@@ -171,7 +171,7 @@ const jscCallback = (isTestMode) ?
       }
       catch(e)
       {
-        JSCLog('error', 'CRITICAL:  An application error ocurred when processing a callback.');
+        JSCLog('error', 'CRITICAL:  An application error occurred when processing a callback.');
         JSCLog('error', e);
         console.error(e);
         jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
@@ -1497,13 +1497,22 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
     }
     else
     {
-      const formFiles = ctx.uploadedFiles;
-      if (formFiles)
-      {
-        deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogDir, siteLogDir });
-      }
+      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
+      let formUploadErrorOccurred = ctx.formUploadErrorOccurred;
 
-      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode, formUploadErrorOccurred } = ctx;
+      const formFiles = ctx.uploadedFiles;
+      if (formFiles && !formUploadErrorOccurred)
+      {
+        try
+        {
+          deleteUnhandledFiles(formFiles, { doLogToConsole, serverLogDir, siteLogDir });
+        }
+        catch(e)
+        {
+          JSCLog('error', `Site: ${siteName}: Application error when processing ${runFileName}.`, { e });
+          formUploadErrorOccurred = true;
+        }
+      }
 
       if (runtimeException)
       {
@@ -2071,6 +2080,19 @@ function extractErrorFromRuntimeObject(e)
    * Server stuff
    *
    ************************************** */
+function getUploadedFileInfo(file)
+{
+  return (
+    {
+      lastModifiedDate: file.lastModifiedDate,
+      name: file.name,
+      path: file.path,
+      size: file.size,
+      type: file.type,
+      unsafeName: file.unsafeName
+    } 
+  );
+}
 
 function responder(serverConfig, identifiedSite, baseResContext, { formContext, postContext } = {})
 {
@@ -2101,15 +2123,14 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       postParams = formData;
       Object.keys(formFiles).forEach((keyName) =>
       {
-        const file = formFiles[keyName];
-        uploadedFiles[keyName] =
+        const fileData = formFiles[keyName];
+        if (Array.isArray(fileData))
         {
-          lastModifiedDate: file.lastModifiedDate,
-          name: file.name,
-          path: file.path,
-          size: file.size,
-          type: file.type,
-          unsafeName: file.unsafeName
+          uploadedFiles[keyName] = fileData.map(getUploadedFileInfo);
+        }
+        else
+        {
+          uploadedFiles[keyName] = getUploadedFileInfo(fileData);
         }
       });
       break;
@@ -2446,7 +2467,7 @@ function incomingRequestHandler(req, res, sitesInServer)
       canUpload, maxPayloadSizeBytes,
       staticFiles, compiledFiles,
       jscpExtensionRequired, includeHttpPoweredByHeader,
-      logging: siteLogging
+      logging: siteLogging, siteName
     } = identifiedSite;
 
   const { siteLogDir, doLogToConsole } = siteLogging;
@@ -2582,6 +2603,7 @@ function incomingRequestHandler(req, res, sitesInServer)
 
         const resContext =
         {
+          siteName,
           reqObject: req,
           resObject: res,
           requestMethod,
@@ -2708,7 +2730,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
       }
       catch (e)
       {
-        JSCLog('error', 'CRITICAL:  An application error ocurred when processing an incoming request.');
+        JSCLog('error', 'CRITICAL:  An application error occurred when processing an incoming request.');
         JSCLog('error', e);
         jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
       }

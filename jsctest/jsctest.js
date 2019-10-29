@@ -154,7 +154,18 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
       console.info('onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...');
     }
     jscTestContext.currentTestPhaseName = testPhaseCallbackName;
-    testPhaseCallback.call(jscTestContext);
+    try {
+      testPhaseCallback.call(jscTestContext);
+    }
+    catch(e)
+    {
+      console.error(`CRITICAL: Error found in ${jscTestContext.currentTestPhaseName}()`);
+      console.error(e);
+      if (jscTestContext.stepCallToTriggerOnDone)
+      {
+        jscTestContext.stepCallToTriggerOnDone = undefined;
+      }
+    }
     jscTestContext.testNextAvailableStepCall = undefined;
 
     if (!jscTestContext.stepCallToTriggerOnDone)

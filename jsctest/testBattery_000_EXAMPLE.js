@@ -21,6 +21,12 @@ const emptyDir =
     // It's generally a good thing.  But it will depened on the test.
     this.testPassed = true;
   },
+  onMonitoredLogMessageFound()
+  {
+    // We got one of the log messages found in the monitoredLogMessages array.
+    // Typically useful when testing server requests and want to make sure that
+    // no errors appear in the server console.
+  },
   onServerStarted()
   {
     this.testPassed = false;
