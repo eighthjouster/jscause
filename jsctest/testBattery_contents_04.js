@@ -261,12 +261,14 @@ const test_contents_005_post_params_form_uploading_one_file_field_pt1 = Object.a
       this.tempTestData = { file1Contents };
       const testCode =
       [
-        'console.log(rt.postParams[\'file1\']);',
-        'console.log(rt.uploadedFiles[\'file1\'].name);',
-        'console.log(rt.uploadedFiles[\'file1\'].size);',
-        'console.log(rt.uploadedFiles[\'file1\'].type);',
-        'console.log(rt.uploadedFiles[\'file1\'].unsafeName);',
-        'rt.readFile(rt.uploadedFiles[\'file1\'].path, \'utf-8\').rtOnSuccess((response) => { console.log(response); });'
+        'rt.readFile(rt.uploadedFiles[\'file1\'].path, \'utf-8\').rtOnSuccess((response) => {',
+        '  console.log(rt.postParams[\'file1\']);',
+        '  console.log(rt.uploadedFiles[\'file1\'].name);',
+        '  console.log(rt.uploadedFiles[\'file1\'].size);',
+        '  console.log(rt.uploadedFiles[\'file1\'].type);',
+        '  console.log(rt.uploadedFiles[\'file1\'].unsafeName);',
+        '  console.log(response);',
+        '});',
       ].join('\n');
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
 
@@ -503,12 +505,15 @@ const test_contents_007_post_params_form_uploading_two_files = Object.assign(mak
       this.tempTestData = { file1Contents, file2Contents, moveErrorOccurred: false };
       const testCode =
       [
-        'console.log(rt.uploadedFiles[\'file1\']);',
-        'console.log(rt.uploadedFiles[\'file2\']);',
-        'console.log(rt.uploadedFiles[\'file1\'].name);',
-        'console.log(rt.uploadedFiles[\'file2\'].name);',
-        'rt.readFile(rt.uploadedFiles[\'file1\'].path, \'utf-8\').rtOnSuccess((response) => { console.log(response);',
-        '  rt.readFile(rt.uploadedFiles[\'file2\'].path, \'utf-8\').rtOnSuccess((response) => { console.log(response);});',
+        'rt.readFile(rt.uploadedFiles[\'file1\'].path, \'utf-8\').rtOnSuccess((response1) => {',
+        '  rt.readFile(rt.uploadedFiles[\'file2\'].path, \'utf-8\').rtOnSuccess((response2) => {',
+        '    console.log(rt.uploadedFiles[\'file1\']);',
+        '    console.log(rt.uploadedFiles[\'file2\']);',
+        '    console.log(rt.uploadedFiles[\'file1\'].name);',
+        '    console.log(rt.uploadedFiles[\'file2\'].name);',
+        '    console.log(response1);',
+        '    console.log(response2);',
+        '  });',
         '});'
       ].join('\n');
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
@@ -648,12 +653,15 @@ const test_contents_008_post_params_form_uploading_two_files_same_filename_pt2 =
       this.tempTestData = { file1Contents, file2Contents, moveErrorOccurred: false };
       const testCode =
       [
-        'console.log(rt.uploadedFiles[\'file1\'][0]);',
-        'console.log(rt.uploadedFiles[\'file1\'][1]);',
-        'console.log(rt.uploadedFiles[\'file1\'][0].name);',
-        'console.log(rt.uploadedFiles[\'file1\'][1].name);',
-        'rt.readFile(rt.uploadedFiles[\'file1\'][0].path, \'utf-8\').rtOnSuccess((response) => { console.log(response);',
-        '  rt.readFile(rt.uploadedFiles[\'file1\'][1].path, \'utf-8\').rtOnSuccess((response) => { console.log(response);});',
+        'rt.readFile(rt.uploadedFiles[\'file1\'][0].path, \'utf-8\').rtOnSuccess((response1) => {',
+        '  rt.readFile(rt.uploadedFiles[\'file1\'][1].path, \'utf-8\').rtOnSuccess((response2) => {',
+        '    console.log(rt.uploadedFiles[\'file1\'][0]);',
+        '    console.log(rt.uploadedFiles[\'file1\'][1]);',
+        '    console.log(rt.uploadedFiles[\'file1\'][0].name);',
+        '    console.log(rt.uploadedFiles[\'file1\'][1].name);',
+        '    console.log(response1);',
+        '    console.log(response2);',
+        '  });',
         '});'
       ].join('\n');
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);

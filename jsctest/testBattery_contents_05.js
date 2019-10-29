@@ -55,7 +55,8 @@ const
     initConsoleLogCapture,
     areFlatArraysEqual,
     buildFileUploadEntry,
-    makeBinaryPostData
+    makeBinaryPostData,
+    getFormFieldBoundary
   } = testUtils;
 
 const test_contents_001_post_params_form_uploading_binary_simple = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value'),
@@ -84,11 +85,11 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
       initConsoleLogCapture();
       const testCode =
       [
-        'console.log(rt.uploadedFiles[\'file1\']);',
-        'console.log(rt.uploadedFiles[\'file1\'].name);',
         'rt.readFile(rt.uploadedFiles[\'file1\'].path).rtOnSuccess((response) => {',
-        'Buffer.from(response).forEach(c=>console.log(c));',
-        '});'
+        '  console.log(rt.uploadedFiles[\'file1\']);',
+        '  console.log(rt.uploadedFiles[\'file1\'].name);',
+        '  Buffer.from(response).forEach(c=>console.log(c));',
+        '});',
       ].join('\n');
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
 
@@ -96,33 +97,15 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
     },
     onReadyForRequests()
     {
-      const randomOctetLength = 5;
-      const randomOctetsArray = [...Array(randomOctetLength)].map(() => Math.floor(Math.random() * 256));
+      const octetListLength = 5;
+      const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
       const binaryValue = Buffer.from(randomOctetsArray);
       this.tempTestData = { randomOctetsArray };
-      let formBoundary;
-      let attempts = 0;
-      while (attempts < 100)
-      {
-        const randomOctet2Length = 32;
-        const randomOctets2Array = [...Array(randomOctet2Length)].map(() => Math.floor(Math.random() * 10) + 48);
-        const binaryValue2 = Buffer.from(randomOctets2Array);
-        if (!(binaryValue.includes(binaryValue2)))
-        {
-          formBoundary = `some_form_boundary_${binaryValue2.toString()}`;
-          break;
-        }
-        attempts++;
-      }
-
+      let formBoundary = getFormFieldBoundary([binaryValue]);
       if (formBoundary)
       {
-        const postDataArray =
-          [
-            ...buildFileUploadEntry(formBoundary, 'file1', 'filename1.bin', binaryValue)
-          ];
-
-        const binaryPostData = makeBinaryPostData(formBoundary, postDataArray);
+        const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
+        const binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
 
         const postRequest = makeBaseRequest(
           {
@@ -154,7 +137,81 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
       }
       else
       {
-        console.error('Error: Could not find a suitable error boundary.');
+        console.error('Error: Could not find a suitable form field boundary.');
+        this.testPassed = false;
+        this.doneRequestsTesting();
+      }
+    }
+  }
+);
+
+const test_contents_002_post_params_form_uploading_binary_field_simple = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value and text field'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const testCode =
+      [
+        'rt.readFile(rt.uploadedFiles[\'file1\'].path).rtOnSuccess((response) => {',
+        '  console.log(rt.uploadedFiles[\'file1\']);',
+        '  console.log(rt.uploadedFiles[\'file1\'].name);',
+        '  Buffer.from(response).forEach(c=>console.log(c));',
+        '  console.log(rt.postParams[\'field1\']);',
+        '});',
+      ].join('\n');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const octetListLength = 5;
+      const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
+      const binaryValue = Buffer.from(randomOctetsArray);
+      const textFieldValue = 'some_text_value';
+      this.tempTestData = { randomOctetsArray };
+      let formBoundary = getFormFieldBoundary([binaryValue, textFieldValue]);
+      if (formBoundary)
+      {
+        const fileUploadEntries = [
+          buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin'),
+          buildFileUploadEntry(formBoundary, 'field1', textFieldValue)
+        ];
+        const binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
+
+        const postRequest = makeBaseRequest(
+          {
+            headers:
+            {
+              'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+              'Content-Length': Buffer.byteLength(binaryPostData)
+            }
+          }
+        );
+
+        processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+        {
+          const { randomOctetsArray } = this.tempTestData;
+          const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
+          const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
+          const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
+          this.testPassed = !dataReceived.length &&
+            (statusCode === 200) &&
+            (consoleLogOutput.status === 'captured') &&
+            !jsCauseUploadFileExistedAfter &&
+            areFlatArraysEqual(consoleLogOutputLinesButFirst,
+              [
+                'filename1.bin',
+                ...randomOctetsArray,
+                'some_text_value'
+              ]);
+        }, binaryPostData);
+      }
+      else
+      {
+        console.error('Error: Could not find a suitable form field boundary.');
         this.testPassed = false;
         this.doneRequestsTesting();
       }
@@ -163,5 +220,6 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
 );
 
 module.exports = [
-  test_contents_001_post_params_form_uploading_binary_simple
+  test_contents_001_post_params_form_uploading_binary_simple,
+  test_contents_002_post_params_form_uploading_binary_field_simple
 ];

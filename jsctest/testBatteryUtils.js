@@ -266,26 +266,71 @@ const testUtils =
     }
   },
 
-  buildFileUploadEntry: (boundary, fieldName, fileName, binaryValue) =>
-    [
-      Buffer.from(
-        [
-          `--${boundary}`,
-          `Content-Disposition: form-data; name="${fieldName}"; filename="${fileName}"`,
-          'Content-Type: application/octet-stream',
-          '',
-          ''
-        ].join('\r\n') // \r\n is required by HTTP specs.
-      ),
-      binaryValue,
-      Buffer.from('\r\n')
-    ],
+  buildFileUploadEntry: (boundary, fieldName, fieldValue, fileName) =>
+  {
+    let entries;
+    const binaryValue = (typeof(fieldValue) !== 'string') ? fieldValue : Buffer.from(fieldValue);
+    if (typeof(fileName) === 'undefined')
+    {
+      entries =
+      [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="${fieldName}"`,
+        'Content-Type: text/plain',
+        '',
+        ''
+      ];
+    }
+    else
+    {
+      entries =
+      [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="${fieldName}"; filename="${fileName}"`,
+        'Content-Type: application/octet-stream',
+        '',
+        ''
+      ];
+    }
+    return (
+      [
+        Buffer.from(entries.join('\r\n')), // \r\n is required by HTTP specs.
+        binaryValue,
+        Buffer.from('\r\n')
+      ]
+    );
+  },
 
-  makeBinaryPostData: (boundary, postDataArray, postDataArrayWithEnding = postDataArray.concat(Buffer.from(`--${boundary}`))) =>
-    Buffer.concat(
+  makeBinaryPostData: (boundary, entries) =>
+  {
+    // [].concat(...entries) flattens array.
+    const postDataArray = [].concat(...entries);
+    const postDataArrayWithEnding = postDataArray.concat(Buffer.from(`--${boundary}`))
+    return Buffer.concat(
       postDataArrayWithEnding,
       postDataArrayWithEnding.map(b => Buffer.byteLength(b)).reduce((a, b) => a + b)
-    )//,
+    );
+  },
+
+  getFormFieldBoundary: (binaryValues) => // Not perfect, but will do the job for now.
+  {
+    let formBoundary;
+    let attempts = 0;
+    while (attempts < 100)
+    {
+      const randomOctet2Length = 32;
+      const randomOctets2Array = [...Array(randomOctet2Length)].map(() => Math.floor(Math.random() * 10) + 48);
+      const binaryValue2 = Buffer.from(randomOctets2Array);
+      if (binaryValues.every((value)=> !(value.includes(binaryValue2))))
+      {
+        formBoundary = `some_form_boundary_${binaryValue2.toString()}`;
+        break;
+      }
+      attempts++;
+    }
+
+    return formBoundary;
+  }//,
 
 };
 

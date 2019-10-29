@@ -8,11 +8,13 @@ Update the docs to indicate that rt.readFile() has a second parameter, encoding,
  +- File uploads:
   - Up next:
     - Actual binary data.
+    - Binary data with text fields.
     - Large files.
       - Limit exceeds.
         - Check that temp files are erased.
         - The one provided by the application.
         - And the one provided by formidable, if applies.
+    - Empty files?
     - Large number of files.
       - Limit exceeds.
         - Check that temp files are erased.
