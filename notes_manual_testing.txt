@@ -3,6 +3,8 @@ Pending:
 
 Please continue with the actual test building:
 
+Update the docs to indicate that rt.readFile() has a second parameter, encoding, which defaults to undefined, implying raw bytes.  To read text files encoded in utf-8, use 'utf-8'.
+
  +- File uploads:
   - Up next:
     - Actual binary data.

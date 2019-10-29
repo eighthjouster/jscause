@@ -264,7 +264,29 @@ const testUtils =
     {
       context.doneRequestsTesting();
     }
-  }
+  },
+
+  buildFileUploadEntry: (boundary, fieldName, fileName, binaryValue) =>
+    [
+      Buffer.from(
+        [
+          `--${boundary}`,
+          `Content-Disposition: form-data; name="${fieldName}"; filename="${fileName}"`,
+          'Content-Type: application/octet-stream',
+          '',
+          ''
+        ].join('\r\n') // \r\n is required by HTTP specs.
+      ),
+      binaryValue,
+      Buffer.from('\r\n')
+    ],
+
+  makeBinaryPostData: (boundary, postDataArray, postDataArrayWithEnding = postDataArray.concat(Buffer.from(`--${boundary}`))) =>
+    Buffer.concat(
+      postDataArrayWithEnding,
+      postDataArrayWithEnding.map(b => Buffer.byteLength(b)).reduce((a, b) => a + b)
+    )//,
+
 };
 
 module.exports = testUtils;

@@ -1392,7 +1392,8 @@ function doDeleteFile(thisFile, jscLogConfig)
         JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
       }
     }
-    else {
+    else
+    {
       fs.unlink(thisFile.path, jscCallback((err) =>
       {
         if (err)
@@ -1809,7 +1810,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         fs.stat(path, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
       });
     },
-    readFile(path)
+    readFile(path, encoding)
     {
       if (!fsPath.isAbsolute(path))
       {
@@ -1818,7 +1819,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
       {
-        fs.readFile(path, 'utf-8', makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+        fs.readFile(path, encoding, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
       });
     },
     copyFile(source, destination, overwrite = true)
