@@ -403,7 +403,92 @@ const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.a
   }
 );
 
-const test_contents_007_post_params_form_uploading_one_file_field_unsafe_name = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; unsafe name'),
+const test_contents_007_post_params_form_uploading_one_file_field_pt3 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; empty; temp files erased'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+      const file1Contents = '';
+      this.tempTestData = { file1Contents, moveToTempWorkDirData: { actualFilePath: '', systemUploadFileExistedBefore: false, moveErrorOccurred: false } };
+      const testCode =
+      [
+        'console.log(rt.uploadedFiles[\'file1\']);',
+      ].join('\n');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+      this.isRequestsTest = true;
+
+      const { tempTestData } = this;
+
+      this.functionCallListeners.doMoveToTempWorkDir =
+      {
+        beforeCb(thisActualFile)
+        {
+          const { moveToTempWorkDirData } = tempTestData;
+          moveToTempWorkDirData.actualFilePath = thisActualFile.path;
+          moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
+        }
+      };
+    },
+    monitoredLogMessages:
+    [
+      [ 'error', 'Could not rename unhandled uploaded file: filename1.txt' ]
+    ],
+    onMonitoredLogMessageFound()
+    {
+      this.tempTestData.moveToTempWorkDirData.moveErrorOccurred = true;
+    },
+    onReadyForRequests()
+    {
+      const { file1Contents } = this.tempTestData;
+
+      const formBoundary = 'some_boundary_123';
+      const postData =
+      [
+        `--${formBoundary}`,
+        'Content-Disposition: form-data; name="file1"; filename="filename1.txt"',
+        'Content-Type: text/plain',
+        '',
+        file1Contents,
+        `--${formBoundary}`
+      ].join('\r\n'); // \r\n is required by HTTP specs.
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore, moveErrorOccurred } } = this.tempTestData;
+
+        const systemUploadFileExistedAfter = fs.existsSync(actualFilePath);
+        const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
+        const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
+
+        this.testPassed = !dataReceived.length &&
+          (statusCode === 200) &&
+          (consoleLogOutput.status === 'captured') &&
+          !moveErrorOccurred &&
+          systemUploadFileExistedBefore &&
+          actualFilePath &&
+          !systemUploadFileExistedAfter &&
+          jsCauseUploadFilePath &&
+          !jsCauseUploadFileExistedAfter;
+            
+      }, postData);
+    }
+  }
+);
+
+const test_contents_008_post_params_form_uploading_one_file_field_unsafe_name = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; unsafe name'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -493,7 +578,7 @@ const test_contents_007_post_params_form_uploading_one_file_field_unsafe_name = 
   }
 );
 
-const test_contents_007_post_params_form_uploading_two_files = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text'),
+const test_contents_009_post_params_form_uploading_two_files = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -587,7 +672,7 @@ const test_contents_007_post_params_form_uploading_two_files = Object.assign(mak
   }
 );
 
-const test_contents_008_post_params_form_uploading_two_files_same_filename_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text; same file names'),
+const test_contents_010_post_params_form_uploading_two_files_same_filename_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; text; same file names'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -641,7 +726,7 @@ const test_contents_008_post_params_form_uploading_two_files_same_filename_pt1 =
   }
 );
 
-const test_contents_008_post_params_form_uploading_two_files_same_filename_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text'),
+const test_contents_011_post_params_form_uploading_two_files_same_filename_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -745,8 +830,9 @@ module.exports = [
   test_contents_004_post_params_form_uploading_two_fields,
   test_contents_005_post_params_form_uploading_one_file_field_pt1,
   test_contents_006_post_params_form_uploading_one_file_field_pt2,
-  test_contents_007_post_params_form_uploading_one_file_field_unsafe_name,
-  test_contents_007_post_params_form_uploading_two_files,
-  test_contents_008_post_params_form_uploading_two_files_same_filename_pt1,
-  test_contents_008_post_params_form_uploading_two_files_same_filename_pt2
+  test_contents_007_post_params_form_uploading_one_file_field_pt3,
+  test_contents_008_post_params_form_uploading_one_file_field_unsafe_name,
+  test_contents_009_post_params_form_uploading_two_files,
+  test_contents_010_post_params_form_uploading_two_files_same_filename_pt1,
+  test_contents_011_post_params_form_uploading_two_files_same_filename_pt2
 ];

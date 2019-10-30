@@ -255,6 +255,16 @@ Version 0.7.1b here!
 
 Order by priority:
 
+Optional, configurable limit number of number of uploaded files and fields.  Right now, there is no limit; or maybe there is one imposed by Formidable?
+ - Create the corresponding tests, combining:
+   - File and fields.
+   - Files (more than one) and fields.
+In the same vein: Optional, configurable limit number of uploaded files.  Right now, there is no limit; or maybe there is one imposed by Formidable?
+ - And create the corresponsing tests.
+   - Check that the temp files are erased.
+     - The one provided by the application.
+     - And the one provided by formidable, if applies.
+
 Address:
 // TO-DO: We need try/catch here. If error, include ${key} on the reporting.
 

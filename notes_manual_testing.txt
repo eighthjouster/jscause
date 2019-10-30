@@ -8,7 +8,7 @@ Please continue with the actual test building:
     *- Binary data with text field.
     *- Large files.
       *- Limit exceeds.
-    +- Empty files?
+    *- Empty files?
   - Forbidden uploads. - Hasn't this been tested already?
     - Check that temp files are erased.
      - The one provided by the application.
