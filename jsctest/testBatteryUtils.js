@@ -241,7 +241,10 @@ const testUtils =
       },
       onTestEnd()
       {
-        this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']);
+        if (!this.deleteFile(['sites', 'mysite', 'website', 'index.jscp']))
+        {
+          console.warn('WARNING: Could not delete index.jscp because it was not found.');
+        }
       }
     };
   },

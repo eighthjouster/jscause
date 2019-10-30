@@ -219,7 +219,165 @@ const test_contents_002_post_params_form_uploading_binary_field_simple = Object.
   }
 );
 
+const test_contents_003_post_params_form_uploading_binary_maxpayload_pt1 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value; exceeds max payload; must fail'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture();
+
+      const octetListLength = 5;
+      const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
+      const binaryValue = Buffer.from(randomOctetsArray);
+      this.tempTestData = { randomOctetsArray };
+      let binaryPostData;
+      let formBoundary = getFormFieldBoundary([binaryValue]);
+      if (formBoundary)
+      {
+        const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
+        binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
+
+        const binaryPostDataLength = Buffer.byteLength(binaryPostData);
+        const maxPayloadSizeBytes = binaryPostDataLength - 1;
+
+        this.tempTestData = {
+          binaryPostData,
+          binaryPostDataLength,
+          formBoundary,
+          moveToTempWorkDirData: { actualFilePath: '', systemUploadFileExistedBefore: false },
+          pleaseProceed: true };
+
+        const siteConfContents = makeBaseSiteConfContents(
+          {
+            'maxPayloadSizeBytes': maxPayloadSizeBytes
+          }
+        );
+        this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+        const testCode =
+        [
+          'console.log(rt.uploadedFiles[\'file1\']);',
+        ].join('\n');
+        this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+
+        const { tempTestData } = this;
+        this.functionCallListeners.doMoveToTempWorkDir =
+        {
+          beforeCb(thisActualFile)
+          {
+            const { moveToTempWorkDirData } = tempTestData;
+            moveToTempWorkDirData.actualFilePath = thisActualFile.path;
+            moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
+          }
+        };
+      }
+      else
+      {
+        console.error('Error: Could not find a suitable form field boundary.');
+      }
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { binaryPostData, binaryPostDataLength, formBoundary, pleaseProceed } = this.tempTestData;
+      if (!pleaseProceed)
+      {
+        this.doneRequestsTesting();
+        return;
+      }
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': binaryPostDataLength
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode, consoleLogOutput }) =>
+      {
+        const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore } } = this.tempTestData;
+        this.testPassed = (statusCode === 413) &&
+        (consoleLogOutput.status === 'captured') &&
+        (consoleLogOutput.lines.length === 0) &&
+        !actualFilePath &&
+        !systemUploadFileExistedBefore
+      }, binaryPostData);
+    }
+  }
+);
+
+const test_contents_004_post_params_form_uploading_binary_maxpayload_pt2 = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value; meets max payload; must pass'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const octetListLength = 5;
+      const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
+      const binaryValue = Buffer.from(randomOctetsArray);
+      this.tempTestData = { randomOctetsArray };
+      let binaryPostData;
+      let formBoundary = getFormFieldBoundary([binaryValue]);
+      if (formBoundary)
+      {
+        const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
+        binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
+
+        const binaryPostDataLength = Buffer.byteLength(binaryPostData);
+        const maxPayloadSizeBytes = binaryPostDataLength;
+
+        this.tempTestData = { binaryPostData, binaryPostDataLength, formBoundary, pleaseProceed: true };
+
+        const siteConfContents = makeBaseSiteConfContents(
+          {
+            'maxPayloadSizeBytes': maxPayloadSizeBytes
+          }
+        );
+        this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+        this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+
+      }
+      else
+      {
+        console.error('Error: Could not find a suitable form field boundary.');
+      }
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { binaryPostData, binaryPostDataLength, formBoundary, pleaseProceed } = this.tempTestData;
+      if (!pleaseProceed)
+      {
+        this.doneRequestsTesting();
+        return;
+      }
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': binaryPostDataLength
+          }
+        }
+      );
+
+      processResponse(this, postRequest, ({ statusCode }) =>
+      {
+        this.testPassed = (statusCode === 200);
+      }, binaryPostData);
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_binary_simple,
-  test_contents_002_post_params_form_uploading_binary_field_simple
+  test_contents_002_post_params_form_uploading_binary_field_simple,
+  test_contents_003_post_params_form_uploading_binary_maxpayload_pt1,
+  test_contents_004_post_params_form_uploading_binary_maxpayload_pt2
 ];

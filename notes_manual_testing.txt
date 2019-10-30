@@ -3,30 +3,13 @@ Pending:
 
 Please continue with the actual test building:
 
-Update the docs to indicate that rt.readFile() has a second parameter, encoding, which defaults to undefined, implying raw bytes.  To read text files encoded in utf-8, use 'utf-8'.
-
  +- File uploads:
-  - Up next:
-    - Actual binary data.
-    - Binary data with text fields.
-    - Large files.
-      - Limit exceeds.
-        - Check that temp files are erased.
-        - The one provided by the application.
-        - And the one provided by formidable, if applies.
-    - Empty files?
-    - Large number of files.
-      - Limit exceeds.
-        - Check that temp files are erased.
-        - The one provided by the application.
-        - And the one provided by formidable, if applies.
-    - Large field values (not files, fields).
-      - Limit exceeds.
-    - Large number of fields (not files, fields).
-      - Limit exceeds.
-    - File and fields.
-    - FileS and fields.
-  - Forbidden uploads.
+    *- Actual binary data.
+    *- Binary data with text field.
+    *- Large files.
+      *- Limit exceeds.
+    +- Empty files?
+  - Forbidden uploads. - Hasn't this been tested already?
     - Check that temp files are erased.
      - The one provided by the application.
      - And the one provided by formidable, if applies.

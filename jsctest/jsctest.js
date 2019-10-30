@@ -2,28 +2,28 @@
 
 const allTests =
 [
-  'testBattery_001', //__RP
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
-  'testBattery_014',
-  'testBattery_015',
-  'testBattery_016',
-  'testBattery_017',
-  'testBattery_018',
-  'testBattery_contents_01',
-  'testBattery_contents_02',
-  'testBattery_contents_03',
-  'testBattery_contents_04',
+  // 'testBattery_001', //__RP
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
+  // 'testBattery_014',
+  // 'testBattery_015',
+  // 'testBattery_016',
+  // 'testBattery_017',
+  // 'testBattery_018',
+  // 'testBattery_contents_01',
+  // 'testBattery_contents_02',
+  // 'testBattery_contents_03',
+  // 'testBattery_contents_04',
   'testBattery_contents_05'
 ];
 
@@ -642,10 +642,15 @@ function createFile(dirPathList, contents)
 function deleteFile(dirPathList)
 {
   const filePath = this.getTestFilePath(dirPathList, 'deleteFile', { errorMessage: 'No file path specified for deletion' });
-  if (filePath)
+  let results = false;
+
+  if (filePath && fs.existsSync(filePath))
   {
     fs.unlinkSync(filePath);
+    results = true;
   }
+
+  return results;
 }
 
 function readFile(dirPathList)

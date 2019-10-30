@@ -91,7 +91,8 @@ Or this:
 - rt.runAfter() will enqueue code that will be run after all waitFor() callbacks are run (including those callbacks with implicit waitFors, like rtReadFile).  This is especially useful with the JSCause file manipulation functions.
   - You can call several rt.runAfter().  Each callback will be run one after the other (not concurrently.)
   - rt.waitFor() can be used inside rt.runAfter() callbacks.  If they are used, any enqueued runAfter callbacks will again wait until said waitFor callbacks are run.
-- rt.readFile(path) allows to read a file from path.  It behaves in a promise-like way.
+- rt.readFile(path [, encoding]) allows to read a file from path.  It behaves in a promise-like way.
+  - The optional encoding parameter indicates the type of encoding the file has (e.g. 'utf-8', usually good for text data).  If not specified, then raw bytes are assumed (good for binary files.)
   - Chain it with .rtOnSuccess() with a callback with the response as a parameter:
      rt.readFile(path).rtOnSuccess((response) => { rt.print(response); });
        - No need to wrap the callback with a waitFor().
