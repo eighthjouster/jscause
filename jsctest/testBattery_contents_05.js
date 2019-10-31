@@ -100,7 +100,6 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
       const octetListLength = 5;
       const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
       const binaryValue = Buffer.from(randomOctetsArray);
-      this.tempTestData = { randomOctetsArray };
       let formBoundary = getFormFieldBoundary([binaryValue]);
       if (formBoundary)
       {
@@ -119,7 +118,6 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
 
         processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
         {
-          const { randomOctetsArray } = this.tempTestData;
           const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
           const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
           const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
@@ -171,7 +169,6 @@ const test_contents_002_post_params_form_uploading_binary_field_simple = Object.
       const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
       const binaryValue = Buffer.from(randomOctetsArray);
       const textFieldValue = 'some_text_value';
-      this.tempTestData = { randomOctetsArray };
       let formBoundary = getFormFieldBoundary([binaryValue, textFieldValue]);
       if (formBoundary)
       {
@@ -193,7 +190,6 @@ const test_contents_002_post_params_form_uploading_binary_field_simple = Object.
 
         processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
         {
-          const { randomOctetsArray } = this.tempTestData;
           const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
           const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
           const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
@@ -375,9 +371,82 @@ const test_contents_004_post_params_form_uploading_binary_maxpayload_pt2 = Objec
   }
 );
 
+const test_contents_005_post_params_form_uploading_binary_forbidden = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value; forbidden'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const siteConfContents = makeBaseSiteConfContents(
+        {
+          'canUpload': false
+        });
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      
+      initConsoleLogCapture();
+      this.tempTestData = { moveToTempWorkDirData: { actualFilePath: '', systemUploadFileExistedBefore: false } };
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.uploadedFiles[\'file1\']);');
+
+      const { tempTestData } = this;
+      this.functionCallListeners.doMoveToTempWorkDir =
+      {
+        beforeCb(thisActualFile)
+        {
+          const { moveToTempWorkDirData } = tempTestData;
+          moveToTempWorkDirData.actualFilePath = thisActualFile.path;
+          moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
+        }
+      };
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const octetListLength = 5;
+      const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
+      const binaryValue = Buffer.from(randomOctetsArray);
+      let formBoundary = getFormFieldBoundary([binaryValue]);
+      if (formBoundary)
+      {
+        const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
+        const binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
+
+        const postRequest = makeBaseRequest(
+          {
+            headers:
+            {
+              'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+              'Content-Length': Buffer.byteLength(binaryPostData)
+            }
+          }
+        );
+
+        processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+        {
+          const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore } } = this.tempTestData;
+
+          this.testPassed = !dataReceived.length &&
+            (statusCode === 403) &&
+            (consoleLogOutput.status === 'captured') &&
+            !consoleLogOutput.lines.length &&
+            !actualFilePath &&
+            !systemUploadFileExistedBefore
+        }, binaryPostData);
+      }
+      else
+      {
+        console.error('Error: Could not find a suitable form field boundary.');
+        this.testPassed = false;
+        this.doneRequestsTesting();
+      }
+    }
+  }
+);
+
 module.exports = [
   test_contents_001_post_params_form_uploading_binary_simple,
   test_contents_002_post_params_form_uploading_binary_field_simple,
   test_contents_003_post_params_form_uploading_binary_maxpayload_pt1,
-  test_contents_004_post_params_form_uploading_binary_maxpayload_pt2
+  test_contents_004_post_params_form_uploading_binary_maxpayload_pt2,
+  test_contents_005_post_params_form_uploading_binary_forbidden
 ];

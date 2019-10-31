@@ -4,16 +4,9 @@ Pending:
 Please continue with the actual test building:
 
  +- File uploads:
-    *- Actual binary data.
-    *- Binary data with text field.
-    *- Large files.
-      *- Limit exceeds.
-    *- Empty files?
-  - Forbidden uploads. - Hasn't this been tested already?
-    - Check that temp files are erased.
-     - The one provided by the application.
-     - And the one provided by formidable, if applies.
-  - Slooow upload (do we have a timeout option?)
+  +- Slooow upload (do we have a timeout option?)
+    - It seems that we can achieve this with dividing up the request using response.write() multiple times.
+      - Can we do the same thing when receiving the response?
     - Or when maxlength is wrong (never ending upload; there should be a timeout, right?)
       - Check that temp files are erased.
       - The one provided by the application.
