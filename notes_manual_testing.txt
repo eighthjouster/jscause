@@ -3,10 +3,10 @@ Pending:
 
 Please continue with the actual test building:
 
+We have to implement a timeout for uploads (and possibily, downloads.)
+
  +- File uploads:
   +- Slooow upload (do we have a timeout option?)
-    - It seems that we can achieve this with dividing up the request using response.write() multiple times.
-      - Can we do the same thing when receiving the response?
     - Or when maxlength is wrong (never ending upload; there should be a timeout, right?)
       - Check that temp files are erased.
       - The one provided by the application.
@@ -15,6 +15,10 @@ Please continue with the actual test building:
     - Check that temp files are erased.
      - The one provided by the application.
      - And the one provided by formidable, if applies.
+  - That was for forms.  What about other formats? JSON, raw?
+  - Same as above, but with downloads:
+    - Forms, JSON, raw.
+    - Uploads, downloads.
  - Two sites, two separate temp upload directories, right?
 
 Do we have access to the requester's user agent? User-Agent header entry?

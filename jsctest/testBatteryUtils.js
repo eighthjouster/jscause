@@ -171,7 +171,7 @@ const testUtils =
     return a.every((line, i) => b[i] === line) && (Boolean(a.length) || !b.length);
   },
 
-  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData } = {})
+  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData, reqSendHandler } = {})
   {
     const requestContext =
     {
@@ -220,12 +220,18 @@ const testUtils =
       testContext.doneRequestsTesting();
     });
 
-    if (typeof(postData) !== 'undefined')
+    if (reqSendHandler !== 'undefined')
     {
-      req.write(postData);
+      reqSendHandler(req, postData);
     }
-
-    req.end();
+    else
+    {
+      if (typeof(postData) !== 'undefined')
+      {
+        req.write(postData);
+      }
+      req.end();
+    }
   },
 
   makeTestEndBoilerplate()
@@ -249,7 +255,7 @@ const testUtils =
     };
   },
 
-  processResponse(context, request, onResponseEndCb, postData)
+  processResponse(context, request, onResponseEndCb, postData, reqSendHandler)
   {
     context.testPassed = false;
     if (context.serverDidStart)
@@ -260,7 +266,8 @@ const testUtils =
           request,
           doneRequestsTesting: context.doneRequestsTesting,
           context,
-          postData
+          postData,
+          reqSendHandler
         });
     }
     else

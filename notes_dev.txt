@@ -255,6 +255,9 @@ Version 0.7.1b here!
 
 Order by priority:
 
+If a request is interrupted half-way through, will the connection persist? Will the server continue listening?  It shouldn't.  And perhaps this is mitigated by an already implemented timeout, but... it shouldn't.
+  - Look into Formidable events.  Or request's events.
+
 Optional, configurable limit number of number of uploaded files and fields.  Right now, there is no limit; or maybe there is one imposed by Formidable?
  - Create the corresponding tests, combining:
    - File and fields.
