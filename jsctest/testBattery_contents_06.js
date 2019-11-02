@@ -76,7 +76,12 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-      const jsCauseConfContents = makeBaseJsCauseConfContents();
+//__RP      const jsCauseConfContents = makeBaseJsCauseConfContents();
+      const jsCauseConfContents = makeBaseJsCauseConfContents(
+        {
+          'requesttimeoutsecs': 3
+        },
+      );
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       const siteConfContents = makeBaseSiteConfContents();

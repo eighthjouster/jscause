@@ -67,7 +67,8 @@ Or this:
     - rt.uploadedFiles['myFile'][0].name
   - If the canUpload server configuration value is set to false, any attempts to upload anything will immediately close the connection.  The application will try to send a 403 forbidden error, but this is not guaranteed.
     - Same thing with max file size.  If this is not desired, it is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)
-  - A maxPayloadSizeBytes server config value of 0 indicates unlimited upload size.  Less than 0 is as if canUpload is false.  Use the 0 value with caution.
+  - A maxPayloadSizeBytes site config value of 0 indicates unlimited upload size.  Less than 0 is as if canUpload is false.  Use the 0 value with caution.
+  - The requestTimeoutSecs (requestimeoutsecs) server config value dictates how many seconds will the server wait for a request to complete.  If 0 or non-existent, then it is assumed that there is no timeout limit.
   - When POSTing, if the content-type header is set to application/json, the app will do its best to parse it.  If it fails, rt.additional.jsonParseError will be true.  If it succeeds, the json object will be available as rt.postParams.
   - If when POSTing the content-type header is set to anything other than application/json o form encoded, the payload will be available as rt.postParams.data.  If the user is sure it will be a string, they should do rt.postParams.data.toString() before processing.
   - contentType can be whatever the content-type header is set to, except for:

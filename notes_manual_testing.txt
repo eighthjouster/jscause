@@ -3,7 +3,24 @@ Pending:
 
 Please continue with the actual test building:
 
+Ok, almost there:
+ - Temporarily, the current test triggers the timeout.  But that test should be of unrestricted upload time.
+  - Then, add another test with the upload time restriction.
+    - Make the request fail (look for the "YOOO"), which would make the test pass.
+
 We have to implement a timeout for uploads (and possibily, downloads.)
+ *- requestTickTockId
+ - responseTickTockId? (implement in the same way as requestTickTockId.)
+
+Test the new functionality.
+ - Config keys, just like you tested 'sites' or 'logging'.
+
+Perhaps the following messages:
+ERROR: Form upload related error.
+Error: Request aborted
+shouldn't be logged, since they're user initiated.
+ - Or at least it shouldn't throw an error 500; it's not the server's fault that the client closed early.
+  (How to reproduce:  upload something, hit back button while uploading is in progress.)
 
  +- File uploads:
   +- Slooow upload (do we have a timeout option?)

@@ -220,7 +220,7 @@ const testUtils =
       testContext.doneRequestsTesting();
     });
 
-    if (reqSendHandler !== 'undefined')
+    if (typeof(reqSendHandler) !== 'undefined')
     {
       reqSendHandler(req, postData);
     }

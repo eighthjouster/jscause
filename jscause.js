@@ -1498,7 +1498,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
     }
     else
     {
-      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode } = ctx;
+      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode, requestTickTockId } = ctx;
       let formUploadErrorOccurred = ctx.formUploadErrorOccurred;
 
       const formFiles = ctx.uploadedFiles;
@@ -1530,7 +1530,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
 
       if (runtimeException || compileTimeError || formUploadErrorOccurred)
       {
-        handleError5xx(reqObject, resObject, serverConfig, identifiedSite);
+        handleError5xx(reqObject, resObject, serverConfig, identifiedSite, requestTickTockId);
         return;
       }
       else
@@ -1554,7 +1554,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         {
           resObject.statusCode = statusCode;
         }
-        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName }, showContents ? (ctx.outputQueue || []).join('') : '');
+        resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
   }
@@ -2220,7 +2220,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
   doneWith(serverConfig, identifiedSite, resContext);
 }
 
-function responderStaticFileError(e, req, res, serverConfig, identifiedSite, runFileName)
+function responderStaticFileError(e, req, res, serverConfig, identifiedSite, runFileName, requestTickTockId)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const { siteName, siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
@@ -2237,10 +2237,10 @@ function responderStaticFileError(e, req, res, serverConfig, identifiedSite, run
   res.statusCode = 404;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', 0);
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
 }
 
-function responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents, readStream, fileNotFoundException })
+function responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents, readStream, fileNotFoundException, requestTickTockId })
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const { siteHostName, staticFiles, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
@@ -2261,7 +2261,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
   }
   else if (shouldUseFileContents || !readStream)
   {
-    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName }, fileContents);
+    resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId }, fileContents);
   }
   else
   {
@@ -2277,7 +2277,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
 
     readStream.on('end', () =>
     {
-      resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
+      resEnd(req, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
     });
 
     readStream.on('error', (e) =>
@@ -2287,7 +2287,7 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
   }
 }
 
-function sendPayLoadExceeded(req, res, serverConfig, identifiedSite)
+function sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const { siteHostName, maxPayloadSizeBytes, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
@@ -2302,10 +2302,10 @@ function sendPayLoadExceeded(req, res, serverConfig, identifiedSite)
   res.statusCode = 413;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
 }
 
-function sendUploadIsForbidden(req, res, serverConfig, identifiedSite)
+function sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
   const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
@@ -2320,10 +2320,10 @@ function sendUploadIsForbidden(req, res, serverConfig, identifiedSite)
   res.statusCode = 403;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
 }
 
-function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, errorCode)
+function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, requestTickTockId, errorCode)
 {
   const { siteHostName, staticFiles, compiledFiles,
     logging: { doLogToConsole, siteLogDir } } = identifiedSite;
@@ -2345,7 +2345,7 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
   {
     if (staticCodeExists)
     {
-      serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, errorCode);
+      serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, requestTickTockId, errorCode);
       return;
     }
 
@@ -2359,7 +2359,8 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
         resObject: res,
         requestMethod,
         contentType,
-        runFileName
+        runFileName,
+        requestTickTockId
       };
 
       const postContext = { requestBody: [], statusCode: errorCode };
@@ -2371,20 +2372,20 @@ function handleCustomError(staticFileName, compiledFileName, req, res, serverCon
 
   res.statusCode = errorCode;
   res.setHeader('Content-Type', 'application/octet-stream');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName });
+  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
 }
 
-function handleError4xx(req, res, serverConfig, identifiedSite, errorCode = 404)
+function handleError4xx(req, res, serverConfig, identifiedSite, requestTickTockId, errorCode = 404)
 {
-  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, serverConfig, identifiedSite, errorCode);
+  handleCustomError('/error4xx.html', '/error4xx.jscp', req, res, serverConfig, identifiedSite, requestTickTockId, errorCode);
 }
 
-function handleError5xx(req, res, serverConfig, identifiedSite, errorCode = 500)
+function handleError5xx(req, res, serverConfig, identifiedSite, requestTickTockId, errorCode = 500)
 {
-  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, serverConfig, identifiedSite, errorCode);
+  handleCustomError('/error5xx.html', '/error5xx.jscp', req, res, serverConfig, identifiedSite, requestTickTockId, errorCode);
 }
 
-function serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, statusCode = 200)
+function serveStaticContent(req, res, serverConfig, identifiedSite, runFileName, requestTickTockId, statusCode = 200)
 {
   const staticContent = identifiedSite.staticFiles[runFileName];
   const { fileContents, fullPath } = staticContent;
@@ -2394,12 +2395,12 @@ function serveStaticContent(req, res, serverConfig, identifiedSite, runFileName,
     fs.stat(fullPath, jscCallback((err) =>
     {
       const readStream = (err) ? null : fs.createReadStream(fullPath);
-      responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { readStream, fileNotFoundException: err });
+      responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { readStream, fileNotFoundException: err, requestTickTockId });
     }));
   }
   else
   {
-    responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents: true });
+    responderStatic(req, res, serverConfig, identifiedSite, runFileName, statusCode, { shouldUseFileContents: true, requestTickTockId });
   }
 }
 
@@ -2408,7 +2409,7 @@ function makeLogLine(hostName, method, url, statusCode)
   return `${new Date().toUTCString()} - ${hostName} - ${method}: ${url} - ${statusCode}`;
 }
 
-function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold }, response)
+function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, requestTickTockId }, response)
 {
   const { method, url } = req;
   const statusCode = `${res.statusCode}${isRefusedConnection && ' (REFUSED)' || ''}`;
@@ -2424,6 +2425,16 @@ function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, s
       });
   }
 
+  if (requestTickTockId)
+  {
+    clearTimeout(requestTickTockId);
+
+    if (isTestMode)
+    {
+      jscTestGlobal.callbackCalled(); // Because there is a jscCallBack() in the corresponding clearTimeout().
+    }
+  }
+
   res.end(response);
 }
 
@@ -2435,6 +2446,16 @@ function incomingRequestHandler(req, res, sitesInServer)
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
   const serverLogging = serverConfig.logging;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
+  const requestTickTockId = !!serverConfig.requestTimeoutSecs &&
+    setTimeout(
+      jscCallback(
+        () =>
+        {
+          console.info('YOOOOOO');//__RP
+        }
+      ),
+      serverConfig.requestTimeoutSecs * 1000
+    );
 
   let contentType = (headers['content-type'] || '').toLowerCase();
   const identifiedSite = sitesInServer[reqHostName];
@@ -2443,7 +2464,7 @@ function incomingRequestHandler(req, res, sitesInServer)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');
-    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true })
+    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true, requestTickTockId })
     return;
   }
 
@@ -2483,7 +2504,7 @@ function incomingRequestHandler(req, res, sitesInServer)
       (initialRunFileName === '/error5xx.jscp') ||
       (initialRunFileName === '/error5xx.html'))
   {
-    handleError4xx(req, res, serverConfig, identifiedSite);
+    handleError4xx(req, res, serverConfig, identifiedSite, requestTickTockId);
     return;
   }
 
@@ -2496,12 +2517,12 @@ function incomingRequestHandler(req, res, sitesInServer)
       ((jscpExtensionRequired === 'never') && (jscpExtensionDetected || indexWithNoExtensionDetected)) ||
       ((jscpExtensionRequired === 'always') && (!resourceFileExtension && compiledCodeExists)))
   {
-    handleError4xx(req, res, serverConfig, identifiedSite);
+    handleError4xx(req, res, serverConfig, identifiedSite, requestTickTockId);
     return;
   }
   else if (staticFiles[initialRunFileName])
   {
-    serveStaticContent(req, res, serverConfig, identifiedSite, initialRunFileName);
+    serveStaticContent(req, res, serverConfig, identifiedSite, initialRunFileName, requestTickTockId);
   }
   else
   {
@@ -2515,7 +2536,7 @@ function incomingRequestHandler(req, res, sitesInServer)
 
     if (!compiledCodeExists)
     {
-      handleError4xx(req, res, serverConfig, identifiedSite);
+      handleError4xx(req, res, serverConfig, identifiedSite, requestTickTockId);
       return;
     }
 
@@ -2537,12 +2558,12 @@ function incomingRequestHandler(req, res, sitesInServer)
     if (contentLength && maxPayloadSizeBytes && (contentLength > maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
+      sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(req, res, serverConfig, identifiedSite);
+      sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId);
     }
     else if (postedForm)
     {
@@ -2579,7 +2600,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         if (maxPayloadSizeBytes && (bytesReceived > maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
+          sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
         }
       });
 
@@ -2609,7 +2630,8 @@ function incomingRequestHandler(req, res, sitesInServer)
           resObject: res,
           requestMethod,
           contentType: postType,
-          runFileName
+          runFileName,
+          requestTickTockId
         };
 
         const formContext =
@@ -2669,7 +2691,7 @@ function incomingRequestHandler(req, res, sitesInServer)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength > maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(req, res, serverConfig, identifiedSite);
+            sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
           }
           else
           {
@@ -2680,7 +2702,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         else
         {
           forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(req, res, serverConfig, identifiedSite);
+          sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId);
         }
       }).on('end', () =>
       {
@@ -2695,7 +2717,8 @@ function incomingRequestHandler(req, res, sitesInServer)
           resObject: res,
           requestMethod,
           contentType,
-          runFileName
+          runFileName,
+          requestTickTockId
         };
   
         const postContext = { requestBody, maxSizeExceeded, forbiddenUploadAttempted };
@@ -3976,6 +3999,24 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
   return result && loggingInfo;
 }
 
+function parseRequestTimeoutSecsConfigJSON(processedConfigJSON, { requiredKeysNotFound }, jscLogConfig = {})
+{
+  const { requesttimeoutsecs } = processedConfigJSON;
+  let timeoutInSecs;
+  const configValue = parseInt((typeof(requesttimeoutsecs) === 'undefined') ? 0 : requesttimeoutsecs, 10);
+
+  if (!isNaN(configValue) && (configValue >= 0))
+  {
+    timeoutInSecs = configValue;
+  }
+  else
+  {
+    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration:  Expected number; 0 or greater.', jscLogConfig);
+  }
+
+  return timeoutInSecs;
+}
+
 function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite = false, perSiteData = {} } = {}, jscLogConfig = {}, additionalToRootDir = '')
 {
   let readSuccess = true;
@@ -4306,6 +4347,7 @@ function startApplication(options = { rootDir: undefined })
   let readSuccess = false;
   let allSitesInServer;
   let serverWideLoggingInfo;
+  let requestTimeoutSecs;
 
   let jscLogBase =
   {
@@ -4319,7 +4361,8 @@ function startApplication(options = { rootDir: undefined })
     const allAllowedKeys =
     [
       'sites',
-      'logging'
+      'logging',
+      'requesttimeoutsecs'
     ];
 
     const requiredKeysNotFound = [];
@@ -4340,6 +4383,13 @@ function startApplication(options = { rootDir: undefined })
     {
       serverWideLoggingInfo = parseLoggingConfigJSON(processedConfigJSON, jscLogBase);
       soFarSoGood = !!serverWideLoggingInfo;
+    }
+
+    // requesttimeoutsecs
+    if (soFarSoGood)
+    {
+      requestTimeoutSecs = parseRequestTimeoutSecsConfigJSON(processedConfigJSON, jscLogBase);
+      soFarSoGood = (typeof(requestTimeoutSecs) !== 'undefined');
     }
 
     const allRequiredKeys = checkForRequiredKeysNotFound(requiredKeysNotFound, 'Server configuration', jscLogBase);
@@ -4870,6 +4920,8 @@ function startApplication(options = { rootDir: undefined })
       allFailedSiteNames.push(siteName);
     }
   });
+
+  serverConfig.requestTimeoutSecs = requestTimeoutSecs;
 
   JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
 
