@@ -1,22 +1,14 @@
 Pending:
 ========
 
-      const jsCauseConfContents = makeBaseJsCauseConfContents(
-        {
-          'requesttimeoutsecs': 3
-        }
-      );
-      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
 Please continue with the actual test building:
 
 Ok, almost there:
- - Temporarily, the current test triggers the timeout.  But that test should be of unrestricted upload time.
-  - Then, add another test with the upload time restriction.
-    - Make the request fail (look for the "YOOO"), which would make the test pass.
+ - When the upload fails, the temp file remains.  How to delete?
+   - form abort event?
+   - And we must test this.
 
-We have to implement a timeout for uploads (and possibily, downloads.)
- *- requestTickTockId
+We have to implement a timeout for downloads, maybe.
  - responseTickTockId? (implement in the same way as requestTickTockId.)
 
 Test the new functionality.

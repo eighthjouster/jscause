@@ -1447,6 +1447,8 @@ function moveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pe
 const doMoveToTempWorkDir = (isTestMode) ?
   (...params) =>
   {
+    console.info('AM I HERE?');//__RP
+    console.info(params);//__RP
     const { functionCallListeners: { doMoveToTempWorkDir: { beforeCb } = {} } = {} } = jscTestGlobal;
     beforeCb && beforeCb.apply(null, params);
     moveToTempWorkDir.apply({}, params);
@@ -2287,40 +2289,37 @@ function responderStatic(req, res, serverConfig, identifiedSite, runFileName, st
   }
 }
 
-function sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId)
+function sendRequestError(errorCode, message, req, res, serverConfig, identifiedSite, requestTickTockId)
 {
   const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { siteHostName, maxPayloadSizeBytes, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
 
-  JSCLog('error', `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`,
+  JSCLog('error', message,
     {
       toConsole: doLogToConsole,
       toServerDir: serverLogDir,
       toSiteDir: siteLogDir,
       fileSizeThreshold: logFileSizeThreshold
     });
-  res.statusCode = 413;
+  res.statusCode = errorCode;
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Connection', 'close');
   resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
 }
 
-function sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId)
+function sendPayLoadExceeded(maxPayloadSizeBytes, { req, res, serverConfig, identifiedSite, requestTickTockId })
 {
-  const { logging: { serverLogDir, logFileSizeThreshold } } = serverConfig;
-  const { siteHostName, logging: { doLogToConsole, siteLogDir } } = identifiedSite;
+  sendRequestError(413, `Payload exceeded limit of ${maxPayloadSizeBytes} bytes`, req, res, serverConfig, identifiedSite, requestTickTockId);
+}
 
-  JSCLog('error', 'Uploading is forbidden.',
-    {
-      toConsole: doLogToConsole,
-      toServerDir: serverLogDir,
-      toSiteDir: siteLogDir,
-      fileSizeThreshold: logFileSizeThreshold
-    });
-  res.statusCode = 403;
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Connection', 'close');
-  resEnd(req, res, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId });
+function sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId })
+{
+  sendRequestError(413, `Timeout exceeded limit of ${requestTimeoutSecs} seconds`, req, res, serverConfig, identifiedSite, requestTickTockId);
+}
+
+function sendUploadIsForbidden({ req, res, serverConfig, identifiedSite, requestTickTockId })
+{
+  sendRequestError(403, 'Uploading is forbidden.', req, res, serverConfig, identifiedSite, requestTickTockId);
 }
 
 function handleCustomError(staticFileName, compiledFileName, req, res, serverConfig, identifiedSite, requestTickTockId, errorCode)
@@ -2444,21 +2443,17 @@ function incomingRequestHandler(req, res, sitesInServer)
   const [/* Deliberately left blank. */, reqHostName = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
   const requestMethod = (method || '').toLowerCase();
   const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
-  const serverLogging = serverConfig.logging;
+  const { logging: serverLogging, requestTimeoutSecs } = serverConfig;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
-  const requestTickTockId = !!serverConfig.requestTimeoutSecs &&
+  const identifiedSite = sitesInServer[reqHostName];
+
+  const requestTickTockId = !!requestTimeoutSecs &&
     setTimeout(
-      jscCallback(
-        () =>
-        {
-          console.info('YOOOOOO');//__RP
-        }
-      ),
-      serverConfig.requestTimeoutSecs * 1000
+      jscCallback(() => { sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId }); }),
+      requestTimeoutSecs * 1000
     );
 
   let contentType = (headers['content-type'] || '').toLowerCase();
-  const identifiedSite = sitesInServer[reqHostName];
 
   if (!identifiedSite || !reqMethodIsValid)
   {
@@ -2558,12 +2553,12 @@ function incomingRequestHandler(req, res, sitesInServer)
     if (contentLength && maxPayloadSizeBytes && (contentLength > maxPayloadSizeBytes))
     {
       maxSizeExceeded = true;
-      sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
+      sendPayLoadExceeded(maxPayloadSizeBytes, { req, res, serverConfig, identifiedSite, requestTickTockId });
     }
     else if (incomingForm && !canUpload)
     {
       forbiddenUploadAttempted = true;
-      sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId);
+      sendUploadIsForbidden({ req, res, serverConfig, identifiedSite, requestTickTockId });
     }
     else if (postedForm)
     {
@@ -2600,7 +2595,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         if (maxPayloadSizeBytes && (bytesReceived > maxPayloadSizeBytes))
         {
           maxSizeExceeded = true;
-          sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
+          sendPayLoadExceeded(maxPayloadSizeBytes, { req, res, serverConfig, identifiedSite, requestTickTockId });
         }
       });
 
@@ -2691,7 +2686,7 @@ function incomingRequestHandler(req, res, sitesInServer)
           if (futureBodyLength && maxPayloadSizeBytes && (futureBodyLength > maxPayloadSizeBytes))
           {
             maxSizeExceeded = true;
-            sendPayLoadExceeded(req, res, serverConfig, identifiedSite, requestTickTockId);
+            sendPayLoadExceeded(maxPayloadSizeBytes, { req, res, serverConfig, identifiedSite, requestTickTockId });
           }
           else
           {
@@ -2702,7 +2697,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         else
         {
           forbiddenUploadAttempted = true;
-          sendUploadIsForbidden(req, res, serverConfig, identifiedSite, requestTickTockId);
+          sendUploadIsForbidden({ req, res, serverConfig, identifiedSite, requestTickTockId });
         }
       }).on('end', () =>
       {
@@ -4847,7 +4842,7 @@ function startApplication(options = { rootDir: undefined })
                   {
                     readSuccess = false;
                   }
-                  else{
+                  else {
                     siteConfig.compiledFiles[webPath] = processedSourceFile;
                   }
                 }
