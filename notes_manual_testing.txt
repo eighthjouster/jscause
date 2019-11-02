@@ -1,6 +1,13 @@
 Pending:
 ========
 
+      const jsCauseConfContents = makeBaseJsCauseConfContents(
+        {
+          'requesttimeoutsecs': 3
+        }
+      );
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
 Please continue with the actual test building:
 
 Ok, almost there:

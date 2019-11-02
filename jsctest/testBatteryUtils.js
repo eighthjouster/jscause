@@ -340,8 +340,36 @@ const testUtils =
     }
 
     return formBoundary;
-  }//,
+  },
 
+  makeTimeChunkSender: (req, payload, totalTime) =>
+  {
+    const payloadLength = Buffer.byteLength(payload);
+    let bufferSliceStart = 0;
+    const length = Math.floor(payloadLength * 0.2);
+    const timeoutInSecs = Math.floor(totalTime * 0.2);
+    
+    const timeChunkSender = () =>
+    {
+      const bufferSliceEnd = bufferSliceStart + length;
+  
+      console.info(`Sending payload part - ${Math.min(bufferSliceEnd, payloadLength)} / ${payloadLength} ...`);
+  
+      req.write(payload.subarray(bufferSliceStart, bufferSliceEnd));
+      bufferSliceStart = bufferSliceEnd;
+  
+      if (bufferSliceStart < payloadLength)
+      {
+        setTimeout(timeChunkSender, timeoutInSecs);
+      }
+      else
+      {
+        req.end();
+      }
+    };
+  
+    return timeChunkSender;
+}
 };
 
 module.exports = testUtils;

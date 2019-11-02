@@ -56,7 +56,8 @@ const
     areFlatArraysEqual,
     buildFileUploadEntry,
     makeBinaryPostData,
-    getFormFieldBoundary
+    getFormFieldBoundary,
+    makeTimeChunkSender
   } = testUtils;
 
 const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFromBaseTest('Contents; JSCP file; POST parameters; form uploading; binary value; slow'),
@@ -76,12 +77,7 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'localLogs']);
       this.doCreateDirectoryFromPathList(['sites', 'mysite', 'website']);
 
-//__RP      const jsCauseConfContents = makeBaseJsCauseConfContents();
-      const jsCauseConfContents = makeBaseJsCauseConfContents(
-        {
-          'requesttimeoutsecs': 3
-        },
-      );
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
       const siteConfContents = makeBaseSiteConfContents();
@@ -106,85 +102,64 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
       const randomOctetsArray = [...Array(octetListLength)].map(() => Math.floor(Math.random() * 256));
       const binaryValue = Buffer.from(randomOctetsArray);
       let formBoundary = getFormFieldBoundary([binaryValue]);
-      if (formBoundary)
-      {
-        const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
-        const binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
 
-        const postRequest = makeBaseRequest(
-          {
-            headers:
-            {
-              'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
-              'Content-Length': Buffer.byteLength(binaryPostData)
-            }
-          }
-        );
-
-        const onReadyToSend = (req, postData) =>
-        {
-          if (typeof(postData) !== 'undefined')
-          {
-            let i = 0;
-            const postDataLength = Buffer.byteLength(postData);
-            const length = Math.floor(postDataLength * 0.2);
-            const totalTime = 6 * 1000; // 6 seconds.
-            const timeoutTime = Math.floor(totalTime * 0.2);
-
-            const pototo = () =>
-            {
-              const j = i + length;
-              console.info(`Sending postData part - ${Math.min(j, postDataLength)} / ${postDataLength} ...`);
-              req.write(postData.subarray(i, j));
-              i = j;
-
-              if (i < postDataLength)
-              {
-                setTimeout(pototo, timeoutTime);
-              }
-              else
-              {
-                req.end();
-              }
-            };
-
-            setTimeout(pototo, 250);
-          }
-          else
-          {
-            req.end();
-          }
-        };
-
-        processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
-        {
-          if (!consoleLogOutput.lines.length)
-          {
-            this.testPassed = false;
-          }
-          else{
-            const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
-            const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
-            const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
-  
-            this.testPassed = !dataReceived.length &&
-              (statusCode === 200) &&
-              (consoleLogOutput.status === 'captured') &&
-              !jsCauseUploadFileExistedAfter &&
-              areFlatArraysEqual(consoleLogOutputLinesButFirst,
-                [
-                  'filename1.bin',
-                  ...randomOctetsArray
-                ]);
-          }
-        }, binaryPostData, onReadyToSend);
-      }
-      else
+      if (!formBoundary)
       {
         console.error('Error: Could not find a suitable form field boundary.');
         this.testPassed = false;
         this.doneRequestsTesting();
+        return;
       }
+
+      const fileUploadEntries = [ buildFileUploadEntry(formBoundary, 'file1', binaryValue, 'filename1.bin') ];
+      const binaryPostData = makeBinaryPostData(formBoundary, fileUploadEntries);
+
+      const postRequest = makeBaseRequest(
+        {
+          headers:
+          {
+            'Content-Type': `multipart/form-data; boundary=${formBoundary}`,
+            'Content-Length': Buffer.byteLength(binaryPostData)
+          }
+        }
+      );
+
+      const onReadyToSend = (req, postData) =>
+      {
+        if (typeof(postData) !== 'undefined')
+        {
+          const totalTime = 3 * 1000; // 3 seconds.
+          const timeChunkSender = makeTimeChunkSender(req, postData, totalTime);
+          timeChunkSender();
+        }
+        else
+        {
+          req.end();
+        }
+      };
+
+      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        if (!consoleLogOutput.lines.length)
+        {
+          this.testPassed = false;
+        }
+        else{
+          const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
+          const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
+          const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
+
+          this.testPassed = !dataReceived.length &&
+            (statusCode === 200) &&
+            (consoleLogOutput.status === 'captured') &&
+            !jsCauseUploadFileExistedAfter &&
+            areFlatArraysEqual(consoleLogOutputLinesButFirst,
+              [
+                'filename1.bin',
+                ...randomOctetsArray
+              ]);
+        }
+      }, binaryPostData, onReadyToSend);
     }
   }
 );
