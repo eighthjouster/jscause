@@ -5,8 +5,9 @@ Please continue with the actual test building:
 
 Ok, almost there:
  - When the upload fails, the temp file remains.  How to delete?
-   - form abort event?
-   - And we must test this.
+   +- Done. Deleted.
+     +- And we must test this.
+       - Get rid of console.info('AM I HERE?');//__RP
 
 We have to implement a timeout for downloads, maybe.
  - responseTickTockId? (implement in the same way as requestTickTockId.)
@@ -36,6 +37,8 @@ shouldn't be logged, since they're user initiated.
     - Forms, JSON, raw.
     - Uploads, downloads.
  - Two sites, two separate temp upload directories, right?
+
+What if there is an upload that says it's of some length, but in reality is some other length?
 
 Do we have access to the requester's user agent? User-Agent header entry?
 

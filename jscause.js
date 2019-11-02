@@ -1448,7 +1448,7 @@ const doMoveToTempWorkDir = (isTestMode) ?
   (...params) =>
   {
     console.info('AM I HERE?');//__RP
-    console.info(params);//__RP
+    //console.info(params);//__RP
     const { functionCallListeners: { doMoveToTempWorkDir: { beforeCb } = {} } = {} } = jscTestGlobal;
     beforeCb && beforeCb.apply(null, params);
     moveToTempWorkDir.apply({}, params);
@@ -2446,12 +2446,7 @@ function incomingRequestHandler(req, res, sitesInServer)
   const { logging: serverLogging, requestTimeoutSecs } = serverConfig;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
   const identifiedSite = sitesInServer[reqHostName];
-
-  const requestTickTockId = !!requestTimeoutSecs &&
-    setTimeout(
-      jscCallback(() => { sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId }); }),
-      requestTimeoutSecs * 1000
-    );
+  let postedForm;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
 
@@ -2488,6 +2483,38 @@ function incomingRequestHandler(req, res, sitesInServer)
     } = identifiedSite;
 
   const { siteLogDir, doLogToConsole } = siteLogging;
+
+  const requestTickTockId = !!requestTimeoutSecs &&
+    setTimeout(
+      jscCallback(() => {
+        ((postedForm || {}).openedFiles || []).forEach((thisFile) =>
+        {
+          fs.stat(thisFile.path, jscCallback((err) =>
+          {
+            if (!err)
+            {
+              fs.unlink(thisFile.path, jscCallback((err) =>
+              {
+                if (err)
+                {
+                  const jscLogConfig =
+                  {
+                    toConsole: serverConsoleOutputEnabled,
+                    toServerDir: serverLogDir,
+                    toSiteDir: siteLogDir,
+                    fileSizeThreshold: logFileSizeThreshold
+                  };
+                  JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
+                  JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
+                }
+              }));
+            }
+          }));
+          sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId });
+        });
+      }),
+      requestTimeoutSecs * 1000
+    );
 
   if (includeHttpPoweredByHeader)
   {
@@ -2540,7 +2567,7 @@ function incomingRequestHandler(req, res, sitesInServer)
     const incomingForm = ((requestMethod === 'post') &&
                           (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
 
-    const postedForm = (incomingForm && canUpload) ?
+    postedForm = (incomingForm && canUpload) ?
       new formidable.IncomingForm()
       :
       null;
