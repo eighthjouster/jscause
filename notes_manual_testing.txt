@@ -3,13 +3,6 @@ Pending:
 
 Please continue with the actual test building:
 
-Ok, almost there:
- - When the upload fails, the temp file remains.  How to delete?
-   +- Done. Deleted.
-     +- And we must test this.
-       - How do we get access to the file being uploaded?
-         - Some test callback when the form is initiated, I'm guessing.
-
 We have to implement a timeout for downloads, maybe.
  - responseTickTockId? (implement in the same way as requestTickTockId.)
 

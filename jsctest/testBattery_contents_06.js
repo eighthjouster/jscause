@@ -201,11 +201,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
       {
         beforeCb(reqMonCtx)
         {
-          console.info('I HAVE THE INFO I NEED!');//__RP
           tempTestData.handleRequestTimeoutMonitoring.reqMonCtx = reqMonCtx;
-          // const { moveToTempWorkDirData } = tempTestData;
-          // moveToTempWorkDirData.actualFilePath = thisActualFile.path;
-          // moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
         }
       };
     },
@@ -261,16 +257,22 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        const { timeoutErrorMsgDisplayed, handleRequestTimeoutMonitoring } = this.tempTestData;
-        console.info(handleRequestTimeoutMonitoring.reqMonCtx.postedForm.openedFiles);//__RP
-//__RP        const systemUploadFileExistedAfter = fs.existsSync(actualFilePath);
-//__RP console.info(systemUploadFileExistedBefore);//__RP
-//__RP console.info(systemUploadFileExistedAfter);//__RP
+        const { timeoutErrorMsgDisplayed, handleRequestTimeoutMonitoring: { reqMonCtx } } = this.tempTestData;
+        const { postedForm: { openedFiles: systemUploadFiles = [] } } = reqMonCtx;
+        let systemUploadFileExistedBefore;
+        systemUploadFiles.forEach((file) =>
+        {
+          if (typeof(systemUploadFileExistedBefore) === 'undefined')
+          {
+            systemUploadFileExistedBefore = true;
+          }
+          systemUploadFileExistedBefore = systemUploadFileExistedBefore && fs.existsSync(file.path);
+        });
+
         this.testPassed = !dataReceived.length &&
           (statusCode === 413) &&
           (consoleLogOutput.status === 'captured') &&
-          systemUploadFileExistedBefore &&
-          !systemUploadFileExistedAfter &&
+          !systemUploadFileExistedBefore &&
           timeoutErrorMsgDisplayed;
       }, binaryPostData, onReadyToSend);
     }
