@@ -171,7 +171,7 @@ const testUtils =
     return a.every((line, i) => b[i] === line) && (Boolean(a.length) || !b.length);
   },
 
-  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData, reqSendHandler } = {})
+  performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData, reqSendHandler, resReceiveHandler } = {})
   {
     const requestContext =
     {
@@ -190,21 +190,29 @@ const testUtils =
     {
       if (res.statusCode >= 400)
       {
-        console.error(`The response status code is an error ${res.statusCode}.`);
+        console.warn(`WARNING: The response status code is an error ${res.statusCode}.`);
       }
-      //__RP res.on('data', (data) => dataReceived.push(data));
-      res.on('readable', function()
+
+      res.on('readable', () =>
       {
-        console.info('READABLE!');//__RP
-        // There is some data to read now.
-        let data = this.read();
-      
-        while (data) {
-          console.info('data');//__RP
-          console.info(data);//__RP
-          dataReceived.push(data);
-          data = this.read();
+        try
+        {
+          if (resReceiveHandler)
+          {
+            console.info('INFO: Received chunk of data, ready to be processed...');
+            resReceiveHandler(res);
+          }
         }
+        catch(e)
+        {
+          console.error('ERROR: An error occurred when executing processResponse/resReceiveHandler:');
+          console.error(e);
+        }
+      });
+
+      res.on('data', (data) =>
+      {
+        dataReceived.push(data);
       });
 
       res.on('end', () =>
@@ -217,7 +225,7 @@ const testUtils =
         }
         catch(e)
         {
-          console.error('An error occurred when executing processResponse/onResponseEnd:');
+          console.error('ERROR: An error occurred when executing processResponse/onResponseEnd:');
           console.error(e);
         }
         testContext.doneRequestsTesting();
@@ -226,14 +234,22 @@ const testUtils =
 
     req.on('error', (error) =>
     {
-      console.error('An error occurred during the request.');
+      console.error('ERROR: An error occurred during the request.');
       console.error(error);
       testContext.doneRequestsTesting();
     });
 
     if (typeof(reqSendHandler) !== 'undefined')
     {
-      reqSendHandler(req, postData);
+      try
+      {
+        reqSendHandler && reqSendHandler(req, postData);
+      }
+      catch(e)
+      {
+        console.error('ERROR: An error occurred when executing processResponse/reqSendHandler:');
+        console.error(e);
+      }
     }
     else
     {
@@ -266,7 +282,7 @@ const testUtils =
     };
   },
 
-  processResponse(context, request, onResponseEndCb, postData, reqSendHandler)
+  processResponse(context, request, onResponseEndCb, { postData, reqSendHandler, resReceiveHandler })
   {
     context.testPassed = false;
     if (context.serverDidStart)
@@ -278,7 +294,8 @@ const testUtils =
           doneRequestsTesting: context.doneRequestsTesting,
           context,
           postData,
-          reqSendHandler
+          reqSendHandler,
+          resReceiveHandler
         });
     }
     else
@@ -364,7 +381,7 @@ const testUtils =
     {
       const bufferSliceEnd = bufferSliceStart + length;
   
-      console.info(`Sending payload part - ${Math.min(bufferSliceEnd, payloadLength)} / ${payloadLength} ...`);
+      console.info(`INFO: Sending payload part - ${Math.min(bufferSliceEnd, payloadLength)} / ${payloadLength} ...`);
   
       req.write(payload.subarray(bufferSliceStart, bufferSliceEnd));
       bufferSliceStart = bufferSliceEnd;

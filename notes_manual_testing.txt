@@ -5,6 +5,7 @@ Please continue with the actual test building:
 
 We have to implement a timeout for downloads, maybe.
  - responseTickTockId? (implement in the same way as requestTickTockId.)
+   - Still on it.  Longer response, and start implementing.
 
 Test the new functionality.
  - Config keys, just like you tested 'sites' or 'logging'.

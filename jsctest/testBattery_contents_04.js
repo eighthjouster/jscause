@@ -115,7 +115,7 @@ const test_contents_001_post_params_form_uploading_simple = Object.assign(makeFr
             [
               'some_field_value'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -155,7 +155,7 @@ const test_contents_002_post_params_form_uploading_malformed_pt1 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = statusCode === 500;
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -193,7 +193,7 @@ const test_contents_003_post_params_form_uploading_malformed_pt2 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = statusCode === 500;
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -245,7 +245,7 @@ const test_contents_004_post_params_form_uploading_two_fields = Object.assign(ma
               'some_field_value_1',
               'some_field_value_2'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -313,7 +313,7 @@ const test_contents_005_post_params_form_uploading_one_file_field_pt1 = Object.a
               'filename1.txt',
               file1Contents
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -398,7 +398,7 @@ const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.a
           jsCauseUploadFilePath &&
           !jsCauseUploadFileExistedAfter;
             
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -483,7 +483,7 @@ const test_contents_007_post_params_form_uploading_one_file_field_pt3 = Object.a
           jsCauseUploadFilePath &&
           !jsCauseUploadFileExistedAfter;
             
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -573,7 +573,7 @@ const test_contents_008_post_params_form_uploading_one_file_field_unsafe_name = 
               'A'.repeat(300),
               'A'.repeat(255)
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -667,7 +667,7 @@ const test_contents_009_post_params_form_uploading_two_files = Object.assign(mak
               'some other text file, line 1\nsome text file, line 2.\n'
             ]);
             
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -721,7 +721,7 @@ const test_contents_010_post_params_form_uploading_two_files_same_filename_pt1 =
         this.testPassed = !dataReceived.length &&
           (statusCode === 200);
             
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -818,7 +818,7 @@ const test_contents_011_post_params_form_uploading_two_files_same_filename_pt2 =
               'multiple upload; some other text file, line 1\nsome text file, line 2.\n'
             ]);
             
-      }, postData);
+      }, { postData });
     }
   }
 );

@@ -131,7 +131,7 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
                 'filename1.bin',
                 ...randomOctetsArray
               ]);
-        }, binaryPostData);
+        }, { postData: binaryPostData });
       }
       else
       {
@@ -203,7 +203,7 @@ const test_contents_002_post_params_form_uploading_binary_field_simple = Object.
                 ...randomOctetsArray,
                 'some_text_value'
               ]);
-        }, binaryPostData);
+        }, { postData: binaryPostData });
       }
       else
       {
@@ -301,7 +301,7 @@ const test_contents_003_post_params_form_uploading_binary_maxpayload_pt1 = Objec
         (consoleLogOutput.lines.length === 0) &&
         !actualFilePath &&
         !systemUploadFileExistedBefore
-      }, binaryPostData);
+      }, { postData: binaryPostData });
     }
   }
 );
@@ -366,7 +366,7 @@ const test_contents_004_post_params_form_uploading_binary_maxpayload_pt2 = Objec
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, binaryPostData);
+      }, { postData: binaryPostData });
     }
   }
 );
@@ -431,7 +431,7 @@ const test_contents_005_post_params_form_uploading_binary_forbidden = Object.ass
             !consoleLogOutput.lines.length &&
             !actualFilePath &&
             !systemUploadFileExistedBefore
-        }, binaryPostData);
+        }, { postData: binaryPostData });
       }
       else
       {

@@ -111,7 +111,7 @@ const test_contents_001_post_params_form_pt1 = Object.assign(makeFromBaseTest('C
             [
               'some_name'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -154,7 +154,7 @@ const test_contents_002_post_params_form_pt2_forbidden = Object.assign(makeFromB
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 403);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -204,7 +204,7 @@ const test_contents_003_post_params_form_pt3 = Object.assign(makeFromBaseTest('C
             [
               ['some_name', paramValue, 'submit'].join(' ')
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -257,7 +257,7 @@ const test_contents_004_post_params_form_maxpayload_precheck_pt1 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -310,7 +310,7 @@ const test_contents_005_post_params_form_maxpayload_precheck_pt2 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -363,7 +363,7 @@ const test_contents_006_post_params_form_maxpayload_actualcheck = Object.assign(
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 413);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -411,7 +411,7 @@ const test_contents_007_post_params_json_pt1 = Object.assign(makeFromBaseTest('C
             [
               'some_json_name'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -454,7 +454,7 @@ const test_contents_008_post_params_json_pt2_forbidden = Object.assign(makeFromB
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 403);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -504,7 +504,7 @@ const test_contents_009_post_params_json_pt3 = Object.assign(makeFromBaseTest('C
             [
               ['some_json_name', paramValue, 'submit'].join(' ')
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -557,7 +557,7 @@ const test_contents_010_post_params_json_maxpayload_precheck_pt1 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -610,7 +610,7 @@ const test_contents_011_post_params_json_maxpayload_precheck_pt2 = Object.assign
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -663,7 +663,7 @@ const test_contents_012_post_params_json_maxpayload_actualcheck = Object.assign(
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 413);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -707,7 +707,7 @@ const test_contents_013_post_params_raw_pt1 = Object.assign(makeFromBaseTest('Co
         this.testPassed = !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, postDataArray);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -754,7 +754,7 @@ const test_contents_014_post_params_raw_pt2 = Object.assign(makeFromBaseTest('Co
             [
               postData
             ]);
-      }, postData);
+        }, { postData });
     }
   }
 );
@@ -795,7 +795,7 @@ const test_contents_015_post_params_raw_pt3_forbidden = Object.assign(makeFromBa
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 403);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -972,7 +972,7 @@ const test_contents_019_post_params_discrepancies_form_json = Object.assign(make
         this.testPassed = (statusCode === 200) &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -1009,7 +1009,7 @@ const test_contents_020_post_params_discrepancies_form_raw = Object.assign(makeF
         this.testPassed = (statusCode === 200) &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, [ '', undefined ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -1045,7 +1045,7 @@ const test_contents_021_post_params_discrepancies_json_form = Object.assign(make
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 400);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -1077,7 +1077,7 @@ const test_contents_022_post_params_discrepancies_json_raw = Object.assign(makeF
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 400);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -1150,7 +1150,7 @@ const test_contents_024_get_post_params_post_no_get = Object.assign(makeFromBase
               undefined,
               '456'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );
@@ -1198,7 +1198,7 @@ const test_contents_025_get_post_params_getpost_no_crossing = Object.assign(make
               undefined,
               '012'
             ]);
-      }, postData);
+      }, { postData });
     }
   }
 );

@@ -124,7 +124,7 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
         }
       );
 
-      const onReadyToSend = (req, postData) =>
+      const reqSendHandler = (req, postData) =>
       {
         if (typeof(postData) !== 'undefined')
         {
@@ -159,7 +159,7 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
                 ...randomOctetsArray
               ]);
         }
-      }, binaryPostData, onReadyToSend);
+      }, { postData: binaryPostData, reqSendHandler });
     }
   }
 );
@@ -177,9 +177,6 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
       );
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      const siteConfContents = makeBaseSiteConfContents();
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-      
       initConsoleLogCapture();
       const testCode =
       [
@@ -241,7 +238,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
         }
       );
 
-      const onReadyToSend = (req, postData) =>
+      const reqSendHandler = (req, postData) =>
       {
         if (typeof(postData) !== 'undefined')
         {
@@ -274,7 +271,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
           (consoleLogOutput.status === 'captured') &&
           !systemUploadFileExistedBefore &&
           timeoutErrorMsgDisplayed;
-      }, binaryPostData, onReadyToSend);
+      }, { postData: binaryPostData, reqSendHandler });
     }
   }
 );
