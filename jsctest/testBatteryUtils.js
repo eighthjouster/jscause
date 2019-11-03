@@ -202,7 +202,7 @@ const testUtils =
         while (data) {
           console.info('data');//__RP
           console.info(data);//__RP
-          dataReceived.push(data)
+          dataReceived.push(data);
           data = this.read();
         }
       });

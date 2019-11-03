@@ -127,8 +127,8 @@ const test_contents_003_jscp_index_rt_print = Object.assign(makeFromBaseTest('Co
     {
       processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
-        this.testPassed = ((dataReceived.length === 1) &&
-                           (dataReceived[0].toString() === '1'));
+        this.testPassed = (dataReceived.length &&
+                           (Buffer.concat(dataReceived).toString() === '1'));
       });
     }
   }
@@ -166,7 +166,7 @@ const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(makeFromBaseTest
     {
       processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length  && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = areFlatArraysEqual(outputLines,
           [
             ' ',
@@ -199,7 +199,7 @@ const test_contents_006_jscp_index_special_symbols_in_strings = Object.assign(ma
       const { jscLib: { sanitizeForHTMLOutput } } = this;
       processResponse(this, makeBaseRequest(), ({ dataReceived, consoleLogOutput }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = (
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -267,7 +267,7 @@ const test_contents_007_jscp_index_multiple_output_tests = Object.assign(makeFro
       const { jscLib: { sanitizeForHTMLOutput } } = this;
       processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = (
           areFlatArraysEqual(outputLines,
             [
@@ -310,7 +310,7 @@ const test_contents_008_jscp_index_html_indicator = Object.assign(makeFromBaseTe
       const { jscLib: { sanitizeForHTMLOutput } } = this;
       processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = (
           areFlatArraysEqual(outputLines,
             [
@@ -343,7 +343,7 @@ const test_contents_009_jscp_index_html_indicator_pt2 = Object.assign(makeFromBa
       const { jscLib: { sanitizeForHTMLOutput } } = this;
       processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = (
           areFlatArraysEqual(outputLines,
             [
@@ -377,7 +377,7 @@ const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(makeFromBa
       const { jscLib: { sanitizeForHTMLOutput } } = this;
       processResponse(this, makeBaseRequest(), ({ dataReceived, consoleLogOutput }) =>
       {
-        const outputLines = dataReceived && (dataReceived.length === 1) && dataReceived[0].toString().split('\n') || [];
+        const outputLines = dataReceived.length && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = (
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
