@@ -279,7 +279,8 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_post_params_form_uploading_slow,
   test_contents_002_post_params_form_uploading_slow_maxtime
 ];

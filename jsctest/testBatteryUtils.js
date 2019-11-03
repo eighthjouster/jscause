@@ -186,32 +186,43 @@ const testUtils =
     }
 
     const { dataReceived } = requestContext;
-    const req = http.request(request,
-      (res) =>
+    const req = http.request(request, (res) =>
+    {
+      if (res.statusCode >= 400)
       {
-        if (res.statusCode >= 400)
-        {
-          console.error(`The response status code is an error ${res.statusCode}.`);
-        }
-        res.on('data', (data) => dataReceived.push(data));
-
-        res.on('end', () =>
-        {
-          requestContext.consoleLogOutput = testUtils.endConsoleLogCapture();
-          requestContext.statusCode = res.statusCode;
-          try
-          {
-            onResponseEndCb && onResponseEndCb(requestContext);
-          }
-          catch(e)
-          {
-            console.error('An error occurred when executing processResponse/onResponseEnd:');
-            console.error(e);
-          }
-          testContext.doneRequestsTesting();
-        });
+        console.error(`The response status code is an error ${res.statusCode}.`);
       }
-    );
+      //__RP res.on('data', (data) => dataReceived.push(data));
+      res.on('readable', function()
+      {
+        console.info('READABLE!');//__RP
+        // There is some data to read now.
+        let data = this.read();
+      
+        while (data) {
+          console.info('data');//__RP
+          console.info(data);//__RP
+          dataReceived.push(data)
+          data = this.read();
+        }
+      });
+
+      res.on('end', () =>
+      {
+        requestContext.consoleLogOutput = testUtils.endConsoleLogCapture();
+        requestContext.statusCode = res.statusCode;
+        try
+        {
+          onResponseEndCb && onResponseEndCb(requestContext);
+        }
+        catch(e)
+        {
+          console.error('An error occurred when executing processResponse/onResponseEnd:');
+          console.error(e);
+        }
+        testContext.doneRequestsTesting();
+      });
+    });
 
     req.on('error', (error) =>
     {

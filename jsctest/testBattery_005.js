@@ -185,7 +185,8 @@ const test_005_004_configFilePositiveLoggingLogFileSizeThreshold = Object.assign
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_005_001_configFileInvalidEnableHTTPS,
   test_005_002_configFileInvalidLoggingGeneral,
   test_005_003_configFileInvalidLoggingLogFileSizeThreshold,

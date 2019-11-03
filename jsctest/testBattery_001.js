@@ -424,7 +424,8 @@ const test_001_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBas
 );
 
 // If there is only one test, then there will be no need to put it in an array.
-module.exports = [
+module.exports =
+[
   test_001_001_emptyDir,
   test_001_002_emptyConfigFile,
   test_001_003_configFileWithBrackets,

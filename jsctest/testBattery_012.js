@@ -424,7 +424,8 @@ const test_012_013_getCurrentLogFileName_maxSuffixReached = Object.assign(testUt
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_012_001_getCurrentLogFileName_invalidLogDir_undefined,
   test_012_002_getCurrentLogFileName_invalidLogDir_nonString,
   test_012_003_getCurrentLogFileName_unreadableLogDir,

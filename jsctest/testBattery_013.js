@@ -390,7 +390,8 @@ const test_013_005_generalSiteLoggingFileCreationOccurs = Object.assign(testUtil
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_013_001_generalLoggingFileOutputOccurs,
   test_013_002_siteLoggingFileOutputOccurs,
   test_013_003_generalSiteLoggingFileOutputDoesNotOccur,

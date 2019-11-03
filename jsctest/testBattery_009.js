@@ -172,7 +172,8 @@ const test_009_003_siteConfInvalidHTTPSKeyFilePt2 = Object.assign(testUtils.make
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_009_001_siteConfInvalidHTTPSCertFile,
   test_009_002_siteConfInvalidHTTPSKeyFile,
   test_009_003_siteConfInvalidHTTPSKeyFilePt2

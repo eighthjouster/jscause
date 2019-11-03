@@ -454,7 +454,8 @@ const test_018_009_processStaticFile_fileCannotBeRead = Object.assign(testUtils.
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_018_001_processStaticFile_maxCacheableFileSize_noThresholdPassed,
   test_018_002_processStaticFile_maxCacheableFileSize_noThresholdPassed_pt2,
   test_018_003_processStaticFile_maxCacheableFileSize_thresholdPassed,

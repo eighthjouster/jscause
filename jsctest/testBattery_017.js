@@ -370,7 +370,8 @@ const test_017_012_UserFilesReading_Error5XX_StaticAndDynamicFile_InRootDir = Ob
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_017_001_UserFilesReading_Error4XX_StaticFile_InRootDir,
   test_017_002_UserFilesReading_Error4XX_StaticFile_InWrongDir,
   test_017_003_UserFilesReading_Error4XX_DynamicFile_InWrongDir,

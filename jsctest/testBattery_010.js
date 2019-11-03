@@ -678,7 +678,8 @@ const test_010_CF_024_GE_GPE_SE_fileOutput_consoleOutput = Object.assign(testUti
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_010_C_001_GD_GPD_SD_noConsoleOutput_noFileOutput,
   test_010_C_002_GD_GPD_SE_noConsoleOutput_noFileOutput,
   test_010_C_003_GD_GPP_SD_noConsoleOutput_noFileOutput,

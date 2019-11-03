@@ -234,7 +234,8 @@ const test_contents_004_two_get_params_one_empty = Object.assign(makeFromBaseTes
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_get_params,
   test_contents_002_two_get_params,
   test_contents_003_two_get_params_one_undefined_pt1,

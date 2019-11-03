@@ -36,7 +36,27 @@ const makeBaseSiteConfContents = (extra = {}) =>
     }, extra
   );
 
-const test_016_001_UserFilesReading_UserModules_CompileOk = Object.assign(testUtils.makeFromBaseTest('User files; user modules; compile okay'),
+const makeBaseRequest = (extra = {}) =>
+  Object.assign(
+    {
+      hostname: 'jscausesite1',
+      port: 3000,
+      path: '/',
+      method: 'GET'
+    }, extra
+  );
+
+const
+  {
+    makeFromBaseTest,
+    makeTestEndBoilerplate,
+    processResponse,
+    initConsoleLogCapture,
+    areFlatArraysEqual
+  } = testUtils;
+
+const test_contents_001_jscp_index_large_response_slow = Object.assign(makeFromBaseTest('Contents; JSCP file; index; large; slow'),
+  makeTestEndBoilerplate.call(this),
   {
     // only: true,
     onTestBeforeStart()
@@ -58,55 +78,20 @@ const test_016_001_UserFilesReading_UserModules_CompileOk = Object.assign(testUt
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
       
-      this.createFile(['sites', 'mysite', 'website', 'file_01.jscm'], 'const valid_javascript = true;');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
+      this.isRequestsTest = true;
     },
-    expectedLogMessages:
-    [
-      [ 'info' , 'Server 0 listening on port 3000' ]
-    ],
-    onServerStarted()
+    onReadyForRequests()
     {
-      this.terminateApplication();
-    },
-    onBeforeTestEnd()
-    {
-      this.testPassed = this.serverDidStart && this.gotAllExpectedLogMsgs;
-    },
-    onTestEnd()
-    {
-      this.deleteFile(['sites', 'mysite', 'website', 'file_01.jscm']);
-    }
-  }
-);
-
-const test_016_002_UserFilesReading_UserModules_CompileError = Object.assign(testUtils.makeFromBaseTest('User files; user modules; compile error'),
-  {
-    // only: true,
-    onTestBeforeStart()
-    {
-      this.createFile(['sites', 'mysite', 'website', 'file_01.jscm'], 'const valid_javascript; // false');
-    },
-    expectedLogMessages:
-    [
-      [ 'error' , 'Site: Compile error:', 'prefix' ]
-    ],
-    onServerStarted()
-    {
-      this.terminateApplication();
-    },
-    onBeforeTestEnd()
-    {
-      this.testPassed = !this.serverDidStart && this.gotAllExpectedLogMsgs;
-    },
-    onTestEnd()
-    {
-      this.deleteFile(['sites', 'mysite', 'website', 'file_01.jscm']);
+      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
+      {
+        this.testPassed = !dataReceived.length;
+      });
     }
   }
 );
 
 module.exports =
 [
-  test_016_001_UserFilesReading_UserModules_CompileOk,
-  test_016_002_UserFilesReading_UserModules_CompileError
+  test_contents_001_jscp_index_large_response_slow
 ];

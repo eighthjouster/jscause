@@ -303,7 +303,8 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_006_001_configFileTwoHttpSitesRunning,
   test_006_002_configFileTwoSitesSameRootDirAndPort,
   test_006_003_configFileTwoSitesSameName,

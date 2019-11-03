@@ -353,7 +353,8 @@ const test_014_006_TwoServersTwoSitesAllGood = Object.assign(testUtils.makeFromB
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_014_001_takenServerPortOneServerOneSite,
   test_014_002_takenServerPortOneServerTwoSites,
   test_014_003_takenServerPortTwoServersTwoSites_Pt1,

@@ -35,7 +35,8 @@ const test_011_002_dateToYYYMMDD_HH0000_withSuffix = Object.assign(testUtils.mak
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_011_001_dateToYYYMMDD_HH0000_noSuffix,
   test_011_002_dateToYYYMMDD_HH0000_withSuffix
 ];

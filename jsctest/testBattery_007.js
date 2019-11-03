@@ -382,7 +382,8 @@ const test_007_011_serverSiteLogDiscrepanciesFileConsoleOutput = Object.assign(t
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_007_001_serverSiteLogDiscrepanciesFileOutput,
   test_007_002_serverSiteLogDiscrepanciesFileOutput2,
   test_007_003_serverSiteLogDiscrepanciesFileOutput3,

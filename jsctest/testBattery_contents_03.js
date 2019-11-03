@@ -1203,7 +1203,8 @@ const test_contents_025_get_post_params_getpost_no_crossing = Object.assign(make
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_post_params_form_pt1,
   test_contents_002_post_params_form_pt2_forbidden,
   test_contents_003_post_params_form_pt3,

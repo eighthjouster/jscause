@@ -367,7 +367,8 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_004_001_siteConfInvalidLoggingKey,
   test_004_002_siteConfInvalidLoggingFileOutputKey,
   test_004_003_siteConfInvalidLoggingConsoleOutputKey,

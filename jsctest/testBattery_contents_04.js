@@ -823,7 +823,8 @@ const test_contents_011_post_params_form_uploading_two_files_same_filename_pt2 =
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_post_params_form_uploading_simple,
   test_contents_002_post_params_form_uploading_malformed_pt1,
   test_contents_003_post_params_form_uploading_malformed_pt2,

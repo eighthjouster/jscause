@@ -18,7 +18,6 @@ shouldn't be logged, since they're user initiated.
 
  +- File uploads:
   +- Slooow upload (do we have a timeout option?)
-    - Or when maxlength is wrong (never ending upload; there should be a timeout, right?)
       - Check that temp files are erased.
       - The one provided by the application.
       - And the one provided by formidable, if applies.
@@ -39,6 +38,9 @@ Do we have access to the requester's user agent? User-Agent header entry?
 AT THIS POINT: BACK UP.
 
  - At this point, release the alpha.
+
+- Test when http post length is wrong (header value vs actual body length) (never ending upload; there should be a timeout, right?)
+  - But careful with this one: from: https://nodejs.org/api/http.html: "Node.js does not check whether Content-Length and the length of the body which has been transmitted are equal or not."
 
 Then:
 _Manually test_ (for real) the rest (uploads, serving error files, etc.)

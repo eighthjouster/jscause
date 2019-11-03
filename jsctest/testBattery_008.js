@@ -769,7 +769,8 @@ const test_008_024_siteConfLogDirectoryIsNonWriteable = Object.assign(testUtils.
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_008_001_siteConfMissingTempWorkDirectoryInFs,
   test_008_002_siteConfMissingTempWorkDirectoryInFs_pt2,
   test_008_003_siteConfAbsoluteTempWorkDirectoryPath,

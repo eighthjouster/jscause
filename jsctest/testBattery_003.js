@@ -899,7 +899,8 @@ const test_003_029_siteConfEmptyMimeTypeExcludeName = Object.assign(testUtils.ma
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_003_001_siteDirJsonMissing,
   test_003_002_emptySiteConf,
   test_003_003_emptySiteConfBrackets,

@@ -385,7 +385,8 @@ const test_015_012_UserFilesReading_MaxDirsAndFiles_circularSymlinks = Object.as
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_015_001_UserFilesReading_MaxFiles_noThresholdPassed,
   test_015_002_UserFilesReading_MaxFiles_thresholdPassed,
   test_015_003_UserFilesReading_MaxFiles_withModules_thresholdPassed,

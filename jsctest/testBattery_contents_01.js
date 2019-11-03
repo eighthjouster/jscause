@@ -396,7 +396,8 @@ const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(makeFromBa
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_jscp_index_empty,
   test_contents_002_jscp_index_console_log,
   test_contents_003_jscp_index_rt_print,

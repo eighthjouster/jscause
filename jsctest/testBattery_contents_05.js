@@ -443,7 +443,8 @@ const test_contents_005_post_params_form_uploading_binary_forbidden = Object.ass
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_contents_001_post_params_form_uploading_binary_simple,
   test_contents_002_post_params_form_uploading_binary_field_simple,
   test_contents_003_post_params_form_uploading_binary_maxpayload_pt1,

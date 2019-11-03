@@ -339,7 +339,8 @@ const test_002_010_missingSitesDir = Object.assign(testUtils.makeFromBaseTest('S
   }
 );
 
-module.exports = [
+module.exports =
+[
   test_002_001_emptyLogsDirectory,
   test_002_002_emptySiteConfigExtraComma,
   test_002_003_emptySiteConfig,
