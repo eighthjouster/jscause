@@ -191,9 +191,23 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
       ].join('\n');
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
 
-      this.tempTestData = { timeoutErrorMsgDisplayed: false };
+      this.tempTestData = { timeoutErrorMsgDisplayed: false, handleRequestTimeoutMonitoring: { reqMonCtx: null } };
 
       this.isRequestsTest = true;
+
+      const { tempTestData } = this;
+
+      this.functionCallListeners.handleRequestTimeoutMonitoring =
+      {
+        beforeCb(reqMonCtx)
+        {
+          console.info('I HAVE THE INFO I NEED!');//__RP
+          tempTestData.handleRequestTimeoutMonitoring.reqMonCtx = reqMonCtx;
+          // const { moveToTempWorkDirData } = tempTestData;
+          // moveToTempWorkDirData.actualFilePath = thisActualFile.path;
+          // moveToTempWorkDirData.systemUploadFileExistedBefore = fs.existsSync(thisActualFile.path);
+        }
+      };
     },
     monitoredLogMessages:
     [
@@ -247,10 +261,16 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        const { timeoutErrorMsgDisplayed } = this.tempTestData;
+        const { timeoutErrorMsgDisplayed, handleRequestTimeoutMonitoring } = this.tempTestData;
+        console.info(handleRequestTimeoutMonitoring.reqMonCtx.postedForm.openedFiles);//__RP
+//__RP        const systemUploadFileExistedAfter = fs.existsSync(actualFilePath);
+//__RP console.info(systemUploadFileExistedBefore);//__RP
+//__RP console.info(systemUploadFileExistedAfter);//__RP
         this.testPassed = !dataReceived.length &&
           (statusCode === 413) &&
           (consoleLogOutput.status === 'captured') &&
+          systemUploadFileExistedBefore &&
+          !systemUploadFileExistedAfter &&
           timeoutErrorMsgDisplayed;
       }, binaryPostData, onReadyToSend);
     }

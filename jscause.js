@@ -1406,6 +1406,15 @@ function doDeleteFile(thisFile, jscLogConfig)
   }));
 }
 
+const makeFunctionCallListener = (handlerFn) => (isTestMode) ?
+  (...params) =>
+  {
+    const { functionCallListeners: { [handlerFn.name]: { beforeCb } = {} } = {} } = jscTestGlobal;
+    beforeCb && beforeCb.apply(null, params);
+    return handlerFn.apply({}, params);
+  } :
+  handlerFn;
+
 function moveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pendingWork, resContext, formContext)
 {
   const { logging: { siteLogDir, doLogToConsole }, tempWorkDirectory } = identifiedSite;
@@ -1444,16 +1453,29 @@ function moveToTempWorkDir(thisFile, serverConfig, identifiedSite, responder, pe
   }));
 }
 
-const doMoveToTempWorkDir = (isTestMode) ?
-  (...params) =>
-  {
-    console.info('AM I HERE?');//__RP
-    //console.info(params);//__RP
-    const { functionCallListeners: { doMoveToTempWorkDir: { beforeCb } = {} } = {} } = jscTestGlobal;
-    beforeCb && beforeCb.apply(null, params);
-    moveToTempWorkDir.apply({}, params);
-  } :
-  moveToTempWorkDir;
+function handleRequestTimeoutMonitoring(reqMonCtx, req, res, requestTimeoutSecs, site, jscLogConfig)
+{
+  return jscCallback(() => {
+    ((reqMonCtx.postedForm || {}).openedFiles || []).forEach((thisFile) =>
+    {
+      fs.stat(thisFile.path, jscCallback((err) =>
+      {
+        if (err) { return; }
+        fs.unlink(thisFile.path, jscCallback((err) =>
+        {
+          if (!err) { return; }
+          JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
+          JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
+        }));
+      }));
+    });
+    sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite: site, requestTickTockId: reqMonCtx.requestTickTockId });
+  });
+}
+
+const doMoveToTempWorkDir = makeFunctionCallListener(moveToTempWorkDir);
+
+const doHandleRequestTimeoutMonitoring = makeFunctionCallListener(handleRequestTimeoutMonitoring);
 
 function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
 {
@@ -2446,7 +2468,6 @@ function incomingRequestHandler(req, res, sitesInServer)
   const { logging: serverLogging, requestTimeoutSecs } = serverConfig;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
   const identifiedSite = sitesInServer[reqHostName];
-  let postedForm;
 
   let contentType = (headers['content-type'] || '').toLowerCase();
 
@@ -2484,37 +2505,19 @@ function incomingRequestHandler(req, res, sitesInServer)
 
   const { siteLogDir, doLogToConsole } = siteLogging;
 
-  const requestTickTockId = !!requestTimeoutSecs &&
-    setTimeout(
-      jscCallback(() => {
-        ((postedForm || {}).openedFiles || []).forEach((thisFile) =>
-        {
-          fs.stat(thisFile.path, jscCallback((err) =>
-          {
-            if (!err)
-            {
-              fs.unlink(thisFile.path, jscCallback((err) =>
-              {
-                if (err)
-                {
-                  const jscLogConfig =
-                  {
-                    toConsole: serverConsoleOutputEnabled,
-                    toServerDir: serverLogDir,
-                    toSiteDir: siteLogDir,
-                    fileSizeThreshold: logFileSizeThreshold
-                  };
-                  JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
-                  JSCLog('warning', `(CONT) On the file system as: ${thisFile.path}`, Object.assign({ e: err }, jscLogConfig));
-                }
-              }));
-            }
-          }));
-          sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId });
-        });
-      }),
-      requestTimeoutSecs * 1000
-    );
+  const jscLogConfig =
+  {
+    toConsole: serverConsoleOutputEnabled,
+    toServerDir: serverLogDir,
+    toSiteDir: siteLogDir,
+    fileSizeThreshold: logFileSizeThreshold
+  };
+
+  const reqMonContext = {};
+  const requestTickTockId = !!requestTimeoutSecs && setTimeout(
+    doHandleRequestTimeoutMonitoring(reqMonContext, req, res, requestTimeoutSecs, identifiedSite, jscLogConfig),
+    requestTimeoutSecs * 1000
+  );
 
   if (includeHttpPoweredByHeader)
   {
@@ -2567,7 +2570,7 @@ function incomingRequestHandler(req, res, sitesInServer)
     const incomingForm = ((requestMethod === 'post') &&
                           (isUpload || FORMDATA_URLENCODED_RE.test(contentType)));
 
-    postedForm = (incomingForm && canUpload) ?
+    const postedForm = (incomingForm && canUpload) ?
       new formidable.IncomingForm()
       :
       null;
@@ -2697,8 +2700,10 @@ function incomingRequestHandler(req, res, sitesInServer)
       };
 
       postedForm.on('error', formEnd);
-
       postedForm.on('end', formEnd);
+
+      reqMonContext.requestTickTockId = requestTickTockId;
+      reqMonContext.postedForm = postedForm;
     }
     else
     {
@@ -2760,7 +2765,7 @@ function incomingRequestHandler(req, res, sitesInServer)
         toSiteDir: siteLogDir,
         fileSizeThreshold: logFileSizeThreshold
       });
-  })
+  });
 }
 
 function runWebServer(runningServer, serverPort, jscLogConfig, options = {})

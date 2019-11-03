@@ -258,7 +258,7 @@ const test_contents_003_post_params_form_uploading_binary_maxpayload_pt1 = Objec
         this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
 
         const { tempTestData } = this;
-        this.functionCallListeners.doMoveToTempWorkDir =
+        this.functionCallListeners.moveToTempWorkDir =
         {
           beforeCb(thisActualFile)
           {
@@ -388,7 +388,7 @@ const test_contents_005_post_params_form_uploading_binary_forbidden = Object.ass
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], 'console.log(rt.uploadedFiles[\'file1\']);');
 
       const { tempTestData } = this;
-      this.functionCallListeners.doMoveToTempWorkDir =
+      this.functionCallListeners.moveToTempWorkDir =
       {
         beforeCb(thisActualFile)
         {
