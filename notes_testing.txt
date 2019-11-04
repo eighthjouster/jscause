@@ -1,32 +1,44 @@
 Pending:
 ========
 
-Manual testing of user-related files:
-See notes_manual_testing.txt RIGHT NOW.
+AT THIS POINT, RELEASE THE ALPHA.
 
+_Manually test_ (for real) the rest (uploads, serving error files, etc.)
+ - Maybe you can document your steps, for reference when implementing more tests in the future.
+   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
+
+ - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
+   - They must return error 405.
+ - Stalling the page with a setTimeout.
+ - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
+   - Nesting.
+ - rt.* methods.
+ - Other file names.
+   - Other extensions.
+   - No extensions.
+   - Configuration: No using of extensions.
+   - Default index.jscp
+ - Static files.
+ - Static files requested with POST.
+ - Headers.
 
 Take care of this:
 DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead
 
 At this point, back up and....
-PUBLISH AN ALPHA!
-
-- At this point, resume engine development.
-  - Publish another alpha.
-
-In the end, jscause_backup.conf can be either restored or deleted.
-
-Do we ever use doRemoveDirectoryFromPathList()?
- - If not, consider removing it.  Or document its existence somehow.  I dunno...
-
-- Leave this file to document future development that needs corresponding testings created.
-
-In fact:
+PUBLISH ANOTHER ALPHA!
+  - At this point, resume engine development.
+  - In the end, jscause_backup.conf can be either restored or deleted.
 
 TO-DO:
 ======
 
 (Order by priority)
+
+Do we ever use doRemoveDirectoryFromPathList()?
+ - If not, consider removing it.  Or document its existence somehow.  I dunno...
+
+ - Test: Two sites, two separate temp upload directories, right?
 
 To test:
  - Each section, see where they're being used, and test that part first.
@@ -157,3 +169,16 @@ Test that users get the following message when the log queue is, for some reason
    - This can be a unit test.
 
  - Security-related testing:  poke for vulnerabilities; test that the app is secure.
+
+- Test: Upload interrupted by client.
+  - Add it to test battery 06.
+  - Check that temp files are erased.
+    - The one provided by the application.
+    - And the one provided by formidable, if applies.
+
+- We've tested uploading scenarios with form-encoded data. What about other formats? JSON, raw?
+
+What if there is an upload that says it's of some length, but in reality is some other length?
+
+- Test when http post length is wrong (header value vs actual body length) (never ending upload; there should be a timeout, right?)
+  - But careful with this one: from: https://nodejs.org/api/http.html: "Node.js does not check whether Content-Length and the length of the body which has been transmitted are equal or not."

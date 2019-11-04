@@ -423,6 +423,58 @@ const test_001_019_configFile_emptyLogging = Object.assign(testUtils.makeFromBas
   }
 );
 
+const test_001_019_configFile_invalidRequestTimeoutSecsValue = Object.assign(testUtils.makeFromBaseTest('Config file with invalid requesttimeoutsecs value'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents =
+      {
+        'sites': [1],
+        'logging': {},
+        'requesttimeoutsecs': 'invalid'
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Server configuration: requesttimeoutsecs: Expected number; 0 or greater.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
+const test_001_020_configFile_invalidRequestTimeoutSecsValue_pt2 = Object.assign(testUtils.makeFromBaseTest('Config file with requesttimeoutsecs value less than 0'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents =
+      {
+        'sites': [1],
+        'logging': {},
+        'requesttimeoutsecs': -1
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Server configuration: requesttimeoutsecs: Expected number; 0 or greater.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    },
+  }
+);
+
 // If there is only one test, then there will be no need to put it in an array.
 module.exports =
 [
@@ -444,5 +496,7 @@ module.exports =
   test_001_016_configFile_sitesWithUnexpectedComma,
   test_001_017_configFile_sitesWithUnknown,
   test_001_018_configFile_invalidLoggingValue,
-  test_001_019_configFile_emptyLogging
+  test_001_019_configFile_emptyLogging,
+  test_001_019_configFile_invalidRequestTimeoutSecsValue,
+  test_001_020_configFile_invalidRequestTimeoutSecsValue_pt2
 ];

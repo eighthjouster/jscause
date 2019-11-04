@@ -177,16 +177,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
       );
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
 
-      initConsoleLogCapture();
-      const testCode =
-      [
-        'rt.readFile(rt.uploadedFiles[\'file1\'].path).rtOnSuccess((response) => {',
-        '  console.log(rt.uploadedFiles[\'file1\']);',
-        '  console.log(rt.uploadedFiles[\'file1\'].name);',
-        '  Buffer.from(response).forEach(c=>console.log(c));',
-        '});',
-      ].join('\n');
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], '');
 
       this.tempTestData = { timeoutErrorMsgDisplayed: false, handleRequestTimeoutMonitoring: { reqMonCtx: null } };
 
@@ -252,7 +243,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
         }
       };
 
-      processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
+      processResponse(this, postRequest, ({ statusCode, dataReceived }) =>
       {
         const { timeoutErrorMsgDisplayed, handleRequestTimeoutMonitoring: { reqMonCtx } } = this.tempTestData;
         const { postedForm: { openedFiles: systemUploadFiles = [] } } = reqMonCtx;
@@ -268,7 +259,6 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
 
         this.testPassed = !dataReceived.length &&
           (statusCode === 413) &&
-          (consoleLogOutput.status === 'captured') &&
           !systemUploadFileExistedBefore &&
           timeoutErrorMsgDisplayed;
       }, { postData: binaryPostData, reqSendHandler });

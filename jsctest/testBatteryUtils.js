@@ -282,7 +282,7 @@ const testUtils =
     };
   },
 
-  processResponse(context, request, onResponseEndCb, { postData, reqSendHandler, resReceiveHandler })
+  processResponse(context, request, onResponseEndCb, { postData, reqSendHandler, resReceiveHandler } = {})
   {
     context.testPassed = false;
     if (context.serverDidStart)

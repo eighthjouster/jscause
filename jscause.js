@@ -4039,7 +4039,7 @@ function parseRequestTimeoutSecsConfigJSON(processedConfigJSON, { requiredKeysNo
   }
   else
   {
-    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration:  Expected number; 0 or greater.', jscLogConfig);
+    checkForUndefinedConfigValue('sites', configValue, requiredKeysNotFound, 'Server configuration: requesttimeoutsecs: Expected number; 0 or greater.', jscLogConfig);
   }
 
   return timeoutInSecs;

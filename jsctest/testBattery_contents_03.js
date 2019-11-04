@@ -840,7 +840,7 @@ const test_contents_016_post_params_raw_maxpayload_precheck_pt1 = Object.assign(
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, payLoad);
+      }, { postData: payLoad });
     }
   }
 );
@@ -885,7 +885,7 @@ const test_contents_017_post_params_raw_maxpayload_precheck_pt2 = Object.assign(
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 200);
-      }, payLoad);
+      }, { postData: payLoad });
     }
   }
 );
@@ -930,7 +930,7 @@ const test_contents_018_post_params_raw_maxpayload_actualcheck = Object.assign(m
       processResponse(this, postRequest, ({ statusCode }) =>
       {
         this.testPassed = (statusCode === 413);
-      }, payLoad);
+      }, { postData: payLoad });
     }
   }
 );
