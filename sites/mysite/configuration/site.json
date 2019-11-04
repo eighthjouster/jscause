@@ -1,6 +1,6 @@
 {
   "hostName": "jscausesite1",
-  "canUpload": false,
+  "canUpload": true,
   "maxPayloadSizeBytes": 0,
   "jscpExtensionRequired": "optional",
   "httpPoweredByHeader": "include",
@@ -11,6 +11,6 @@
   "logging": {
     "directoryName": "./localLogs",
     "consoleOutput": "enabled",
-    "fileOutput": "disabled"
+    "fileOutput": "enabled"
   }
 }
