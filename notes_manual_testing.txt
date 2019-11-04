@@ -3,11 +3,7 @@ Pending:
 
 Please continue with the actual test building:
 
-We have to implement a timeout for downloads, maybe.
- - responseTickTockId? (implement in the same way as requestTickTockId.)
-   - Still on it.  Longer response, and start implementing.
-
-Test the new functionality.
+Test the new functionality when testing jscause.conf:
  - Config keys, just like you tested 'sites' or 'logging'.
 
 Perhaps the following messages:
@@ -18,11 +14,8 @@ shouldn't be logged, since they're user initiated.
   (How to reproduce:  upload something, hit back button while uploading is in progress.)
 
  +- File uploads:
-  +- Slooow upload (do we have a timeout option?)
-      - Check that temp files are erased.
-      - The one provided by the application.
-      - And the one provided by formidable, if applies.
   - Upload interrupted by client.
+    - Add it to test battery 06.
     - Check that temp files are erased.
      - The one provided by the application.
      - And the one provided by formidable, if applies.

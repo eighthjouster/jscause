@@ -2514,6 +2514,7 @@ function incomingRequestHandler(req, res, sitesInServer)
   };
 
   const reqMonContext = {};
+  // req.setTimeout() might be more suitable here.  Test extensively.
   const requestTickTockId = !!requestTimeoutSecs && setTimeout(
     doHandleRequestTimeoutMonitoring(reqMonContext, req, res, requestTimeoutSecs, identifiedSite, jscLogConfig),
     requestTimeoutSecs * 1000
