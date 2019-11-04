@@ -2,6 +2,38 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+AT THIS POINT, RELEASE THE ALPHA.
+
+_Manually test_ (for real) the rest (uploads, serving error files, etc.)
+ - Maybe you can document your steps (in notes_testing.txt), for reference when implementing more tests in the future.
+   - And then check that entries are already documented elsewhere in the document, and delete duplicates.
+
+ - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
+   - They must return error 405.
+ - Stalling the page with a setTimeout.
+ - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
+   - Nesting.
+ - rt.* methods.
+ - Other file names.
+   - Other extensions.
+   - No extensions.
+   - Configuration: No using of extensions.
+   - Default index.jscp
+ - Static files.
+ - Static files requested with POST.
+ - Headers.
+
+Take care of this:
+DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead
+ - This may show in the Formidable source code.  Can you, um, "update"?
+
+At this point, back up and....
+PUBLISH ANOTHER ALPHA!
+  - At this point, resume engine development.
+  - In the end, jscause_backup.conf can be either restored or deleted.
+
+===
+
 Wait, why does serving "index.html" in / throw a 404 error if we go to "http://whatever.com/"?
 
 Should take a look at formidable's limit options and see if you can leverage them (or not.)  For example: maxFileSize.  https://github.com/node-formidable/node-formidable

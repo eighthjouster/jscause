@@ -345,7 +345,7 @@ function writeLogToFile(filePath, logFileFd, message, canOutputErrorsToConsole)
 {
   if (logFileFd)
   {
-    fs.write(logFileFd, new Buffer(`${message}\n`), jscCallback((error) =>
+    fs.write(logFileFd, Buffer.from(`${message}\n`), jscCallback((error) =>
     {
       if (error)
       {
