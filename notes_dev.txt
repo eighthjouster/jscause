@@ -10,7 +10,6 @@ _Manually test_ (for real) the rest (uploads, serving error files, etc.)
 
  - Handling PUT/DELETE requests (which I think aren't supported - yet [ever?])
    - They must return error 405.
- - Stalling the page with a setTimeout.
  - Callbacks and rt.waitFor(), rt.Then(), rt.Catch() (or whatever their right syntax are.)
    - Nesting.
  - rt.* methods.
