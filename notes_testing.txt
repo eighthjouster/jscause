@@ -3,6 +3,8 @@ Pending:
 
 (Order by priority)
 
+When you do localhost:3000, make sure no connection setTimeout (requestTickTockId) happens.
+
 Do we ever use doRemoveDirectoryFromPathList()?
  - If not, consider removing it.  Or document its existence somehow.  I dunno...
 

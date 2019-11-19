@@ -2474,7 +2474,7 @@ function incomingRequestHandler(req, res, sitesInServer)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');
-    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true, requestTickTockId })
+    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true, requestTickTockId: undefined })
     return;
   }
 
