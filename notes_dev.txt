@@ -33,6 +33,8 @@ PUBLISH ANOTHER ALPHA!
 
 ===
 
+Hm, if I do <p><js rt.print('a'); /js>bc</p>, shouldn't I get 'abc' instead of 'a bc'?
+
 Wait, why does serving "index.html" in / throw a 404 error if we go to "http://whatever.com/"?
 
 Should take a look at formidable's limit options and see if you can leverage them (or not.)  For example: maxFileSize.  https://github.com/node-formidable/node-formidable

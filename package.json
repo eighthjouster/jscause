@@ -1,0 +1,27 @@
+{
+  "name": "jscause",
+  "version": "0.9.0",
+  "description": "JSCause is a very easy to use NodeJS framework to create simple web sites.",
+  "main": "jscause.js",
+  "scripts": {
+    "test": "node jscause runtests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eighthjouster/jscause.git"
+  },
+  "keywords": [
+    "jscause",
+    "node",
+    "http",
+    "https",
+    "web",
+    "server"
+  ],
+  "author": "Rafael A Pacheco Palencia (@eighthjouster)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eighthjouster/jscause/issues"
+  },
+  "homepage": "https://github.com/eighthjouster/jscause#readme"
+}
