@@ -30,8 +30,13 @@ At this point, back up and....
 PUBLISH ANOTHER ALPHA!
   - At this point, resume engine development.
   - In the end, jscause_backup.conf can be either restored or deleted.
+  - Website:
+    - To-do: Troubleshooting section.
+    - To-do: Roadmap.
 
 ===
+
+Perhaps log's directoryName should be directoryPath since it's not just the name, but the full/relative path.
 
 Hm, if I do <p><js rt.print('a'); /js>bc</p>, shouldn't I get 'abc' instead of 'a bc'?
 

@@ -258,7 +258,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
         });
 
         this.testPassed = !dataReceived.length &&
-          (statusCode === 413) &&
+          (statusCode === 408) &&
           !systemUploadFileExistedBefore &&
           timeoutErrorMsgDisplayed;
       }, { postData: binaryPostData, reqSendHandler });

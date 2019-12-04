@@ -2335,7 +2335,7 @@ function sendPayLoadExceeded(maxPayloadSizeBytes, { req, res, serverConfig, iden
 
 function sendTimeoutExceeded(requestTimeoutSecs, { req, res, serverConfig, identifiedSite, requestTickTockId })
 {
-  sendRequestError(413, `Timeout exceeded limit of ${requestTimeoutSecs} seconds`, req, res, serverConfig, identifiedSite, requestTickTockId);
+  sendRequestError(408, `Timeout exceeded limit of ${requestTimeoutSecs} seconds`, req, res, serverConfig, identifiedSite, requestTickTockId);
 }
 
 function sendUploadIsForbidden({ req, res, serverConfig, identifiedSite, requestTickTockId })
