@@ -41,6 +41,7 @@ Perhaps log's directoryName should be directoryPath since it's not just the name
 Hm, if I do <p><js rt.print('a'); /js>bc</p>, shouldn't I get 'abc' instead of 'a bc'?
 
 Wait, why does serving "index.html" in / throw a 404 error if we go to "http://whatever.com/"?
+ - Because index.html is not considered an index file.  index.jscp is. Put this in the future dev doc.
 
 Should take a look at formidable's limit options and see if you can leverage them (or not.)  For example: maxFileSize.  https://github.com/node-formidable/node-formidable
 
