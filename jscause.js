@@ -4986,6 +4986,11 @@ function startApplication(options = { rootDir: undefined })
     {
       exitApplication();
     });
+
+    process.on('SIGTERM', function()
+    {
+      exitApplication();
+    });
   }
 }
 
