@@ -1509,7 +1509,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
   }
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { logging: { siteLogDir, doLogToConsole }, siteHostName } = identifiedSite;
+  const { logging: { siteLogDir, doLogToConsole }, siteHostName, siteName } = identifiedSite;
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
@@ -1521,7 +1521,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
     }
     else
     {
-      const { runtimeException, siteName, runFileName, reqObject, resObject, compileTimeError, statusCode, requestTickTockId } = ctx;
+      const { runtimeException, runFileName, reqObject, resObject, compileTimeError, statusCode, requestTickTockId } = ctx;
       let formUploadErrorOccurred = ctx.formUploadErrorOccurred;
 
       const formFiles = ctx.uploadedFiles;
@@ -2650,7 +2650,6 @@ function incomingRequestHandler(req, res, sitesInServer)
 
         const resContext =
         {
-          siteName,
           reqObject: req,
           resObject: res,
           requestMethod,
