@@ -1,49 +1,9 @@
 JSCause: A JS framework.  Bringing the good bits back.
 
-Make JS work as if it was Perl or PHP:
-
-A site/ folder.
-
-With a hierarchy like the followng:
-
-sites/
-sites/mysite/
-sites/mysite/configuration/custom.json
-sites/mysite/configuration/database.json
-sites/mysite/configuration/site.json
-sites/mysite/website/
-sites/mysite/website/index.html
-sites/mysite/website/index.jscp
-sites/mysite/workbench/
-
 website/ and configuration/ must allow hot reloading.
 
-Each site contains:
-    - A configuration/site.json file:  Site name, domain name, ssl, etc.
-    - A website/ folder, which will contain files that can be requested directly by the browser.
-      - Files with a JSCP extension (for example, index.jscp) will be executed first, with its output sent to the browser.  They can only live inside website/
-      - Module files with a JSCM extension (for example, module.jscm) can be called from JSCP files using 'require()' (perhaps, 'import' too? Still relevant?). They can only live inside website/
-      - The file name is case-sensitive (if the file system allows it).  A file will be considered JSCP only if its extension is lower case (that is, .jscp is valid, but .JSCP is not.)  Same with JSCM.
-    - The configuration/ folder may have extra configuration files:
-      - database.json:  Database connection info.
-      - custom.json: Application-specific configuration.
-
-The ports of each site are configured in jscause.conf
-
-This is valid:
-<js rt.print('WHOA 4!'); /js>
-
-Or this:
-<js
-      rt.print('WHOA 4!');
-/js>
-
-- Anything outside of <js /js> will be printed out as is (regular text or HTML).
-<h2><js rt.print('WHOA 4!'); /js></h2>
 - To output '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
 - '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
-- If there are no tags, the whole file is considered Javascript.
-- If there are no tags, but there is an <html/> tag at the top of the file, the file is considered HTML.
 - If the first line in a file is an opening tag, it can be omitted.  Likewise, the last line in a file is a closing file, it can be omitted.
 - rt.header() sets headers.  You can call them as many times as needed.
 - rt.waitFor() must be used when defining callbacks.  For example:
@@ -76,7 +36,6 @@ Or this:
     - Form content with file upload: it will be formDataWithUpload.
     - JSON: it will be jsonData.
  - We also have: rt.requestMethod ('get' or 'post').  PUT and DELETE are not supported and will return a 405 (method not allowed.)
-- Never trust user input!
 - print will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.  If you want to print everything unescaped, use rt.unsafePrint().
 - When handling uploaded files, users can use file.name directly as it has been sanitized.  If for some reason they want to access the original filename, they can do so through file.unsafeName.
 - jscause.conf is almost a valid JSON object.  Almost, because it allows // comments, for documentation.
@@ -107,11 +66,6 @@ Or this:
     - Avoid reading or manipulating the path specified by tempWorkDirectory directly.  This is used by the framework.
   - rt.readFile()'s can be nested.
   - rtOnSuccess() and rtOnError() can be omitted (but if omitted, and an error occurs, the server will issue a runtime error.)
-- rt.copyFile(source, destination, overwrite) allows to copy a file from source to destination.  It behaves in a promise-like way, just like rt.readFile().
-  - The third parameter is optional, and true if omitted.  If true, the destination will be overwritten if it exists.  If false, an EEXIST error will be thrown (catchable with rtOnError, err.code).
-  - Absolute paths can be provided.  If relative paths are provided instead, they will be relative to the site's root directory (rootDirectoryName).
-  - rtOnSuccess() and rtOnError() can omit their parameter (that is, their callback.)  This is not advisable from an application development standpoint, but it's allowed.
-  - rtOnError() can be omitted, but if an error occurs, the server will issue a runtime error.
 - rt.module(moduleName): Syntactic sugar for: require('./moduleName.jscm').
   - It could be either: rt.module('moduleName') or rt.module('moduleName.jscm')
   - Path is relative to the website's directory (e.g. 'moduleName' => 'mySite/website/moduleName.jscm').
@@ -181,18 +135,6 @@ File and directory limits:
 
 - A maximum of 2048 subdirectories or files are allowed in a single directory; including those resolved by following symbolic links.
 - A maximum of 4096 directories/subdirectories are allowed overall in a single application.
-
-How files are mapped to url routes:
-===================================
-
-1. If the url is '/', '/index.jscp' will be assumed (see #5.)
-2. If the url is '/name.jscp' (or '/directory/name.jscp'), JSCause will check for the file.  If it exists, and jscpExtensionRequired is either 'optional' or 'always', it will run it (see #5.)  If it doesn't, or if the url ends in '/' (e.g. '/directory/name/' or, if jscpExtensionRequired is either 'optional' or 'always', '/directory/name.jscp/'), it will assume it's a directory (see #4.)
-3. If the url is '/name' (or '/directory/name'), and if jscpExtensionRequired is either 'never' or 'optional', JSCause will check for the file '/name.jscp' (or '/directory/name.jscp').  If it exists, it will run it (see #5.)  If the file name does not exist, or if the url ends in '/', it will assume it's a directory (see #4.)
-4. If the url refers to a directory (e.g. '/name' or '/name/'), check for '/name/index.jscp'.  This check happens regardless of the value of jscpExtensionRequired.
-5. If the url is '/name.jscp' (or '/directory/name.jscp'), and again, if jscpExtensionRequired is either 'optional' or 'always', then JSCause will run the contents and serve its output.
-6. If the url is '/name.extension', with the extension being neither jscp nor jscm (or not present), JSCause will check for the file.  If it exists, JSCause assumes it is static, and it will serve the contents of it.
-6. If the extension is jscm, serve a 404.
-7. If none of the above applies, serve a 404.
 
 File names:
 ===========

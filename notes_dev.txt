@@ -294,6 +294,12 @@ Version 0.7.1b here!
 
 Order by priority:
 
+"For security purposes, JSCause will only run JSCP files only if they are inside a site's `website` directory."
+ - Does this apply to JSCM files? Can JSCM invocations have absolute paths? Relative paths referring to symlinks outside of the website directory? Enforce/clarify in docs.
+
+The future: JSCF files (fragments), rt.includeFragment('some_file.jscf'), or similar, which would be inserted in the calling file as if it was part of it.  This would be a precompiling process.
+  - Careful with circular references.  JSCause should ignore those, unless it's a direct circular reference, and warn about it?
+
 Do jscp programs have access to the requester's user agent? User-Agent header entry?
 
 If a request is interrupted half-way through, will the connection persist? Will the server continue listening?  It shouldn't.  And perhaps this is mitigated by an already implemented timeout, but... it shouldn't.
