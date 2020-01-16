@@ -5,7 +5,6 @@ website/ and configuration/ must allow hot reloading.
 - To output '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.
 - '<js /js>' are case insensitive.  These are valid: '<JS' and '/JS>'.
 - If the first line in a file is an opening tag, it can be omitted.  Likewise, the last line in a file is a closing file, it can be omitted.
-- rt.header() sets headers.  You can call them as many times as needed.
 - rt.waitFor() must be used when defining callbacks.  For example:
   - Instead of:  setTimeout(() => { rt.print('Hello, world!'); }, 1000);
   - Write it as: setTimeout(rt.waitFor(() => { rt.print('Hello, world!'); }), 1000);
@@ -13,8 +12,6 @@ website/ and configuration/ must allow hot reloading.
   - rt.waitFor()'s can be nested.
   - rt.waitFor() will correctly pass down the arguments it receives to its callback parameter.
   - If a runtime exception happens while a callback is still pending, JSCause will wait until the blocking call is happening.  When it comes back, it won't execute the callback.
-- rt.getParams is an object containing the GET query parameters.
-- rt.postParams is an object containing the POST form parameters.
 - rt.uploadedFiles is an object containing all the uploaded files, with the keys being the form file element's name.
   - Each object could be a file or an array of files (if the form element accepts multiple files.)
   - The filename in the client is under the .name attribute.
@@ -29,14 +26,11 @@ website/ and configuration/ must allow hot reloading.
     - Same thing with max file size.  If this is not desired, it is advised that the users set an upper limit, and handle the actual limit error in the application. Also, warn the visitor beforehand. (You may want to provide an example here.)
   - A maxPayloadSizeBytes site config value of 0 indicates unlimited upload size.  Less than 0 is as if canUpload is false.  Use the 0 value with caution.
   - The requestTimeoutSecs (requesttimeoutsecs) server config value dictates how many seconds will the server wait for a request to complete.  If 0 or non-existent, then it is assumed that there is no timeout limit.
-  - When POSTing, if the content-type header is set to application/json, the app will do its best to parse it.  If it fails, rt.additional.jsonParseError will be true.  If it succeeds, the json object will be available as rt.postParams.
   - If when POSTing the content-type header is set to anything other than application/json o form encoded, the payload will be available as rt.postParams.data.  If the user is sure it will be a string, they should do rt.postParams.data.toString() before processing.
   - contentType can be whatever the content-type header is set to, except for:
     - Form content: it will be formData.
     - Form content with file upload: it will be formDataWithUpload.
     - JSON: it will be jsonData.
- - We also have: rt.requestMethod ('get' or 'post').  PUT and DELETE are not supported and will return a 405 (method not allowed.)
-- print will escape symbols such as '<' and '>' so that they can be safely printed as such, so that they're not confused with being part of an HTML tag.  This is also good to avoid XSS attachs:  Use it to print user input.  If you want to print everything unescaped, use rt.unsafePrint().
 - When handling uploaded files, users can use file.name directly as it has been sanitized.  If for some reason they want to access the original filename, they can do so through file.unsafeName.
 - jscause.conf is almost a valid JSON object.  Almost, because it allows // comments, for documentation.
 - Duplicate first-level keys in jscause.conf will cause an error.  Duplicate keys in values will be ignored, with the last value listed being the one used (just like it's done in Javascript).
@@ -48,37 +42,12 @@ website/ and configuration/ must allow hot reloading.
 - No two sites can have the same rootDirectoryName/port combination (that is, they can have the same rootDirectoryName if they have different ports.)
 - No two sites can have the same hostname/port combination (that is, they can have the same hostname if they have different ports.)
 - A warning will be issued if two sites share the same upload directory and don't have the same host name.
-- rt.runAfter() will enqueue code that will be run after all waitFor() callbacks are run (including those callbacks with implicit waitFors, like rtReadFile).  This is especially useful with the JSCause file manipulation functions.
-  - You can call several rt.runAfter().  Each callback will be run one after the other (not concurrently.)
-  - rt.waitFor() can be used inside rt.runAfter() callbacks.  If they are used, any enqueued runAfter callbacks will again wait until said waitFor callbacks are run.
-- rt.readFile(path [, encoding]) allows to read a file from path.  It behaves in a promise-like way.
-  - The optional encoding parameter indicates the type of encoding the file has (e.g. 'utf-8', usually good for text data).  If not specified, then raw bytes are assumed (good for binary files.)
-  - Chain it with .rtOnSuccess() with a callback with the response as a parameter:
-     rt.readFile(path).rtOnSuccess((response) => { rt.print(response); });
-       - No need to wrap the callback with a waitFor().
-  - Chain it with .rtOnError() with a callback with the error as a parameter:
-     rt.readFile(path)
-     .rtOnSuccess((response) => { rt.print(response); });
-     .rtOnError((err) => { rt.print(err.code); });
-       - Again, no need to wrap the callback with a waitFor().
-  - Relies on readFile.  So, whatever limitations readFile has, this one has as well (e.g., handling of big files, etc.)
-  - Absolute paths can be provided.  If a relative path is provided instead, it will be relative to the site's root directory (rootDirectoryName).
-    - Avoid reading or manipulating the path specified by tempWorkDirectory directly.  This is used by the framework.
-  - rt.readFile()'s can be nested.
-  - rtOnSuccess() and rtOnError() can be omitted (but if omitted, and an error occurs, the server will issue a runtime error.)
-- rt.module(moduleName): Syntactic sugar for: require('./moduleName.jscm').
-  - It could be either: rt.module('moduleName') or rt.module('moduleName.jscm')
-  - Path is relative to the website's directory (e.g. 'moduleName' => 'mySite/website/moduleName.jscm').
-  - Absolute paths are not permitted.
 
 - Tip: Common error: If you receive an unexpected token error referring to a part of the file that was supposed to be treated as HTML, check if the closing /js> previous to the line with the error was put in a line with a comment in it.  Example:  // This whole line is a comment /js>
 - Tip: Moving uploaded files is quicker than copying them to their final destination.
 - Other file functions:
-  - rt.moveFile(source, destination, overwrite).
-    - Notice that if overwrite is false and a file exists, the error thrown is not native, but it tries to mimmick what copyFile does as much as possible.  The 'errno' attribute won't be available.  This is because POSIX rename will always overwrite.  We had to check for file existence first.
   - rt.deleteFile(path).
   - rt.fileExists(path).  rtOnSuccess is called if file exists.  rtOnError otherwise.  It is advised that the error be examined.  Typically, err.code should be 'ENOENT'.
-  - rt.getCurrentPath() will yield the request's path without the resource (file name) portion.  So, if the request is /some/directory/hello.jscp, rt.getCurrentPath() will return '/some/directory'.
 - Notice that if there is an error inside .rtOnSuccess(), the code will not jump to .rtOnError(), as these only deal with the original corresponding operation.  JSCause will emit a typical error (you can trap it with try() catch{} though.)
 - Filesystem - URL mapping:
   - Folders (directories) are allowed.
@@ -189,40 +158,6 @@ Static files:
 - While JSCause can handle static files, it is advised to serve them by other more efficient means, e.g. with nginx or a CDN.
 - Advise the reader to put all the .js files that will be served to the client in a single directory, to keep things tight and secure.  JS files that should be executed on the server should reside outside of the /website directory.
 
-Cookies:
-========
-
-rt.getCookie(name, options)
-rt.setCookie(name, value, options) - returns true if successful.
-rt.deleteCookie(name) - returns true if successful.
-name must be a string.  Otherwise getCookie() will return an empty string, and setCookie() and deleteCookie() will return false.
-domain, path and value parameters should be a string.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its .toString() equivalent.  For instance, objects will be assumed "[object Object]", arrays will be converted to a string with its values comma-separated.
-name is always URI-encoded before the cookie is stored.
-options can be:
- - expires: expiration date as a Date object. Optional (if so, the cookie will last as long as the current browser session lasts).  If a value is passed, it must be a date object; otherwise a runtime exception will be thrown.
- - maxAge: expiration in milliseconds from date of creation. Optional.  Must be number or it will be ignored.  If both 'expires' and 'maxAge' are provided, 'expires' is used.
- - secure: Optional. Boolean.  Accepts any value which is then converted to boolean.  Will throw exception if set to true in a non-HTTPS request.
- - httpOnly: Optional. Boolean or equivalent truthy/falsy value. True by default.
- - path: Optional. String. '/' by default.  Use rt.getCurrentPath() if you want to set the cookie for the request (current) path.  Use 'null' if you want to omit setting up a path completely (this could change in the future, though.)
- - domain: String. No default, per the cookies specs.
- - sameSite: Optional. String. 'lax' or 'strict'.  Any other value will throw an exception.
- - You could always wrap rt.setCookie() in a try/catch block if you don't want it to trigger error 500.  But do always check for exceptions!
- - For setCookie:  encodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-encoded before being stored.
- - For getCookie:  decodeURIValue: Optional.  Boolean.  True by default.  When true, the cookie value is URI-decoded before being returned.
-
-Redirection:
-============
-
-- rt.redirectTo(url, [delayInSeconds])
-- The url should be a string.  Numbers will be interpreted as strings, and any other type will be converted to its .toString() equivalent.  undefined will be assumed as an empty string (notice that this could potentially create a infinite redirection loop!)
-- The redirection will happen (be scheduled to run) when all the program gets executed (and all pending callbacks, e.g. from setTimeout and file operations, are run.)  If you don't like this, organize your code to avoid it.
-- An optional delayInSeconds parameter can be provided.  In that case, the redirect will be delayed by that amount of seconds (counting from the time it is scheduled to run - see previous point.)  This value must be a number, otherwise it will be ignored.
-  - Notice that JSCause typically sets the Location header to do the redirect.  If delayInSeconds is provided and is valid, the 'Refresh' header will be used instead.  This is not a standard header, so not all browsers support it (most modern ones do, though.)
-- If more than one redirectTo() calls are made, only the last one will be taken into account.
-- rt.resetRedirectTo() (no parameters.)
-  - It will cancel any scheduled redirections.
-    - No effect if no redirects are scheduled to happen.
-
 In regards of 'this':
 =====================
 'this' is an empty object ({}) during the execution of the script.  Its value will not carry over the next time the script is called with a new request.
@@ -301,8 +236,4 @@ Known issues:
 - When invoking a function defined inside a JSCP script (or when using rt.module()), 'this' inside the module will be the system's.  In a future version, a configurable directive may force it to an empty object.  But we'll see.
 
 - Firefox 61.0.2 on MacOS High Sierra has issues when reloading a page that renders after an upload.  If a user uploads a file, then re-loads the page (triggering a browser re-upload confirmation page), Firefox will reset the connection.  Newer versions do not exhibit this behavior.  Chrome does not exhibit this behavior either.
-
-- Modules do not have direct access to rt functions.  A workaround would be to pass in the rt object when invoking the module:
-   - Inside the module: module.exports = function(rt) { use rt here... }
-   - Script invoking the module: const myModule = rt.module('examplemodule')(rt);
 

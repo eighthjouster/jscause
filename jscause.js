@@ -1804,7 +1804,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   return Object.freeze({
     getCurrentPath() { return currentPath; },
     unsafePrint(output = '') { rtContext.outputQueue.push(output); },
-    print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); },
+    print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); return undefined; },
     header(nameOrObject, value)
     {
       assignAppHeaders.apply(this,
@@ -1927,6 +1927,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
       if (fsPath.isAbsolute(moduleName))
       {
         JSCLog('error', `Module name and path ${moduleName} must be specified as relative.`, jscLogConfig);
+        return null;
       }
       else
       {
@@ -1975,9 +1976,14 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         throw(new Error('Invalid expired value.  Date object expected.'));
       }
 
-      if (maxAge && (expires || (typeof(maxAge) !== 'number')))
+      if (maxAge && (typeof(maxAge) !== 'number'))
       {
         maxAge = undefined;
+      }
+
+      if (expires && maxAge)
+      {
+        expires = undefined;
       }
 
       if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
@@ -2463,14 +2469,14 @@ function incomingRequestHandler(req, res, sitesInServer)
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
   const [/* Deliberately left blank. */, reqHostName = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
   const requestMethod = (method || '').toLowerCase();
-  const reqMethodIsValid = ((requestMethod === 'get') || (requestMethod === 'post'));
+  const isReqMethodValid = ((requestMethod === 'get') || (requestMethod === 'post'));
   const { logging: serverLogging, requestTimeoutSecs } = serverConfig;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
   const identifiedSite = sitesInServer[reqHostName];
 
   let contentType = (headers['content-type'] || '').toLowerCase();
 
-  if (!identifiedSite || !reqMethodIsValid)
+  if (!identifiedSite || !isReqMethodValid)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');

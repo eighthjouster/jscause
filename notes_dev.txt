@@ -36,6 +36,9 @@ PUBLISH ANOTHER ALPHA!
 
 ===
 
+readFile() passes the encoding parameter raw to fs.readFile. This parameter could either be a string or an object.  Perhaps JSCause should be more restrictive on what should be specified here?
+ - If you do this, update the docs.
+
 Perhaps log's directoryName should be directoryPath since it's not just the name, but the full/relative path.
 
 Hm, if I do <p><js rt.print('a'); /js>bc</p>, shouldn't I get 'abc' instead of 'a bc'?
@@ -293,6 +296,16 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+If an absolute path is provided to rt.module(), an error is logged.  However, it should also throw an error 500.
+ - And add corresponding test.
+
+Implement deleting directories!
+ - And check that the current functions can copy/move directories.
+   - And document.
+
+Will rt.header() modify the "X-Powered-By" header?  It shouldn't, should it?
+Also, assignAppHeaders() doesn't seem to validate that the value is a string.  Should it?
 
 "For security purposes, JSCause will only run JSCP files only if they are inside a site's `website` directory."
  - Does this apply to JSCM files? Can JSCM invocations have absolute paths? Relative paths referring to symlinks outside of the website directory? Enforce/clarify in docs.
