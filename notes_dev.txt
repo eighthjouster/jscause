@@ -4,6 +4,16 @@ git bundle create jscause-.bundle devel
 
 AT THIS POINT, RELEASE THE ALPHA.
 
+Whoa, does setInterval() works okay with rt.waitFor()?  I know setTimeout() does, but I'm not sure if setInterval() does the right thing.
+
+What happens in this case?  Like, what does JSCause do? Throw an error? Or just hang?  Warn? (And document.)
+// This is incorrect:
+rt.readFile('my_source.txt', 'utf-8')
+  .rtOnSuccess(rt.waitFor(() => { rt.print('File read successfully!'); }))
+
+And what's the deal with this comment in the code?:
+// req.setTimeout() might be more suitable here.  Test extensively.
+
 _Manually test_ (for real) the rest (uploads, serving error files, etc.)
  - Maybe you can document your steps (in notes_testing.txt), for reference when implementing more tests in the future.
    - And then check that entries are already documented elsewhere in the document, and delete duplicates.
@@ -53,6 +63,7 @@ Should I use res.setEncoding('utf8'); anywhere?
 Strange that "Uploading is forbidden" is shown even with form POST methods without a file type.  Is this correct?  If it is, fine.  If it isn't, at least put in bugs list.
 
 And make sure that error 500s are logged (either to console of to file) if the corresponding logging configuration value is set.
+ - Not happening already?
 
 Can POST/PUT/DELETE requests refer to error4xx and error5xx files? What to do in these cases?
   - Allow it?!?!
@@ -106,25 +117,15 @@ Why? Parser bug?
  - Very long GET params haven't been tested with JSCause.  Be judicious when using --max-http-header-size
    - For dev docs:  If this will ever be supported, remember to write tests for it.
 
-- Document: logFileSizeThreshold
-  - general logging only.  perSite logging does not allow it.
-
 There should be one JSCLogMessageQueue and one isJSCLogMessageQueueProcessing per site and for the global server.
 
 - Logging rotation?
-  - Max size of uncompressed log files? (default: 1 MB).
-    *- -1, -2, -3 for the same date. - Done.
-      *- 30-second mod debug mode for file names already enabled.
-        +- And document. - on it.
   - Keep the last N files? (0 for keep everything).
+    - And document!
     - Do the configuration first.  Follow the logFileSizeThreshold route.
       - Actually, see if you can convert parameters to context object in certain situations first.
         - Example: handleError4xx(()
           - Yeah, why don't you pass identifiedSite directly to those?
-
-In the docs so far:
-  - Log files can be limited by size.  When the limit is reached, a new log file will be created, with identical name as the previous one, but with a numeric suffix (e.g. --1, --2, etc).  The previous file will be compressed.
-  - If you move compressed log files to another location, and JSCause is writing to a suffixed file, then it will reset writing to a non-suffixed file.  This will cause log entries that will appear as out of sync with the files they're in.  Worse, next time a move occurs, the newly created log file will overwrite the one previously existing in the destination.  To avoid this, your move procedure should leave all the compressed suffixed files associated with the current (non-compressed) log file.
 
 - Output to log file in bulk (every 500ms or so) and async (throttle/debounce).
     - That check about whether we're on the right file to log? Do it _before_ debouncing.
@@ -150,49 +151,6 @@ On getDirectoryPathAndCheckIfWritable():
     - Including the console.warn()
     - Tests should only run in dev mode.
 
-Some work has been put into place.
- - Document whatever is not documented below before deleting.
-   - Site-wide:
-     - Logging type: {
-         general: {
-           fileOutput: 'enabled|disabled', [enabled by default.]
-           directoryName: '', ['jscause/logs' by default.]
-           consoleOutput: 'enabled|disabled' [enabled by default]
-         },
-         perSite: {
-           fileOutput: 'enabled|disabled|per site' [disabled by default.]
-           consoleOutput: 'enabled|disabled|per site' enabled by default. (per site = let the site configuration decide)
-         }
-     - Per site:
-      - Logging type:
-        {
-          fileOutput: 'enabled|disabled', [disabled by default] [Might be overridden by site-wide config]
-          directoryName: '', ['website/logs' by default.] [if either fileOutput above or site-wide fileOutput perSite config is enabled, you MUST provide a name here.]
-            - Remember:
-              - Test with paths that aren't directories. - Done.
-              - Test with read-only directories. - Done.
-              - Test with symbolic links. - Done.
-          consoleOutput: 'enabled|disabled' enabled by default. [Might be overridden by site-wide config]
-        }
-
-Documentation:
-  - Overrides.
-  - If there are reading/writing errors to log files, no further logging will take place until it's time to rotate the files.  If console output is enabled, the server will emit warnings on file operation errors.
-  - Site-wide allowances/prohibitions.
-  - Mandatory values (e.g. logging output if site-wide mandates it.)
-  - logging key in jscause.conf is optional, unlike "sites".
-  - Per-site: Even if file logging is disabled, if a file name/path is provided, it must be valid.
-    - You can comment it out if you'd rather not provide one.  But logging MUST be disabled.
-  - General: A missing or empty directoryname will be assumed "logs".  A logging directory must exist regardless of whether logging is enabled or disabled.
-  - Compression of log files will happen four at a time.  The rest will be queued.
-    - The process of determining log compressing on a specific site will happen only when there is something to log.  If there are uncompressed log files, and the site is never accessed, or nothing is logged, the files will remain uncompressed.
-
-Documentation: Ctrl+C or SIGINT will terminate the server gracefully:
-  - It will close the log files.
-  - If there are any log files being compressed at that very moment, it will wait until the operation completes.  Any pending log files to compress will be ignored after that.
-  - A second Ctrl+C during cleanup will let the user know that cleanup is still happening.
-  - A third Ctrl+C will terminate the program immediately, even if cleanup was happening.
-
 - Documentation:  nodejs jscause.js runtests
   - If the tests are not present, do not even try to run them.
 
@@ -201,6 +159,7 @@ Server logging?
    - Must be a configuration.
      - No configuration? No logging.  But a WARNING must be issued.
  - Make sure that ERROR and INFO, which are normally displayed in color in a terminal, don't have weird characters surrounding them in a log text file.
+  - Isn't this implemented already?
 
 Get rid of __RP.
 
@@ -249,10 +208,6 @@ Watch for and reload changes at this point (hot reloading.)
 
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.
-
-Log stdout and stderr to a configurable file.
- - Don't forget to check for directory existence and writeability.
-   - There should be a default one.
 
 Hard-coded values should go in a global file.
 

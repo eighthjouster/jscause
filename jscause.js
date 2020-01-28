@@ -1803,7 +1803,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
   return Object.freeze({
     getCurrentPath() { return currentPath; },
-    unsafePrint(output = '') { rtContext.outputQueue.push(output); },
+    unsafePrint(output = '') { rtContext.outputQueue.push(output); return undefined; },
     print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); return undefined; },
     header(nameOrObject, value)
     {
@@ -2505,7 +2505,7 @@ function incomingRequestHandler(req, res, sitesInServer)
       canUpload, maxPayloadSizeBytes,
       staticFiles, compiledFiles,
       jscpExtensionRequired, includeHttpPoweredByHeader,
-      logging: siteLogging, siteName
+      logging: siteLogging
     } = identifiedSite;
 
   const { siteLogDir, doLogToConsole } = siteLogging;
