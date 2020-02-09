@@ -697,19 +697,17 @@ function JSCLogQueueNext()
   const { type, message, logOptions } = JSCLogMessageQueue.shift();
 
   let outputToFile = false;
-  let consoleOutputDuringTest = true;
   if (isTestMode)
   {
     jscTestGlobal.checkLogOutputWillOccur(logOptions);
     jscTestGlobal.checkIfSpecificLogMessagesFound(type, message);
     jscTestGlobal.checkIfExpectedLogMessagesPass(type, message);
-    consoleOutputDuringTest = false;
   }
 
   const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
 
-  // consoleOutputDuringTest = true; // Uncomment this line to allow actual JSCLog() output to the console when debugging tests.  
+  const consoleOutputDuringTest = false; // Set to true to allow actual JSCLog() output to the console when debugging tests.
   if ((!isTestMode && toConsole) || consoleOutputDuringTest)
   {
     if (outputToConsole)
