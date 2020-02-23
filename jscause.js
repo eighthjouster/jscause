@@ -1542,9 +1542,9 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`,
           {
             e: runtimeException,
-            doLogToConsole,
-            serverLogDir,
-            siteLogDir,
+            toConsole: doLogToConsole,
+            toServerDir: serverLogDir,
+            toSiteDir: siteLogDir,
             fileSizeThreshold: logFileSizeThreshold
           });
       }

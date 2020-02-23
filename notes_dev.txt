@@ -4,6 +4,8 @@ git bundle create jscause-.bundle devel
 
 AT THIS POINT, RELEASE THE ALPHA.
 
+If the perSite log option says "enabled", and the site doesn't provide a log directory, will the application throw an error when starting, as it should?
+
 Whoa, does setInterval() works okay with rt.waitFor()?  I know setTimeout() does, but I'm not sure if setInterval() does the right thing.
 
 What happens in this case?  Like, what does JSCause do? Throw an error? Or just hang?  Warn? (And document.)
@@ -126,6 +128,8 @@ There should be one JSCLogMessageQueue and one isJSCLogMessageQueueProcessing pe
       - Actually, see if you can convert parameters to context object in certain situations first.
         - Example: handleError4xx(()
           - Yeah, why don't you pass identifiedSite directly to those?
+  - When you do this, remove this from the documentation: "A file rotation feature, in which only the most recent N files are kept, will be added in a future version."
+    - And, well, document.
 
 - Output to log file in bulk (every 500ms or so) and async (throttle/debounce).
     - That check about whether we're on the right file to log? Do it _before_ debouncing.
