@@ -171,7 +171,7 @@ const jscCallback = (isTestMode) ?
       }
       catch(e)
       {
-        JSCLog('error', 'CRITICAL:  An application error occurred when processing a callback.');
+        JSCLog('error', 'CRITICAL: An application error occurred when processing a callback.');
         JSCLog('error', e);
         console.error(e);
         jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
@@ -267,7 +267,7 @@ function retrieveNextAvailableLogName(logDir, fileSizeThreshold, resolve, reject
   // If the name exists, recursively call this file with a different suffix (e.g. 1).
   // Once a name has not been used in a compressed file, recursively call this function again,
   // this time with no postExtension.
-  // That signals the functin that we're looking for names for files that either:
+  // That signals the function that we're looking for names for files that either:
   // 1. are not being used, or 2. are being used and under a certain file size threshold.
   //
   // Example:  Look for a name such as 'jsc_name'.
@@ -1241,7 +1241,7 @@ function configFileFreeOfDuplicates(readConfigFile, fileName, jscLogConfig)
   // JSON gets rid of duplicate keys.  However, let's tell the user if the original
   // file had duplicate first-level keys, in case it was a mistake.
   // This is done after the parsing took place because at this point we know
-  // that the source file is legal JSON (except for the potential duplicae keys),
+  // that the source file is legal JSON (except for the potential duplicate keys),
   // and thus the code can be easy to parse.
 
   const state = 
@@ -2784,7 +2784,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
       }
       catch (e)
       {
-        JSCLog('error', 'CRITICAL:  An application error occurred when processing an incoming request.');
+        JSCLog('error', 'CRITICAL: An application error occurred when processing an incoming request.');
         JSCLog('error', e);
         jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
       }
@@ -3295,13 +3295,13 @@ function parseSiteHostName(processedConfigJSON, siteConfig, requiredKeysNotFound
     }
     else
     {
-      JSCLog('error', 'Site configuration:  hostname cannot be empty.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: hostname cannot be empty.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid hostname.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid hostname.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3320,7 +3320,7 @@ function parseCanUpload(processedConfigJSON, siteConfig, requiredKeysNotFound, j
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid canupload.  Boolean expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid canupload.  Boolean expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3342,13 +3342,13 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
     }
     else
     {
-      JSCLog('error', 'Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid maxpayloadsizebytes.  Integer number expected.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  maxpayloadsizebytes cannot be empty.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: maxpayloadsizebytes cannot be empty.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3371,17 +3371,17 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
       const allowdNames = ['include', 'exclude'];
       if (allowdNames.indexOf(valueName) === -1)
       {
-        JSCLog('error', `Site configuration:  mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name => `'${name}'`).join(', ')}.`, jscLogConfig);
+        JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype has an invalid '${valueName}' name.  Expected: ${allowdNames.map(name => `'${name}'`).join(', ')}.`, jscLogConfig);
         soFarSoGood = false;
       }
       else if ((valueName === 'include') && ((Array.isArray(mimeTypeList)) || (typeof(mimeTypeList) !== 'object')))
       {
-        JSCLog('error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.', jscLogConfig);
+        JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype has an invalid 'include' attribute value. Object (key, value) expected.`, jscLogConfig);
         soFarSoGood = false;
       }
       else if ((valueName === 'exclude') && (!Array.isArray(mimeTypeList)))
       {
-        JSCLog('error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.', jscLogConfig);
+        JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype has an invalid 'exclude' attribute value. Array expected.`, jscLogConfig);
         soFarSoGood = false;
       }
       else
@@ -3397,7 +3397,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
               {
                 if (!includeValue && (valueName === 'include'))
                 {
-                  JSCLog('warning', `Site configuration: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`, jscLogConfig);
+                  JSCLog('warning', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: ${mimeTypeName} mimetype value is empty.  Assumed application/octet-stream.`, jscLogConfig);
                 }
 
                 switch(valueName)
@@ -3413,19 +3413,19 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
               }
               else
               {
-                JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`, jscLogConfig);
+                JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype has an invalid ${valueName} value for ${mimeTypeName}.  String expected.`, jscLogConfig);
                 soFarSoGood = false;
               }
             }
             else
             {
-              JSCLog('error', 'Site configuration:  mimetype name cannot be empty.', jscLogConfig);
+              JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype name cannot be empty.`, jscLogConfig);
               soFarSoGood = false;
             }
           }
           else
           {
-            JSCLog('error', `Site configuration:  mimetype has an invalid ${valueName} name.  String expected.`, jscLogConfig);
+            JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: mimetype has an invalid ${valueName} name.  String expected.`, jscLogConfig);
             soFarSoGood = false;
           }
           return soFarSoGood;
@@ -3436,7 +3436,7 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid mimetypes.  Object expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid mimetypes.  Object expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3458,13 +3458,13 @@ function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNot
     }
     else
     {
-      JSCLog('error', 'Site configuration:  tempworkdirectory cannot be empty.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: tempworkdirectory cannot be empty.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid tempworkdirectory.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid tempworkdirectory.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3490,19 +3490,19 @@ function parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKey
           siteConfig.jscpExtensionRequired = finalValue;
           break;
         default:
-          JSCLog('error', 'Site configuration:  Invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
+          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid jscpextensionrequired value.  Use 'never' (recommended), 'optional' or 'always'.`, jscLogConfig);
           soFarSoGood = false;
       }
     }
     else
     {
-      JSCLog('error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: jscpextensionrequired cannot be empty.  Use 'never' (recommended), 'optional' or 'always'.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid jscpextensionrequired.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid jscpextensionrequired.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3527,19 +3527,19 @@ function parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysN
           siteConfig.includeHttpPoweredByHeader = (finalValue === 'include');
           break;
         default:
-          JSCLog('error', 'Site configuration:  Invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.', jscLogConfig);
+          JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid httppoweredbyheader value.  Use 'include' or 'exclude'.`, jscLogConfig);
           soFarSoGood = false;
       }
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: httppoweredbyheader cannot be empty.  Use 'include' or 'exclude'.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httppoweredbyheader.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid httppoweredbyheader.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3575,7 +3575,7 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid logging.  Object expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid logging.  Object expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3596,13 +3596,13 @@ function parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFoun
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httpscertfile cannot be empty.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: httpscertfile cannot be empty.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpscertfile.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid httpscertfile.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3623,13 +3623,13 @@ function parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound
     }
     else
     {
-      JSCLog('error', 'Site configuration:  httpskeyfile cannot be empty.', jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: httpskeyfile cannot be empty.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
   else
   {
-    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, 'Site configuration:  Invalid httpskeyfile.  String value expected.', jscLogConfig);
+    checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid httpskeyfile.  String value expected.`, jscLogConfig);
     soFarSoGood = false;
   }
 
@@ -3799,7 +3799,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     {
       soFarSoGood = false;
       JSCLog('error', `Too many directories left to process (> ${MAX_PROCESSED_DIRECTORIES_THRESHOLD}) (circular reference?):`, jscLogConfig);
-      JSCLog('error', `- ${fullPath}`,jscLogConfig);
+      JSCLog('error', `- ${fullPath}`, jscLogConfig);
     }
     else
     {

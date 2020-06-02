@@ -4,7 +4,37 @@ git bundle create jscause-.bundle devel
 
 AT THIS POINT, RELEASE THE ALPHA.
 
+A jscp file with just this:
+}/js>
+Will yield a misleading error.  Fix it.
+
+This comment:
+// Good for debugging.
+Should that break condition be there, uncommented?
+
+symlinkList.push():  Shouldn't there be a limit check of some sort here?
+
+The HTTPS configuration seems to be incomplete. We'll need to add an optional ca option to httpsOptions in jscause.js:
+        const httpsOptions =
+        {
+          key: sslKey,
+          cert: sslCert,
+          ca: caCert // chain.pem.  But probably with a .crt extension
+        };
+Or possibly:
+          ca: [
+                    fs.readFileSync('path/to/CA_root.crt'), // CA root certificate file
+                    fs.readFileSync('path/to/ca_bundle_certificate.crt') // CA bundle file
+              ]
+
+There must be a way to detect them when the server starts and emit a warning if the example certs are attempted to be used (by comparing them with a hash?) And only if https is attempted to be used.
+
 If the perSite log option says "enabled", and the site doesn't provide a log directory, will the application throw an error when starting, as it should?
+
+Perhaps we don't need to programmatically deal with symbolic links.  Should we leave this to the OS (and thus remove the code that checks and deals with symlinks)?
+ - But what about circular references?
+
+In respect to JSCause correctly failing when, say, it tries to open a jscause.conf symlink that points to nothing (broken symlink), there should be a way for it to warn the user that "the file is not found because the symlink points to nowhere," instead of just saying "file not found."
 
 Whoa, does setInterval() works okay with rt.waitFor()?  I know setTimeout() does, but I'm not sure if setInterval() does the right thing.
 
@@ -244,10 +274,6 @@ Remove these from /etc/hosts:
 
 Version 0.7.1b here!
  - Upload to https://github.com/eighthjouster/jscause
- - Thanks to:
-   - https://github.com/felixge/node-formidable   
-   - https://github.com/parshap/node-sanitize-filename
-   - https://github.com/pillarjs/cookies
 
  - Create a couple of sites with it.
  - Announce.
@@ -255,6 +281,10 @@ Version 0.7.1b here!
 ==========================
 
 Order by priority:
+
+- From the documentation:
+"If you move compressed log files to another location, and JSCause is writing to a suffixed file (e.g., `jsc_2020-02-08_22-00-00--2.log`), then it will reset writing to a non-suffixed file.  This will cause log entries that will appear as out of sync with the files they're in.  And because of the file name reset, backing it up could lead to the newer file overwriting the older one.  To avoid this, your move procedure should not move any the compressed suffixed files associated with the current (non-compressed) log file.  For example, given the following list of files: `jsc_2019-12-31_23-00-00.log.gz`, `jsc_2020-01-01_00-00-00.log.gz` and `jsc_2020-01-01_00-00-00--1.log`, just move `jsc_2020-12-31_23-00-00.log.gz`.  This will be fixed in a future version."
+So.... fix it.
 
 If an absolute path is provided to rt.module(), an error is logged.  However, it should also throw an error 500.
  - And add corresponding test.
@@ -448,7 +478,6 @@ Implement: Submit form data.
  - Ajax.
 Implement: Talk to a database.
 Implement:
- - https
  - redirections
  - modules/plugins
    - redistributable packages
