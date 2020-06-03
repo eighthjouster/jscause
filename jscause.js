@@ -3342,7 +3342,7 @@ function parseMaxPayLoadSizeBytes(processedConfigJSON, siteConfig, requiredKeysN
     }
     else
     {
-      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid maxpayloadsizebytes.  Integer number expected.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid maxpayloadsizebytes value.  Integer number expected.`, jscLogConfig);
       soFarSoGood = false;
     }
   }
@@ -3792,7 +3792,7 @@ function analyzeFileStats(state, siteConfig, fileName, currentDirectoryPath, all
     if (directoriesProcessedSoFar >= MAX_DIRECTORIES_TO_PROCESS)
     {
       soFarSoGood = false;
-      JSCLog('error', `Too many processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`, jscLogConfig);
+      JSCLog('error', `Too many directories processed so far (> ${MAX_DIRECTORIES_TO_PROCESS}) (circular reference?):`, jscLogConfig);
       JSCLog('error', `- ${fullPath}`, jscLogConfig);
     }
     else if ((directoriesProcessedSoFar - directoriesToProcess.length) > MAX_PROCESSED_DIRECTORIES_THRESHOLD)
@@ -4526,7 +4526,7 @@ function startApplication(options = { rootDir: undefined })
         }
         else
         {
-          JSCLog('error', 'Site configuration: Missing name.', jscLogBase);
+          JSCLog('error', 'Site configuration: Missing site name.', jscLogBase);
           readSuccess = false;
         }
 

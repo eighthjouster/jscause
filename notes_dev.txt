@@ -2,6 +2,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
+
+You will need to update some tests, as some site config-related error messages were modified to include the site name.
+
 AT THIS POINT, RELEASE THE ALPHA.
 
 A jscp file with just this:
