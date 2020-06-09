@@ -228,7 +228,7 @@ const test_002_007_missingRootDirName = Object.assign(testUtils.makeFromBaseTest
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Site name \'My Site\' is missing rootdirectoryname.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Missing rootdirectoryname.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

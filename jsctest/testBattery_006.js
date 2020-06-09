@@ -223,7 +223,7 @@ const test_006_005_configFileTwoHttpsSitesSamePort = Object.assign(testUtils.mak
     },
     expectedLogMessages:
     [
-      [ 'warning', 'Site configuration: Site \'My Site 2\' is HTTPS, and would be sharing HTTPS port 3000 with \'My Site\'' ],
+      [ 'warning', 'Site configuration: Site \'My Site 2\' is HTTPS, and will be sharing HTTPS port 3000 with \'My Site\'' ],
       [ 'warning', 'Site configuration: Site \'My Site 2\' is using HTTPS in an already assigned HTTPS port, 3000' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],

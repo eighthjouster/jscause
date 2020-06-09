@@ -3264,7 +3264,7 @@ function validateSiteRootDirectoryName(directoryName, siteName, jscLogConfig)
   {
     if (typeof(directoryName) === 'undefined')
     {
-      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} is missing rootdirectoryname.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)}: Missing rootdirectoryname.`, jscLogConfig);
     }
     else
     {
@@ -4695,7 +4695,7 @@ function startApplication(options = { rootDir: undefined })
                     readSuccess = combo.enableHTTPS;
                     if (readSuccess)
                     {
-                      JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and would be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
+                      JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is HTTPS, and will be sharing HTTPS port ${sitePort} with ${getSiteNameOrNoName(combo.siteName)}`, jscLogBase);
                       JSCLog('warning', `Site configuration: Site ${getSiteNameOrNoName(siteName)} is using HTTPS in an already assigned HTTPS port, ${sitePort}`, jscLogSite);
                     }
                     else
@@ -4713,7 +4713,7 @@ function startApplication(options = { rootDir: undefined })
                   if (currentSiteHostName === combo.siteHostName.toLowerCase())
                   {
                     JSCLog('error', `Site configuration: Both sites ${getSiteNameOrNoName(combo.siteName)} and ${getSiteNameOrNoName(siteName)} have the same host name and port combination - '${currentSiteHostName}', ${sitePort}`, jscLogBase);
-                    JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}, ${sitePort} is already in use`, jscLogSite);
+                    JSCLog('error', `Site configuration: ${getSiteNameOrNoName(siteName)}: ${sitePort} is already in use`, jscLogSite);
                     readSuccess = false;
                   }
                 }
