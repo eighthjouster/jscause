@@ -37,22 +37,6 @@ website/ and configuration/ must allow hot reloading.
   - A file literally named '.jscp', while technically hidden, will still be parsed during server init.  So it must be a valid JSCP file.
 - The per-site httpPoweredByHeader config value can show or hide the 'X-Powered-By: jscause' HTTP response header.  Assign 'include' to show, 'exclude' to hide.
 
-Custom errors 4xx and 5xx:
-=========================
- - Custom errors, if available, will be delivered only during a typical interaction in which a resource is not really available, or an error on a JSCP script.  In other cases, generic 4xx or 5xx will be delivered to the browser.  For instance:
-   - When attempting to use an unrecognized HTTP method.
-   - When file uploads are not allowed, or the payload maximum is exceeded.
-   - When the site (domain name) is not recognized.
-   - When either a form upload or json body upload parsing fails.
-   - When delivering a non-cached static file produces an error (e.g., file was available during parsing, but became unavailable later.)
-   - Possibly others.
-
-- error4xx.jscp/html and error5xx.jscp/html.  html prevails over jscp.
-- Only the ones on the site's root will be taken into account.
-- Referring to them directly (e.g. explicit '/error5xx.html' request from the browser) will throw a default error 404.
-- If you name a directory error400/500.jscp/html, it will throw a 404 error unless a slash is added.  This is by design.
-- Note:  If either error4xx.jscp or error5xx.jscp have a compile/runtime error, a generic 5xx will be delivered to the browser.  So, if an error 400 happens, and the error4xx.jscp has an error, the browser will indicate error 500.
-
 File and directory limits:
 ==========================
 

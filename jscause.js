@@ -883,7 +883,7 @@ function vendor_require(vendorModuleName)
   }
   catch(e)
   {
-    JSCLog('error', `CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
+    console.error(`CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} vendor template file.`);
   }
 
   if (typeof(templateFile) !== 'undefined')
@@ -895,7 +895,7 @@ function vendor_require(vendorModuleName)
     }
     catch(e)
     {
-      JSCLog('error', `CRITICAL: Cannot load ${requireName} file. The JSCause installation might be corrupted.`, { e, toConsole: true });
+      console.error(`CRITICAL: Cannot load ${requireName} file.`);
     }
   }
 
@@ -913,13 +913,13 @@ function vendor_require(vendorModuleName)
     }
     catch (e)
     {
-      JSCLog('error', `CRITICAL: Could not compile vendor module ${vendorModuleName}.`, { toConsole: true });
+      console.error(`CRITICAL: Could not compile vendor module ${vendorModuleName}.`);
     }
   }
 
   if (!compiledModule)
   {
-    JSCLog('error', `CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`, { toConsole: true });
+    console.error(`CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
   }
 
   return compiledModule;
@@ -4359,7 +4359,7 @@ function loadVendorModules()
   
   if (!allVendorModulesLoaded)
   {
-    JSCLog('error', 'CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
+    console.error('CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
     process.exit(1);
   }
 
