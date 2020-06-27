@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/eighthjouster/jscause/issues"
   },
-  "homepage": "https://github.com/eighthjouster/jscause#readme"
+  "homepage": "https://github.com/eighthjouster/jscause#readme",
+  "bin": {
+    "jscause": "./jscause.js"
+  }
 }
