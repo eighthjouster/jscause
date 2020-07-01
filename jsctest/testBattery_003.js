@@ -135,7 +135,7 @@ const test_003_004_siteConfInvalidHostname = Object.assign(testUtils.makeFromBas
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid hostname.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid hostname.  String value expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
     onServerStarted()
@@ -159,7 +159,7 @@ const test_003_005_siteConfEmptyHostname = Object.assign(testUtils.makeFromBaseT
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  hostname cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': hostname cannot be empty.' ],
       [ 'error', 'Site configuration:  The following configuration attributes were not found:' ],
       [ 'error', '- logging' ],
       [ 'error', '- canupload' ],
@@ -218,7 +218,7 @@ const test_003_007_siteConfInvalidCanUpload = Object.assign(testUtils.makeFromBa
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid canupload.  Boolean expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid canupload.  Boolean expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -245,7 +245,7 @@ const test_003_008_siteConfInvalidMaxPayloadSizeBytes = Object.assign(testUtils.
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid maxpayloadsizebytes.  Integer number expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid maxpayloadsizebytes value.  Integer number expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -273,7 +273,7 @@ const test_003_009_siteConfInvalidJscpExtensionRequired = Object.assign(testUtil
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid jscpextensionrequired.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid jscpextensionrequired.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -301,7 +301,7 @@ const test_003_010_siteConfEmptyJscpExtensionRequired = Object.assign(testUtils.
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': jscpextensionrequired cannot be empty.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -329,7 +329,7 @@ const test_003_011_siteConfInvalidJscpExtensionRequiredValue = Object.assign(tes
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid jscpextensionrequired value.  Use \'never\' (recommended), \'optional\' or \'always\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -358,7 +358,7 @@ const test_003_012_siteConfInvalidHttpPoweredByHeader = Object.assign(testUtils.
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid httppoweredbyheader.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid httppoweredbyheader.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -387,7 +387,7 @@ const test_003_013_siteConfEmptyHttpPoweredByHeader = Object.assign(testUtils.ma
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': httppoweredbyheader cannot be empty.  Use \'include\' or \'exclude\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -416,7 +416,7 @@ const test_003_014_siteConfInvalidHttpPoweredByHeaderValue = Object.assign(testU
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid httppoweredbyheader value.  Use \'include\' or \'exclude\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -446,7 +446,7 @@ const test_003_015_siteConfInvalidHttpsCertFile = Object.assign(testUtils.makeFr
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid httpscertfile.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid httpscertfile.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -476,7 +476,7 @@ const test_003_016_siteConfEmptyHttpsCertFile = Object.assign(testUtils.makeFrom
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  httpscertfile cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': httpscertfile cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -507,7 +507,7 @@ const test_003_017_siteConfInvalidHttpsKeyFile = Object.assign(testUtils.makeFro
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid httpskeyfile.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid httpskeyfile.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -538,7 +538,7 @@ const test_003_018_siteConfEmptyHttpsKeyFile = Object.assign(testUtils.makeFromB
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  httpskeyfile cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': httpskeyfile cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -570,7 +570,7 @@ const test_003_019_siteConfInvalidTempWorkDirectory = Object.assign(testUtils.ma
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid tempworkdirectory.  String value expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid tempworkdirectory.  String value expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -602,7 +602,7 @@ const test_003_020_siteConfEmptyTempWorkDirectory = Object.assign(testUtils.make
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  tempworkdirectory cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': tempworkdirectory cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -628,7 +628,7 @@ const test_003_021_siteConfInvalidMimeTypes = Object.assign(testUtils.makeFromBa
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  Invalid mimetypes.  Object expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': Invalid mimetypes.  Object expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -711,7 +711,7 @@ const test_003_023_siteConfInvalidMimeTypeEntry = Object.assign(testUtils.makeFr
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype has an invalid \'random\' name.  Expected: \'include\', \'exclude\'.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype has an invalid \'random\' name.  Expected: \'include\', \'exclude\'.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -740,7 +740,7 @@ const test_003_024_siteConfInvalidMimeTypeInclude = Object.assign(testUtils.make
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -772,7 +772,7 @@ const test_003_025_siteConfEmptyMimeTypeName = Object.assign(testUtils.makeFromB
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype name cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype name cannot be empty.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
@@ -804,7 +804,7 @@ const test_003_026_siteConfEmptyMimeType = Object.assign(testUtils.makeFromBaseT
     },
     expectedLogMessages:
     [
-      [ 'warning', 'Site configuration: png mimetype value is empty.  Assumed application/octet-stream.' ],
+      [ 'warning', 'Site configuration: Site name \'My Site\': png mimetype value is empty.  Assumed application/octet-stream.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
     onServerStarted()
@@ -832,7 +832,7 @@ const test_003_027_siteConfMimeTypeIncludeAsArray = Object.assign(testUtils.make
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype has an invalid \'include\' attribute value. Object (key, value) expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
     onServerStarted()
@@ -860,7 +860,7 @@ const test_003_028_siteConfMimeTypeExcludeAsObject = Object.assign(testUtils.mak
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype has an invalid \'exclude\' attribute value. Array expected.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype has an invalid \'exclude\' attribute value. Array expected.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
     onServerStarted()
@@ -888,7 +888,7 @@ const test_003_029_siteConfEmptyMimeTypeExcludeName = Object.assign(testUtils.ma
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration:  mimetype name cannot be empty.' ],
+      [ 'error', 'Site configuration: Site name \'My Site\': mimetype name cannot be empty.' ],
       [ 'error', 'Server not started.  No sites are running.' ],
     ],
     onServerStarted()

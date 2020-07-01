@@ -7,7 +7,7 @@
    * Setup
    *
    ************************************** */
-const JSCAUSE_APPLICATION_VERSION = '0.3.0';
+const JSCAUSE_APPLICATION_VERSION = '0.9.2';
 
 const http = require('http');
 const https = require('https');
@@ -3190,7 +3190,14 @@ function compileSource(sourceData, jscLogConfig)
           JSCLog('warning', 'Site: <html/> keyword found in the middle of code.  Did you mean to put it in the beginning of an HTML section?', jscLogConfig);
         }
 
-        processedDataArray.push(processBefore);
+        if (processBefore.substr(0, 1) === '=')
+        {
+          processedDataArray.push(`rt.print(${processBefore.substr(1)})`);
+        }
+        else
+        {
+          processedDataArray.push(processBefore);
+        }
         
         unprocessedData = processAfter;
 

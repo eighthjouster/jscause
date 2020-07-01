@@ -7,3 +7,7 @@ notes_dev.txt
 notes_specs.txt
 notes_testing.txt
 .eslintrc.json
+jscbuilding/
+build_standalone_zip.js
+dist/
+Documentation.md
