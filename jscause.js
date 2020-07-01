@@ -4356,7 +4356,7 @@ function loadVendorModules()
   const formidable = vendor_require('./jscvendor/formidable');
   allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
   
-  const sanitizeFilename = vendor_require('./jscvendor/node-sanitize-filename');
+  const sanitizeFilename = vendor_require('./jscvendor/sanitize-filename');
   allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
   
   if (!allVendorModulesLoaded)

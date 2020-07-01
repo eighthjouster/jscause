@@ -21,7 +21,7 @@ allModules[currentlyProcessingModuleName] = {
 
 // Module: sanitize-filename
 
-currentlyProcessingModuleName = './jscvendor/node-sanitize-filename';
+currentlyProcessingModuleName = './jscvendor/sanitize-filename';
 currentlyLoadingThisModule = (thisModuleName === currentlyProcessingModuleName);
 
 var originalTruncate = currentlyLoadingThisModule && require(fsPath.join(modulePath, '../truncate-utf8-bytes'));
