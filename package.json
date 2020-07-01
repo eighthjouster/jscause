@@ -26,5 +26,10 @@
   "homepage": "https://github.com/eighthjouster/jscause#readme",
   "bin": {
     "jscause": "./jscause.js"
+  },
+  "dependencies": {
+    "cookies": "^0.8.0",
+    "formidable": "^1.2.2",
+    "sanitize-filename": "^1.6.3"
   }
 }
