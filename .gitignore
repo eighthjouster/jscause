@@ -4,7 +4,7 @@ node_modules/
 package-lock.json
 jsctest/testrootdir/*
 !jsctest/testrootdir/readme.txt
-logs/
+logs/*
 !logs/.gitkeep
-sites/mysite/localLogs/
+sites/mysite/localLogs/*
 !sites/mysite/localLogs/.gitkeep
