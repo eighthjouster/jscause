@@ -3,3 +3,5 @@ npm-debug.log
 sites/mysite/workbench/jscause*
 jsctest/testrootdir/*
 !jsctest/testrootdir/readme.txt
+logs/
+sites/
