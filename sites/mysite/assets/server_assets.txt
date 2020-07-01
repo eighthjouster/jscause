@@ -1,0 +1,1 @@
+// This folder will contain files that can only be accessed by server-side scripts.

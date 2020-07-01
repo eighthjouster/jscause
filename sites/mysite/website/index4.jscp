@@ -1,0 +1,8 @@
+function andThree() {
+  rt.print('And three!');
+}
+
+rt.print('One! ');
+setTimeout(rt.waitFor(andThree), 10);
+rt.print('Two! ');
+console.log('YESSSSS');//__RP

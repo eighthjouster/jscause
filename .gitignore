@@ -1,6 +1,10 @@
 .DS_Store
 npm-debug.log
-jsctest/testrootdir/*
-!jsctest/testrootdir/readme.txt
 node_modules/
 package-lock.json
+jsctest/testrootdir/*
+!jsctest/testrootdir/readme.txt
+logs/
+!logs/.gitkeep
+sites/mysite/localLogs/
+!sites/mysite/localLogs/.gitkeep

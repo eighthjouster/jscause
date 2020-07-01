@@ -1,0 +1,19 @@
+console.log('Let us do this.');
+
+if (rt.postParams['submitIt'])
+{
+  console.log(rt.uploadedFiles);
+}
+
+rt.runAfter(() => {
+  rt.print('Love it.');
+});
+
+/js>
+
+<h1>COOOL 1</h1>
+<p>This is a test.</p>
+<form method="post" enctype="multipart/form-data">
+  <input name="myFile1" type="file" multiple />
+  <input type="submit" name="submitIt" value="Submit it!" />
+</form>
