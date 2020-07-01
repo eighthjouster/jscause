@@ -873,6 +873,21 @@ function JSCLogTerminate(options)
 
 function vendor_require(vendorModuleName)
 {
+  let vendorModule;
+  try {
+    vendorModule = require(vendorModuleName);
+  }
+  catch(e) {
+    // The module is not installed.  We'll deal with this below.
+  }
+
+  if (vendorModule) {
+    return vendorModule;
+  }
+
+  // Let's hope that it's included as a dependency in the code base.
+
+  const vendorModuleNameWithPath = `./jscvendor/${vendorModuleName}`;
   let moduleFile;
   let compiledModule;
   let hydratedFile;
@@ -890,7 +905,7 @@ function vendor_require(vendorModuleName)
 
   if (typeof(templateFile) !== 'undefined')
   {
-    const requireName = `${vendorModuleName}/index.js`;
+    const requireName = `${vendorModuleNameWithPath}/index.js`;
     try
     {
       moduleFile = fs.readFileSync(requireName, 'utf-8');
@@ -904,7 +919,7 @@ function vendor_require(vendorModuleName)
   if (typeof(moduleFile) !== 'undefined')
   {
     moduleFile = moduleFile.replace(/\s+require\((['"']{1})/g, ' _jscause_require($1');
-    hydratedFile = templateFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleName);
+    hydratedFile = templateFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath);
     const Module = module.constructor;
     Module._nodeModulePaths(fsPath.dirname(''));
     try
@@ -4350,13 +4365,13 @@ function loadVendorModules()
 {
   let allVendorModulesLoaded = true;
   
-  const cookies = vendor_require('./jscvendor/cookies');
+  const cookies = vendor_require('cookies');
   allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
   
-  const formidable = vendor_require('./jscvendor/formidable');
+  const formidable = vendor_require('formidable');
   allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
   
-  const sanitizeFilename = vendor_require('./jscvendor/sanitize-filename');
+  const sanitizeFilename = vendor_require('sanitize-filename');
   allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
   
   if (!allVendorModulesLoaded)

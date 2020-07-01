@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Add to testing: that vendor_require can deal with existing npm-installed modules.
+
 validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
 
 Tests validating that, just like <html/>,  <html /> (with a space) also works.
@@ -523,4 +525,3 @@ Use cases:
 ===
 
 "(note: this feature is yet to be implemented)" in the manual:  Revise this when you add filesystem watching.
- 
