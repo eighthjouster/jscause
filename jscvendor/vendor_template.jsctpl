@@ -50,4 +50,5 @@ function jsModuleSupport(thisModuleName, name) {
 }
 
 var _jscause_require = function(moduleName) { 
-  return jsModuleSupport(thisModuleName, moduleName); }
+  return jsModuleSupport(thisModuleName, moduleName);
+};
