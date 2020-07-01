@@ -1,6 +1,0 @@
-module.exports = function(rt) {
-  const a2 = rt.module('moduletest2')(rt);
-  a2.doIt();
-  console.log('What is up?!');
-  return 'WHAT IS UP!';
-};
