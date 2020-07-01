@@ -1,6 +1,6 @@
 {
   "name": "jscause",
-  "version": "0.9.0",
+  "version": "0.9.0-pre-alpha",
   "description": "JSCause is a very easy to use NodeJS framework to create simple web sites.",
   "main": "jscause.js",
   "scripts": {
