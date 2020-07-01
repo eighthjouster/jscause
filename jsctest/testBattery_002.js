@@ -20,7 +20,7 @@ const test_002_001_emptyLogsDirectory = Object.assign(testUtils.makeFromBaseTest
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Missing name.' ],
+      [ 'error', 'Site configuration: Missing site name.' ],
       [ 'error', 'Site (no name) not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
@@ -71,7 +71,7 @@ const test_002_003_emptySiteConfig = Object.assign(testUtils.makeFromBaseTest('E
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Missing name.' ],
+      [ 'error', 'Site configuration: Missing site name.' ],
       [ 'error', 'Site (no name) not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],
@@ -102,7 +102,7 @@ const test_002_004_emptySiteName = Object.assign(testUtils.makeFromBaseTest('Sit
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Missing name.' ],
+      [ 'error', 'Site configuration: Missing site name.' ],
       [ 'error', 'Site (no name) not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

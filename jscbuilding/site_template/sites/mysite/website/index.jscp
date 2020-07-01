@@ -1,0 +1,27 @@
+<js
+  // These two functions are defined server-side.
+  function getRandomNumber() { return Math.floor(Math.random() * 256); }
+  function getRandomCssRgb() { return `rgb(${[ getRandomNumber(), getRandomNumber(), getRandomNumber() ].join(',')})`; }
+/js>
+
+<html>
+  <head>
+    <link rel="icon" href="favicon.ico">
+    <title>Does it work?</title>
+    <style>
+      body { background: #225; color: #eee; }
+      .main { display: inline-flex; border: 1px solid white; }
+      .blockie { width: 1em; height: 1em; }
+    </style>
+  </head>
+  <body>
+    <h1>It works!</h1>
+
+    <div class="main">
+      <js for (let i=0; i<20; i++) { /js>
+        <div class="blockie" style="background: <js rt.print(getRandomCssRgb()); /js>;" ></div>
+      <js } /js>
+    </div>
+
+  </body>
+</html>
