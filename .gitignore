@@ -1,7 +1,6 @@
 .DS_Store
 npm-debug.log
 node_modules/
-package-lock.json
 jsctest/testrootdir/*
 !jsctest/testrootdir/readme.txt
 logs/*
