@@ -136,13 +136,36 @@ function runBuild() {
         console.log();
         console.log('SUCCESS: dist/jscause_standalone.zip created.');
         console.log();
+        runSiteBuild();
       })
       .on('error', function(err) {
         console.error(err);
-        console.error('ERROR: Could not create zip file.  Make sure you have all the required permissions to write to dist/, and that any previous zip files in it are deletable/overwritable.');
+        console.error('ERROR: Could not create standalone zip file.  Make sure you have all the required permissions to write to dist/, and that any previous zip files in it are deletable/overwritable.');
       });
   }
   else {
-    console.error('ERROR: Could not create zip file.');
+    console.error('ERROR: Could not create standalone zip file.');
+  }
+}
+
+function runSiteBuild() {
+  const zip = new JSZip();
+
+  if (readDirectoryContents(fsPath.join('jscbuilding', 'site_template'), zip, onTemplateFileRead, onReadJSCTemplatesError)) {
+    zip
+      .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+      .pipe(fs.createWriteStream(fsPath.join('dist', 'jscause_site_template.zip')))
+      .on('finish', function() {
+        console.log();
+        console.log('SUCCESS: dist/jscause_site_template.zip created.');
+        console.log();
+      })
+      .on('error', function(err) {
+        console.error(err);
+        console.error('ERROR: Could not create site template zip file.  Make sure you have all the required permissions to write to dist/, and that any previous zip files in it are deletable/overwritable.');
+      });
+  }
+  else {
+    console.error('ERROR: Could not create site zip file.');
   }
 }
