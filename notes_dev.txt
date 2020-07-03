@@ -2,6 +2,8 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Logging should include time stamps.
+
 Add to testing: that vendor_require can deal with existing npm-installed modules.
 
 validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
