@@ -7,6 +7,6 @@ notes_dev.txt
 notes_specs.txt
 notes_testing.txt
 .eslintrc.json
-jscbuildvendor/
+jscbuilding/
 build_standalone_zip.js
 dist/

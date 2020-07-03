@@ -1,0 +1,16 @@
+{
+  "hostName": "localhost",
+  "canUpload": true,
+  "maxPayloadSizeBytes": 0,
+  "jscpExtensionRequired": "optional",
+  "httpPoweredByHeader": "include",
+  "httpsCertFile": "jscause-cert.pem",
+  "httpsKeyFile": "jscause-key.pem",
+  "tempWorkDirectory": "./workbench",
+  "mimeTypes": {},
+  "logging": {
+    "directoryName": "./localLogs",
+    "consoleOutput": "enabled",
+    "fileOutput": "enabled"
+  }
+}
