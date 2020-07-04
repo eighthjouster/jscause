@@ -1,12 +1,9 @@
----
-id: docs
-layout: default
-title: Documentation
----
-
 ## Table of Contents
 
 -  [What is JSCause?](#what-is-jscause)
+-  [Installation](#installation)
+    - [Installing standalone JSCause](#installing-standalone-jscause)
+    - [Installing JSCause via npm](#installing-jscause-via-npm)
 -  [Structure of a JSCause site](#structure-of-a-jscause-site)
     - [The interesting stuff](#the-interesting-stuff)
     - [The important to know stuff](#the-important-to-know-stuff)
@@ -115,6 +112,29 @@ In JSCause, it would be `index.jscp`:
 ```
 
 The `jscp` extension stands for "[J]ava[S]cript [C]ompiled [P]age."
+
+
+## Installation
+
+JSCause requires [NodeJS](https://nodejs.org).  Please make sure you have it installed in your system.  Any version above 8.x should be fine.
+
+There are two types of installation: standalone JSCause, and installation via npm.
+
+### Installing standalone JSCause
+
+Get the standalone JSCause zip file and uncompress it anywhere in your system.  That's it!
+
+### Installing JSCause via npm
+
+Open a terminal window and run the following command:
+
+```
+sudo npm install -g jscause
+```
+
+That's it!
+
+For more advanced users:  If you ever add JSCause as a package dependency to your project, JSCause will be available from `./node_modules/.bin/jscause`.
 
 
 ## Structure of a JSCause site
