@@ -7,3 +7,5 @@ logs/*
 !logs/.gitkeep
 sites/mysite/localLogs/*
 !sites/mysite/localLogs/.gitkeep
+dist/
+!dist/.gitkeep

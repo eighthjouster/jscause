@@ -1,5 +1,6 @@
 ## Table of Contents
 
+-  [What is new in JSCause?](#what-is-new-in-jscause)
 -  [What is JSCause?](#what-is-jscause)
 -  [Installation](#installation)
     - [Installing standalone JSCause](#installing-standalone-jscause)
@@ -82,6 +83,12 @@
 -  [Testing JSCause's integrity](#testing-jscauses-integrity)
 -  [More resources](#more-resources)
 -  [Credits](#credits)
+-  [License](#license)
+
+
+## What is new in JSCause?
+
+Please refer to the project's CHANGELOG.md file for project updates.  Check out the ROADMAP.md file to learn more about planned future features and additions.
 
 
 ## What is JSCause?
@@ -122,7 +129,7 @@ There are two types of installation: standalone JSCause, and installation via np
 
 ### Installing standalone JSCause
 
-Get the standalone JSCause zip file and uncompress it anywhere in your system.  That's it!
+Download the [standalone JSCause zip](https://github.com/eighthjouster/jscause/releases/download/v0.9.2/jscause_standalone-0.9.2.zip) file and uncompress it anywhere in your system.
 
 ### Installing JSCause via npm
 
@@ -132,9 +139,9 @@ Open a terminal window and run the following command:
 sudo npm install -g jscause
 ```
 
-That's it!
+If you need a project template for your site, you can use the one [available in the release](https://github.com/eighthjouster/jscause/releases/download/v0.9.2/jscause_site_template-v1.zip).
 
-For more advanced users:  If you ever add JSCause as a package dependency to your project, JSCause will be available from `./node_modules/.bin/jscause`.
+**For more advanced users:**  If you ever add JSCause as a package dependency to your project (i.e. `npm install --save jscause`), JSCause will be available from `./node_modules/.bin/jscause`.
 
 
 ## Structure of a JSCause site
@@ -665,7 +672,7 @@ To learn more about what type of data JSCause logs for websites, please check ou
 
 ## Starting up JSCause
 
-Once you have configured JSCause and your website, you can run it by changing to the JSCause directoru and issuing the following command:
+Once you have configured JSCause and your website, you can run it by changing to the JSCause directory and issuing the following command:
 
 ```
 node jscause
@@ -2859,3 +2866,14 @@ Please visit our [Github repository](https://github.com/eighthjouster/jscause).
 
 JSCause uses and wants to give thanks to: [Node Formidable](https://github.com/felixge/node-formidable), [sanitize-filename](https://github.com/parshap/node-sanitize-filename) and 
 the [Cookies NodeJS module](https://github.com/pillarjs/cookies).
+
+
+## License
+
+Copyright 2020 - Rafael A. Pacheco Palencia (@eighthjouster)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
