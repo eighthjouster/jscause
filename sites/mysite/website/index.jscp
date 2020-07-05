@@ -9,7 +9,8 @@
     <p>Here is a random number: <js= Math.random() /js></p>
     <ul>
       <li>Link to another <a href="/exampleFolder/examplePage.jscp">example page within the application.</a></li>
-      <li>Link to a non-existing page: <a href="/does_not_exist">Go here to try the 404 page.</a>.</li>
+      <li>Link to a <a href="/exampleText.txt">text-only document within the application.</a></li>
+      <li>Link to a non-existing page: <a href="/does_not_exist">Go here to try the 404 page</a>.</li>
     </ul>
   </body>
 </html>
