@@ -1,8 +1,1 @@
-<h1>Hello, <js= 
-
-
-
-
-
-
-'world1' + `world ${3}`);rt.print(/js>
+<h1>Hello, world <js='4');rt.print('23'/js></h1>

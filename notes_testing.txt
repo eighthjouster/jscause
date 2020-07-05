@@ -3,6 +3,9 @@ Pending:
 
 (Order by priority)
 
+Test the <js=/js> feature.
+ - Test the <js='1');rt.print(/js> quirk as well?
+
 When you do localhost:3000, make sure no connection setTimeout (requestTickTockId) happens.
 
 Do we ever use doRemoveDirectoryFromPathList()?

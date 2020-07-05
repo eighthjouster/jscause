@@ -28,6 +28,7 @@
     - [JSCP with Javascript only](#jscp-with-javascript-only)
     - [JSCP with HTML only](#jscp-with-html-only)
     - [JSCP with both HTML and Javascript](#jscp-with-both-html-and-javascript)
+    - [The rt.print shortcut: <js= /js>](#the-rtprint-shortcut-js-js)
     - [The rt runtime object](#the-rt-runtime-object)
     - [JSCause modules: JSCM files](#jscause-modules-jscm-files)
     - [rt in modules](#rt-in-modules)
@@ -864,7 +865,7 @@ When a browser access this file (e.g. `index.jscp`), it will display `Hello, Jav
 
 ### JSCP with HTML only
 
-To let JSCP know that the whole file is HTML, start it with `<html />`:
+To let JSCP know that the whole file contents is HTML, start it with `<html />`:
 
 ```
 <html />
@@ -875,6 +876,10 @@ To let JSCP know that the whole file is HTML, start it with `<html />`:
 ```
 
 When a browser access this file (e.g. `index.jscp`), it will display `Hello, HTML` back to the user.
+
+Of course, at this point you could just use a regular `.html` file.  JSCause will happily render it whole, and more efficiently.
+
+Technically, you can still embed Javascript code in a file starting with `<html />`.  It's just that, if it's all HTML only, `<html />` is needed, otherwise JSCause will complain.
 
 Note: You can replace `<html />` with `<js/js>` and achieve the same thing above.
 
@@ -920,6 +925,60 @@ Alternatively:
 <p>John's age is: <js rt.print(randomAge); /js></p>
 <p><js rt.print(message); /js></p>
 ```
+
+### The implicit rt.print shortcut: <js= /js>
+
+A single Javascript `<js rt.print(value); /js>` call embedded within HTML can be replaced with the shorter `<js= value /js>` version.
+
+So, in the examples in the previous section, the following lines:
+
+```
+<p>PI is: <js rt.print(Math.PI); /js>
+
+<p>John's age is: <js rt.print(randomAge); /js></p>
+
+<p><js rt.print(message); /js></p>
+```
+
+Could be rewritten as:
+
+```
+<p>PI is: <js= Math.PI /js>
+
+<p>John's age is: <js= randomAge /js></p>
+
+<p><js= message /js></p>
+```
+
+#### Quirk warning
+
+JSCause does a simple replacement when dealing `<js= /js>`.  So, again:
+
+The following statement:
+
+```
+<h1><js= title /js>
+```
+
+is interpreted as:
+
+```
+<h1><js rt.print(title) /js>
+```
+
+That means that one could cleverly add `);` to the value and run more code:
+
+```
+<js='1');rt.print('23'/js>
+```
+
+Will print `123` because it's interpreted as:
+
+```
+<js rt.print('1');rt.print('23') /js>
+```
+
+Please notice that this quirk may be fixed in a future version of JSCause, so you're advised not to use it.
 
 ### The rt runtime object
 

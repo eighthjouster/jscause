@@ -2,13 +2,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Document <js=/js>
-- Document its quirks ['1');rt.print(]
- - Should we eliminate this quirk? Should we warn of a future addressing of this?
-
-Document that we need to test the <js=/js> feature.
-
 Logging should include time stamps.
+
+<js=/js> quirk: (known issue)
+<js='1');rt.print(/js> will work.
+ - Should we eliminate this quirk?
 
 Add to testing: that vendor_require can deal with existing npm-installed modules.
 
