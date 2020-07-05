@@ -130,7 +130,7 @@ There are two types of installation: standalone JSCause, and installation via np
 
 ### Installing standalone JSCause
 
-Download the [standalone JSCause zip](https://github.com/eighthjouster/jscause/releases/download/v0.9.2/jscause_standalone-0.9.2.zip) file and uncompress it anywhere in your system.
+Download the [standalone JSCause zip](https://github.com/eighthjouster/jscause/releases/download/v0.9.3-alpha/jscause_standalone-0.9.3.zip) file and uncompress it anywhere in your system.
 
 ### Installing JSCause via npm
 
@@ -140,7 +140,9 @@ Open a terminal window and run the following command:
 sudo npm install -g jscause
 ```
 
-If you need a project template for your site, you can use the one [available in the release](https://github.com/eighthjouster/jscause/releases/download/v0.9.2/jscause_site_template-v1.zip).
+If you need a project template for your site, you can use the one [available in the release](https://github.com/eighthjouster/jscause/releases/download/v0.9.3-alpha/jscause_site_template-v1.zip).
+
+**Important note:**  The project template include example SSL certificates, so you can use HTTPS.  These certificates are **not** suitable for production!  If you use these certs, your users will get a security warning in their browsers.  You must provide your own certificates.
 
 **For more advanced users:**  If you ever add JSCause as a package dependency to your project (i.e. `npm install --save jscause`), JSCause will be available from `./node_modules/.bin/jscause`.
 
@@ -157,7 +159,7 @@ A typical JSCause installation will have the following file and directory struct
  ./sites/mysite/
  ./sites/mysite/configuration/site.json
  ./sites/mysite/configuration/certs/
- ./sites/mysite/logs/
+ ./sites/mysite/localLogs/
  ./sites/mysite/website/
  ```
 
@@ -171,7 +173,7 @@ A typical JSCause installation will have the following file and directory struct
 
 - `sites/mysite/configuration/certs`: If you site uses a secure connection (HTTPS), you will have to place your certificate files in this location.  More information in [the HTTPS/SSL configuration section](#httpsssl-configuration), as well as in [the site.json section](#sitejson-configuring-your-websites-details).
 
-- `sites/mysite/logs/`:  In this subdirectory, JSCause will log access and error entries pertaining to your website.
+- `sites/mysite/localLogs/`:  In this subdirectory, JSCause will log access and error entries pertaining to your website.
 
 ### The important to know stuff
 
@@ -2929,7 +2931,7 @@ the [Cookies NodeJS module](https://github.com/pillarjs/cookies).
 
 ## License
 
-Copyright 2020 - Rafael A. Pacheco Palencia (@eighthjouster)
+Copyright 2020 - Rafael A. Pacheco-Palencia (@eighthjouster)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

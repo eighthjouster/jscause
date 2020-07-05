@@ -1,6 +1,6 @@
 {
   "name": "jscause",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "JSCause is a very easy to use NodeJS framework to create simple web sites.",
   "main": "jscause.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "web",
     "server"
   ],
-  "author": "Rafael A Pacheco Palencia (@eighthjouster)",
+  "author": "Rafael A Pacheco-Palencia (@eighthjouster) - 8j@jscause.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eighthjouster/jscause/issues"

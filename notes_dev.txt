@@ -1,3 +1,8 @@
+This document details all the work pending to do on JSCause.
+
+Ideally, this document should not exist, and all its content should be transferred elsewhere, e.g. github tickets and Roadmap.md.
+
+=====
 Useful:
 git bundle create jscause-.bundle devel
 =====
