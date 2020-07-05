@@ -1,8 +1,8 @@
-function andThree() {
-  rt.print('And three!');
-}
+<h1>Hello, <js= 
 
-rt.print('One! ');
-setTimeout(rt.waitFor(andThree), 10);
-rt.print('Two! ');
-console.log('YESSSSS');//__RP
+
+
+
+
+
+'world1' + `world ${3}`);rt.print(/js>
