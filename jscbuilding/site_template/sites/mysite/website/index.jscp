@@ -1,7 +1,7 @@
 <js
-  // These two functions are defined server-side.
-  function getRandomNumber() { return Math.floor(Math.random() * 256); }
-  function getRandomCssRgb() { return `rgb(${[ getRandomNumber(), getRandomNumber(), getRandomNumber() ].join(',')})`; }
+  // This function is defined server-side.
+  function randomNumber() { return Math.floor(Math.random() * 256); }
+  function rgbValue() { return `${randomNumber()}, ${randomNumber()}, ${randomNumber()}`; }
 /js>
 
 <html>
@@ -10,18 +10,31 @@
     <title>Does it work?</title>
     <style>
       body { background: #225; color: #eee; }
-      .main { display: inline-flex; border: 1px solid white; }
-      .blockie { width: 1em; height: 1em; }
+      .main { display: inline-flex; background: black; }
+      .blockie { width: 1em; height: 0.5em; margin: 2px; }
+      .blockie-1 { animation: colors1 10s infinite; }
+      .blockie-2 { animation: colors2 7s infinite; }
+      /* rgbValue() is called server-side. */
+      @keyframes colors1 {
+        0% { background: rgb(<js= rgbValue() /js>); }
+        50% { background: rgb(<js= rgbValue() /js>); }
+        100% { background: rgb(<js= rgbValue() /js>); }
+      }
+      @keyframes colors2 {
+        0% { background: rgb(<js= rgbValue() /js>); }
+        50% { background: rgb(<js= rgbValue() /js>); }
+        100% { background: rgb(<js= rgbValue() /js>); }
+      }
     </style>
   </head>
   <body>
     <h1>It works!</h1>
 
     <div class="main">
-      <js for (let i=0; i<20; i++) { /js>
-        <div class="blockie" style="background: <js rt.print(getRandomCssRgb()); /js>;" ></div>
+      <js for (let i=0; i<10; i++) { /js>
+        <div class="blockie blockie-1"></div>
+        <div class="blockie blockie-2"></div>
       <js } /js>
     </div>
-
   </body>
 </html>
