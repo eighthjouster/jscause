@@ -289,7 +289,7 @@ const test_006_007_configFileTwoSitesSamePortAndHostname = Object.assign(testUti
     expectedLogMessages:
     [
       [ 'error', 'Site configuration: Both sites \'My Site\' and \'My Site 2\' have the same host name and port combination - \'jscausesite1\', 3000' ],
-      [ 'error', 'Site configuration: \'My Site 2\', 3000 is already in use' ],
+      [ 'error', 'Site configuration: \'My Site 2\': 3000 is already in use' ],
       [ 'info' , 'Server 0 listening on port 3000' ],
     ],
     onServerStartedOrError()
