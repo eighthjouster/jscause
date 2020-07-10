@@ -7,6 +7,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Make sure that '/js>' doesn't insert a line break at the end.
+
+What does this do? Why is this in the code? What feature is this? Is it documented?  Document it or add a comment to it.
+.replace(/^\s*|\n\s*/g, '\n')
+
+Can JSCause send JSON or other raw content?
+How can JSCause share the same code (e.g. function definitions) between server and client?
+A tag that indicates "The rest of the line is Javascript"?
+
 Logging should include time stamps.
 
 <js=/js> quirk: (known issue)

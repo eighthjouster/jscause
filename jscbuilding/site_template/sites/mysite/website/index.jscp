@@ -4,6 +4,7 @@
   function rgbValue() { return `${randomNumber()}, ${randomNumber()}, ${randomNumber()}`; }
 /js>
 
+<!doctype html>
 <html>
   <head>
     <link rel="icon" href="favicon.ico">
@@ -32,7 +33,7 @@
 
     <div class="main">
       <js for (let i=0; i<10; i++) { /js>
-        <div class="blockie blockie-1"></div>
+        <div class="blockie blockie-1"></div> <!-- i is <js= i /js> -->
         <div class="blockie blockie-2"></div>
       <js } /js>
     </div>
