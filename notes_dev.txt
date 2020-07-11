@@ -7,10 +7,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Make sure that '/js>' doesn't insert a line break at the end.
+A way to include partials during complilation time.
+<jsinclude "some/relative/path.jscp|path.html" />
+ - Careful with circular references!
 
-What does this do? Why is this in the code? What feature is this? Is it documented?  Document it or add a comment to it.
-.replace(/^\s*|\n\s*/g, '\n')
+Better error message when the page is suspected to be HTML only (remember that we need to add <html />).
 
 Can JSCause send JSON or other raw content?
 How can JSCause share the same code (e.g. function definitions) between server and client?
@@ -267,6 +268,7 @@ Put in docs that a favicon.ico should be provided in the website root.
 
 Watch for and reload changes at this point (hot reloading.)
  - And only the site it's affected, leaving the rest intact. - If possible.
+ - And if there is a compile-time error, don't bring the whole application down.  This may be tricky.
 
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.

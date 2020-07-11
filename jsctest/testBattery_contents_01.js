@@ -169,8 +169,7 @@ const test_contents_005_jscp_index_rt_print_pt2 = Object.assign(makeFromBaseTest
         const outputLines = dataReceived.length  && Buffer.concat(dataReceived).toString().split('\n') || [];
         this.testPassed = areFlatArraysEqual(outputLines,
           [
-            ' ',
-            ' p ',
+            'p ',
             ' '
           ]);
       });
@@ -314,8 +313,7 @@ const test_contents_008_jscp_index_html_indicator = Object.assign(makeFromBaseTe
         this.testPassed = (
           areFlatArraysEqual(outputLines,
             [
-              ' ',
-              ' Hello ',
+              'Hello ',
               ' '
             ].map(sanitizeForHTMLOutput))
         );
@@ -386,8 +384,7 @@ const test_contents_010_jscp_index_html_indicator_pt3 = Object.assign(makeFromBa
             ]) &&
           areFlatArraysEqual(outputLines,
             [
-              ' ',
-              ' Hello ',
+              'Hello ',
               ' '
             ].map(sanitizeForHTMLOutput))
         );

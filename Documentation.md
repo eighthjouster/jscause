@@ -701,7 +701,7 @@ If you get a warning or an error, refer to the [troubleshooting section](#faq-an
 
 ## Stopping JSCause
 
-You can stop JSCause simply by issuing Ctrl+C in the terminal:
+You can stop JSCause simply by issuing Control+C in the terminal:
 
 ```
 ^C
@@ -721,13 +721,13 @@ Terminated.
 
 When JSCause is instructed to terminate, it will close the log files. If there are any log files being compressed at that very moment, it will wait until the operation completes.  Any pending log files compression will be ignored after that (but resumed once JSCause is started again.)
 
-If JSCause receives a second Ctrl+C keyboard combination during termination and cleanup, it will display the following message:
+If JSCause receives a second Control+C keyboard combination during termination and cleanup, it will display the following message:
 
 ```
 Still cleaning on exit.  Try again to exit right away...
 ```
 
-At that point, if you press Ctrl+C again (a third time), JSCause will terminate immediately, interrupting any cleanup operation.  Avoid getting to this point as much as possible, since compressed log files being created at that point may be rendered unusable.
+At that point, if you press Control+C again (a third time), JSCause will terminate immediately, interrupting any cleanup operation.  Avoid getting to this point as much as possible, since compressed log files being created at that point may be rendered unusable.
 
 
 ## The website/ directory: All your website's content

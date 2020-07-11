@@ -3166,7 +3166,7 @@ function compileSource(sourceData, jscLogConfig)
             .replace(/\\/g,'\\\\')
             .replace(/'/g,'\\\'')
             .replace(/[^\S\n]{2,}/g, ' ')
-            .replace(/^\s*|\n\s*/g, '\n')
+            .replace(/^\s+|\n\s+/g, '\n')
             .split(/\n/)
             .join(' \\n \\\n') :
           '';
