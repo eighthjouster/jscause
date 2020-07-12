@@ -7,9 +7,19 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
+ - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
+  - And tests!!!
+ - Then, update the documentation and the tutorial to point this out.
+ - I'VE DELETED THE RELEASE FOR NOW.
+
+If JSCause moves/copies/deletes a file that is inside of ./website, it should make it immediately available.
+
 A way to include partials during complilation time.
 <jsinclude "some/relative/path.jscp|path.html" />
  - Careful with circular references!
+
+Shortcut for require('path').join()?
 
 Better error message when the page is suspected to be HTML only (remember that we need to add <html />).
 
