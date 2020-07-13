@@ -13,6 +13,12 @@ CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in ei
  - Then, update the documentation and the tutorial to point this out.
  - I'VE DELETED THE RELEASE FOR NOW.
 
+We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version.
+
+Did we document JSCause's behavior when .rtOnSuccess or .rtOnError have an empty parameter? Not even an empty callback, but an empty parameter.  If not, then document.
+
+Should we give users the ability to output to the logs? I don't think console.error() can do that from a JSCP file.
+
 If JSCause moves/copies/deletes a file that is inside of ./website, it should make it immediately available.
 
 A way to include partials during complilation time.
@@ -20,6 +26,8 @@ A way to include partials during complilation time.
  - Careful with circular references!
 
 Shortcut for require('path').join()?
+
+Why do errors thrown by rt.moveFile() (and I'm assuming other similar ones) report a line (unknown) instead of the actual line number?
 
 Better error message when the page is suspected to be HTML only (remember that we need to add <html />).
 
