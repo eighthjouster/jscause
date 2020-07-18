@@ -7,11 +7,61 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Wait, if I don't provide rt.onError(), will rt.readFile() wait forever? - It seems like it happens in specific circumstances.  Experiment with "index_wut.jscp"
+ - Is this even documented? I thought it just went its merry way.
+This triggers it (not sure if relevant, but .DS_Store files are present in the readdir'd directory.):
+      fs.readdir(fsPath.join('sites', 'mysite', 'website', 'recipeImages'), rt.waitFor((err, files) => {
+        files.forEach((fileName) => {
+          const fileNameWithNoExtension = fileName.replace(/(.+)\..*$/, '$1');
+          console.log('fileName??');//__RP
+          console.log(`${fileNameWithNoExtension}.txt`);//__RP
+          rt.readFile(fsPath.join('recipes', `${fileNameWithNoExtension}.txt`))
+            .rtOnSuccess((contents) => {
+              console.log(fileName);//__RP
+              console.log(contents.toString());//__RP
+            })
+            .rtOnError((err) => { 
+              console.log('Ah, error.');//__RP
+              console.log(fileName);//__RP
+        });
+      }));
+May want to add it in the troubleshooting section (JSCause hangs in the request, never responding:  are you missing rtOnError() somewhere? Make sure you include it.  This will be fixed in a later version.)
+
+Huh, this one too (notice the deliberate error inside rtOnError):
+      fs.readdir(fsPath.join('sites', 'mysite', 'website', 'recipeImages'), rt.waitFor((err, files) => {
+        files.forEach((fileName) => {
+          const fileNameWithNoExtension = fileName.replace(/(.+)\..*$/, '$1');
+          console.log('fileName??');//__RP
+          console.log(`${fileNameWithNoExtension}.txt`);//__RP
+          rt.readFile(fsPath.join('recipes', `${fileNameWithNoExtension}.txt`))
+            .rtOnSuccess((contents) => {
+              /js><li><js= contents.toString().split(/\n/)[0] /js></li><js
+            })
+            .rtOnError((err) => { 
+              /js><li><js= [][0]() /js></li><js
+            });
+        });
+      }));
+
+Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
+  - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
+
+Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashes!
+ - We should let the user know when this happens.
+   - And for now, we should document this.  Another point as to always use rt.waitFor().
+
+A start.jscp file? JSCause runs it at startup.  Outside of website/.
+ - An end.jscp file? To clean up.  Outside of website/.
+   - And test.
+
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
   - And tests!!!
  - Then, update the documentation and the tutorial to point this out.
  - I'VE DELETED THE RELEASE FOR NOW.
+
+Semi-critical:  Do callbacks without rt.waitFor() create memory leaks? Will those callback live forever? What about the rt.waitFor() callbacks?
+ - If they do live forever, how to discard them?!
 
 We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version.
 
