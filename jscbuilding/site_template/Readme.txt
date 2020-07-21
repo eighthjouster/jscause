@@ -33,7 +33,7 @@ For more information, visit:  https://www.jscause.org
 *********************************************************************
 
 This template is supported by JSCause versions:
- - v0.9.3
+ - v0.9.3, v0.9.4
 
 *********************************************************************
 

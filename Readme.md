@@ -1,6 +1,6 @@
 # JSCause
 
-Current version: **0.9.3**.  Current version of the website template: **v1**.
+Current version: **0.9.4**.  Current version of the website template: **v1**.
 
 (Excerpt from the documentation:)
 

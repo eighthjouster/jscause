@@ -130,7 +130,7 @@ There are two types of installation: standalone JSCause, and installation via np
 
 ### Installing standalone JSCause
 
-Download the [standalone JSCause zip](https://github.com/eighthjouster/jscause/releases/download/v0.9.3-alpha/jscause_standalone-0.9.3.zip) file and uncompress it anywhere in your system.
+Download the [standalone JSCause zip](https://github.com/eighthjouster/jscause/releases/download/v0.9.4-alpha/jscause_standalone-0.9.4.zip) file and uncompress it anywhere in your system.
 
 ### Installing JSCause via npm
 
@@ -140,7 +140,7 @@ Open a terminal window and run the following command:
 sudo npm install -g jscause
 ```
 
-If you need a project template for your site, you can use the one [available in the release](https://github.com/eighthjouster/jscause/releases/download/v0.9.3-alpha/jscause_site_template-v1.zip).
+If you need a project template for your site, you can use the one [available in the release](https://github.com/eighthjouster/jscause/releases/download/v0.9.4-alpha/jscause_site_template-v1.zip).
 
 **Important note:**  The project template include example SSL certificates, so you can use HTTPS.  These certificates are **not** suitable for production!  If you use these certs, your users will get a security warning in their browsers.  You must provide your own certificates.
 

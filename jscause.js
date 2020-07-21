@@ -7,7 +7,7 @@
    * Setup
    *
    ************************************** */
-const JSCAUSE_APPLICATION_VERSION = '0.9.3';
+const JSCAUSE_APPLICATION_VERSION = '0.9.4';
 
 const http = require('http');
 const https = require('https');

@@ -5,7 +5,7 @@ This document contains all the bits that need to be added to the official docume
 Ideally, this document should not exist, and all its contents transferred to github issues.
 
 ====
-Where to update the version (e.g. v0.9.3) before releasing:
+Where to update the version (e.g. v0.9.4) before releasing:
  - Git tags
  - Dist zip files (the folder name may have a suffix, such as -alpha or -beta, or none at all!)
  - Documentation

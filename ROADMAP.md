@@ -1,6 +1,6 @@
 # Roadmap
 
-## v0.9.3:
+## v0.9.4:
  - Coming soon.
 
 ## v1.0.0:
