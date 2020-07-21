@@ -74,7 +74,8 @@
 -  [FAQ and Troubleshooting JSCause](#faq-and-troubleshooting-jscause)
     - [Why doesn't JSCause complain when a certificate or key file is invalid?](#why-doesnt-jscause-complain-when-a-certificate-or-key-file-is-invalid)
     - [`site.json` accepts a hostName that could already be used in another site's json.  Is this a bug?](#sitejson-accepts-a-hostname-that-could-already-be-used-in-another-sites-sitejson--is-this-a-bug)
-    - [JSCause says a file does not exist, but I can see it in the file system](#jscause-says-a-file-does-not-exist-but-i-can-see-it-in-the-file-system)
+    - [JSCause says a file does not exist, but I can see it in the file system.  Why?](#jscause-says-a-file-does-not-exist-but-i-can-see-it-in-the-file-system--why)
+    - [My question is not answered here.](#my-question-is-not-answered-here)
 -  [List of common errors and warnings reported by JSCause](#list-of-common-errors-and-warnings-reported-by-jscause)
     - [Configuration](#configuration)
     - [Related to sites, content and run-time](#related-to-sites-content-and-run-time)
@@ -2354,9 +2355,15 @@ If the site is indeed HTTPS, then another reason could be that it's sharing the 
 
 This is fine as long as both sites use different ports.
 
-### JSCause says a file does not exist, but I can see it in the file system
+### JSCause says a file does not exist, but I can see it in the file system.  Why?
 
-It may be a broken symlink that doesn't point to a valid file anymore.
+It may be a broken symlink that doesn't point to a valid file anymore.  Also, check the spelling and the case-sensitivity.  For example, if your file is named `newPage.jscp`, make sure you're typing it as is in the web client; `NEWPAGE.JSCP`, `newpage.jscp`, `NewPage.jscp`, etc, won't work.
+
+Also, for now, whenever you add a new file, or rename/move it, restart JSCause so it picks it up.  And make sure that it's stored inside the `website` directory.
+
+### My question is not answered here.
+
+Check out more [Frequently Asked Questions](https://jscause.org/faq.html) in our dedicated page.
 
 
 ## List of common errors and warnings reported by JSCause
