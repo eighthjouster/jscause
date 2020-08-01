@@ -1,5 +1,5 @@
 {
-  "hostName": "jscausesite1",
+  "hostName": "localhost",
   "canUpload": true,
   "maxPayloadSizeBytes": 0,
   "jscpExtensionRequired": "optional",
