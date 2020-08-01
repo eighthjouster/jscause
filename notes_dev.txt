@@ -7,6 +7,10 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Why aren't error 404/505 showing the default browser error when no error4xx/error5xx files are available? For instance, shouldn't Firefox show a dinosaur?  It shows a blank page instead.  And Chrome doesn't even report a status error on the network tab entry (but does report it when we click the actual entry and examine its contents.)
+
+Perhaps the JSCause issues are related with me throwing() instead of rejecting()?
+
 Wait, if I don't provide rt.onError(), will rt.readFile() wait forever? - It seems like it happens in specific circumstances.  Experiment with "index_wut.jscp"
  - Is this even documented? I thought it just went its merry way.
 This triggers it (not sure if relevant, but .DS_Store files are present in the readdir'd directory.):
@@ -43,22 +47,31 @@ Huh, this one too (notice the deliberate error inside rtOnError):
         });
       }));
 
-Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
-  - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
-
-Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashes!
- - We should let the user know when this happens.
-   - And for now, we should document this.  Another point as to always use rt.waitFor().
-
-A start.jscp file? JSCause runs it at startup.  Outside of website/.
- - An end.jscp file? To clean up.  Outside of website/.
-   - And test.
-
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
   - And tests!!!
  - Then, update the documentation and the tutorial to point this out.
  - I'VE DELETED THE RELEASE FOR NOW.
+
+Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashes!
+ - We should let the user know when this happens.
+   - And for now, we should document this.  Another point as to always use rt.waitFor().
+
+New certificate. Let it expire in two years, if possible.
+
+Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
+
+Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
+  - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
+
+A start.jscp file? JSCause runs it at startup.  Outside of website/.
+ - An end.jscp file? To clean up.  Outside of website/.
+   - And test.
+
+Before announcing:
+ - Generate new self-signed certificates.
+ - Finish the website.
+  - It needs a Contribute section. - Maybe?
 
 Semi-critical:  Do callbacks without rt.waitFor() create memory leaks? Will those callback live forever? What about the rt.waitFor() callbacks?
  - If they do live forever, how to discard them?!
@@ -365,10 +378,6 @@ Syntax highlighters for Atom, VS Code, Vim, Sublime, Notepad++, TextWrangler.
 Make two versions:  Standalone and NPM-installable.
 
 Does this work on Windows?
-
-Remove these from /etc/hosts:
-127.0.0.1       jscausesite1
-127.0.0.1       jscausesite2
 
 Version 0.7.1b here!
  - Upload to https://github.com/eighthjouster/jscause
