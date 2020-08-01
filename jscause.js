@@ -2241,6 +2241,9 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       {
         printInit(resContext);
         runAfterInit(resContext);
+
+        assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
+
         try
         {
           compiledCode.call({}, runTime);
@@ -2249,8 +2252,6 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
         {
           resContext.runtimeException = e;
         }
-
-        assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
 
         finishUpHeaders(resContext);
       }
