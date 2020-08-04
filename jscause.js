@@ -1819,6 +1819,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   return Object.freeze({
     getCurrentPath() { return currentPath; },
     unsafePrint(output = '') { rtContext.outputQueue.push(output); return undefined; },
+    printJSON(output = {}) { this.header('Content-Type', 'application/json'); rtContext.outputQueue = [JSON.stringify(output)]; return undefined; },
     print(output = '') { rtContext.outputQueue.push(sanitizeForHTMLOutput(output)); return undefined; },
     header(nameOrObject, value)
     {
@@ -3193,7 +3194,7 @@ function compileSource(sourceData, jscLogConfig)
 
         if (processBefore.substr(0, 1) === '=')
         {
-          processedDataArray.push(`rt.print(${processBefore.substr(1)})`);
+          processedDataArray.push(`rt.print(${processBefore.substr(1)});`);
         }
         else
         {

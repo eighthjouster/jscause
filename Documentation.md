@@ -62,6 +62,7 @@
     - [rt.moveFile()](#rtmovefile)
     - [rt.postParams](#rtpostparams)
     - [rt.print()](#rtprint)
+    - [rt.printJSON()](#rtprintjson)
     - [rt.readFile()](#rtreadfile)
     - [rt.redirectTo()](#rtredirectto)
     - [rt.requestMethod](#rtrequestmethod)
@@ -91,6 +92,8 @@
 ## What is new in JSCause?
 
 Please refer to the project's CHANGELOG.md file for project updates.  Check out the ROADMAP.md file to learn more about planned future features and additions.
+
+You can also check the ROADMAP.md file to learn more about planned future features and additions.
 
 
 ## What is JSCause?
@@ -680,6 +683,12 @@ Once you have configured JSCause and your website, you can run it by changing to
 
 ```
 node jscause
+```
+
+Or if you installed JSCause via npm:
+
+```
+jscause
 ```
 
 JSCause will print out the following (may differ depending on your configuration):
@@ -1993,6 +2002,36 @@ List of escaped symbols:
 
 See also:
  - [rt.unsafePrint](#rtunsafeprint)
+ - [rt.printJSON](#rtprintjson)
+ 
+### rt.printJSON()
+
+_Type_: Method.
+
+_Syntax_: `rt.printJSON(value:JSON object)`
+
+_Returns_: Undefined.
+
+It sends a JSON object to the web client.  It will automatically set the `Content-Type` header entry to `application/json`, even if it was previously set to a different value.
+
+Example:
+
+```
+rt.printJSON({
+  randomNumber: `${Math.random()}`
+});
+```
+
+A couple of things to take into account:
+
+- If you invoke `rt.printJSON()` multiple times in your program, only the value of the last one will be sent to the web client (that is, the previous ones will be discarded.)  This is by design.  Otherwise, the resulting chain of JSON objects would not be valid JSON.
+
+- Unless you now exactly what you're doing, make sure that your program does not modify `Content-Type` after invoking `rt.printJSON()`, especially if it modifies to something other than `application/json`. Otherwise, the resulting output response may be invalid and the web client might parse it incorrectly.
+
+See also:
+ - [rt.header](#rtheader)
+ - [rt.print](#rtprint)
+ - [rt.unsafePrint](#rtunsafeprint)
  
 ### rt.readFile()
 
@@ -2217,6 +2256,7 @@ Be sure to know all the risks, and that you know what you are doing when using t
 
 See also:
  - [rt.print](#rtprint)
+ - [rt.printJSON](#rtprintjson)
  
 ### rt.uploadedFiles
 

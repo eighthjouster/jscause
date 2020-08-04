@@ -7,8 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Why aren't error 404/505 showing the default browser error when no error4xx/error5xx files are available? For instance, shouldn't Firefox show a dinosaur?  It shows a blank page instead.  And Chrome doesn't even report a status error on the network tab entry (but does report it when we click the actual entry and examine its contents.)
-
 Perhaps the JSCause issues are related with me throwing() instead of rejecting()?
 
 Wait, if I don't provide rt.onError(), will rt.readFile() wait forever? - It seems like it happens in specific circumstances.  Experiment with "index_wut.jscp"
@@ -57,24 +55,28 @@ Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashe
  - We should let the user know when this happens.
    - And for now, we should document this.  Another point as to always use rt.waitFor().
 
+Logging should include time stamps.
+
+You will need to update some tests, as some site config-related error messages were modified to include the site name.
+
 New certificate. Let it expire in two years, if possible.
 
 Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
 
-Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
-  - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
-
-A start.jscp file? JSCause runs it at startup.  Outside of website/.
- - An end.jscp file? To clean up.  Outside of website/.
-   - And test.
+Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
 
 Before announcing:
  - Generate new self-signed certificates.
  - Finish the website.
   - It needs a Contribute section. - Maybe?
 
-Semi-critical:  Do callbacks without rt.waitFor() create memory leaks? Will those callback live forever? What about the rt.waitFor() callbacks?
- - If they do live forever, how to discard them?!
+AT THIS POINT, RELEASE THE ALPHA.
+
+Convert everything below this point into github issues (but document them elsewhere as local text files.  Don't rely on github too much.)
+ - Then, fill out ROADMAP.md with the issues/feature requests.
+
+Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
+  - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
 
 We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version.
 
@@ -88,17 +90,23 @@ A way to include partials during complilation time.
 <jsinclude "some/relative/path.jscp|path.html" />
  - Careful with circular references!
 
+A start.jscp file? JSCause runs it at startup.  Outside of website/.
+ - An end.jscp file? To clean up.  Outside of website/.
+   - And test.
+
+Semi-critical:  Do callbacks without rt.waitFor() create memory leaks? Will those callback live forever? What about the rt.waitFor() callbacks?
+ - If they do live forever, how to discard them?!
+
+Why aren't error 404/500 showing the default browser error when no error4xx/error5xx files are available? For instance, shouldn't Firefox show a dinosaur?  It shows a blank page instead, or it just stays in the previous page.  And Chrome doesn't even report a status error on the network tab entry (but does report it when we click the actual entry and examine its contents.)
+
+How can JSCause share the same code (e.g. function definitions) between server and client?
+A tag that indicates "The rest of the line is Javascript"?
+
 Shortcut for require('path').join()?
 
 Why do errors thrown by rt.moveFile() (and I'm assuming other similar ones) report a line (unknown) instead of the actual line number?
 
 Better error message when the page is suspected to be HTML only (remember that we need to add <html />).
-
-Can JSCause send JSON or other raw content?
-How can JSCause share the same code (e.g. function definitions) between server and client?
-A tag that indicates "The rest of the line is Javascript"?
-
-Logging should include time stamps.
 
 <js=/js> quirk: (known issue)
 <js='1');rt.print(/js> will work.
@@ -109,10 +117,6 @@ Add to testing: that vendor_require can deal with existing npm-installed modules
 validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
 
 Tests validating that, just like <html/>,  <html /> (with a space) also works.
-
-You will need to update some tests, as some site config-related error messages were modified to include the site name.
-
-AT THIS POINT, RELEASE THE ALPHA.
 
 A jscp file with just this:
 }/js>
@@ -180,11 +184,6 @@ DeprecationWarning: Buffer() is deprecated due to security and usability issues.
 
 At this point, back up and....
 PUBLISH ANOTHER ALPHA!
-  - At this point, resume engine development.
-  - In the end, jscause_backup.conf can be either restored or deleted.
-  - Website:
-    - To-do: Troubleshooting section.
-    - To-do: Roadmap.
 
 ===
 
@@ -211,23 +210,14 @@ Can POST/PUT/DELETE requests refer to error4xx and error5xx files? What to do in
   - Allow it?!?!
 
 Sample site:
- - Ok, backtracking:
-   - And no nginx, no apache (but how to use Vesta, then?)
-   - Install Vesta in the new linode.
+   - And no nginx, no apache.
    - All ports closed except for ssh (random one?), 80 and 443.
    - Install node.
    - Install jscause, make it work (it should run.)
    - See if you can access it from outside via HTTP.
 
-- At this point, undo any jscsite work on rppalencia.
+- At this point, undo any jscsite work on rpp*****a.
    - And configure https.
-
-Time to convert those tests in notes_testing.txt to actual tests.
-
-The last test should call doEmptyTestDirectory()
-
-So far:
- - Check for pending work in notes_testing.txt
 
 In the specs:
 - jscause.conf:  Global enclosing curly brackets are optional.
@@ -242,6 +232,7 @@ Don't forget that we have this logOptions param in checkExpectedLogMessages().
 Perform exhaustive testing at this point.
  - Document every step you do in notes_testing.txt
    - You must test comments, // and /* */ in json files.
+     - Wait, are /* */ supported at all?
 
 Can guest jscp scripts create globals that can then be read by jscause internal functions? I hope not.  This would be a security risk.
 
@@ -384,10 +375,19 @@ Version 0.7.1b here!
 
  - Create a couple of sites with it.
  - Announce.
- 
+
+Time to convert those tests in notes_testing.txt to actual tests.
+The last test should call doEmptyTestDirectory()
+So far:
+ - Check for pending work in notes_testing.txt
+
 ==========================
 
 Order by priority:
+
+Add tests: Test that two consecutive <js=whatever/js> render fine, no errors, etc.
+
+Add tests for rt.printJSON()
 
 - From the documentation:
 "If you move compressed log files to another location, and JSCause is writing to a suffixed file (e.g., `jsc_2020-02-08_22-00-00--2.log`), then it will reset writing to a non-suffixed file.  This will cause log entries that will appear as out of sync with the files they're in.  And because of the file name reset, backing it up could lead to the newer file overwriting the older one.  To avoid this, your move procedure should not move any the compressed suffixed files associated with the current (non-compressed) log file.  For example, given the following list of files: `jsc_2019-12-31_23-00-00.log.gz`, `jsc_2020-01-01_00-00-00.log.gz` and `jsc_2020-01-01_00-00-00--1.log`, just move `jsc_2020-12-31_23-00-00.log.gz`.  This will be fixed in a future version."
