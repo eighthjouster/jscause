@@ -7,43 +7,36 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Perhaps the JSCause issues are related with me throwing() instead of rejecting()?
+Manually test exhaustively (create the list with the permutations below.  Once you're done manually testing, add the list for the pending unit tests in notes_testing.txt)
 
-Wait, if I don't provide rt.onError(), will rt.readFile() wait forever? - It seems like it happens in specific circumstances.  Experiment with "index_wut.jscp"
- - Is this even documented? I thought it just went its merry way.
-This triggers it (not sure if relevant, but .DS_Store files are present in the readdir'd directory.):
-      fs.readdir(fsPath.join('sites', 'mysite', 'website', 'recipeImages'), rt.waitFor((err, files) => {
-        files.forEach((fileName) => {
-          const fileNameWithNoExtension = fileName.replace(/(.+)\..*$/, '$1');
-          console.log('fileName??');//__RP
-          console.log(`${fileNameWithNoExtension}.txt`);//__RP
-          rt.readFile(fsPath.join('recipes', `${fileNameWithNoExtension}.txt`))
-            .rtOnSuccess((contents) => {
-              console.log(fileName);//__RP
-              console.log(contents.toString());//__RP
-            })
-            .rtOnError((err) => { 
-              console.log('Ah, error.');//__RP
-              console.log(fileName);//__RP
-        });
-      }));
-May want to add it in the troubleshooting section (JSCause hangs in the request, never responding:  are you missing rtOnError() somewhere? Make sure you include it.  This will be fixed in a later version.)
+Wait, if I don't provide rt.onError(), will rt.readFile() wait forever?
+ - OK.  This happens when an external error occurs.
+   - It also happens when the onError() is present, but the second one fails too.
+     - You have to create tests to ensure that it won't happen again:
+       - Permutations of:
+         - One readFile [succeeding, that is, file exists | failing]
+           - With onSuccess
+             - With error/no error inside.
+           - With onError
+             - With error/no error inside.
+         - Another readFile [succeeding, that is, file exists | failing]
+           - With onSuccess
+             - With error/no error inside.
+           - With onerror
+             - With error/no error inside.
+         - One external error | no external error.
 
-Huh, this one too (notice the deliberate error inside rtOnError):
-      fs.readdir(fsPath.join('sites', 'mysite', 'website', 'recipeImages'), rt.waitFor((err, files) => {
-        files.forEach((fileName) => {
-          const fileNameWithNoExtension = fileName.replace(/(.+)\..*$/, '$1');
-          console.log('fileName??');//__RP
-          console.log(`${fileNameWithNoExtension}.txt`);//__RP
-          rt.readFile(fsPath.join('recipes', `${fileNameWithNoExtension}.txt`))
-            .rtOnSuccess((contents) => {
-              /js><li><js= contents.toString().split(/\n/)[0] /js></li><js
-            })
-            .rtOnError((err) => { 
-              /js><li><js= [][0]() /js></li><js
-            });
-        });
-      }));
+if (!fsPath.isAbsolute(path))
+ - What if this fails because path is invalid? Will JSCause crash?
+
+You should probably not use throw() but reject() whenever possible.
+
+Would setInterval() work with just one rt.waitFor()?
+
+Test that an empty rt.waitFor() in a callback doesn't throw an error (e.g. it has a default callback.
+ - Put this in notes_testing.txt document.
+
+You have to make a video tutorial and place it in the docs.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
@@ -58,6 +51,11 @@ Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashe
 Logging should include time stamps.
 
 You will need to update some tests, as some site config-related error messages were modified to include the site name.
+
+There must by a way to chroot a process, so it doesn't escape the directory it's running on.
+ - Preferably with node.
+
+You may want to refresh the vendor files.  Any new versions?
 
 New certificate. Let it expire in two years, if possible.
 

@@ -1610,16 +1610,13 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
-    if (!rtContext.runtimeException)
+    try
     {
-      try
-      {
-        cb.apply({}, params);
-      }
-      catch(e)
-      {
-        rtContext.runtimeException = e;
-      }
+      cb.apply({}, params);
+    }
+    catch(e)
+    {
+      rtContext.runtimeException = e;
     }
     doneWith(serverConfig, identifiedSite, rtContext, waitForId);
   };
@@ -1676,13 +1673,16 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
   return (actorCallback) ?
     (...params) =>
     {
-      try
+      if (!rtContext.runtimeException)
       {
-        actorCallback.apply({}, params);
-      }
-      catch(e)
-      {
-        rtContext.runtimeException = e;
+        try
+        {
+          actorCallback.apply({}, params);
+        }
+        catch(e)
+        {
+          rtContext.runtimeException = e;
+        }
       }
 
       doneWithPromiseCounterActor(serverConfig, identifiedSite, rtContext, promiseContext, promiseActorType);
@@ -1727,7 +1727,7 @@ function makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext,
   };
 }
 
-function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
+function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn)
 {
   let defaultSuccessWaitForId;
   let defaultErrorWaitForId;
@@ -1755,7 +1755,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtPromise)
     cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
   });
 
-  new Promise(rtPromise)
+  new Promise(rtAsyncPromiseFn)
     .then(jscThen((...params) =>
     {
       if (promiseContext.successWaitForId)
@@ -1829,7 +1829,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
           [].concat(rtContext, nameOrObject)
       );
     },
-    waitFor(cb)
+    waitFor(cb = () => {})
     {
       return rtContext.waitForQueue[createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)];
     },
