@@ -11,7 +11,8 @@ Create tests:
 External error 1st readFile onSuccess onSuccess error inside onError onError error inside
 *Yes Fails Not present N/A Not present N/A
 *Yes Succeeds Not present N/A Not present N/A
-No Succeeds Present no Present no
+*No Succeeds Present no Present no
+
 No Succeeds Present yes Present no
 No Succeeds Present no Present yes
 No Succeeds Present yes Present yes
