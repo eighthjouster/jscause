@@ -708,6 +708,9 @@ function JSCLogQueueNext()
 
   const { e, toConsole = false, toServerDir, toSiteDir, fileSizeThreshold } = logOptions;
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
+  
+  // Uncomment this to print server output to the terminal during test debugging.
+  // outputToConsole(formatLogMessage(consolePrefix, message));
 
   const consoleOutputDuringTest = false; // Set to true to allow actual JSCLog() output to the console when debugging tests.
   if ((!isTestMode && toConsole) || consoleOutputDuringTest)

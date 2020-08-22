@@ -26,7 +26,8 @@ const allTests =
   'testBattery_contents_04',
   'testBattery_contents_05',
   'testBattery_contents_06',
-  'testBattery_contents_07'
+  'testBattery_contents_07',
+  'testBattery_contents_08'
 ];
 
 const fs = require('fs');
@@ -193,6 +194,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.currentTestPhaseName = '';
     jscTestContext.isUnitTest = false;
     jscTestContext.isRequestsTest = false;
+    jscTestContext.suppressHTTPErrorsWarning = false;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
     jscTestContext.gotAllExpectedLogMsgs = false;
