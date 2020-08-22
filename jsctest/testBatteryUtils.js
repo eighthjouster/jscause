@@ -188,7 +188,7 @@ const testUtils =
     const { dataReceived } = requestContext;
     const req = http.request(request, (res) =>
     {
-      if ((res.statusCode >= 400) && !testContext.suppressHTTPErrorsWarning)
+      if ((res.statusCode >= 400) &&!testContext.suppressHTTPErrorsWarning)
       {
         console.warn(`WARNING: The response status code is an error ${res.statusCode}.`);
       }

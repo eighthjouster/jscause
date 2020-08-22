@@ -8,43 +8,44 @@ git bundle create jscause-.bundle devel
 =====
 
 Create tests:
-External error	1st readFile	onSuccess	onSuccess error inside	onError	onError error inside
-No	Succeeds	Present	no	Present	no
-No	Succeeds	Present	yes	Present	no
-No	Succeeds	Present	no	Present	yes
-No	Succeeds	Present	yes	Present	yes
-No	Succeeds	Present	no	Not present	N/A
-No	Succeeds	Present	yes	Not present	N/A
-No	Succeeds	Not present	N/A	Present	no
-No	Succeeds	Not present	N/A	Present	yes
-No	Succeeds	Not present	N/A	Not present	N/A
-No	Fails	Present	no	Present	no
-No	Fails	Present	yes	Present	no
-No	Fails	Present	no	Present	yes
-No	Fails	Present	yes	Present	yes
-No	Fails	Present	no	Not present	N/A
-No	Fails	Present	yes	Not present	N/A
-No	Fails	Not present	N/A	Present	no
-No	Fails	Not present	N/A	Present	yes
-No	Fails	Not present	N/A	Not present	N/A
-Yes	Succeeds	Present	no	Present	no
-Yes	Succeeds	Present	yes	Present	no
-Yes	Succeeds	Present	no	Present	yes
-Yes	Succeeds	Present	yes	Present	yes
-Yes	Succeeds	Present	no	Not present	N/A
-Yes	Succeeds	Present	yes	Not present	N/A
-Yes	Succeeds	Not present	N/A	Present	no
-Yes	Succeeds	Not present	N/A	Present	yes
-Yes	Succeeds	Not present	N/A	Not present	N/A
-Yes	Fails	Present	no	Present	no
-Yes	Fails	Present	yes	Present	no
-Yes	Fails	Present	no	Present	yes
-Yes	Fails	Present	yes	Present	yes
-Yes	Fails	Present	no	Not present	N/A
-Yes	Fails	Present	yes	Not present	N/A
-Yes	Fails	Not present	N/A	Present	no
-Yes	Fails	Not present	N/A	Present	yes
-Yes	Fails	Not present	N/A	Not present	N/A
+External error 1st readFile onSuccess onSuccess error inside onError onError error inside
+*Yes Fails Not present N/A Not present N/A
+*Yes Succeeds Not present N/A Not present N/A
+No Succeeds Present no Present no
+No Succeeds Present yes Present no
+No Succeeds Present no Present yes
+No Succeeds Present yes Present yes
+No Succeeds Present no Not present N/A
+No Succeeds Present yes Not present N/A
+No Succeeds Not present N/A Present no
+No Succeeds Not present N/A Present yes
+No Succeeds Not present N/A Not present N/A
+No Fails Present no Present no
+No Fails Present yes Present no
+No Fails Present no Present yes
+No Fails Present yes Present yes
+No Fails Present no Not present N/A
+No Fails Present yes Not present N/A
+No Fails Not present N/A Present no
+No Fails Not present N/A Present yes
+No Fails Not present N/A Not present N/A
+Yes Succeeds Present no Present no
+Yes Succeeds Present yes Present no
+Yes Succeeds Present no Present yes
+Yes Succeeds Present yes Present yes
+Yes Succeeds Present no Not present N/A
+Yes Succeeds Present yes Not present N/A
+Yes Succeeds Not present N/A Present no
+Yes Succeeds Not present N/A Present yes
+Yes Fails Present no Present no
+Yes Fails Present yes Present no
+Yes Fails Present no Present yes
+Yes Fails Present yes Present yes
+Yes Fails Present no Not present N/A
+Yes Fails Present yes Not present N/A
+Yes Fails Not present N/A Present no
+Yes Fails Not present N/A Present yes
+
 
 Uh-oh.  Tests should't rely on hostNames such as jscausesite1/jscausesite2, unless it can be mocked somehow??
 

@@ -2,31 +2,31 @@
 
 const allTests =
 [
-  'testBattery_001',
-  'testBattery_002',
-  'testBattery_003',
-  'testBattery_004',
-  'testBattery_005',
-  'testBattery_006',
-  'testBattery_007',
-  'testBattery_008',
-  'testBattery_009',
-  'testBattery_010',
-  'testBattery_011',
-  'testBattery_012',
-  'testBattery_013',
-  'testBattery_014',
-  'testBattery_015',
-  'testBattery_016',
-  'testBattery_017',
-  'testBattery_018',
-  'testBattery_contents_01',
-  'testBattery_contents_02',
-  'testBattery_contents_03',
-  'testBattery_contents_04',
-  'testBattery_contents_05',
-  'testBattery_contents_06',
-  'testBattery_contents_07',
+  // 'testBattery_001',
+  // 'testBattery_002',
+  // 'testBattery_003',
+  // 'testBattery_004',
+  // 'testBattery_005',
+  // 'testBattery_006',
+  // 'testBattery_007',
+  // 'testBattery_008',
+  // 'testBattery_009',
+  // 'testBattery_010',
+  // 'testBattery_011',
+  // 'testBattery_012',
+  // 'testBattery_013',
+  // 'testBattery_014',
+  // 'testBattery_015',
+  // 'testBattery_016',
+  // 'testBattery_017',
+  // 'testBattery_018',
+  // 'testBattery_contents_01',
+  // 'testBattery_contents_02',
+  // 'testBattery_contents_03',
+  // 'testBattery_contents_04',
+  // 'testBattery_contents_05',
+  // 'testBattery_contents_06',
+  // 'testBattery_contents_07',
   'testBattery_contents_08'
 ];
 
@@ -195,6 +195,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.isUnitTest = false;
     jscTestContext.isRequestsTest = false;
     jscTestContext.suppressHTTPErrorsWarning = false;
+    jscTestContext.maxTerminateRetries = undefined;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
     jscTestContext.gotAllExpectedLogMsgs = false;
@@ -215,6 +216,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.waitForContinueTestingCallHandlerId = undefined;
     jscTestContext.tempTestData = undefined;
     jscTestContext.functionCallListeners = {};
+    jscTestContext.runtimeExceptionRaised = false;
     Object.assign(jscTestContext, currentTest);
     console.info(`####### Starting test: ${jscTestContext.testName}`);
 

@@ -208,6 +208,16 @@ const jscCatch = (isTestMode) ?
   } :
   (cb) => cb;
 
+const setRuntimeException = (isTestMode) ?
+  (rtContext, e) => {
+    rtContext.runtimeException = e;
+    jscTestGlobal.runtimeExceptionRaised = true;
+  }
+  :
+  (rtContext, e) => {
+    rtContext.runtimeException = e;
+  };
+
 if (isTestMode)
 {
   jscTestGlobal.jscLib = getAllElementsToSupportTesting();
@@ -710,7 +720,7 @@ function JSCLogQueueNext()
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   
   // Uncomment this to print server output to the terminal during test debugging.
-  // outputToConsole(formatLogMessage(consolePrefix, message));
+  outputToConsole(formatLogMessage(consolePrefix, message));//__RP
 
   const consoleOutputDuringTest = false; // Set to true to allow actual JSCLog() output to the console when debugging tests.
   if ((!isTestMode && toConsole) || consoleOutputDuringTest)
@@ -853,7 +863,8 @@ function JSCLogTerminate(options)
     jscTestGlobal.isWaitingForLogTermination = true;
     if (jscTestGlobal.pendingCallbacks > 0)
     {
-      if (jsclogTerminateRetries <= MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES)
+      const maxNumberOfJscLogTerminateRetries = (jscTestGlobal.maxTerminateRetries) ? jscTestGlobal.maxTerminateRetries : MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES;
+      if (jsclogTerminateRetries <= maxNumberOfJscLogTerminateRetries)
       {
         jsclogTerminateRetries++;
         setTimeout(() => { JSCLogTerminate(options); }, LOGTERMINATE_WAIT_MS);
@@ -861,7 +872,7 @@ function JSCLogTerminate(options)
       }
       else
       {
-        console.warn(`\nWARNING!  Reached the amount of log termination retries due to pending callbacks (${MAX_NUMBER_OF_JSCLOGTERMINATE_RETRIES}).  Giving up.`);
+        console.warn(`\nWARNING!  Reached the amount of log termination retries due to pending callbacks (${maxNumberOfJscLogTerminateRetries}).  Giving up.`);
       }
     }
     if (applicationIsTerminating)
@@ -1613,15 +1624,18 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
+  if (!rtContext.runtimeException) //__RP BUG IS BACK!
+  {
     try
     {
       cb.apply({}, params);
     }
     catch(e)
     {
-      rtContext.runtimeException = e;
+      setRuntimeException(rtContext, e);
     }
-    doneWith(serverConfig, identifiedSite, rtContext, waitForId);
+  } //__RP BUG IS BACK!
+  doneWith(serverConfig, identifiedSite, rtContext, waitForId);
   };
 
   return waitForId;
@@ -1676,7 +1690,7 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
   return (actorCallback) ?
     (...params) =>
     {
-      if (!rtContext.runtimeException)
+      //if (!rtContext.runtimeException)//__RP BUG IS BACK!
       {
         try
         {
@@ -1684,7 +1698,7 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
         }
         catch(e)
         {
-          rtContext.runtimeException = e;
+          setRuntimeException(rtContext, e);
         }
       }
 
@@ -1748,8 +1762,8 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
 
   defaultErrorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, (e) =>
   {
-    rtContext.runtimeException = e;
-    
+    setRuntimeException(rtContext, e);
+  
     if (promiseContext.successWaitForId)
     {
       doneWith(serverConfig, identifiedSite, rtContext, promiseContext.successWaitForId, true);
@@ -1779,8 +1793,8 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
           rtContext.waitForQueue[promiseContext.errorWaitForId](e);
         }
         else {
-          rtContext.runtimeException = e;
-
+          setRuntimeException(rtContext, e);
+    
           if (promiseContext.successWaitForId)
           {
             doneWith(serverConfig, identifiedSite, rtContext, promiseContext.successWaitForId);
@@ -2254,7 +2268,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
         }
         catch (e)
         {
-          resContext.runtimeException = e;
+          setRuntimeException(resContext, e);
         }
 
         finishUpHeaders(resContext);
