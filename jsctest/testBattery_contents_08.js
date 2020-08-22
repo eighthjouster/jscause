@@ -60,6 +60,13 @@ const makeBaseRequest = (extra = {}) =>
     }, extra
   );
 
+function prepareTest()
+{
+  this.isRequestsTest = true;
+  this.maxTerminateRetries = 10;
+  this.suppressHTTPErrorsWarning = true;
+}
+
 const
   {
     makeFromBaseTest,
@@ -90,19 +97,18 @@ const test_contents_001_jscp_hangingExceptionBug_exty_rn_sn_ix_en_ix = Object.as
         requesttimeoutsecs: 1
       });
       this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
+    
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
-      
+
+      prepareTest.call(this);
+
       const badProgram = [
         'rt.readFile(\'non_existing_file.txt\');',
         '[][0](); // Deliberate external error.'
       ].join('\n');
 
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], badProgram);
-      this.isRequestsTest = true;
-      this.maxTerminateRetries = 10;
-      this.suppressHTTPErrorsWarning = true;
     },
     expectedLogMessages:
     [
@@ -124,13 +130,7 @@ const test_contents_002_jscp_hangingExceptionBug_exty_ry_sn_ix_en_ix = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      const jsCauseConfContents = makeBaseJsCauseConfContents({
-        requesttimeoutsecs: 1
-      });
-      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
-
-      const siteConfContents = makeBaseSiteConfContents();
-      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+      prepareTest.call(this);
 
       const badProgram = [
         'rt.readFile(\'existing_file.txt\');',
@@ -138,13 +138,10 @@ const test_contents_002_jscp_hangingExceptionBug_exty_ry_sn_ix_en_ix = Object.as
       ].join('\n');
 
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], badProgram);
-      this.isRequestsTest = true;
-      this.maxTerminateRetries = 10;
-      this.suppressHTTPErrorsWarning = true;
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site: My Site: Runtime error on file /index.jscp: ENOENT: no such file or directory', 'prefix' ]
+      [ 'error', 'Site: My Site: Runtime error on file /index.jscp: [][0] is not a function', 'prefix' ]
     ],
     onReadyForRequests()
     {
