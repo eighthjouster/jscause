@@ -168,7 +168,7 @@ const testUtils =
 
   areFlatArraysEqual(a, b)
   {
-    return a.every((line, i) => b[i] === line) && (Boolean(a.length) || !b.length);
+    return (a.length === b.length) && a.every((line, i) => line === b[i]);
   },
 
   performTestRequestAndOutput({ onResponseEnd: onResponseEndCb, request, context: testContext, postData, reqSendHandler, resReceiveHandler } = {})
