@@ -19,9 +19,9 @@ External error 1st readFile onSuccess onSuccess error inside onError onError err
 *No Succeeds Present yes Not present N/A
 *No Succeeds Not present N/A Present no
 *No Succeeds Not present N/A Present yes
+*No Succeeds Not present N/A Not present N/A
+*No Fails Present no Present no
 
-No Succeeds Not present N/A Not present N/A
-No Fails Present no Present no
 No Fails Present yes Present no
 No Fails Present no Present yes
 No Fails Present yes Present yes
@@ -49,6 +49,7 @@ Yes Fails Not present N/A Present yes
 
 
 Uh-oh.  Tests should't rely on hostNames such as jscausesite1/jscausesite2, unless it can be mocked somehow??
+And check the new TO-DO's in the content tests. - if any.
 
 Will an error in the rtOnSuccess() trigger the rtOnError()? I hope not!
  - This should be a test too.

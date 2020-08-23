@@ -103,7 +103,7 @@ const test_contents_001_jscp_hangingExceptionBug_exty_rn_sn_ix_en_ix = Object.as
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
 
@@ -139,7 +139,7 @@ const test_contents_002_jscp_hangingExceptionBug_exty_ry_sn_ix_en_ix = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
 
@@ -175,42 +175,11 @@ const test_contents_003_jscp_hangingExceptionBug_extn_ry_sp_in_ep_in = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
       // 'No Succeeds Present no Present no'
-      const testCode = [
-        'rt.readFile(\'existing_file.txt\');',
-        '// No deliberate external error.',
-        'console.log(\'We must get here.\');'
-      ].join('\n');
-
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
-    },
-    onReadyForRequests()
-    {
-      processResponse(this, makeBaseRequest(), ({ consoleLogOutput, statusCode }) =>
-      {
-        this.testPassed = (statusCode !== 408) && // 408 = Timeout exceeded.
-          (consoleLogOutput.status === 'captured') &&
-          areFlatArraysEqual(consoleLogOutput.lines, ['We must get here.']);
-      });
-    }
-  }
-);
-
-const test_contents_004_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_in = Object.assign(makeFromBaseTest('Contents; JSCP file; rt fn exception hanging bug; No Succeeds Present yes Present no'),
-  makeTestEndBoilerplate.call(this),
-  {
-    // only: true,
-    onTestBeforeStart()
-    {
-      initConsoleLogCapture();
-
-      prepareTest.call(this);
-      
-      // 'No Succeeds Present yes Present no'
       const testCode = [
         'rt.readFile(\'existing_file.txt\')',
         '.rtOnSuccess((contents) => {console.log(\'Great success\');})',
@@ -229,8 +198,46 @@ const test_contents_004_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_in = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.',
-              'Great success'
+              'LOG: We must get here.',
+              'LOG: Great success'
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_004_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_in = Object.assign(makeFromBaseTest('Contents; JSCP file; rt fn exception hanging bug; No Succeeds Present yes Present no'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
+
+      prepareTest.call(this);
+      
+      // 'No Succeeds Present yes Present no'
+      const testCode = [
+        'rt.readFile(\'existing_file.txt\')',
+        '.rtOnSuccess((contents) => {',
+        '  [][0](); // Deliberate error.',
+        '})',
+        '.rtOnError((err) => {console.warn(\'Great error\');});',
+        '// No deliberate external error.',
+        'console.log(\'We must get here.\');'
+      ].join('\n');
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+    },
+    onReadyForRequests()
+    {
+      processResponse(this, makeBaseRequest(), ({ consoleLogOutput, statusCode }) =>
+      {
+        this.testPassed = (statusCode !== 408) && // 408 = Timeout exceeded.
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              'LOG: We must get here.',
             ]);
       });
     }
@@ -243,7 +250,7 @@ const test_contents_005_jscp_hangingExceptionBug_extn_ry_sp_in_ep_iy = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -268,8 +275,8 @@ const test_contents_005_jscp_hangingExceptionBug_extn_ry_sp_in_ep_iy = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.',
-              'Great success'
+              'LOG: We must get here.',
+              'LOG: Great success'
             ]);
       });
     }
@@ -282,7 +289,7 @@ const test_contents_006_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_iy = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -314,7 +321,7 @@ const test_contents_006_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_iy = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.'
+              'LOG: We must get here.'
             ]);
       });
     }
@@ -327,7 +334,7 @@ const test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -349,8 +356,8 @@ const test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.',
-              'Great success'
+              'LOG: We must get here.',
+              'LOG: Great success'
             ]);
       });
     }
@@ -363,7 +370,7 @@ const test_contents_008_jscp_hangingExceptionBug_extn_ry_sp_iy_en_ix = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -392,7 +399,7 @@ const test_contents_008_jscp_hangingExceptionBug_extn_ry_sp_iy_en_ix = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.'
+              'LOG: We must get here.'
             ]);
       });
     }
@@ -405,7 +412,7 @@ const test_contents_009_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_in = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -427,7 +434,7 @@ const test_contents_009_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_in = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.'
+              'LOG: We must get here.'
             ]);
       });
     }
@@ -440,7 +447,7 @@ const test_contents_010_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_iy = Object.as
     // only: true,
     onTestBeforeStart()
     {
-      initConsoleLogCapture();
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
 
       prepareTest.call(this);
       
@@ -464,7 +471,76 @@ const test_contents_010_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_iy = Object.as
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
-              'We must get here.'
+              'LOG: We must get here.'
+            ]);
+      });
+    }
+  }
+);
+
+const test_contents_011_jscp_hangingExceptionBug_extn_ry_sn_ix_en_ix = Object.assign(makeFromBaseTest('Contents; JSCP file; rt fn exception hanging bug; No Succeeds Not present N/A Not present N/A'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
+
+      prepareTest.call(this);
+      
+      // 'No Succeeds Not present N/A Not present N/A'
+      const testCode = [
+        'rt.readFile(\'existing_file.txt\');',
+        '// No deliberate external error.',
+        'console.log(\'We must get here.\');'
+      ].join('\n');
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+    },
+    onReadyForRequests()
+    {
+      processResponse(this, makeBaseRequest(), ({ consoleLogOutput, statusCode }) =>
+      {
+        this.testPassed = (statusCode !== 408) && // 408 = Timeout exceeded.
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines, ['LOG: We must get here.']);
+      });
+    }
+  }
+);
+
+const test_contents_012_jscp_hangingExceptionBug_extn_rn_sp_in_ep_in = Object.assign(makeFromBaseTest('Contents; JSCP file; rt fn exception hanging bug; No Fails Present no Present no'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      initConsoleLogCapture({ prefixInputWithConsoleTag: true });
+
+      prepareTest.call(this);
+      
+      // 'No Fails Present no Present no'
+      const testCode = [
+        'rt.readFile(\'non_existing_file.txt\')',
+        '.rtOnSuccess((contents) => {console.log(\'Great success\');})',
+        '.rtOnError((err) => {console.warn(\'Great error\');});',
+        '// No deliberate external error.',
+        'console.log(\'We must get here.\');'
+      ].join('\n');
+
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
+    },
+    onReadyForRequests()
+    {
+      processResponse(this, makeBaseRequest(), ({ consoleLogOutput, statusCode }) =>
+      {
+        console.log(consoleLogOutput.lines);//__RP
+        this.testPassed = (statusCode !== 408) && // 408 = Timeout exceeded.
+          (consoleLogOutput.status === 'captured') &&
+          areFlatArraysEqual(consoleLogOutput.lines,
+            [
+              'LOG: We must get here.',
+              'WARN: Great error'
             ]);
       });
     }
@@ -482,10 +558,10 @@ module.exports =
   //test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix,
   //test_contents_008_jscp_hangingExceptionBug_extn_ry_sp_iy_en_ix,
   //test_contents_009_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_in,
-  test_contents_010_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_iy,
+  //test_contents_010_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_iy,
+  //test_contents_011_jscp_hangingExceptionBug_extn_ry_sn_ix_en_ix,
+  //test_contents_012_jscp_hangingExceptionBug_extn_rn_sp_in_ep_in,
 
-  // test_contents_011_jscp_hangingExceptionBug_extn_ry_sn_ix_en_ix,
-  // test_contents_012_jscp_hangingExceptionBug_extn_rn_sp_in_ep_in,
   // test_contents_013_jscp_hangingExceptionBug_extn_rn_sp_iy_ep_in,
   // test_contents_014_jscp_hangingExceptionBug_extn_rn_sp_in_ep_iy,
   // test_contents_015_jscp_hangingExceptionBug_extn_rn_sp_iy_ep_iy,

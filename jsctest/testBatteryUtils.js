@@ -143,11 +143,35 @@ const testUtils =
       ''
     ].join('\n'),
 
-  initConsoleLogCapture()
+  initConsoleLogCapture(options = {})
   {
+    const { prefixInputWithConsoleTag } = options;
+
     const originalConsoleLog = console.log;
-    console.log = function() { console.log.output.push(Object.values(arguments).reduce((a,b)=> `${a} ${b}`)); };
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
+
+    if (prefixInputWithConsoleTag)
+    {
+      console.log = function() { console.log.output.push(`LOG: ${Object.values(arguments).reduce((a,b)=> `${a} ${b}`)}`) };
+      // Yes, we're pushing to console.log.output[].
+      console.warn = function() { console.log.output.push(`WARN: ${Object.values(arguments).reduce((a,b)=> `${a} ${b}`)}`) };
+      // Yes, we're pushing to console.log.output[].
+      console.error = function() { console.log.output.push(`ERROR: ${Object.values(arguments).reduce((a,b)=> `${a} ${b}`)}`) };
+    }
+    else
+    {
+      console.log = function() { console.log.output.push(Object.values(arguments).reduce((a,b)=> `${a} ${b}`)); };
+      // Yes, we're pushing to console.log.output[].
+      console.warn = function() { console.log.output.push(Object.values(arguments).reduce((a,b)=> `${a} ${b}`)); };
+      // Yes, we're pushing to console.log.output[].
+      console.error = function() { console.log.output.push(Object.values(arguments).reduce((a,b)=> `${a} ${b}`)); };
+    }
+
     console.log.original = originalConsoleLog;
+    console.warn.original = originalConsoleWarn;
+    console.error.original = originalConsoleError;
+
     console.log.output = [];
   },
     
@@ -158,6 +182,8 @@ const testUtils =
     {
       consoleLogOutput = { lines: console.log.output, status: 'captured' };
       console.log = console.log.original;
+      console.warn = console.warn.original;
+      console.error = console.error.original;
     }
     else
     {
