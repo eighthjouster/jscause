@@ -47,6 +47,7 @@ Yes Fails Present yes Not present N/A
 Yes Fails Not present N/A Present no
 Yes Fails Not present N/A Present yes
 
+Comment out outputToConsole (look for //__RP) in jscause.js.
 
 Uh-oh.  Tests should't rely on hostNames such as jscausesite1/jscausesite2, unless it can be mocked somehow??
 And check the new TO-DO's in the content tests. - if any.

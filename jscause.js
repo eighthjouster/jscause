@@ -1624,7 +1624,7 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
-  if (!rtContext.runtimeException) //__RP BUG IS BACK!
+  if (!rtContext.runtimeException) //WITH __RP BUG! // Delete this when done writing tests.
   {
     try
     {
@@ -1690,7 +1690,8 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
   return (actorCallback) ?
     (...params) =>
     {
-      //if (!rtContext.runtimeException)//__RP BUG IS BACK!
+      //if (!rtContext.runtimeException)// WITHOUT __RP BUG // Uncomment this when done writing tests.
+      //WITH __RP BUG! // Delete this when done writing tests.
       {
         try
         {
