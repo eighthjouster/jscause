@@ -29,13 +29,13 @@ External error 1st readFile onSuccess onSuccess error inside onError onError err
 *No Fails Not present N/A Present no
 *No Fails Not present N/A Present yes
 *No Fails Not present N/A Not present N/A
+*Yes Succeeds Present no Present no
+*Yes Succeeds Present yes Present no
+*Yes Succeeds Present no Present yes
+*Yes Succeeds Present yes Present yes
+*Yes Succeeds Present no Not present N/A
+*Yes Succeeds Present yes Not present N/A
 
-Yes Succeeds Present no Present no
-Yes Succeeds Present yes Present no
-Yes Succeeds Present no Present yes
-Yes Succeeds Present yes Present yes
-Yes Succeeds Present no Not present N/A
-Yes Succeeds Present yes Not present N/A
 Yes Succeeds Not present N/A Present no
 Yes Succeeds Not present N/A Present yes
 Yes Fails Present no Present no
