@@ -720,7 +720,7 @@ function JSCLogQueueNext()
   const { outputToConsole, consolePrefix, messagePrefix } = JSCLOG_DATA[type] || JSCLOG_DATA.raw;
   
   // Uncomment this to print server output to the terminal during test debugging.
-  outputToConsole(formatLogMessage(consolePrefix, message));//__RP
+  // outputToConsole(formatLogMessage(consolePrefix, message));
 
   const consoleOutputDuringTest = false; // Set to true to allow actual JSCLog() output to the console when debugging tests.
   if ((!isTestMode && toConsole) || consoleOutputDuringTest)
@@ -1624,8 +1624,6 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
   
   rtContext.waitForQueue[waitForId] = (...params) =>
   {
-  if (!rtContext.runtimeException) //WITH __RP BUG! // Delete this when done writing tests.
-  {
     try
     {
       cb.apply({}, params);
@@ -1634,8 +1632,7 @@ function createWaitForCallback(serverConfig, identifiedSite, rtContext, cb)
     {
       setRuntimeException(rtContext, e);
     }
-  } //__RP BUG IS BACK!
-  doneWith(serverConfig, identifiedSite, rtContext, waitForId);
+    doneWith(serverConfig, identifiedSite, rtContext, waitForId);
   };
 
   return waitForId;
@@ -1690,8 +1687,7 @@ function makeCustomRtPromiseActor(serverConfig, identifiedSite, rtContext, promi
   return (actorCallback) ?
     (...params) =>
     {
-      //if (!rtContext.runtimeException)// WITHOUT __RP BUG // Uncomment this when done writing tests.
-      //WITH __RP BUG! // Delete this when done writing tests.
+      if (!rtContext.runtimeException)
       {
         try
         {
