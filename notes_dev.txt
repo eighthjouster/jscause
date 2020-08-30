@@ -40,9 +40,10 @@ External error 1st readFile onSuccess onSuccess error inside onError onError err
 *Yes Fails Present no Present no
 *Yes Fails Present yes Present no
 
-Yes Fails Present no Present yes
-Yes Fails Present yes Present yes
-Yes Fails Present no Not present N/A
+*Yes Fails Present no Present yes
+*Yes Fails Present yes Present yes
+*Yes Fails Present no Not present N/A
+
 Yes Fails Present yes Not present N/A
 Yes Fails Not present N/A Present no
 Yes Fails Not present N/A Present yes
