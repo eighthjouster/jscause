@@ -20,14 +20,14 @@ const allTests =
   'testBattery_016',
   'testBattery_017',
   'testBattery_018',
-   'testBattery_contents_01',
+  'testBattery_contents_01',
   'testBattery_contents_02',
   'testBattery_contents_03',
   'testBattery_contents_04',
   'testBattery_contents_05',
   'testBattery_contents_06',
   'testBattery_contents_07',
-  // 'testBattery_contents_08'
+  'testBattery_contents_08'
 ];
 
 const fs = require('fs');

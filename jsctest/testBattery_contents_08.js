@@ -125,7 +125,7 @@ const test_contents_001_jscp_hangingExceptionBug_exty_rn_sn_ix_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
-          (statusCode === 500) && // Redundant, but it's what's expected.//__RP
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -163,6 +163,7 @@ const test_contents_002_jscp_hangingExceptionBug_exty_ry_sn_ix_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -198,6 +199,7 @@ const test_contents_003_jscp_hangingExceptionBug_extn_ry_sp_in_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -232,12 +234,18 @@ const test_contents_004_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_in = Object.as
 
       this.createFile(['sites', 'mysite', 'website', 'index.jscp'], testCode);
     },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site: My Site: Runtime error on file /index.jscp: [][0] is not a function', 'prefix' ]
+    ],
     onReadyForRequests()
     {
       processResponse(this, makeBaseRequest(), ({ consoleLogOutput, statusCode }) =>
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
+          this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -277,6 +285,7 @@ const test_contents_005_jscp_hangingExceptionBug_extn_ry_sp_in_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -323,6 +332,7 @@ const test_contents_006_jscp_hangingExceptionBug_extn_ry_sp_iy_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -360,6 +370,7 @@ const test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -403,6 +414,7 @@ const test_contents_008_jscp_hangingExceptionBug_extn_ry_sp_iy_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -440,6 +452,7 @@ const test_contents_009_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -478,6 +491,7 @@ const test_contents_010_jscp_hangingExceptionBug_extn_ry_sn_ix_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -513,6 +527,7 @@ const test_contents_011_jscp_hangingExceptionBug_extn_ry_sn_ix_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, ['LOG: We must get here.']);
       });
@@ -547,6 +562,7 @@ const test_contents_012_jscp_hangingExceptionBug_extn_rn_sp_in_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -587,6 +603,7 @@ const test_contents_013_jscp_hangingExceptionBug_extn_rn_sp_iy_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -631,6 +648,7 @@ const test_contents_014_jscp_hangingExceptionBug_extn_rn_sp_in_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -677,6 +695,7 @@ const test_contents_015_jscp_hangingExceptionBug_extn_rn_sp_iy_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -718,6 +737,7 @@ const test_contents_016_jscp_hangingExceptionBug_extn_rn_sp_in_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -761,6 +781,7 @@ const test_contents_017_jscp_hangingExceptionBug_extn_rn_sp_iy_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -798,6 +819,7 @@ const test_contents_018_jscp_hangingExceptionBug_extn_rn_sn_ix_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 200) && // Redundant, but it's what's expected.
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -841,6 +863,7 @@ const test_contents_019_jscp_hangingExceptionBug_extn_rn_sn_ix_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -881,6 +904,7 @@ const test_contents_020_jscp_hangingExceptionBug_extn_rn_sn_ix_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
@@ -923,6 +947,7 @@ const test_contents_021_jscp_hangingExceptionBug_exty_ry_sp_in_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -964,6 +989,7 @@ const test_contents_022_jscp_hangingExceptionBug_exty_ry_sp_iy_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1005,6 +1031,7 @@ const test_contents_023_jscp_hangingExceptionBug_exty_ry_sp_in_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1048,6 +1075,7 @@ const test_contents_024_jscp_hangingExceptionBug_exty_ry_sp_iy_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1086,6 +1114,7 @@ const test_contents_025_jscp_hangingExceptionBug_exty_ry_sp_in_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1126,6 +1155,7 @@ const test_contents_026_jscp_hangingExceptionBug_exty_ry_sp_iy_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1164,6 +1194,7 @@ const test_contents_027_jscp_hangingExceptionBug_exty_ry_sn_ix_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1204,6 +1235,7 @@ const test_contents_028_jscp_hangingExceptionBug_exty_ry_sn_ix_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1243,6 +1275,7 @@ const test_contents_029_jscp_hangingExceptionBug_exty_rn_sp_in_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1284,6 +1317,7 @@ const test_contents_030_jscp_hangingExceptionBug_exty_rn_sp_iy_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1325,6 +1359,7 @@ const test_contents_031_jscp_hangingExceptionBug_exty_rn_sp_in_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1368,6 +1403,7 @@ const test_contents_032_jscp_hangingExceptionBug_exty_rn_sp_iy_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1406,6 +1442,7 @@ const test_contents_033_jscp_hangingExceptionBug_exty_rn_sp_in_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1446,6 +1483,7 @@ const test_contents_034_jscp_hangingExceptionBug_exty_rn_sp_iy_en_ix = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1484,6 +1522,7 @@ const test_contents_035_jscp_hangingExceptionBug_exty_rn_sn_ix_ep_in = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);
@@ -1524,6 +1563,7 @@ const test_contents_036_jscp_hangingExceptionBug_exty_rn_sn_ix_ep_iy = Object.as
       {
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode !== 408) && // 408 = Timeout exceeded.
+          (statusCode === 500) && // Redundant, but it's what's expected.
           this.gotAllExpectedLogMsgs &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines, []);

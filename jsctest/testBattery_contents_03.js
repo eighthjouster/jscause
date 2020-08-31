@@ -1125,6 +1125,7 @@ const test_contents_023_get_post_params_get_no_post = Object.assign(makeFromBase
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
+              'WARNING: The request method is POST, and postData is undefined; in case this is not deliberate.',
               '123',
               undefined
             ]);
