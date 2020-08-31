@@ -176,7 +176,7 @@ const jscCallback = (isTestMode) ?
         JSCLog('error', 'CRITICAL: An application error occurred when processing a callback.');
         JSCLog('error', e);
         console.error(e);
-        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
+        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true, error: e });
       }
     };
   } :
@@ -2495,25 +2495,50 @@ function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, s
   res.end(response);
 }
 
+
+const getReqHostname = (isTestMode) ?
+  (originalReqHostname, headers) =>
+  {
+    const testHostname = headers['x-jsc-tst-hostn'];
+    if (testHostname)
+    {
+      return headers['x-jsc-tst-hostn'];
+    }
+    return originalReqHostname;
+  } :
+  (originalReqHostname) => originalReqHostname;
+
+const initTestResHostname = (isTestMode) ?
+  (res) => res.setHeader('x-jsc-tst-hostn-re', 'localhost') :
+  () => {};
+
+const setTestResHostname = (isTestMode) ?
+  (res, hostName) => res.setHeader('x-jsc-tst-hostn-re', hostName) :
+  () => {};
+
 function incomingRequestHandler(req, res, sitesInServer)
 {
   const { headers = {}, headers: { host: hostHeader = '' }, url, method } = req;
-  const [/* Deliberately left blank. */, reqHostName = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
+  const [/* Deliberately left blank. */, originalReqHostname = hostHeader] = hostHeader.match(/(.+):\d+$/) || [];
   const requestMethod = (method || '').toLowerCase();
   const isReqMethodValid = ((requestMethod === 'get') || (requestMethod === 'post'));
   const { logging: serverLogging, requestTimeoutSecs } = serverConfig;
   const { serverLogDir, general: { consoleOutputEnabled: serverConsoleOutputEnabled, logFileSizeThreshold } } = serverLogging;
-  const identifiedSite = sitesInServer[reqHostName];
-
+  const reqHostname = getReqHostname(originalReqHostname, headers);
+  const identifiedSite = sitesInServer[reqHostname];
   let contentType = (headers['content-type'] || '').toLowerCase();
+
+  initTestResHostname(res);
 
   if (!identifiedSite || !isReqMethodValid)
   {
     res.statusCode = 403;
     res.setHeader('Content-Type', 'application/octet-stream');
-    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostName}>`, isRefusedConnection: true, requestTickTockId: undefined })
+    resEnd(req, res, { doLogToConsole: serverConsoleOutputEnabled, serverLogDir, logFileSizeThreshold, siteHostName: `<unknown: ${reqHostname}>`, isRefusedConnection: true, requestTickTockId: undefined })
     return;
   }
+
+  setTestResHostname(res, reqHostname);
 
   let { pathname: resourceName } = urlUtils.parse(url, true);
   let indexFileNameAutomaticallyAdded = false;
@@ -2819,7 +2844,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
       {
         JSCLog('error', 'CRITICAL: An application error occurred when processing an incoming request.');
         JSCLog('error', e);
-        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true });
+        jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true, error: e });
       }
     } :
     (res, req) => { incomingRequestHandler(res, req, sitesInServer) }

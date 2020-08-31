@@ -108,8 +108,8 @@ const test_contents_001_post_params_form_uploading_simple = Object.assign(makeFr
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -154,7 +154,8 @@ const test_contents_002_post_params_form_uploading_malformed_pt1 = Object.assign
 
       processResponse(this, postRequest, ({ statusCode }) =>
       {
-        this.testPassed = statusCode === 500;
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 500);
       }, { postData });
     }
   }
@@ -192,7 +193,8 @@ const test_contents_003_post_params_form_uploading_malformed_pt2 = Object.assign
 
       processResponse(this, postRequest, ({ statusCode }) =>
       {
-        this.testPassed = statusCode === 500;
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 500);
       }, { postData });
     }
   }
@@ -237,8 +239,8 @@ const test_contents_004_post_params_form_uploading_two_fields = Object.assign(ma
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -301,8 +303,8 @@ const test_contents_005_post_params_form_uploading_one_file_field_pt1 = Object.a
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -388,8 +390,8 @@ const test_contents_006_post_params_form_uploading_one_file_field_pt2 = Object.a
         const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
         const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
 
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
           systemUploadFileExistedBefore &&
@@ -473,8 +475,8 @@ const test_contents_007_post_params_form_uploading_one_file_field_pt3 = Object.a
         const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
         const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
 
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
           systemUploadFileExistedBefore &&
@@ -557,8 +559,8 @@ const test_contents_008_post_params_form_uploading_one_file_field_unsafe_name = 
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -651,8 +653,8 @@ const test_contents_009_post_params_form_uploading_two_files = Object.assign(mak
         const jsCauseUploadFile2ExistedAfter = fs.existsSync(jsCauseUploadFile2Path);
 
         const consoleLogOutputLinesButFirstTwo = consoleLogOutput.lines.slice(2);
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
           jsCauseUploadFile1Path &&
@@ -718,8 +720,8 @@ const test_contents_010_post_params_form_uploading_two_files_same_filename_pt1 =
 
       processResponse(this, postRequest, ({ statusCode, dataReceived }) =>
       {
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200);
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length;
             
       }, { postData });
     }
@@ -802,8 +804,8 @@ const test_contents_011_post_params_form_uploading_two_files_same_filename_pt2 =
         const jsCauseUploadFile2ExistedAfter = fs.existsSync(jsCauseUploadFile2Path);
 
         const consoleLogOutputLinesButFirstTwo = consoleLogOutput.lines.slice(2);
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 200) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           !moveErrorOccurred &&
           jsCauseUploadFile1Path &&

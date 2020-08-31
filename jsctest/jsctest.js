@@ -20,14 +20,14 @@ const allTests =
   'testBattery_016',
   'testBattery_017',
   'testBattery_018',
-  'testBattery_contents_01',
+   'testBattery_contents_01',
   'testBattery_contents_02',
   'testBattery_contents_03',
   'testBattery_contents_04',
   'testBattery_contents_05',
   'testBattery_contents_06',
   'testBattery_contents_07',
-  'testBattery_contents_08'
+  // 'testBattery_contents_08'
 ];
 
 const fs = require('fs');
@@ -194,7 +194,6 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.currentTestPhaseName = '';
     jscTestContext.isUnitTest = false;
     jscTestContext.isRequestsTest = false;
-    jscTestContext.suppressHTTPErrorsWarning = false;
     jscTestContext.maxTerminateRetries = undefined;
     jscTestContext.rootDir = fsPath.join('.', 'jsctest', 'testrootdir');
     jscTestContext.testPassed = false;
@@ -217,6 +216,7 @@ function createNewTestPromise(jscTestContext, currentTest)
     jscTestContext.tempTestData = undefined;
     jscTestContext.functionCallListeners = {};
     jscTestContext.runtimeExceptionRaised = false;
+    jscTestContext.contentReqExpectedSiteResponded = undefined;
     Object.assign(jscTestContext, currentTest);
     console.info(`####### Starting test: ${jscTestContext.testName}`);
 
@@ -399,8 +399,14 @@ function stillWaitingForContinueTestingCall(jscTestGlobal)
   }
 }
 
-function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = false } = {})
+function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = false, error = undefined } = {})
 {
+  if (generalError)
+  {
+    console.error('CRITICAL: A general, unexpected error within JSCause was found during testing.');
+    console.error(error);
+  }
+
   if (jscTestGlobal.signalTestEndInvoked && !followUpCall && !generalError)
   {
     return;

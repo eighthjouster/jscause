@@ -149,8 +149,8 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
           const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
           const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
 
-          this.testPassed = !dataReceived.length &&
-            (statusCode === 200) &&
+          this.testPassed = this.contentReqExpectedSiteResponded &&
+            (statusCode === 200) && !dataReceived.length &&
             (consoleLogOutput.status === 'captured') &&
             !jsCauseUploadFileExistedAfter &&
             areFlatArraysEqual(consoleLogOutputLinesButFirst,
@@ -257,8 +257,8 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
           systemUploadFileExistedBefore = systemUploadFileExistedBefore && fs.existsSync(file.path);
         });
 
-        this.testPassed = !dataReceived.length &&
-          (statusCode === 408) &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 408) && !dataReceived.length &&
           !systemUploadFileExistedBefore &&
           timeoutErrorMsgDisplayed;
       }, { postData: binaryPostData, reqSendHandler });

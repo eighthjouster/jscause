@@ -109,7 +109,7 @@ const test_contents_001_jscp_index_large_response_slow = Object.assign(makeFromB
         setTimeout(() => res.read(), 1000);
       };
 
-      processResponse(this, makeBaseRequest(), ({ dataReceived }) =>
+      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived }) =>
       {
         const { chunkTriggeringLength, largeContent } = this.tempTestData;
         const bufferDataReceived = Buffer.concat(dataReceived);
@@ -118,7 +118,8 @@ const test_contents_001_jscp_index_large_response_slow = Object.assign(makeFromB
         const largeContentAsMustBeReceived = Buffer.concat([crAndSpace, Buffer.from(largeContent), crAndSpace], chunkTriggeringLength);
         const dataSetsAreEqual = (Buffer.compare(bufferDataReceived, largeContentAsMustBeReceived) === 0);
 
-        this.testPassed = (dataReceived.length > 1) && // There have to be at least 2 chunks.
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && (dataReceived.length > 1) && // There have to be at least 2 chunks.
           (bufferDataReceived.byteLength === chunkTriggeringLength) &&
           dataSetsAreEqual;
       }, { resReceiveHandler });

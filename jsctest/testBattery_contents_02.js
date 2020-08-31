@@ -88,9 +88,10 @@ const test_contents_001_get_params = Object.assign(makeFromBaseTest('Contents; J
     {
       const { paramValue } = this.tempTestData;
       const reqUrl = `/?paramValue=${paramValue}`;
-      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -121,9 +122,10 @@ const test_contents_002_two_get_params = Object.assign(makeFromBaseTest('Content
     {
       const { paramValue1, paramValue2 } = this.tempTestData;
       const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
-      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -157,9 +159,10 @@ const test_contents_003_two_get_params_one_undefined_pt1 = Object.assign(makeFro
     {
       const { paramValue1, paramValue2, someDefaultNumber } = this.tempTestData;
       const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
-      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) &&!dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -192,9 +195,10 @@ const test_contents_003_two_get_params_one_undefined_pt2 = Object.assign(makeFro
     {
       const { paramValue1, paramValue2 } = this.tempTestData;
       const reqUrl = `/?paramValue1=${paramValue1}&paramValue2=${paramValue2}`;
-      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [
@@ -221,9 +225,10 @@ const test_contents_004_two_get_params_one_empty = Object.assign(makeFromBaseTes
     onReadyForRequests()
     {
       const reqUrl = '/?a=1&b=&c=3';
-      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ dataReceived, consoleLogOutput }) =>
+      processResponse(this, makeBaseRequest({ path: reqUrl }), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        this.testPassed = !dataReceived.length &&
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
           areFlatArraysEqual(consoleLogOutput.lines,
             [

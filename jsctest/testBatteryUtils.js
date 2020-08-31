@@ -206,6 +206,12 @@ const testUtils =
       statusCode: undefined
     }
 
+    request.headers = Object.assign({},
+      request.headers || {},
+      { 'x-jsc-tst-hostn': request.hostname }
+    );
+    request.hostname = 'localhost';
+
     if ((request.method === 'POST') && (typeof(postData) === 'undefined'))
     {
       console.warn('WARNING: The request method is POST, and postData is undefined; in case this is not deliberate.');
@@ -214,10 +220,9 @@ const testUtils =
     const { dataReceived } = requestContext;
     const req = http.request(request, (res) =>
     {
-      if ((res.statusCode >= 400) && !testContext.suppressHTTPErrorsWarning)
-      {
-        console.warn(`WARNING: The response status code is an error ${res.statusCode}.`);
-      }
+      const reqHeaderTestHostName = request.headers && request.headers['x-jsc-tst-hostn'] || '';
+      const resHeaderTestHostName = res.headers && res.headers['x-jsc-tst-hostn-re'] || '';
+      testContext.contentReqExpectedSiteResponded = (reqHeaderTestHostName === resHeaderTestHostName);
 
       res.on('readable', () =>
       {

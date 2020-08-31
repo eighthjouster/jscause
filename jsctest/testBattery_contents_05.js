@@ -122,8 +122,8 @@ const test_contents_001_post_params_form_uploading_binary_simple = Object.assign
           const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
           const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
 
-          this.testPassed = !dataReceived.length &&
-            (statusCode === 200) &&
+          this.testPassed = this.contentReqExpectedSiteResponded &&
+            (statusCode === 200) && !dataReceived.length &&
             (consoleLogOutput.status === 'captured') &&
             !jsCauseUploadFileExistedAfter &&
             areFlatArraysEqual(consoleLogOutputLinesButFirst,
@@ -193,8 +193,8 @@ const test_contents_002_post_params_form_uploading_binary_field_simple = Object.
           const jsCauseUploadFilePath = consoleLogOutput.lines[0].path;
           const jsCauseUploadFileExistedAfter = fs.existsSync(jsCauseUploadFilePath);
           const consoleLogOutputLinesButFirst = consoleLogOutput.lines.slice(1);
-          this.testPassed = !dataReceived.length &&
-            (statusCode === 200) &&
+          this.testPassed = this.contentReqExpectedSiteResponded &&
+            (statusCode === 200) && !dataReceived.length &&
             (consoleLogOutput.status === 'captured') &&
             !jsCauseUploadFileExistedAfter &&
             areFlatArraysEqual(consoleLogOutputLinesButFirst,
@@ -296,11 +296,12 @@ const test_contents_003_post_params_form_uploading_binary_maxpayload_pt1 = Objec
       processResponse(this, postRequest, ({ statusCode, consoleLogOutput }) =>
       {
         const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore } } = this.tempTestData;
-        this.testPassed = (statusCode === 413) &&
-        (consoleLogOutput.status === 'captured') &&
-        (consoleLogOutput.lines.length === 0) &&
-        !actualFilePath &&
-        !systemUploadFileExistedBefore
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 413) &&
+          (consoleLogOutput.status === 'captured') &&
+          (consoleLogOutput.lines.length === 0) &&
+          !actualFilePath &&
+          !systemUploadFileExistedBefore;
       }, { postData: binaryPostData });
     }
   }
@@ -365,7 +366,8 @@ const test_contents_004_post_params_form_uploading_binary_maxpayload_pt2 = Objec
 
       processResponse(this, postRequest, ({ statusCode }) =>
       {
-        this.testPassed = (statusCode === 200);
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200);
       }, { postData: binaryPostData });
     }
   }
@@ -425,12 +427,12 @@ const test_contents_005_post_params_form_uploading_binary_forbidden = Object.ass
         {
           const { moveToTempWorkDirData: { actualFilePath, systemUploadFileExistedBefore } } = this.tempTestData;
 
-          this.testPassed = !dataReceived.length &&
-            (statusCode === 403) &&
+          this.testPassed = this.contentReqExpectedSiteResponded &&
+            (statusCode === 403) && !dataReceived.length &&
             (consoleLogOutput.status === 'captured') &&
             !consoleLogOutput.lines.length &&
             !actualFilePath &&
-            !systemUploadFileExistedBefore
+            !systemUploadFileExistedBefore;
         }, { postData: binaryPostData });
       }
       else
