@@ -7,10 +7,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Wow.  If an error happens within a callback with no rt.waitFor(), JSCause crashes!
- - We should let the user know when this happens.
-   - And for now, we should document this.  Another point as to always use rt.waitFor().
-   
+For the manual and tutorial:
+If an error happens within a callback with no rt.waitFor(), JSCause crashes!
+ - Use try {} catch().
+ - Or use rt.waitFor() with all your callbacks.
+ - This will be addressed in a future version.
+
 if (!fsPath.isAbsolute(path))
  - What if this fails because path is invalid? Will JSCause crash?
 
@@ -20,8 +22,6 @@ Would setInterval() work with just one rt.waitFor()?
 
 Test that an empty rt.waitFor() in a callback doesn't throw an error (e.g. it has a default callback.
  - Put this in notes_testing.txt document.
-
-You have to make a video tutorial and place it in the docs.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
@@ -41,6 +41,8 @@ You may want to refresh the vendor files.  Any new versions?
 New certificate. Let it expire in two years, if possible.
 
 Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
+
+You have to make a video tutorial and place it in the docs.
 
 Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
 
@@ -363,6 +365,11 @@ So far:
 ==========================
 
 Order by priority:
+
+Are all caught errors cleaning up properly after themselves? Open connections, file descriptors, and the like...
+
+Use Cluster.  When a process dies because of an unhandled exception, spawn another one.
+  - How to exit this application, though? Same old with Ctrl+C?
 
 Add tests: Test that two consecutive <js=whatever/js> render fine, no errors, etc.
 
