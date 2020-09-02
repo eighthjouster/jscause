@@ -1172,6 +1172,10 @@ rt.readFile('my_source.txt', 'utf-8')
 
 You can read more about this behavior in the next section about [RT Promises](#rt-promises).
 
+**Important!** 
+
+We advise you to _always_ use `rt.waitFor()` with callbacks (unless you're using them with `rt` methods, as mentioned above.)  If you don't, then make sure you catch all the potential errors by using Javascript's `try / catch` blocks.  If an error occurs, and you don't catch it, **the whole JSCause application will crash, and your website will become unavailable**.  This is not a limitation of JSCause, but rather a behavior of NodeJS/Javascript by design.  Another way to deal with this is by using an external monitor that watches JSCause's process, and restarts it when it goes down.
+
 
 ## RT Promises
 
@@ -2376,6 +2380,28 @@ If a runtime exception happens while a callback is still pending, JSCause will w
 ```
 
 Remember that the [`requestTimeoutSecs`](#requesttimeoutsecs) (`requesttimeoutsecs`) server config value dictates how many seconds the JSCause will wait for a request to complete.
+
+**Note:** `rt.waitFor()` can only be used when the callback will be used once only.  Instructions like `setInterval()` which run the callback more than one time will not work well with JSCause.  JSCause will only wait for the first callback to complete, then move on towards ending the request.  The following callbacks will continue to happen, but JSCause may have already sent a response.
+
+There is a trick to work around this limitation, though.  Since `rt.waitFor()` returns a callback, then create such callback _outside_ of the block that will be called several times.  When the multiple-call operation ends, make sure to call that originally created callback.  Here's an example:
+
+```
+let t=1; // Let's increase this variable by 1 in an interval, until it reaches 10.
+
+const appEnd = rt.waitFor(); // JSCause will not send a response until appEnd() is called.
+
+const timerId = setInterval(() => { // Notice that we're enclosing this callback with an rt.waitFor() here.
+  // We should be enclosing the following with a try/catch block, for more robustness.
+  console.log(`Tick-tack... ${t}`);
+  rt.print(`${t} `);
+  if (t++ >= 10) {
+    clearInterval(timerId);
+    appEnd(); // Done counting.  Signal JSCause to stop waiting for us.
+  }
+}, 500);
+```
+
+Please note the following:  As stated in the comments in the example above, since the callback in not enclosed inside an `rt.watchFor()`, we should be using a `try/catch` error within it.  Otherwise, **any errors produced inside it will crash JSCause**, bringing your site down.  You'll need to manually restart JSCause if this happens.
 
 See also:
  - [rt.runAfter](#rtrunafter)

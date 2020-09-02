@@ -3,6 +3,8 @@ Pending:
 
 (Order by priority)
 
+Test that an empty rt.waitFor() in a callback doesn't throw an error (e.g. it has a default callback.)
+
 Test the <js=/js> feature.
  - Test the <js='1');rt.print(/js> quirk as well?
 

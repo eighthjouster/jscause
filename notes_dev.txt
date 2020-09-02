@@ -7,21 +7,31 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-For the manual and tutorial:
-If an error happens within a callback with no rt.waitFor(), JSCause crashes!
- - Use try {} catch().
- - Or use rt.waitFor() with all your callbacks.
- - This will be addressed in a future version.
+Interesting.  This script seem to "retrigger" sending a response, or at least it logs it to the console.  Is this okay?  Or should it be addressed?:
+===
+const intervalHandler = rt.waitFor(() => {
+  rt.print('Nope.');
+  console.log('Noooope.');
+});
 
-if (!fsPath.isAbsolute(path))
- - What if this fails because path is invalid? Will JSCause crash?
+setInterval(intervalHandler, 500);
+===
+That produces:
+Noooope.
+Wed, 02 Sep 2020 06:12:53 GMT - localhost - GET: / - 200
+Noooope.
+Wed, 02 Sep 2020 06:12:53 GMT - localhost - GET: / - 200
+Noooope.
+Wed, 02 Sep 2020 06:12:54 GMT - localhost - GET: / - 200
+Noooope.
+Wed, 02 Sep 2020 06:12:54 GMT - localhost - GET: / - 200
+Noooope.
+Wed, 02 Sep 2020 06:12:55 GMT - localhost - GET: / - 200
+Noooope.
+Wed, 02 Sep 2020 06:12:55 GMT - localhost - GET: / - 200
+[etc.]
 
 You should probably not use throw() but reject() whenever possible.
-
-Would setInterval() work with just one rt.waitFor()?
-
-Test that an empty rt.waitFor() in a callback doesn't throw an error (e.g. it has a default callback.
- - Put this in notes_testing.txt document.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
