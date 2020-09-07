@@ -247,13 +247,9 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
       {
         const { timeoutErrorMsgDisplayed, handleRequestTimeoutMonitoring: { reqMonCtx } } = this.tempTestData;
         const { postedForm: { openedFiles: systemUploadFiles = [] } } = reqMonCtx;
-        let systemUploadFileExistedBefore;
+        let systemUploadFileExistedBefore = true;
         systemUploadFiles.forEach((file) =>
         {
-          if (typeof(systemUploadFileExistedBefore) === 'undefined')
-          {
-            systemUploadFileExistedBefore = true;
-          }
           systemUploadFileExistedBefore = systemUploadFileExistedBefore && fs.existsSync(file.path);
         });
 

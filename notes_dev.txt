@@ -7,24 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-I'm hacking the formidable module so it accepts hexoid, once, etc.
-
-Replace those var with const/let.
-
-The tests must pass under node 12.x.
- - I'm updating formidable so the Buffer() warning goes away.
-   - Still working on that.
-     - On branch: new-formidable.
-
-- Once we're here:
-  - Merge with devel.
-
-These are constantly failing:
- - Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text
- - Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value
- - Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; empty; temp files erased
-Once fixed on node 12, try them on node 8.
-
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
   - And tests!!!
@@ -372,6 +354,10 @@ So far:
 ==========================
 
 Order by priority:
+
+Sometimes, this test fails:
+ - Check that site file creation occurs in the file system when gz and log above threshold exists
+Please fix.
 
 Are all caught errors cleaning up properly after themselves? Open connections, file descriptors, and the like...
 

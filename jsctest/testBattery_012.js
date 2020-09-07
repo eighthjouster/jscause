@@ -23,7 +23,8 @@ const test_012_001_getCurrentLogFileName_invalidLogDir_undefined = Object.assign
         })
         .catch(e =>
         {
-          this.testPassed = (e.message.indexOf('must be of type string.') >= 0);
+          this.testPassed = ((e.message.indexOf('must be of type string.') >= 0) ||
+                             (e.message.indexOf('must be a string.') >= 0));
           this.continueTesting();
         });
 
@@ -51,7 +52,8 @@ const test_012_002_getCurrentLogFileName_invalidLogDir_nonString = Object.assign
         })
         .catch(e =>
         {
-          this.testPassed = (e.message.indexOf('must be of type string.') >= 0);
+          this.testPassed = ((e.message.indexOf('must be of type string.') >= 0) ||
+                             (e.message.indexOf('must be a string.') >= 0));
           this.continueTesting();
         });
 

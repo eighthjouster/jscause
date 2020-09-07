@@ -209,6 +209,38 @@ const jscCatch = (isTestMode) ?
   } :
   (cb) => cb;
 
+const fsStat = (isTestMode) ?
+  (file, cb) => {
+    let err;
+    try
+    {
+      fs.statSync(file);
+    }
+    catch(e)
+    {
+      err = e;
+    }
+    cb(err);
+  }
+  :
+  fs.stat;
+
+const fsUnlink = (isTestMode) ?
+  (file, cb) => {
+    let err;
+    try
+    {
+      fs.unlinkSync(file);
+    }
+    catch(e)
+    {
+      err = e;
+    }
+    cb(err);
+  }
+  :
+  fs.unlink;
+
 const setRuntimeException = (isTestMode) ?
   (rtContext, e) => {
     rtContext.runtimeException = e;
@@ -1340,7 +1372,7 @@ function setTempWorkDirectory(siteConfig, jscLogConfig)
 
 function doDeleteFile(thisFile, jscLogConfig)
 {
-  fs.stat(thisFile.path, jscCallback((err) =>
+  fsStat(thisFile.path, jscCallback((err) =>
   {
     if (err)
     {
@@ -1352,7 +1384,7 @@ function doDeleteFile(thisFile, jscLogConfig)
     }
     else
     {
-      fs.unlink(thisFile.path, jscCallback((err) =>
+      fsUnlink(thisFile.path, jscCallback((err) =>
       {
         if (err)
         {
@@ -1416,10 +1448,10 @@ function handleRequestTimeoutMonitoring(reqMonCtx, req, res, requestTimeoutSecs,
   return jscCallback(() => {
     ((reqMonCtx.postedForm || {}).openedFiles || []).forEach((thisFile) =>
     {
-      fs.stat(thisFile.path, jscCallback((err) =>
+      fsStat(thisFile.path, jscCallback((err) =>
       {
         if (err) { return; }
-        fs.unlink(thisFile.path, jscCallback((err) =>
+        fsUnlink(thisFile.path, jscCallback((err) =>
         {
           if (!err) { return; }
           JSCLog('warning', `Could not delete unhandled uploaded file: ${thisFile.name}`, jscLogConfig);
