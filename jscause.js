@@ -1527,18 +1527,34 @@ function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
 
 function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
 {
-  if (id)
-  {
-    delete ctx.waitForQueue[id];
-  }
-
   if (isCancellation)
   {
     return;
   }
 
-  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
   const { logging: { siteLogDir, doLogToConsole }, siteHostName, siteName } = identifiedSite;
+  const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
+
+  const baseLogOptions =
+  {
+    toConsole: doLogToConsole,
+    toServerDir: serverLogDir,
+    toSiteDir: siteLogDir,
+    fileSizeThreshold: logFileSizeThreshold
+  };
+
+  if (id)
+  {
+    if (ctx.waitForQueue[id])
+    {
+      delete ctx.waitForQueue[id];
+    }
+    else
+    {
+      JSCLog('warning', `Site: ${siteName}: attempted to process already sent response (retriggered timer?)`, Object.assign({}, baseLogOptions));
+      return;
+    }
+  }
 
   if (Object.keys(ctx.waitForQueue).length === 0)
   {
@@ -1562,7 +1578,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
         }
         catch(e)
         {
-          JSCLog('error', `Site: ${siteName}: Application error when processing ${runFileName}.`, { e });
+          JSCLog('error', `Site: ${siteName}: Application error when processing ${runFileName}.`, Object.assign({}, baseLogOptions, { e }));
           formUploadErrorOccurred = true;
         }
       }
@@ -1570,14 +1586,7 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
       if (runtimeException)
       {
         ctx.outputQueue = [];
-        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`,
-          {
-            e: runtimeException,
-            toConsole: doLogToConsole,
-            toServerDir: serverLogDir,
-            toSiteDir: siteLogDir,
-            fileSizeThreshold: logFileSizeThreshold
-          });
+        JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, Object.assign({}, baseLogOptions, { e: runtimeException }));
       }
 
       if (runtimeException || compileTimeError || formUploadErrorOccurred)
@@ -2494,7 +2503,6 @@ function resEnd(req, res, { siteHostName, isRefusedConnection, doLogToConsole, s
 
   res.end(response);
 }
-
 
 const getReqHostname = (isTestMode) ?
   (originalReqHostname, headers) =>

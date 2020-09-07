@@ -7,30 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Interesting.  This script seem to "retrigger" sending a response, or at least it logs it to the console.  Is this okay?  Or should it be addressed?:
-===
-const intervalHandler = rt.waitFor(() => {
-  rt.print('Nope.');
-  console.log('Noooope.');
-});
-
-setInterval(intervalHandler, 500);
-===
-That produces:
-Noooope.
-Wed, 02 Sep 2020 06:12:53 GMT - localhost - GET: / - 200
-Noooope.
-Wed, 02 Sep 2020 06:12:53 GMT - localhost - GET: / - 200
-Noooope.
-Wed, 02 Sep 2020 06:12:54 GMT - localhost - GET: / - 200
-Noooope.
-Wed, 02 Sep 2020 06:12:54 GMT - localhost - GET: / - 200
-Noooope.
-Wed, 02 Sep 2020 06:12:55 GMT - localhost - GET: / - 200
-Noooope.
-Wed, 02 Sep 2020 06:12:55 GMT - localhost - GET: / - 200
-[etc.]
-
 You should probably not use throw() but reject() whenever possible.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
@@ -42,6 +18,7 @@ CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in ei
 Logging should include time stamps.
 
 You will need to update some tests, as some site config-related error messages were modified to include the site name.
+ - If it's still necessary.
 
 There must by a way to chroot a process, so it doesn't escape the directory it's running on.
  - Preferably with node.

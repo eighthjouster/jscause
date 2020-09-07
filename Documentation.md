@@ -2813,6 +2813,15 @@ JSCause failed deleting an uploaded file.  It may not have permissions to do so,
 
 Message:
 ```
+warning: Site <site name>: attempted to process already sent response (retriggered timer?)
+```
+
+Explanation:
+Your program may have a retriggering timer (set up via `setInterval()` or a retriggering `setTimeout()`) with a callback enclosed in an `rt.waitFor()`.  The original request has been handled, and JSCause has moved on to the next request.  When the phantom timer from the previous request gets triggered again, its callback is invoked, and JSCause attempts to "end this request."  But because the request has already been ended, there is nothing left for JSCause to do.  Having said that, this phantom timer will live on (causing a memory leak!), therefore JSCause emits the warning.
+
+
+Message:
+```
 error: Could not rename unhandled uploaded file: <file name>
 (CONT) Renaming from: <old path>
 (CONT) Renaming to: <new path>
