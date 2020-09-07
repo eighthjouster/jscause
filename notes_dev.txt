@@ -7,20 +7,23 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-You will need to adapt the deleteCookie and setCookie (and possibly redirectTo) tests.
+I'm hacking the formidable module so it accepts hexoid, once, etc.
+
+Replace those var with const/let.
 
 The tests must pass under node 12.x.
+ - I'm updating formidable so the Buffer() warning goes away.
+   - Still working on that.
+     - On branch: new-formidable.
 
-The tests shouldn't hang at:
-onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...
-They should timeout and move on (after 15 seconds?).
- - This can be simulated if the:
-  if (isCancellation)
-  {
-    return;
-  }
-block is moved at the very top of:
-function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
+- Once we're here:
+  - Merge with devel.
+
+These are constantly failing:
+ - Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text
+ - Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value
+ - Contents; JSCP file; POST parameters; form uploading; form-data simple test; one file field; empty; temp files erased
+Once fixed on node 12, try them on node 8.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
@@ -37,8 +40,13 @@ There must by a way to chroot a process, so it doesn't escape the directory it's
  - Preferably with node.
 
 You may want to refresh the vendor files.  Any new versions?
+ - Done with formidable on the standalone version.
+   - Refresh the package.json one.
+ - What about the rest?
+ - And re-run tests.
 
 New certificate. Let it expire in two years, if possible.
+ - And re-run tests.
 
 Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
 
@@ -162,6 +170,7 @@ _Manually test_ (for real) the rest (uploads, serving error files, etc.)
 Take care of this:
 DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead
  - This may show in the Formidable source code.  Can you, um, "update"?
+   - If it still happens.  Node 12+.
 
 At this point, back up and....
 PUBLISH ANOTHER ALPHA!
@@ -365,11 +374,6 @@ So far:
 ==========================
 
 Order by priority:
-
-Every now and then, one of the following tests fails (or all of them):
- - Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text
- - Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value
-Why? Important? Fix, maybe?
 
 Are all caught errors cleaning up properly after themselves? Open connections, file descriptors, and the like...
 

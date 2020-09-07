@@ -108,6 +108,13 @@ const test_contents_001_post_params_form_uploading_simple = Object.assign(makeFr
 
       processResponse(this, postRequest, ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
+        console.info(this.contentReqExpectedSiteResponded);//__RP
+        console.info((statusCode === 200) && !dataReceived.length);//__RP
+        console.info((consoleLogOutput.status === 'captured'));//__RP
+        console.info(consoleLogOutput.lines);//__RP
+        console.info(['some_field_value']);//__RP
+        console.info(areFlatArraysEqual(consoleLogOutput.lines,['some_field_value']));//__RP
+
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode === 200) && !dataReceived.length &&
           (consoleLogOutput.status === 'captured') &&
@@ -828,14 +835,14 @@ const test_contents_011_post_params_form_uploading_two_files_same_filename_pt2 =
 module.exports =
 [
   test_contents_001_post_params_form_uploading_simple,
-  test_contents_002_post_params_form_uploading_malformed_pt1,
-  test_contents_003_post_params_form_uploading_malformed_pt2,
-  test_contents_004_post_params_form_uploading_two_fields,
-  test_contents_005_post_params_form_uploading_one_file_field_pt1,
-  test_contents_006_post_params_form_uploading_one_file_field_pt2,
-  test_contents_007_post_params_form_uploading_one_file_field_pt3,
-  test_contents_008_post_params_form_uploading_one_file_field_unsafe_name,
-  test_contents_009_post_params_form_uploading_two_files,
-  test_contents_010_post_params_form_uploading_two_files_same_filename_pt1,
-  test_contents_011_post_params_form_uploading_two_files_same_filename_pt2
+  // test_contents_002_post_params_form_uploading_malformed_pt1,
+  // test_contents_003_post_params_form_uploading_malformed_pt2,
+  // test_contents_004_post_params_form_uploading_two_fields,
+  // test_contents_005_post_params_form_uploading_one_file_field_pt1,
+  // test_contents_006_post_params_form_uploading_one_file_field_pt2,
+  // test_contents_007_post_params_form_uploading_one_file_field_pt3,
+  // test_contents_008_post_params_form_uploading_one_file_field_unsafe_name,
+  // test_contents_009_post_params_form_uploading_two_files,
+  // test_contents_010_post_params_form_uploading_two_files_same_filename_pt1,
+  // test_contents_011_post_params_form_uploading_two_files_same_filename_pt2
 ];

@@ -25,7 +25,8 @@ const JSCAUSE_WEBSITE_PATH = 'website';
 const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
-const VENDOR_TEMPLATE_FILENAME = 'jscvendor/vendor_template.jsctpl';
+const VENDOR_JSC_REQUIRE_FILENAME = 'jscvendor/_vendor_jscause_require.jsctpl';
+const VENDOR_TEMPLATE_FILENAME = 'jscvendor/_vendor_template.jsctpl';
 
 const PROMISE_ACTOR_TYPE_SUCCESS = 1;
 const PROMISE_ACTOR_TYPE_ERROR = 2;
@@ -906,7 +907,10 @@ function vendor_require(vendorModuleName)
   let compiledModule;
   let hydratedFile;
 
+  let jscauseRequireFile;
   let templateFile;
+
+  jscauseRequireFile = fs.readFileSync(VENDOR_JSC_REQUIRE_FILENAME, 'utf-8');
 
   try
   {
@@ -919,21 +923,46 @@ function vendor_require(vendorModuleName)
 
   if (typeof(templateFile) !== 'undefined')
   {
-    const requireName = `${vendorModuleNameWithPath}/index.js`;
+    const firstRequireName = `${vendorModuleNameWithPath}/index.js`;
+    const secondRequireName = `${vendorModuleNameWithPath}/src/index.js`;
+    let requireName = firstRequireName;
     try
     {
       moduleFile = fs.readFileSync(requireName, 'utf-8');
     }
     catch(e)
     {
-      console.error(`CRITICAL: Cannot load ${requireName} file.`);
+      // Silencing this error since we'll make a second attempt down below.
+    }
+
+    if (typeof(moduleFile) === 'undefined')
+    {
+      requireName = secondRequireName;
+      try
+      {
+        moduleFile = fs.readFileSync(requireName, 'utf-8');
+      }
+      catch(e)
+      {
+        console.error(`CRITICAL: Cannot load neither ${firstRequireName} nor ${secondRequireName} file.`);
+      }
     }
   }
 
   if (typeof(moduleFile) !== 'undefined')
   {
     moduleFile = moduleFile.replace(/\s+require\((['"']{1})/g, ' _jscause_require($1');
-    hydratedFile = templateFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath);
+    if (vendorModuleName === 'formidable')
+    {
+      //console.info(moduleFile);//__RP
+    }
+    hydratedFile = 
+    jscauseRequireFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath)
+    +
+    templateFile
+      .replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath)
+      .replace('__JSCAUSE__MAGIC_REPL@CE_KEY2727', '__JSCAUSE__THIS_MODULE__NAME__jscau$e1919');
+
     const Module = module.constructor;
     Module._nodeModulePaths(fsPath.dirname(''));
     try
@@ -945,6 +974,7 @@ function vendor_require(vendorModuleName)
     catch (e)
     {
       console.error(`CRITICAL: Could not compile vendor module ${vendorModuleName}.`);
+      console.error(e);
     }
   }
 
@@ -4409,14 +4439,14 @@ function loadVendorModules()
 {
   let allVendorModulesLoaded = true;
   
-  const cookies = vendor_require('cookies');
-  allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
+  //__RP const cookies = vendor_require('cookies');
+  // allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
   
   const formidable = vendor_require('formidable');
   allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
   
-  const sanitizeFilename = vendor_require('sanitize-filename');
-  allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
+  //__RP const sanitizeFilename = vendor_require('sanitize-filename');
+  // allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
   
   if (!allVendorModulesLoaded)
   {
