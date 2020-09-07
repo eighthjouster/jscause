@@ -233,6 +233,10 @@ const testUtils =
             console.info('INFO: Received chunk of data, ready to be processed...');
             resReceiveHandler(res);
           }
+          else
+          {
+            res.read();
+          }
         }
         catch(e)
         {
