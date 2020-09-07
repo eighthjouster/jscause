@@ -1527,11 +1527,6 @@ function deleteUnhandledFiles(unhandledFiles, jscLogConfig)
 
 function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
 {
-  if (isCancellation)
-  {
-    return;
-  }
-
   const { logging: { siteLogDir, doLogToConsole }, siteHostName, siteName } = identifiedSite;
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
 
@@ -1554,6 +1549,11 @@ function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
       JSCLog('warning', `Site: ${siteName}: attempted to process already sent response (retriggered timer?)`, Object.assign({}, baseLogOptions));
       return;
     }
+  }
+
+  if (isCancellation)
+  {
+    return;
   }
 
   if (Object.keys(ctx.waitForQueue).length === 0)

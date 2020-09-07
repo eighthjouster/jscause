@@ -11,6 +11,17 @@ You will need to adapt the deleteCookie and setCookie (and possibly redirectTo) 
 
 The tests must pass under node 12.x.
 
+The tests shouldn't hang at:
+onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...
+They should timeout and move on (after 15 seconds?).
+ - This can be simulated if the:
+  if (isCancellation)
+  {
+    return;
+  }
+block is moved at the very top of:
+function doneWith(serverConfig, identifiedSite, ctx, id, isCancellation)
+
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
   - And tests!!!

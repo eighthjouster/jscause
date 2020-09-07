@@ -274,7 +274,7 @@ const testUtils =
     {
       try
       {
-        reqSendHandler && reqSendHandler(req, postData);
+        reqSendHandler(req, postData);
       }
       catch(e)
       {
