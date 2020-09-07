@@ -101,8 +101,6 @@ Better error message when the page is suspected to be HTML only (remember that w
 <js='1');rt.print(/js> will work.
  - Should we eliminate this quirk?
 
-Add to testing: that vendor_require can deal with existing npm-installed modules.
-
 validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
 
 Tests validating that, just like <html/>,  <html /> (with a space) also works.

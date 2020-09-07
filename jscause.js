@@ -25,8 +25,6 @@ const JSCAUSE_WEBSITE_PATH = 'website';
 const JSCAUSE_SITECONF_FILENAME = fsPath.join(JSCAUSE_CONF_PATH, 'site.json');
 const FORMDATA_MULTIPART_RE = /^multipart\/form-data/i;
 const FORMDATA_URLENCODED_RE = /^application\/x-www-form-urlencoded/i;
-const VENDOR_JSC_REQUIRE_FILENAME = 'jscvendor/_vendor_jscause_require.jsctpl';
-const VENDOR_TEMPLATE_FILENAME = 'jscvendor/_vendor_template.jsctpl';
 
 const PROMISE_ACTOR_TYPE_SUCCESS = 1;
 const PROMISE_ACTOR_TYPE_ERROR = 2;
@@ -153,7 +151,9 @@ let runningServers;
  * *****************************************/
 
 const isTestMode = (process.argv[2] === 'runtests');
-const { cookies, formidable, sanitizeFilename } = loadVendorModules();
+const cookies = require('./jscvendor/node_modules/cookies');
+const formidable = require('./jscvendor/node_modules/formidable');
+const sanitizeFilename = require('./jscvendor/node_modules/sanitize-filename');
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
@@ -884,106 +884,6 @@ function JSCLogTerminate(options)
   }
 
   waitForLogsProcessingBeforeTerminate(options);
-}
-
-function vendor_require(vendorModuleName)
-{
-  let vendorModule;
-  try {
-    vendorModule = require(vendorModuleName);
-  }
-  catch(e) {
-    // The module is not installed.  We'll deal with this below.
-  }
-
-  if (vendorModule) {
-    return vendorModule;
-  }
-
-  // Let's hope that it's included as a dependency in the code base.
-
-  const vendorModuleNameWithPath = `./jscvendor/${vendorModuleName}`;
-  let moduleFile;
-  let compiledModule;
-  let hydratedFile;
-
-  let jscauseRequireFile;
-  let templateFile;
-
-  jscauseRequireFile = fs.readFileSync(VENDOR_JSC_REQUIRE_FILENAME, 'utf-8');
-
-  try
-  {
-    templateFile = fs.readFileSync(VENDOR_TEMPLATE_FILENAME, 'utf-8');
-  }
-  catch(e)
-  {
-    console.error(`CRITICAL: Cannot load ${VENDOR_TEMPLATE_FILENAME} vendor template file.`);
-  }
-
-  if (typeof(templateFile) !== 'undefined')
-  {
-    const firstRequireName = `${vendorModuleNameWithPath}/index.js`;
-    const secondRequireName = `${vendorModuleNameWithPath}/src/index.js`;
-    let requireName = firstRequireName;
-    try
-    {
-      moduleFile = fs.readFileSync(requireName, 'utf-8');
-    }
-    catch(e)
-    {
-      // Silencing this error since we'll make a second attempt down below.
-    }
-
-    if (typeof(moduleFile) === 'undefined')
-    {
-      requireName = secondRequireName;
-      try
-      {
-        moduleFile = fs.readFileSync(requireName, 'utf-8');
-      }
-      catch(e)
-      {
-        console.error(`CRITICAL: Cannot load neither ${firstRequireName} nor ${secondRequireName} file.`);
-      }
-    }
-  }
-
-  if (typeof(moduleFile) !== 'undefined')
-  {
-    moduleFile = moduleFile.replace(/\s+require\((['"']{1})/g, ' _jscause_require($1');
-    if (vendorModuleName === 'formidable')
-    {
-      //console.info(moduleFile);//__RP
-    }
-    hydratedFile = 
-    jscauseRequireFile.replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath)
-    +
-    templateFile
-      .replace('__JSCAUSE__THIS_MODULE__NAME__jscau$e1919', vendorModuleNameWithPath)
-      .replace('__JSCAUSE__MAGIC_REPL@CE_KEY2727', '__JSCAUSE__THIS_MODULE__NAME__jscau$e1919');
-
-    const Module = module.constructor;
-    Module._nodeModulePaths(fsPath.dirname(''));
-    try
-    {
-      const moduleToCompile = new Module();
-      moduleToCompile._compile(`${hydratedFile}\n${moduleFile}`, '');
-      compiledModule = moduleToCompile.exports;
-    }
-    catch (e)
-    {
-      console.error(`CRITICAL: Could not compile vendor module ${vendorModuleName}.`);
-      console.error(e);
-    }
-  }
-
-  if (!compiledModule)
-  {
-    console.error(`CRITICAL: Failed to load vendor module ${vendorModuleName}. The JSCause installation might be corrupted.`);
-  }
-
-  return compiledModule;
 }
 
 function prepareConfigFileForParsing(readConfigFile)
@@ -4434,28 +4334,6 @@ function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLo
  * Reading and processing the server configuration file
  *
  *******************************************************/
-
-function loadVendorModules()
-{
-  let allVendorModulesLoaded = true;
-  
-  //__RP const cookies = vendor_require('cookies');
-  // allVendorModulesLoaded = allVendorModulesLoaded && !!cookies;
-  
-  const formidable = vendor_require('formidable');
-  allVendorModulesLoaded = allVendorModulesLoaded && !!formidable;
-  
-  //__RP const sanitizeFilename = vendor_require('sanitize-filename');
-  // allVendorModulesLoaded = allVendorModulesLoaded && !!sanitizeFilename;
-  
-  if (!allVendorModulesLoaded)
-  {
-    console.error('CRITICAL: One or more vendor modules did not load.  JSCause will now terminate.');
-    process.exit(1);
-  }
-
-  return { cookies, formidable, sanitizeFilename };
-}
 
 function startApplication(options = { rootDir: undefined })
 {

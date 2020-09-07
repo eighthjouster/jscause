@@ -104,7 +104,6 @@ More testing, go through the code and start testing content-related stuff.  Chec
     - Static error 400, static error 500.
     - Other errors.
     - Make sure that the errors are logged to file/to console.
- - Test loadVendorModules()
  - exitApplication()
     - waitForLogsProcessingBeforeTerminate?
     - Is closeLogFile() being called at the very end?
