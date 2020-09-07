@@ -366,6 +366,11 @@ So far:
 
 Order by priority:
 
+Every now and then, one of the following tests fails (or all of them):
+ - Contents; JSCP file; POST parameters; form uploading; form-data simple test; two file fields; same field name; text
+ - Contents; JSCP file; POST parameters; form uploading; form-data simple test; binary value
+Why? Important? Fix, maybe?
+
 Are all caught errors cleaning up properly after themselves? Open connections, file descriptors, and the like...
 
 Use Cluster.  When a process dies because of an unhandled exception, spawn another one.

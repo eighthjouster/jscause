@@ -129,7 +129,7 @@ const test_contents_001_post_params_form_uploading_slow = Object.assign(makeFrom
         if (typeof(postData) !== 'undefined')
         {
           const totalTime = 3 * 1000; // 3 seconds.
-          const timeChunkSender = makeTimeChunkSender(req, postData, totalTime);
+          const timeChunkSender = makeTimeChunkSender(req, postData, totalTime, this);
           timeChunkSender();
         }
         else
@@ -234,7 +234,7 @@ const test_contents_002_post_params_form_uploading_slow_maxtime = Object.assign(
         if (typeof(postData) !== 'undefined')
         {
           const totalTime = 3 * 1000; // 3 seconds.
-          const timeChunkSender = makeTimeChunkSender(req, postData, totalTime);
+          const timeChunkSender = makeTimeChunkSender(req, postData, totalTime, this);
           timeChunkSender();
         }
         else

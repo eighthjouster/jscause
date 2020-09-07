@@ -401,8 +401,9 @@ const testUtils =
     return formBoundary;
   },
 
-  makeTimeChunkSender: (req, payload, totalTime) =>
+  makeTimeChunkSender: (req, payload, totalTime, testContext) =>
   {
+    const testName = testContext.testName;
     const payloadLength = Buffer.byteLength(payload);
     let bufferSliceStart = 0;
     const length = Math.floor(payloadLength * 0.2);
@@ -410,6 +411,11 @@ const testUtils =
     
     const timeChunkSender = () =>
     {
+      if (testName !== testContext.testName)
+      {
+        return;
+      }
+
       const bufferSliceEnd = bufferSliceStart + length;
   
       console.info(`INFO: Sending payload part - ${Math.min(bufferSliceEnd, payloadLength)} / ${payloadLength} ...`);
