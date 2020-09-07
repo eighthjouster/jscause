@@ -1666,7 +1666,7 @@ _Type_: Method.
 
 _Syntax_: `rt.deleteCookie(name:String)`
 
-_Returns_: Boolean.
+_Returns_: Object.
 
 It deletes a browser cookie.
 
@@ -1676,9 +1676,15 @@ Example:
 rt.deleteCookie('my_cookie');
 ```
 
-If it succeeds, it will return `true`.  Otherwise, it will return `false`.
+`rt.deleteCookie` returns an object representing the result of the cookie deletion operation.  Always check its value to make sure that everything went well.
 
-If `name` is not a string, `rt.deleteCookie` will return `false`.
+If the operation succeeds, `rt.deleteCookie` will return `{ success: true }`.
+
+If the operation fails, `rt.deleteCookie` will return `{ error: '<message>' }`, where `error` is a string explaining the issue.
+
+The `error` messages could be the following (list not complete):
+
+  - `Invalid cookie name. string expected.`
 
 See also:
  - [rt.getCookie](#rtgetcookie)
@@ -2158,7 +2164,7 @@ _Type_: Method.
 
 _Syntax_: `rt.setCookie(name:String, value:String[, options:Object])`
 
-_Returns_: String.
+_Returns_: Object.
 
 It sets the value of a browser cookie. `options` is optional, and it contains additional instructions to create or update the cookie.
 
@@ -2225,13 +2231,24 @@ const cookieValue2 = rt.getCookie('my_cookie', { path: '/' });
 
   An exception will be thrown if `secure` is `true` in non-HTTPS request.
 
+`rt.setCookie` returns an object representing the result of the cookie setting operation.  Always check its value to make sure that everything went well.
 
+If the operation succeeds, `rt.setCookie` will return `{ success: true }`.
+
+If the operation fails, `rt.setCookie` will return `{ error: '<message>' }`, where `error` is a string explaining the issue.
+
+The `error` messages could be one of the following (list not complete):
+
+  - `Invalid cookie name. string expected.`
+
+  - `Invalid expired value.  Date object expected.`
+
+  - `Invalid sameSite value.  'strict' or 'lax' expected.`
+
+  - `Cookie is secure but the connection is not HTTPS.  Will not send.`
+  
 The values of the `value` parameter, as well as those of the `domain` and `path` attributes of `option`, should be of the string type.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its `.toString()` equivalent.  For instance, objects will be assumed `"[object Object]"`, arrays will be converted to a string with its values comma-separated (e.g. `"[1,2,3]"`).
 
-If `name` is not a string, `rt.setCookie` will return `false`.
-
-To handle unexpected scenarios which could potentially throw exceptions (and therefore send an error 500 status code to the browser), `rt.setCookie()` could be wrapped in a `try/catch` block. If you do this, always check for exceptions and handle accordingly.
- 
 See also:
  - [rt.getCookie](#rtgetcookie)
  - [rt.deleteCookie](#rtdeletecookie)

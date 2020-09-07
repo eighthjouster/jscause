@@ -8,6 +8,9 @@ git bundle create jscause-.bundle devel
 =====
 
 You should probably not use throw() but reject() whenever possible.
+ - Pending: redirectTo() (it has a throw().)
+ 
+You will need to adapt the deleteCookie and setCookie (and possibly redirectTo) tests.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)

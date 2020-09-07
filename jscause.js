@@ -1994,12 +1994,14 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     setCookie(cookieName = '', value = '', options = {})
     {
+      const result = {};
+
       if (typeof(cookieName) !== 'string')
       {
-        return false;
+        result.error = 'Invalid cookie name. string expected.';
+        return result;
       }
 
-      let result = false;
       let { expires, maxAge, httpOnly = true, secure, path = '/', domain, sameSite, encodeURIValue = true } = options;
 
       const { connection = {}, protocol } = reqObject;
@@ -2007,12 +2009,14 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (secure && !((protocol === 'https') || isEncryptedConnection))
       {
-        throw(new Error('Cookie is secure but the connection is not HTTPS.  Will not send.'));
+        result.error = 'Cookie is secure but the connection is not HTTPS.  Will not send.';
+        return result;
       }
 
       if (expires && ((typeof(expires) !== 'object') || !(expires instanceof Date)))
       {
-        throw(new Error('Invalid expired value.  Date object expected.'));
+        result.error = 'Invalid expired value.  Date object expected.';
+        return result;
       }
 
       if (maxAge && (typeof(maxAge) !== 'number'))
@@ -2027,7 +2031,8 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (sameSite && ((sameSite !== 'strict') && (sameSite !== 'lax')))
       {
-        throw(new Error('Invalid sameSite value.  \'strict\' or \'lax\' expected.'));
+        result.error = 'Invalid sameSite value.  \'strict\' or \'lax\' expected.';
+        return result;
       }
 
       cookieName = encodeURIComponent(cookieName);
@@ -2047,38 +2052,35 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
           domain,
           sameSite
         });
-        result = true;
+        result.success = true;
       }
       catch(e)
       {
-        // Throwing as new error, so the line number makes sense to the user.
-        // (Otherwise, the line number shown will be that of the cookies compiled module.)
-        throw(new Error(e));
+        result.error = e;
       }
 
       return result;
     },
     deleteCookie(cookieName = '')
     {
+      const result = {};
+
       if (typeof(cookieName) !== 'string')
       {
-        return false;
+        result.error = 'Invalid cookie name. string expected.';
+        return result;
       }
-
-      let result = false;
 
       cookieName = encodeURIComponent(cookieName);
 
       try
       {
         jsCookies.set(cookieName);
-        result = true;
+        result.success = true;
       }
       catch(e)
       {
-        // Throwing as new error, so the line number makes sense to the user.
-        // (Otherwise, the line number shown will be that of the cookies compiled module.)
-        throw(new Error(e));
+        result.error = e;
       }
 
       return result;
