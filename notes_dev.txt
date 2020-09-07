@@ -9,7 +9,9 @@ git bundle create jscause-.bundle devel
 
 You should probably not use throw() but reject() whenever possible.
  - Pending: redirectTo() (it has a throw().)
- 
+
+Manually test setCookie/deleteCookie/redirectTo.
+
 You will need to adapt the deleteCookie and setCookie (and possibly redirectTo) tests.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!

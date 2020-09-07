@@ -1829,7 +1829,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   const currentPath = pathCheck && pathCheck[1] || '/';
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { fullSitePath, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
+  const { siteName, fullSitePath, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
 
   const jscLogConfig =
   {
@@ -1965,7 +1965,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (fsPath.isAbsolute(moduleName))
       {
-        JSCLog('error', `Module name and path ${moduleName} must be specified as relative.`, jscLogConfig);
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Module name and path ${moduleName} must be specified as relative.`, jscLogConfig);
         return null;
       }
       else
@@ -2089,27 +2089,28 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     {
       if (rtContext.runFileName === '/error4xx.jscp')
       {
-        throw(new Error('Endless redirection detected.'));
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Endless redirection detected.`, jscLogConfig);
+        return false;
       }
-      else
+
+      Object.assign(rtContext.redirection,
+        {
+          willHappen: true,
+          httpStatusCode: 302,
+          location: redirectUrl
+        }
+      );
+
+      if (typeof(delayInSeconds) === 'number')
       {
         Object.assign(rtContext.redirection,
           {
-            willHappen: true,
-            httpStatusCode: 302,
-            location: redirectUrl
+            delay: delayInSeconds
           }
         );
-
-        if (typeof(delayInSeconds) === 'number')
-        {
-          Object.assign(rtContext.redirection,
-            {
-              delay: delayInSeconds
-            }
-          );
-        }
       }
+
+      return true;
     },
     resetRedirectTo()
     {

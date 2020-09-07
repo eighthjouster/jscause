@@ -2086,7 +2086,7 @@ _Type_: Method.
 
 _Syntax_: `rt.redirectTo(redirectUrl:String[, delayInSeconds:Number])`
 
-_Returns_: Undefined.
+_Returns_: Boolean.
 
 It instructs the web client to redirect to a different url via an HTTP 302 (Found) code.
 
@@ -2095,6 +2095,8 @@ Example:
 ```
 rt.redirectTo('https://www.example.com', 5);
 ```
+
+If the redirection will happen, `rt.redirectTo()` will return `true`.  Otherwise, it will return `false`, and JSCause will log an error (which will appear in the log files and/or the terminal, depending on your site configuration.)
 
 The redirection will happen after all the JSCP code is run.  This includes all pending callbacks, for example, from timers and file operations.
 
