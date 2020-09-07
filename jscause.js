@@ -1998,7 +1998,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (typeof(cookieName) !== 'string')
       {
-        result.error = 'Invalid cookie name. string expected.';
+        result.error = 'Invalid cookie name. String expected.';
         return result;
       }
 
@@ -2067,7 +2067,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 
       if (typeof(cookieName) !== 'string')
       {
-        result.error = 'Invalid cookie name. string expected.';
+        result.error = 'Invalid cookie name. String expected.';
         return result;
       }
 
@@ -2087,12 +2087,6 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     redirectTo(redirectUrl = '', delayInSeconds)
     {
-      if (rtContext.runFileName === '/error4xx.jscp')
-      {
-        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Endless redirection detected.`, jscLogConfig);
-        return false;
-      }
-
       Object.assign(rtContext.redirection,
         {
           willHappen: true,
@@ -2109,8 +2103,6 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
           }
         );
       }
-
-      return true;
     },
     resetRedirectTo()
     {

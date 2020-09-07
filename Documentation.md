@@ -128,7 +128,7 @@ The `jscp` extension stands for "[J]ava[S]cript [C]ompiled [P]age."
 
 ## Installation
 
-JSCause requires [NodeJS](https://nodejs.org).  Please make sure you have it installed in your system.  Any version above 8.x should be fine.
+JSCause requires [NodeJS](https://nodejs.org).  Please make sure you have it installed in your system.  Any version equal or above 12.x should be fine.
 
 There are two types of installation: standalone JSCause, and installation via npm.
 
@@ -1684,7 +1684,7 @@ If the operation fails, `rt.deleteCookie` will return `{ error: '<message>' }`, 
 
 The `error` messages could be the following (list not complete):
 
-  - `Invalid cookie name. string expected.`
+  - `Invalid cookie name. String expected.`
 
 See also:
  - [rt.getCookie](#rtgetcookie)
@@ -2086,7 +2086,7 @@ _Type_: Method.
 
 _Syntax_: `rt.redirectTo(redirectUrl:String[, delayInSeconds:Number])`
 
-_Returns_: Boolean.
+_Returns_: Undefined.
 
 It instructs the web client to redirect to a different url via an HTTP 302 (Found) code.
 
@@ -2096,15 +2096,13 @@ Example:
 rt.redirectTo('https://www.example.com', 5);
 ```
 
-If the redirection will happen, `rt.redirectTo()` will return `true`.  Otherwise, it will return `false`, and JSCause will log an error (which will appear in the log files and/or the terminal, depending on your site configuration.)
-
 The redirection will happen after all the JSCP code is run.  This includes all pending callbacks, for example, from timers and file operations.
 
 `delayInSeconds` is optional, and will instruct the web client to wait that many seconds before performing the actual redirection.  This time is in addition to the time the JSCP code is run, as previously stated.  Its value must be a number.  Otherwise, it will be ignored.
 
 JSCause sets an HTTP 302 (found) status code to perform the redirect.  It also typically sets the `Location` HTTP header.  If delayInSeconds is provided and is valid, the `Refresh` header will be used instead.  This is not a standard header, although most modern browsers support it.
 
-If more than one `rt.redirectTo` call are made, only the last one will be taken into account.
+If more than one `rt.redirectTo` call is made, only the last one will be taken into account.
 
 The value of the `redirectUrl` parameter should be of the string type.  Numbers can be used, but they will be converted to strings.  Anything else will be converted to its `.toString()` equivalent.  For instance, objects will be assumed `"[object Object]"`, arrays will be converted to a string with its values comma-separated (e.g. `"[1,2,3]"`).  You most likely don't want to do this, so make sure you pass a string.
 
@@ -2241,7 +2239,7 @@ If the operation fails, `rt.setCookie` will return `{ error: '<message>' }`, whe
 
 The `error` messages could be one of the following (list not complete):
 
-  - `Invalid cookie name. string expected.`
+  - `Invalid cookie name. String expected.`
 
   - `Invalid expired value.  Date object expected.`
 
