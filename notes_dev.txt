@@ -13,24 +13,8 @@ CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in ei
  - Then, update the documentation and the tutorial to point this out.
  - I'VE DELETED THE RELEASE FOR NOW.
 
-Logging should include time stamps.
-
-You will need to update some tests, as some site config-related error messages were modified to include the site name.
- - If it's still necessary.
-
-There must by a way to chroot a process, so it doesn't escape the directory it's running on.
- - Preferably with node.
-
-You may want to refresh the vendor files.  Any new versions?
- - Done with formidable on the standalone version.
-   - Refresh the package.json one.
- - What about the rest?
- - And re-run tests.
-
 New certificate. Let it expire in two years, if possible.
  - And re-run tests.
-
-Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
 
 You have to make a video tutorial and place it in the docs.
 
@@ -40,6 +24,7 @@ Before announcing:
  - Generate new self-signed certificates.
  - Finish the website.
   - It needs a Contribute section. - Maybe?
+  - Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
 
 AT THIS POINT, RELEASE THE ALPHA.
 
@@ -354,6 +339,10 @@ So far:
 ==========================
 
 Order by priority:
+
+There must by a way to chroot a process, so it doesn't escape the directory it's running on.
+ - Preferably with node.
+   - But necessary.  Publishing an article should work too.
 
 Sometimes, this test fails:
  - Check that site file creation occurs in the file system when gz and log above threshold exists

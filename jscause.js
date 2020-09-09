@@ -241,6 +241,17 @@ const fsUnlink = (isTestMode) ?
   :
   fs.unlink;
 
+const formatLogMessage = (isTestMode) ?
+  (prefix, message) =>
+  {
+    return `<DATETIMESTAMPHERE>: ${(prefix) ? `${prefix}: ` : ''}${message}`;
+  }
+  :
+  (prefix, message, { dateTimeStamp } = {}) =>
+  {
+    return `${dateTimeStamp ? `${dateTimeStamp}: ` : ''}${(prefix) ? `${prefix}: ` : ''}${message}`;
+  };
+
 const setRuntimeException = (isTestMode) ?
   (rtContext, e) => {
     rtContext.runtimeException = e;
@@ -732,14 +743,9 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
     }));
 }
 
-function formatLogMessage(prefix, message)
-{
-  return `${(prefix) ? `${prefix}: ` : ''}${message}`;
-}
-
 function JSCLogQueueNext()
 {
-  const { type, message, logOptions } = JSCLogMessageQueue.shift();
+  const { type, message, logOptions, dateTimeStamp } = JSCLogMessageQueue.shift();
 
   let outputToFile = false;
   if (isTestMode)
@@ -774,7 +780,7 @@ function JSCLogQueueNext()
 
   if (toServerDir || toSiteDir)
   {
-    const formattedMessage = formatLogMessage(messagePrefix, message);
+    const formattedMessage = formatLogMessage(messagePrefix, message, { dateTimeStamp });
     if (toServerDir)
     {
       outputLogToDir(toServerDir, fileSizeThreshold, formattedMessage, toConsole);
@@ -808,7 +814,9 @@ function JSCLog(type, message, logOptions = {})
 {
   if (JSCLogMessageQueue.length <= MAX_FILELOG_QUEUE_ENTRIES)
   {
-    JSCLogMessageQueue.push({ type, message, logOptions });
+    const dateTimeStamp = (new Date()).toISOString();
+
+    JSCLogMessageQueue.push({ type, message, logOptions, dateTimeStamp });
   }
   else if (!JSCLogMessageQueueFullWarningTime || ((Date.now() - JSCLogMessageQueueFullWarningTime) > LOGQUEUEFULL_WARNING_INTERVAL))
   {
