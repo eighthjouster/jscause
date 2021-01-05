@@ -185,10 +185,46 @@ const test_005_004_configFilePositiveLoggingLogFileSizeThreshold = Object.assign
   }
 );
 
+const test_005_005_configFileInvalidallowExeExtensionsInOpr = Object.assign(testUtils.makeFromBaseTest('Config file with invalid allowExeExtensionsInOpr'),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents =
+      {
+        'sites':
+        [
+          {
+            'name': 'My Site',
+            'port': 3000,
+            'rootDirectoryName': 'mysite',
+            'enableHTTPS': false,
+            'allowExeExtensionsInOpr': 0
+          }
+        ],
+        'logging': {}
+      };
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site configuration: Site name \'My Site\' has an invalid \'allowexeextensionsinopr\' value.  Boolean expected.' ],
+      [ 'error', 'Site \'My Site\' not started.' ],
+      [ 'error', 'Server not started.  No sites are running.' ]
+    ],
+    onServerStarted()
+    {
+      this.testPassed = false;
+      this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
+    }
+  }
+);
+
 module.exports =
 [
   test_005_001_configFileInvalidEnableHTTPS,
   test_005_002_configFileInvalidLoggingGeneral,
   test_005_003_configFileInvalidLoggingLogFileSizeThreshold,
-  test_005_004_configFilePositiveLoggingLogFileSizeThreshold
+  test_005_004_configFilePositiveLoggingLogFileSizeThreshold,
+  test_005_005_configFileInvalidallowExeExtensionsInOpr
 ];

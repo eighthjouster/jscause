@@ -125,6 +125,7 @@ const defaultSiteConfig =
   includeHttpPoweredByHeader: true,
   mimeTypes: {},
   enableHTTPS: false,
+  allowExeExtensionsInOpr: false,
   httpsCertFile: undefined,
   httpsKeyFile: undefined
 };
@@ -3068,13 +3069,14 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
 
 function createInitialSiteConfig(siteInfo)
 {
-  const { name: siteName, port: sitePort, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS } = siteInfo;
+  const { name: siteName, port: sitePort, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS, allowexeextensionsinopr: allowExeExtensionsInOpr } = siteInfo;
   return Object.assign({}, defaultSiteConfig,
     {
       siteName,
       sitePort,
       rootDirectoryName,
-      enableHTTPS: (typeof(enableHTTPS) === 'undefined') ? false : enableHTTPS
+      enableHTTPS: (typeof(enableHTTPS) === 'undefined') ? false : enableHTTPS,
+      allowExeExtensionsInOpr: (typeof(allowExeExtensionsInOpr) === 'undefined') ? false : allowExeExtensionsInOpr
     }
   );
 }
@@ -4494,7 +4496,8 @@ function startApplication(options = { rootDir: undefined })
       'name',
       'port',
       'rootdirectoryname',
-      'enablehttps'
+      'enablehttps',
+      'allowexeextensionsinopr'
     ];
     
     const allSitesInServerLength = allSitesInServer.length;
@@ -4511,7 +4514,7 @@ function startApplication(options = { rootDir: undefined })
       {
         const siteConfig = createInitialSiteConfig(thisServerSite);
 
-        const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS } = siteConfig;
+        const { siteName, sitePort, rootDirectoryName: siteRootDirectoryName, enableHTTPS, allowExeExtensionsInOpr } = siteConfig;
 
         if (siteName)
         {
@@ -4583,6 +4586,15 @@ function startApplication(options = { rootDir: undefined })
           if (typeof(enableHTTPS) !== 'boolean')
           {
             JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} has an invalid 'enablehttps' value.  Boolean expected.`, jscLogBase);
+            readSuccess = false;
+          }
+        }
+
+        if (readSuccess)
+        {
+          if (typeof(allowExeExtensionsInOpr) !== 'boolean')
+          {
+            JSCLog('error', `Site configuration: Site name ${getSiteNameOrNoName(siteName)} has an invalid 'allowexeextensionsinopr' value.  Boolean expected.`, jscLogBase);
             readSuccess = false;
           }
         }

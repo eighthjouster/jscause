@@ -7,10 +7,36 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
++Ok, I've added the allowexeextensionsinopr config value to jscause.conf
+ +- I've added a test to validate the value.
+ Now:
+ - Implement.
+ - Test:
+   - allowexeextensionsinopr: false
+     - Copying non-jscp and non-jscm:  It should succeed.
+     - Copying jscp:  It should not succeed.
+     - Copying JSCP (to test case sensitivity):  It should not succeed.
+     - Copying jscm:  It should not succeed.
+   - allowexeextensionsinopr: not present
+     - Copying non-jscp and non-jscm:  It should succeed.
+     - Copying jscp:  It should not succeed.
+     - Copying JSCP (to test case sensitivity):  It should not succeed.
+     - Copying jscm:  It should not succeed.
+   - allowexeextensionsinopr: true
+     - Copying non-jscp and non-jscm:  It should succeed.
+     - Copying jscp:  It should succeed.
+     - Copying JSCP (to test case sensitivity):  It should succeed.
+     - Copying jscm:  It should succeed.
+  - Documentation:
+   - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)
+   - Update FAQ.
+   - Update the documentation file on both github and the website.
+
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
   - And tests!!!
  - Then, update the documentation and the tutorial to point this out.
+   - It's optional, and it's false by default.
  - I'VE DELETED THE RELEASE FOR NOW.
 
 New certificate. Let it expire in two years, if possible.
