@@ -1850,6 +1850,8 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     copyFile(source, destination, overwrite = true)
     {
+      const { allowExeExtensionsInOpr } = identifiedSite;
+      console.log('ALRIGHT! WE GOT: ' + allowExeExtensionsInOpr);//__RP
       if (!fsPath.isAbsolute(source))
       {
         source = fsPath.join(fullSitePath, source);
@@ -1860,17 +1862,35 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         destination = fsPath.join(fullSitePath, destination);
       }
 
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+      let proceedWithOperation = false;
+
+      if (!allowExeExtensionsInOpr)
       {
-        if (overwrite)
+        //__RP TO-DO:
+        // We must check if the destination is inside the website directory, and if the extensions are allowed.
+        // If the extensions are not allowed, do not proceed.
+      }
+
+      if (proceedWithOperation)
+      {
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
         {
-          fs.copyFile(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-        }
-        else
-        {
-          fs.copyFile(source, destination, fs.constants.COPYFILE_EXCL, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-        }
-      });
+          if (overwrite)
+          {
+            fs.copyFile(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+          }
+          else
+          {
+            fs.copyFile(source, destination, fs.constants.COPYFILE_EXCL, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+          }
+        });
+      }
+
+      //__RP else:
+      // ERROR!!!!!!! //__RP
+      const errorMessage = 'UGH';
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
     moveFile(source, destination, overwrite = true)
     {

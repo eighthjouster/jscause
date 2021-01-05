@@ -97,7 +97,12 @@ More testing, go through the code and start testing content-related stuff.  Chec
      - May need jscCallback/jscThen/jscCatch
   - Other rt's.
   - File operations.
-     - May need jscCallback/jscThen/jscCatch
+    - May need jscCallback/jscThen/jscCatch
+    - Tested so far:
+      +- copyFile - not yet, but:
+        - We tested its functionality with allowexeextensionsinopr.
+      - moveFile - not yet.
+        - Test with allowexeextensionsinopr as well; replicate what was tested with copyFile.
   - Redirects.
   - Cookies.
   - Error 400 / Error 500.

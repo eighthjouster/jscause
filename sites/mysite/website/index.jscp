@@ -14,3 +14,6 @@
     </ul>
   </body>
 </html>
+<js
+rt.copyFile('website/_deleteme.txt', 'website/_deleteme2.txt', true)
+.rtOnError((e) => {rt.print('Nope.');rt.print(e); console.log(e)});

@@ -11,7 +11,7 @@ git bundle create jscause-.bundle devel
  +- I've added a test to validate the value.
  Now:
  - Implement.
- - Test:
+ - Test with copyFile:
    - allowexeextensionsinopr: false
      - Copying non-jscp and non-jscm:  It should succeed.
      - Copying jscp:  It should not succeed.
