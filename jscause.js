@@ -1782,6 +1782,29 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
   return makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId);
 }
 
+function areFileOperationAllowedInWebsiteDir(fullWebsitePath, destinationPath, allowExeExtensionsInOpr)
+{
+  let proceedWithOperation = true;
+
+  if (!allowExeExtensionsInOpr)
+  {
+    // We must check if the destination is inside the website directory, and if the extensions are allowed.
+    // If the extensions are not allowed, do not proceed.
+    const websiteRootDir = fsPath.join(fullWebsitePath, JSCAUSE_WEBSITE_PATH).normalize('NFD');
+    const destinationDir = destinationPath.normalize('NFD');
+    
+    const relativePath = fsPath.relative(websiteRootDir.normalize('NFD'), destinationDir.normalize('NFD'));
+    const isInsideWebsiteDir = relativePath && !relativePath.startsWith('..') && !fsPath.isAbsolute(relativePath);
+
+    if (isInsideWebsiteDir)
+    {
+      proceedWithOperation = !destinationDir.match(/\.jscp$|\.jscm$/i);
+    }
+  }
+
+  return proceedWithOperation;
+}
+
 function createRunTime(serverConfig, identifiedSite, rtContext)
 {
   const { runFileName, getParams, postParams, contentType,
@@ -1793,7 +1816,12 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
   const currentPath = pathCheck && pathCheck[1] || '/';
 
   const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
-  const { siteName, fullSitePath, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
+  const {
+    siteName,
+    fullSitePath,
+    logging: { siteLogDir, doLogToConsole },
+    allowExeExtensionsInOpr
+  } = identifiedSite;
 
   const jscLogConfig =
   {
@@ -1850,7 +1878,6 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     copyFile(source, destination, overwrite = true)
     {
-      const { allowExeExtensionsInOpr } = identifiedSite;
       console.log('ALRIGHT! WE GOT: ' + allowExeExtensionsInOpr);//__RP
       if (!fsPath.isAbsolute(source))
       {
@@ -1862,14 +1889,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         destination = fsPath.join(fullSitePath, destination);
       }
 
-      let proceedWithOperation = false;
-
-      if (!allowExeExtensionsInOpr)
-      {
-        //__RP TO-DO:
-        // We must check if the destination is inside the website directory, and if the extensions are allowed.
-        // If the extensions are not allowed, do not proceed.
-      }
+      const proceedWithOperation = areFileOperationAllowedInWebsiteDir(fullSitePath, destination, allowExeExtensionsInOpr);
 
       if (proceedWithOperation)
       {
