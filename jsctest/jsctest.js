@@ -27,7 +27,8 @@ const allTests =
   'testBattery_contents_05',
   'testBattery_contents_06',
   'testBattery_contents_07',
-  'testBattery_contents_08'
+  'testBattery_contents_08',
+  'testBattery_contents_09'
 ];
 
 const fs = require('fs');
@@ -48,6 +49,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.createFile = createFile.bind(jscTestGlobal);
   jscTestGlobal.deleteFile = deleteFile.bind(jscTestGlobal);
   jscTestGlobal.readFile = readFile.bind(jscTestGlobal);
+  jscTestGlobal.fileExists = fileExists.bind(jscTestGlobal);
   jscTestGlobal.chmodFileOrDir = chmodFileOrDir.bind(jscTestGlobal);
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
   jscTestGlobal.isDirectoryEmpty = isDirectoryEmpty.bind(jscTestGlobal);
@@ -675,6 +677,12 @@ function readFile(dirPathList)
 
   console.error(`ERROR: ${filePath} does not exist.`);
   return null;
+}
+
+function fileExists(dirPathList)
+{
+  const filePath = this.getTestFilePath(dirPathList, 'fileExists', { errorMessage: 'No file path specified for checking file existence' });
+  return (filePath && fs.existsSync(filePath));
 }
 
 function chmodFileOrDir(dirPathList, permissionInOctal)

@@ -54,11 +54,7 @@ const
     initConsoleLogCapture
   } = testUtils;
 
-/* Notice: This is test will always pass because, by the time the test request delays the transfer,
-   NodeJS (and thus JSCause) has already sent the response to be handled by the OS.
-   We can probably make this code worthy if we ever implement res.setTimeout().
-*/
-const test_contents_001_jscp_index_large_response_slow = Object.assign(makeFromBaseTest('Contents; JSCP file; index; large; slow'),
+const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is unset (default true)'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -80,54 +76,35 @@ const test_contents_001_jscp_index_large_response_slow = Object.assign(makeFromB
 
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      
+      const sourceFile = 'source_test_file.txt';
+      const destFile = 'website/dest_test_file.txt';
+      this.tempTestData = { destFile };
+
+      this.createFile(['sites', 'mysite', sourceFile], 'Some contents.');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `rt.copyFile('${sourceFile}', '${destFile}')`);
       
       initConsoleLogCapture();
-      const longArray = [];
-      const chunkTriggeringLength = 150000;
-      const chunkTriggeringLengthMinusNewLines = chunkTriggeringLength - 6; // 6 represents the newline+space characters at the beginning and at the end of the response.
 
-      for (let i = 0; i < chunkTriggeringLengthMinusNewLines; i++)
-      {
-        longArray.push(`${Math.floor(Math.random() * 10)}`);
-      }
-
-      const largeContent = longArray.join('');
-
-      this.tempTestData = { chunkTriggeringLength, largeContent };
-      this.createFile(['sites', 'mysite', 'website', 'index.jscp'],
-        [
-          '<html/>',
-          largeContent
-        ].join('\n'));
       this.isRequestsTest = true;
     },
     onReadyForRequests()
     {
-      const resReceiveHandler = (res) =>
+      const { destFile } = this.tempTestData;
+      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        res.pause();
-        setTimeout(() => res.read(), 1000);
-      };
-
-      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived }) =>
-      {
-        const { chunkTriggeringLength, largeContent } = this.tempTestData;
-        const bufferDataReceived = Buffer.concat(dataReceived);
-
-        const crAndSpace = Buffer.from([32, 10, 32]);
-        const largeContentAsMustBeReceived = Buffer.concat([crAndSpace, Buffer.from(largeContent), crAndSpace], chunkTriggeringLength);
-        const dataSetsAreEqual = (Buffer.compare(bufferDataReceived, largeContentAsMustBeReceived) === 0);
-
         this.testPassed = this.contentReqExpectedSiteResponded &&
-          (statusCode === 200) && (dataReceived.length > 1) && // There have to be at least 2 chunks.
-          (bufferDataReceived.byteLength === chunkTriggeringLength) &&
-          dataSetsAreEqual;
-      }, { resReceiveHandler });
+          (statusCode === 200) && !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          this.fileExists(['sites', 'mysite', destFile]);
+      });
     }
   }
 );
 
+
 module.exports =
 [
-  test_contents_001_jscp_index_large_response_slow
+  test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset
 ];
