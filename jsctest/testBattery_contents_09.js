@@ -54,7 +54,7 @@ const
     initConsoleLogCapture
   } = testUtils;
 
-const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is unset (default true)'),
+const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -77,7 +77,6 @@ const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset 
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
-      
       const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       this.tempTestData = { sourceFile, destFile };
@@ -109,7 +108,7 @@ const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset 
   }
 );
 
-const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is true'),
+const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -129,7 +128,6 @@ const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true =
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
-      
       const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       this.tempTestData = { sourceFile, destFile };
@@ -161,7 +159,7 @@ const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true =
   }
 );
 
-const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is false'),
+const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
   {
     // only: true,
@@ -181,7 +179,162 @@ const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false 
       const siteConfContents = makeBaseSiteConfContents();
       this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
 
+      const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
+      const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.txt`;
+      this.tempTestData = { sourceFile, destFile };
+
+      this.createFile(['sites', 'mysite', sourceFile], 'Some contents.');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `rt.copyFile('${sourceFile}', '${destFile}')`);
       
+      initConsoleLogCapture();
+
+      this.isRequestsTest = true;
+    },
+    onReadyForRequests()
+    {
+      const { destFile } = this.tempTestData;
+      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 200) && !dataReceived.length &&
+          (consoleLogOutput.status === 'captured') &&
+          this.fileExists(['sites', 'mysite', destFile]);
+      });
+    },
+    onTestEnd()
+    {
+      const { sourceFile, destFile } = this.tempTestData;
+      this.deleteFile(['sites', 'mysite', sourceFile]);
+      this.deleteFile(['sites', 'mysite', destFile]);
+    }
+  }
+);
+
+const test_contents_004_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is unset (default false)'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents();
+
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
+      const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.jscp`;
+      this.tempTestData = { sourceFile, destFile };
+
+      this.createFile(['sites', 'mysite', sourceFile], 'Some contents.');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `rt.copyFile('${sourceFile}', '${destFile}')`);
+      
+      initConsoleLogCapture();
+
+      this.isRequestsTest = true;
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site: My Site: Runtime error on file /index.jscp: allowExeExtensionsInOpr server configuration disallows copy file operation involving', 'prefix' ]
+    ],
+    onReadyForRequests()
+    {
+      const { destFile } = this.tempTestData;
+      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 500) && !dataReceived.length &&
+          this.gotAllExpectedLogMsgs &&
+          (consoleLogOutput.status === 'captured') &&
+          !this.fileExists(['sites', 'mysite', destFile]);
+      });
+    },
+    onTestEnd()
+    {
+      const { sourceFile, destFile } = this.tempTestData;
+      this.deleteFile(['sites', 'mysite', sourceFile]);
+      this.deleteFile(['sites', 'mysite', destFile]);
+    }
+  }
+);
+
+const test_contents_005_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents({
+        'sites':
+        [
+          makeBaseSite({
+            allowExeExtensionsInOpr: false
+          })
+        ],
+      });
+
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
+      const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
+      const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.jscp`;
+      this.tempTestData = { sourceFile, destFile };
+
+      this.createFile(['sites', 'mysite', sourceFile], 'Some contents.');
+      this.createFile(['sites', 'mysite', 'website', 'index.jscp'], `rt.copyFile('${sourceFile}', '${destFile}')`);
+      
+      initConsoleLogCapture();
+
+      this.isRequestsTest = true;
+    },
+    expectedLogMessages:
+    [
+      [ 'error', 'Site: My Site: Runtime error on file /index.jscp: allowExeExtensionsInOpr server configuration disallows copy file operation involving', 'prefix' ]
+    ],
+    onReadyForRequests()
+    {
+      const { destFile } = this.tempTestData;
+      processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
+      {
+        this.testPassed = this.contentReqExpectedSiteResponded &&
+          (statusCode === 500) && !dataReceived.length &&
+          this.gotAllExpectedLogMsgs &&
+          (consoleLogOutput.status === 'captured') &&
+          !this.fileExists(['sites', 'mysite', destFile]);
+      });
+    },
+    onTestEnd()
+    {
+      const { sourceFile, destFile } = this.tempTestData;
+      this.deleteFile(['sites', 'mysite', sourceFile]);
+      this.deleteFile(['sites', 'mysite', destFile]);
+    }
+  }
+);
+
+const test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is true'),
+  makeTestEndBoilerplate.call(this),
+  {
+    // only: true,
+    onTestBeforeStart()
+    {
+      const jsCauseConfContents = makeBaseJsCauseConfContents({
+        'sites':
+        [
+          makeBaseSite({
+            allowExeExtensionsInOpr: true
+          })
+        ],
+      });
+
+      this.createFile('jscause.conf', JSON.stringify(jsCauseConfContents));
+
+      const siteConfContents = makeBaseSiteConfContents();
+      this.createFile(['sites', 'mysite', 'configuration', 'site.json'], JSON.stringify(siteConfContents));
+
       const sourceFile = `source_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       const destFile = `website/dest_test_file_${Math.floor(Math.random() * 100000)}.txt`;
       this.tempTestData = { sourceFile, destFile };
@@ -216,6 +369,9 @@ const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false 
 module.exports =
 [
   test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset,
-  test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true,
-  test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false
+  test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false,
+  test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true,
+  test_contents_004_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_unset,
+  test_contents_005_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_false,
+  test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true
 ];
