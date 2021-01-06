@@ -215,6 +215,94 @@ const test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset
   )
 );
 
+const test_contents_008_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destDir: 'website', destExtension: '.JSCP' },
+    expectedCopyFailErrorLogMessages,
+    copyFileFailTestChecker
+  )
+);
+
+const test_contents_009_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP; allowexeextensionsinopr is true'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: true },
+    {},
+    { destDir: 'website', destExtension: '.JSCP' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_010_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is unset (default false)'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    {},
+    {},
+    { destDir: 'website', destExtension: '.jscm' },
+    expectedCopyFailErrorLogMessages,
+    copyFileFailTestChecker
+  )
+);
+
+const test_contents_011_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destDir: 'website', destExtension: '.jscm' },
+    expectedCopyFailErrorLogMessages,
+    copyFileFailTestChecker
+  )
+);
+
+const test_contents_012_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is true'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: true },
+    {},
+    { destDir: 'website', destExtension: '.jscm' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_013_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is unset (default false)'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    {},
+    {},
+    { destDir: 'website', destExtension: '.JSCM' },
+    expectedCopyFailErrorLogMessages,
+    copyFileFailTestChecker
+  )
+);
+
+const test_contents_014_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destDir: 'website', destExtension: '.JSCM' },
+    expectedCopyFailErrorLogMessages,
+    copyFileFailTestChecker
+  )
+);
+
+const test_contents_015_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is true'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprTest(
+    { allowExeExtensionsInOpr: true },
+    {},
+    { destDir: 'website', destExtension: '.JSCM' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
 module.exports =
 [
   test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset,
@@ -223,5 +311,13 @@ module.exports =
   test_contents_004_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_unset,
   test_contents_005_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_false,
   test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true,
-  test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset
+  test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset,
+  test_contents_008_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_false,
+  test_contents_009_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_true,
+  test_contents_010_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_unset,
+  test_contents_011_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_false,
+  test_contents_012_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_true,
+  test_contents_013_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_unset,
+  test_contents_014_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_false,
+  test_contents_015_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_true
 ];
