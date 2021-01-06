@@ -1880,7 +1880,6 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     copyFile(source, destination, overwrite = true)
     {
-      console.info('ALRIGHT! WE GOT: ' + allowExeExtensionsInOpr);//__RP
       if (!fsPath.isAbsolute(source))
       {
         source = fsPath.join(fullSitePath, source);
