@@ -13,6 +13,7 @@
     - [sites](#sites)
     - [logging](#logging)
     - [requestTimeoutSecs](#requesttimeoutsecs)
+    - [allowExeExtensionsInOpr](#allowexeextensionsinopr)
 -  [Example jscause.conf configuration](#example-jscauseconf-configuration)
 -  [site.json: Configuring your website's details](#sitejson-configuring-your-websites-details)
 -  [Example site.json configuration](#example-sitejson-configuration)
@@ -384,6 +385,16 @@ So, when JSCause gives the whole response for the operating system to handle, `r
 If the request exceeds the time specified by `requestTimeoutSecs`, JSCause will respond with an HTTP 408 (request timeout) error.
 
 If `requestTimeoutSecs` is 0, no timeout is set and, therefore, the request can take as long as it needs.
+
+### allowExeExtensionsInOpr:
+
+TO-DO: EXPLAIN HERE.
+
+```
+"allowExeExtensionsInOpr": false
+```
+
+TO-DO: EXPLAIN HERE MORE.
 
 Here is an example configuration:
 
@@ -1658,6 +1669,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
+ - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
  - [RT Promises](#rt-promises)
  
 ### rt.deleteCookie()
@@ -1723,6 +1735,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
+ - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
  - [RT Promises](#rt-promises)
  
 ### rt.fileExists()
@@ -1758,6 +1771,7 @@ See also:
  - [rt.deleteFile](#rtdeletefile)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
+ - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
  - [RT Promises](#rt-promises)
  
 ### rt.getCookie()
@@ -1920,6 +1934,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
+ - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
  - [RT Promises](#rt-promises)
  
 ### rt.postParams
@@ -2078,6 +2093,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
+ - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
  - [RT Promises](#rt-promises)
  
 ### rt.redirectTo()

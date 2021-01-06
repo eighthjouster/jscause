@@ -1906,9 +1906,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         });
       }
 
-      //__RP else:
-      // ERROR!!!!!!! //__RP
-      const errorMessage = 'UGH';
+      const errorMessage = `allowExeExtensionsInOpr server configuration disallows copy file operation involving ${destination}`;
       const error = new Error(errorMessage);
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },

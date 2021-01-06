@@ -7,30 +7,30 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-+Ok, I've added the allowexeextensionsinopr config value to jscause.conf
- +- I've added a test to validate the value.
- Now:
- - Implement.
- - Test with copyFile:
-   - allowexeextensionsinopr: false
-     - Copying non-jscp and non-jscm:  It should succeed.
-     - Copying jscp:  It should not succeed.
-     - Copying JSCP (to test case sensitivity):  It should not succeed.
-     - Copying jscm:  It should not succeed.
-   - allowexeextensionsinopr: not present
-     - Copying non-jscp and non-jscm:  It should succeed.
-     - Copying jscp:  It should not succeed.
-     - Copying JSCP (to test case sensitivity):  It should not succeed.
-     - Copying jscm:  It should not succeed.
-   - allowexeextensionsinopr: true
-     - Copying non-jscp and non-jscm:  It should succeed.
-     - Copying jscp:  It should succeed.
-     - Copying JSCP (to test case sensitivity):  It should succeed.
-     - Copying jscm:  It should succeed.
+copy/move/delete/exists/read
+
+ +- Implement allowexeextensionsinopr.
+  - Done, but needs testing.
+    - Test with copyFile:
+      - allowexeextensionsinopr: false
+        - Copying non-jscp and non-jscm:  It should succeed.
+        - Copying jscp:  It should not succeed.
+        - Copying JSCP (to test case sensitivity):  It should not succeed.
+        - Copying jscm:  It should not succeed.
+      - allowexeextensionsinopr: not present
+        - Copying non-jscp and non-jscm:  It should succeed.
+        - Copying jscp:  It should not succeed.
+        - Copying JSCP (to test case sensitivity):  It should not succeed.
+        - Copying jscm:  It should not succeed.
+      - allowexeextensionsinopr: true
+        - Copying non-jscp and non-jscm:  It should succeed.
+        - Copying jscp:  It should succeed.
+        - Copying JSCP (to test case sensitivity):  It should succeed.
+        - Copying jscm:  It should succeed.
   - Documentation:
-   - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)
-   - Update FAQ.
    - Update the documentation file on both github and the website.
+     - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
+     - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
@@ -365,6 +365,9 @@ So far:
 ==========================
 
 Order by priority:
+
+- Will JSCause run files that end in .JSCM/.JSCP (all upper-case) in a case-insensitive filysystem? (It shouldn't.)
+      - Update the docs with whatever you find.
 
 There must by a way to chroot a process, so it doesn't escape the directory it's running on.
  - Preferably with node.
