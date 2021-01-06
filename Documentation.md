@@ -13,7 +13,6 @@
     - [sites](#sites)
     - [logging](#logging)
     - [requestTimeoutSecs](#requesttimeoutsecs)
-    - [allowExeExtensionsInOpr](#allowexeextensionsinopr)
 -  [Example jscause.conf configuration](#example-jscauseconf-configuration)
 -  [site.json: Configuring your website's details](#sitejson-configuring-your-websites-details)
 -  [Example site.json configuration](#example-sitejson-configuration)
@@ -260,6 +259,16 @@ This attribute indicates whether the site is served as either HTTPS (`true`) or 
 
 If HTTPS is enabled, you must provide JSCause with your certificate file, as well as your certificate's public key file.  Check out these resources: [httpsCertFile and httpsKeyFile section on site.json](#sitejson-configuring-your-websites-details), and the [HTTPS/SSL configuration section](#httpsssl-configuration).
 
+___allowExeExtensionsInOpr___
+
+TO-DO: EXPLAIN HERE.
+
+```
+"allowExeExtensionsInOpr": false
+```
+
+TO-DO: EXPLAIN HERE MORE.
+
 ### logging:
 
 This is a list of attributes to indicate what JSCause will log, and how:
@@ -385,16 +394,6 @@ So, when JSCause gives the whole response for the operating system to handle, `r
 If the request exceeds the time specified by `requestTimeoutSecs`, JSCause will respond with an HTTP 408 (request timeout) error.
 
 If `requestTimeoutSecs` is 0, no timeout is set and, therefore, the request can take as long as it needs.
-
-### allowExeExtensionsInOpr:
-
-TO-DO: EXPLAIN HERE.
-
-```
-"allowExeExtensionsInOpr": false
-```
-
-TO-DO: EXPLAIN HERE MORE.
 
 Here is an example configuration:
 
@@ -610,7 +609,7 @@ If a MIME type is defined more than once in the `"include"` list, JSCause makes 
 
 ___logging:___
 
-Just like in [`site.conf`](#logging), this is a list of attributes to indicate what aspects of the website JSCause will log, and how:
+Just like [`logging` in `jscause.conf`](#logging), this is a list of attributes to indicate what aspects of the website JSCause will log, and how:
 
 ```
 "logging": {
@@ -1669,7 +1668,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
- - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
+ - [Sites `allowExeExtensionsInOpr` configuration attribute in `jscause.conf`](#sites)
  - [RT Promises](#rt-promises)
  
 ### rt.deleteCookie()
@@ -1735,7 +1734,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
- - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
+ - [Sites `allowExeExtensionsInOpr` configuration attribute in `jscause.conf`](#sites)
  - [RT Promises](#rt-promises)
  
 ### rt.fileExists()
@@ -1771,7 +1770,7 @@ See also:
  - [rt.deleteFile](#rtdeletefile)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
- - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
+ - [Sites `allowExeExtensionsInOpr` configuration attribute in `jscause.conf`](#sites)
  - [RT Promises](#rt-promises)
  
 ### rt.getCookie()
@@ -1934,7 +1933,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
- - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
+ - [Sites `allowExeExtensionsInOpr` configuration attribute in `jscause.conf`](#sites)
  - [RT Promises](#rt-promises)
  
 ### rt.postParams
@@ -2093,7 +2092,7 @@ See also:
  - [rt.fileExists](#rtfileexists)
  - [rt.uploadedFiles](#rtuploadedfiles)
  - [rt.runAfter](#rtrunafter)
- - [Server configuration: `allowExeExtensionsInOpr`](#allowexeextensionsinopr)
+ - [Sites `allowExeExtensionsInOpr` configuration attribute in `jscause.conf`](#sites)
  - [RT Promises](#rt-promises)
  
 ### rt.redirectTo()
@@ -2419,7 +2418,7 @@ Remember that the [`requestTimeoutSecs`](#requesttimeoutsecs) (`requesttimeoutse
 There is a trick to work around this limitation, though.  Since `rt.waitFor()` returns a callback, then create such callback _outside_ of the block that will be called several times.  When the multiple-call operation ends, make sure to call that originally created callback.  Here's an example:
 
 ```
-let t=1; // Let's increase this variable by 1 in an interval, until it reaches 10.
+let t = 1; // Let's increase this variable by 1 in an interval, until it reaches 10.
 
 const appEnd = rt.waitFor(); // JSCause will not send a response until appEnd() is called.
 
