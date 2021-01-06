@@ -360,7 +360,7 @@ const test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true 
     onTestEnd()
     {
       const { sourceFile, destFile } = this.tempTestData;
-      //__RP this.deleteFile(['sites', 'mysite', sourceFile]);
+      this.deleteFile(['sites', 'mysite', sourceFile]);
       //__RP this.deleteFile(['sites', 'mysite', destFile]);
     }
   }
@@ -399,12 +399,6 @@ const test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset
       const { destFile } = this.tempTestData;
       processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
       {
-        console.log(this.contentReqExpectedSiteResponded, 
-          (statusCode === 500),  !dataReceived.length, 
-          this.gotAllExpectedLogMsgs, 
-          (consoleLogOutput.status === 'captured'), 
-          !this.fileExists(['sites', 'mysite', destFile]));//__RP
-
         this.testPassed = this.contentReqExpectedSiteResponded &&
           (statusCode === 500) && !dataReceived.length &&
           this.gotAllExpectedLogMsgs &&

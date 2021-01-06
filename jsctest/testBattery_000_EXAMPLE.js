@@ -32,9 +32,9 @@ const emptyDir =
     this.testPassed = false;
     this.terminateApplication(/* 'The server started okay.  It might be good or bad, depending on the test.' */);
   },
-  onServerError()
+  onServerError(/* errorMessage = '' */)
   {
-    // return 'The server emitted an error.  It might be good or bad, depending on the test.';
+    // return `The server emitted an error.  It might be good or bad, depending on the test. Error returned: '${errorMessage}'`;
   },
   onServerStartedOrError()
   {

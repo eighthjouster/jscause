@@ -337,9 +337,9 @@ function nextTest(jscTestGlobal)
       };
   
       const originalOnServerError = jscTestGlobal.onServerError;
-      jscTestGlobal.onServerError = () =>
+      jscTestGlobal.onServerError = (errorMessage) =>
       {
-        resolve(originalOnServerError.call(jscTestGlobal));
+        resolve(originalOnServerError.call(jscTestGlobal, errorMessage));
         if (typeof(jscTestGlobal.onServerStartedOrError) === 'function')
         {
           jscTestGlobal.onServerStartedOrError.call(jscTestGlobal);
@@ -608,14 +608,14 @@ function terminateApplication({resolveMessage = '', onComplete} = {})
   const { jscLib } = jscTestGlobal;
   jscLib.exitApplication(
     {
-      onTerminateComplete()
+      onTerminateComplete(terminateMessage)
       {
         invokeOnCompletion(jscTestGlobal, resolveMessage);
         if (!jscTestGlobal.serverDidStart)
         {
           console.warn('\nWARNING!  The server never started (already running in a different process?)');
         }
-        onComplete && onComplete();
+        onComplete && onComplete(terminateMessage);
       }
     });
 }

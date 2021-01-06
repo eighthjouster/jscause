@@ -30,9 +30,9 @@ const testUtils =
       {
         // The server started okay.  It might be good or bad, depending on the test.
       },
-      onServerError()
+      onServerError(/* errorMessage = '' */)
       {
-        // return 'The server emitted an error.  It might be good or bad, depending on the test.';
+        // return return `The server emitted an error.  It might be good or bad, depending on the test. Error returned: '${errorMessage}'`;
       },
       onServerStartedOrError()
       {
@@ -299,6 +299,11 @@ const testUtils =
   makeTestEndBoilerplate()
   {
     return {
+      onServerError(errorMessage = '')
+      {
+        this.testPassed = false;
+        return `ERROR:  The server did not start.  This should have not happened. Check the test configuration and website contents. Error returned: '${errorMessage || ''}'`;
+      },
       onAllRequestsEnded()
       {
         this.terminateApplication({ onComplete: this.waitForDoneSignal() });

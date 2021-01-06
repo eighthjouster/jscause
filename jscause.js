@@ -873,7 +873,8 @@ function waitForLogsProcessingBeforeTerminate(options)
         )
           .then(() =>
           {
-            options.onTerminateComplete();
+            const terminateMessage = options.terminateMessage;
+            options.onTerminateComplete(terminateMessage);
           })
           .catch((e) =>
           {
@@ -892,7 +893,8 @@ function waitForLogsProcessingBeforeTerminate(options)
       jscTestGlobal.isWaitingForLogTermination = false;
       if (typeof(options.onTerminateComplete) === 'function')
       {
-        options.onTerminateComplete();
+        const terminateMessage = options.terminateMessage;
+        options.onTerminateComplete(terminateMessage);
       }
     }
   }
@@ -1878,7 +1880,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     copyFile(source, destination, overwrite = true)
     {
-      console.log('ALRIGHT! WE GOT: ' + allowExeExtensionsInOpr);//__RP
+      console.info('ALRIGHT! WE GOT: ' + allowExeExtensionsInOpr);//__RP
       if (!fsPath.isAbsolute(source))
       {
         source = fsPath.join(fullSitePath, source);
@@ -2871,7 +2873,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
       options.onServerStartedOrError();
     }
 
-    JSCLogTerminate({ onTerminateComplete: options.onServerError });
+    JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: e.message });
 
     if (isTestMode)
     {
@@ -2983,7 +2985,7 @@ function startServer(siteConfig, jscLogConfigBase, options)
         result = false;
       }
     }
-    
+
     if (webServer)
     {
       runningServer.webServer = webServer;
@@ -5039,7 +5041,7 @@ function startApplication(options = { rootDir: undefined })
   else
   {
     JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-    JSCLogTerminate({ onTerminateComplete: options.onServerError });
+    JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: 'No sites started.  Check the logs for more info.' });
   }
 
   if (!isTestMode)
