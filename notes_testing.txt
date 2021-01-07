@@ -16,6 +16,7 @@ Do we ever use doRemoveDirectoryFromPathList()?
  - Test: Two sites, two separate temp upload directories, right?
 
 To test:
+ - Test that the server fails gracefully if there is at least one JSCP that can't be compiled when starting up.
  - Each section, see where they're being used, and test that part first.
  - To test: (But more in the context of e2e - like, "upload file, then what happens?")
    - startApplication()
