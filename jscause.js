@@ -1784,7 +1784,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
   return makeRTOnSuccessOnErrorHandlers(serverConfig, identifiedSite, rtContext, promiseContext, defaultSuccessWaitForId, defaultErrorWaitForId);
 }
 
-function areFileOperationAllowedInWebsiteDir(fullWebsitePath, destinationPath, allowExeExtensionsInOpr)
+function areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, targetPath, allowExeExtensionsInOpr)
 {
   let proceedWithOperation = true;
 
@@ -1792,15 +1792,14 @@ function areFileOperationAllowedInWebsiteDir(fullWebsitePath, destinationPath, a
   {
     // We must check if the destination is inside the website directory, and if the extensions are allowed.
     // If the extensions are not allowed, do not proceed.
-    const websiteRootDir = fsPath.join(fullWebsitePath, JSCAUSE_WEBSITE_PATH).normalize('NFD');
-    const destinationDir = destinationPath.normalize('NFD');
+    const normalizedTargetPath = targetPath.normalize('NFD');
+    const relativePath = fsPath.relative(websiteNormalizedPath, normalizedTargetPath);
     
-    const relativePath = fsPath.relative(websiteRootDir.normalize('NFD'), destinationDir.normalize('NFD'));
     const isInsideWebsiteDir = relativePath && !relativePath.startsWith('..') && !fsPath.isAbsolute(relativePath);
 
     if (isInsideWebsiteDir)
     {
-      proceedWithOperation = !destinationDir.match(/\.jscp$|\.jscm$/i);
+      proceedWithOperation = !normalizedTargetPath.match(/\.jscp$|\.jscm$/i);
     }
   }
 
@@ -1832,6 +1831,8 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     toSiteDir: siteLogDir,
     fileSizeThreshold: logFileSizeThreshold
   };
+
+  const websiteNormalizedPath = fsPath.join(fullSitePath, JSCAUSE_WEBSITE_PATH).normalize('NFD');
 
   return Object.freeze({
     getCurrentPath() { return currentPath; },
@@ -1890,7 +1891,10 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         destination = fsPath.join(fullSitePath, destination);
       }
 
-      const proceedWithOperation = areFileOperationAllowedInWebsiteDir(fullSitePath, destination, allowExeExtensionsInOpr);
+      const proceedWithOperation =
+        areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, source, allowExeExtensionsInOpr)
+        &&
+        areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, destination, allowExeExtensionsInOpr);
 
       if (proceedWithOperation)
       {

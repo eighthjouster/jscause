@@ -7,15 +7,17 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-copy/move/delete/exists/read
-
 Why are we getting this in the logs during testing?
  - WARNING: Site: My Site: attempted to process already sent response (retriggered timer?)
 
 
  +- Implement allowexeextensionsinopr.
-  - Done, but needs testing.
-    - Almost done: The source file should not be copied/moved if jscp/jscm and allowexeextensionsinopr is false.
+  +- Done, but needs testing.
+    *- copy
+    +- move
+    - delete
+    - exists
+    - read
   - Documentation:
    - Update the documentation file on both github and the website.
      - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
