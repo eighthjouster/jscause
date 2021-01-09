@@ -28,7 +28,8 @@ const allTests =
   // 'testBattery_contents_06',
   // 'testBattery_contents_07',
   // 'testBattery_contents_08',
-  'testBattery_contents_09'
+  // 'testBattery_contents_09',
+  'testBattery_contents_10',
 ];
 
 const fs = require('fs');

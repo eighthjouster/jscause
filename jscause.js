@@ -1891,10 +1891,22 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         destination = fsPath.join(fullSitePath, destination);
       }
 
-      const proceedWithOperation =
-        areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, source, allowExeExtensionsInOpr)
-        &&
-        areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, destination, allowExeExtensionsInOpr);
+      let errorMessage;
+      let proceedWithOperation;
+
+      proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, source, allowExeExtensionsInOpr)
+      if (!proceedWithOperation)
+      {
+        errorMessage = `allowExeExtensionsInOpr server configuration disallows copy file operation involving ${source}`;
+      }
+      else
+      {
+        proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, destination, allowExeExtensionsInOpr);
+        if (!proceedWithOperation)
+        {
+          errorMessage = `allowExeExtensionsInOpr server configuration disallows copy file operation involving ${destination}`;
+        }
+      }
 
       if (proceedWithOperation)
       {
@@ -1911,7 +1923,6 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         });
       }
 
-      const errorMessage = `allowExeExtensionsInOpr server configuration disallows copy file operation involving ${destination}`;
       const error = new Error(errorMessage);
       return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
@@ -1927,34 +1938,57 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         destination = fsPath.join(fullSitePath, destination);
       }
 
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+      let errorMessage;
+      let proceedWithOperation;
+
+      proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, source, allowExeExtensionsInOpr)
+      if (!proceedWithOperation)
       {
-        if (overwrite)
+        errorMessage = `allowExeExtensionsInOpr server configuration disallows move file operation involving ${source}`;
+      }
+      else
+      {
+        proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, destination, allowExeExtensionsInOpr);
+        if (!proceedWithOperation)
         {
-          fs.rename(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+          errorMessage = `allowExeExtensionsInOpr server configuration disallows move file operation involving ${destination}`;
         }
-        else
+      }
+
+      if (proceedWithOperation)
+      {
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
         {
-          fs.stat(destination, jscCallback((err) =>
+          if (overwrite)
           {
-            if (err)
+            fs.rename(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+          }
+          else
+          {
+            fs.stat(destination, jscCallback((err) =>
             {
-              // If file doesn't exist, then we can proceed with the move operation.
-              fs.rename(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-            }
-            else
-            {
-              reject({
-                Error: `EEXIST: file already exists, movefile '${source}' -> '${destination}'`,
-                code: 'EEXIST',
-                syscall: 'rename',
-                path: source,
-                dest: destination
-              });
-            }
-          }));
-        }
-      });
+              if (err)
+              {
+                // If file doesn't exist, then we can proceed with the move operation.
+                fs.rename(source, destination, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+              }
+              else
+              {
+                reject({
+                  Error: `EEXIST: file already exists, movefile '${source}' -> '${destination}'`,
+                  code: 'EEXIST',
+                  syscall: 'rename',
+                  path: source,
+                  dest: destination
+                });
+              }
+            }));
+          }
+        });
+      }
+
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
     deleteFile(path)
     {

@@ -10,12 +10,13 @@ git bundle create jscause-.bundle devel
 Why are we getting this in the logs during testing?
  - WARNING: Site: My Site: attempted to process already sent response (retriggered timer?)
 
+Should operations on jscp/jscm files be fine as long as they don't occur inside website/?
 
  +- Implement allowexeextensionsinopr.
   +- Done, but needs testing.
     *- copy
-    +- move
-    - delete
+    *- move
+    +- delete
     - exists
     - read
   - Documentation:

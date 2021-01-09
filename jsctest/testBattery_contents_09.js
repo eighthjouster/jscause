@@ -73,7 +73,7 @@ const copyFileFailTestChecker = (test, { statusCode, dataReceived, consoleLogOut
     !test.fileExists(['sites', 'mysite', destFile])
   );
 
-const makeAllowexeextensionsinoprTest = (siteExtraConf, srcPathInfo, destPathInfo, expectedLogMessage, testCheckerFn, nukeTestDir = false) =>
+const makeAllowexeextensionsinoprCopyTest = (siteExtraConf, srcPathInfo, destPathInfo, expectedLogMessage, testCheckerFn, nukeTestDir = false) =>
   (
     {
       // only: true,
@@ -121,10 +121,10 @@ const makeAllowexeextensionsinoprTest = (siteExtraConf, srcPathInfo, destPathInf
       expectedLogMessages: (expectedLogMessage) ? [ expectedLogMessage ] : undefined,
       onReadyForRequests()
       {
-        const { srcFile, destFile } = this.tempTestData;
+        const { sourceFile, destFile } = this.tempTestData;
         processResponse(this, makeBaseRequest(), ({ statusCode, dataReceived, consoleLogOutput }) =>
         {
-          this.testPassed = testCheckerFn(this, { statusCode, dataReceived, consoleLogOutput, srcFile, destFile });
+          this.testPassed = testCheckerFn(this, { statusCode, dataReceived, consoleLogOutput, sourceFile, destFile });
         });
       },
       onTestEnd()
@@ -139,7 +139,7 @@ const makeAllowexeextensionsinoprTest = (siteExtraConf, srcPathInfo, destPathInf
 const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     {},
     {},
@@ -151,7 +151,7 @@ const test_contents_001_copyFile_src_txt_dest_txt_allowexeextensionsinopr_unset 
 
 const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     {},
     {},
@@ -162,7 +162,7 @@ const test_contents_002_copyFile_src_txt_dest_txt_allowexeextensionsinopr_false 
 
 const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     {},
     {},
@@ -173,7 +173,7 @@ const test_contents_003_copyFile_src_txt_dest_txt_allowexeextensionsinopr_true =
 
 const test_contents_004_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     {},
     { destDir: 'website', destExtension: '.jscp' },
@@ -184,7 +184,7 @@ const test_contents_004_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_unset
 
 const test_contents_005_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     {},
     { destDir: 'website', destExtension: '.jscp' },
@@ -195,7 +195,7 @@ const test_contents_005_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_false
 
 const test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     {},
     { destDir: 'website', destExtension: '.jscp' },
@@ -206,7 +206,7 @@ const test_contents_006_copyFile_src_txt_dest_jscp_allowexeextensionsinopr_true 
 
 const test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     {},
     { destDir: 'website', destExtension: '.JSCP' },
@@ -217,7 +217,7 @@ const test_contents_007_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_unset
 
 const test_contents_008_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     {},
     { destDir: 'website', destExtension: '.JSCP' },
@@ -228,7 +228,7 @@ const test_contents_008_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_false
 
 const test_contents_009_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     {},
     { destDir: 'website', destExtension: '.JSCP' },
@@ -239,7 +239,7 @@ const test_contents_009_copyFile_src_txt_dest_JSCP_allowexeextensionsinopr_true 
 
 const test_contents_010_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     {},
     { destDir: 'website', destExtension: '.jscm' },
@@ -250,7 +250,7 @@ const test_contents_010_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_unset
 
 const test_contents_011_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     {},
     { destDir: 'website', destExtension: '.jscm' },
@@ -261,7 +261,7 @@ const test_contents_011_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_false
 
 const test_contents_012_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     {},
     { destDir: 'website', destExtension: '.jscm' },
@@ -272,7 +272,7 @@ const test_contents_012_copyFile_src_txt_dest_jscm_allowexeextensionsinopr_true 
 
 const test_contents_013_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     {},
     { destDir: 'website', destExtension: '.JSCM' },
@@ -283,7 +283,7 @@ const test_contents_013_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_unset
 
 const test_contents_014_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     {},
     { destDir: 'website', destExtension: '.JSCM' },
@@ -294,7 +294,7 @@ const test_contents_014_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_false
 
 const test_contents_015_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     {},
     { destDir: 'website', destExtension: '.JSCM' },
@@ -306,7 +306,7 @@ const test_contents_015_copyFile_src_txt_dest_JSCM_allowexeextensionsinopr_true 
 const test_contents_016_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscp; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     { srcDir: 'website', srcExtension: '.jscp' },
     {},
@@ -317,7 +317,7 @@ const test_contents_016_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_unset
 
 const test_contents_017_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscp; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     { srcDir: 'website', srcExtension: '.jscp' },
     {},
@@ -328,7 +328,7 @@ const test_contents_017_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_false
 
 const test_contents_018_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscp; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     { srcDir: 'website', srcExtension: '.jscp' },
     {},
@@ -340,7 +340,7 @@ const test_contents_018_copyFile_src_jscp_dest_txt_allowexeextensionsinopr_true 
 const test_contents_019_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCP; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     { srcDir: 'website', srcExtension: '.JSCP' },
     {},
@@ -351,7 +351,7 @@ const test_contents_019_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_unset
 
 const test_contents_020_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCP; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     { srcDir: 'website', srcExtension: '.JSCP' },
     {},
@@ -362,7 +362,7 @@ const test_contents_020_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_false
 
 const test_contents_021_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCP; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     { srcDir: 'website', srcExtension: '.JSCP' },
     {},
@@ -374,7 +374,7 @@ const test_contents_021_copyFile_src_JSCP_dest_txt_allowexeextensionsinopr_true 
 const test_contents_022_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscm; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     { srcDir: 'website', srcExtension: '.jscm' },
     {},
@@ -385,7 +385,7 @@ const test_contents_022_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_unset
 
 const test_contents_023_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscm; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     { srcDir: 'website', srcExtension: '.jscm' },
     {},
@@ -396,7 +396,7 @@ const test_contents_023_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_false
 
 const test_contents_024_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscm; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     { srcDir: 'website', srcExtension: '.jscm' },
     {},
@@ -408,7 +408,7 @@ const test_contents_024_copyFile_src_jscm_dest_txt_allowexeextensionsinopr_true 
 const test_contents_025_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_unset = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCM; destination is txt; allowexeextensionsinopr is unset (default false)'),
   makeTestEndBoilerplate.call(this),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     {},
     { srcDir: 'website', srcExtension: '.JSCM' },
     {},
@@ -419,7 +419,7 @@ const test_contents_025_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_unset
 
 const test_contents_026_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCM; destination is txt; allowexeextensionsinopr is false'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: false },
     { srcDir: 'website', srcExtension: '.JSCM' },
     {},
@@ -430,9 +430,97 @@ const test_contents_026_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_false
 
 const test_contents_027_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_true = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCM; destination is txt; allowexeextensionsinopr is true'),
   makeTestEndBoilerplate.call(this),
-  makeAllowexeextensionsinoprTest(
+  makeAllowexeextensionsinoprCopyTest(
     { allowExeExtensionsInOpr: true },
     { srcDir: 'website', srcExtension: '.JSCM' },
+    {},
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_028_copyFile_src_txt_dest_jscp_outside_website_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscp but outside of website; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destExtension: '.jscp' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_029_copyFile_src_txt_dest_JSCP_outside_website_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCP but outside of website; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destExtension: '.JSCP' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_030_copyFile_src_txt_dest_jscm_outside_website_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is jscm but outside of website; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destExtension: '.jscm' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_031_copyFile_src_txt_dest_JSCM_outside_website_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is txt; destination is JSCM but outside of website; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    {},
+    { destExtension: '.JSCM' },
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_032_copyFile_src_jscp_outside_website_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscp but outside of website; destination is txt; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    { sourceExtension: '.jscp' },
+    {},
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_033_copyFile_src_JSCP_outside_website_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCP but outside of website; destination is txt; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    { sourceExtension: '.JSCP' },
+    {},
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_034_copyFile_src_jscm_outside_website_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is jscm but outside of website; destination is txt; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    { sourceExtension: '.jscm' },
+    {},
+    undefined,
+    copyFileSuccessTestChecker
+  )
+);
+
+const test_contents_035_copyFile_src_JSCM_outside_website_dest_txt_allowexeextensionsinopr_false = Object.assign(makeFromBaseTest('Contents; copyFile; source is JSCM but outside of website; destination is txt; allowexeextensionsinopr is false'),
+  makeTestEndBoilerplate.call(this),
+  makeAllowexeextensionsinoprCopyTest(
+    { allowExeExtensionsInOpr: false },
+    { sourceExtension: '.JSCM' },
     {},
     undefined,
     copyFileSuccessTestChecker
@@ -472,4 +560,14 @@ module.exports =
   test_contents_025_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_unset,
   test_contents_026_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_false,
   test_contents_027_copyFile_src_JSCM_dest_txt_allowexeextensionsinopr_true,
+
+  test_contents_028_copyFile_src_txt_dest_jscp_outside_website_allowexeextensionsinopr_false,
+  test_contents_029_copyFile_src_txt_dest_JSCP_outside_website_allowexeextensionsinopr_false,
+  test_contents_030_copyFile_src_txt_dest_jscm_outside_website_allowexeextensionsinopr_false,
+  test_contents_031_copyFile_src_txt_dest_JSCM_outside_website_allowexeextensionsinopr_false,
+
+  test_contents_032_copyFile_src_jscp_outside_website_dest_txt_allowexeextensionsinopr_false,
+  test_contents_033_copyFile_src_JSCP_outside_website_dest_txt_allowexeextensionsinopr_false,
+  test_contents_034_copyFile_src_jscm_outside_website_dest_txt_allowexeextensionsinopr_false,
+  test_contents_035_copyFile_src_JSCM_outside_website_dest_txt_allowexeextensionsinopr_false
 ];
