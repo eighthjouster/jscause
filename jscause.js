@@ -1997,10 +1997,19 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         path = fsPath.join(fullSitePath, path);
       }
 
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+      const proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, path, allowExeExtensionsInOpr)
+
+      if (proceedWithOperation)
       {
-        fs.unlink(path, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-      });
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+        {
+          fs.unlink(path, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+        });
+      }
+
+      const errorMessage = `allowExeExtensionsInOpr server configuration disallows delete file operation involving ${path}`;
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
     module(moduleName)
     {

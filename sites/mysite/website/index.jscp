@@ -15,5 +15,5 @@
   </body>
 </html>
 <js
-rt.moveFile('_deleteme.jscm', 'website/_deleteme2.JSCP', true)
+rt.deleteFile('_deleteme.jscp')
 .rtOnError((e) => {rt.print('Nope.');rt.print(e); console.log(e)});//__RP

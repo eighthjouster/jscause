@@ -16,13 +16,16 @@ Should operations on jscp/jscm files be fine as long as they don't occur inside 
   +- Done, but needs testing.
     *- copy
     *- move
-    +- delete
-    - exists
+    *- delete
     - read
+    - exists
   - Documentation:
    - Update the documentation file on both github and the website.
      - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
      - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)
+     - Not infallible!:
+      - That doesn't mean you shouldn't be careful with the rest of the website dir contents (files with passwords - which shouldn't be there, deletion of important data, etc.)
+      - Other nodejs file commands can work just fine.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
  - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
