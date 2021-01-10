@@ -1862,10 +1862,19 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         path = fsPath.join(fullSitePath, path);
       }
 
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+      const proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, path, allowExeExtensionsInOpr)
+
+      if (proceedWithOperation)
       {
-        fs.stat(path, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-      });
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+        {
+          fs.stat(path, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+        });
+      }
+
+      const errorMessage = `allowExeExtensionsInOpr server configuration disallows fileExists operation involving ${path}`;
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
     readFile(path, encoding)
     {

@@ -17,8 +17,9 @@ Should operations on jscp/jscm files be fine as long as they don't occur inside 
     *- copy
     *- move
     *- delete
-    - read
-    - exists
+    +- read
+    *- exists
+  - Remember to delete __RPs.
   - Documentation:
    - Update the documentation file on both github and the website.
      - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
