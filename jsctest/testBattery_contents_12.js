@@ -57,7 +57,7 @@ const
 
 const expectedExistsFailErrorLogMessages = [ 'error', 'Site: My Site: Runtime error on file /index.jscp: allowExeExtensionsInOpr server configuration disallows fileExists operation involving', 'prefix' ];
 
-const fileExistsSuccessTestChecker = (test, { statusCode, dataReceived, consoleLogOutput, sourceFile }) =>
+const fileExistsSuccessTestChecker = (test, { statusCode, dataReceived, consoleLogOutput }) =>
   (
     test.contentReqExpectedSiteResponded &&
     (statusCode === 200) && !dataReceived.length &&
@@ -65,12 +65,11 @@ const fileExistsSuccessTestChecker = (test, { statusCode, dataReceived, consoleL
     areFlatArraysEqual(consoleLogOutput.lines, [ 'File does exist!' ])
   );
 
-const fileExistsFailTestChecker = (test, { statusCode, dataReceived, consoleLogOutput, sourceFile }) =>
+const fileExistsFailTestChecker = (test, { statusCode, dataReceived }) =>
   (
     test.contentReqExpectedSiteResponded &&
     (statusCode === 500) && !dataReceived.length &&
-    test.gotAllExpectedLogMsgs &&
-    (consoleLogOutput.status === 'captured')
+    test.gotAllExpectedLogMsgs
   );
 
 const makeAllowexeextensionsinoprExistsTest = (siteExtraConf, srcPathInfo, expectedLogMessage, testCheckerFn, nukeTestDir = false) =>

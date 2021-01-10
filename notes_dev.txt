@@ -14,13 +14,10 @@ Should operations on jscp/jscm files be fine as long as they don't occur inside 
 
  +- Implement allowexeextensionsinopr.
   +- Done, but needs testing.
-    *- copy
-    *- move
-    *- delete
-    +- read
-    *- exists
-  - Remember to delete __RPs.
-  - Documentation:
+   +- Almost done, but:
+     +- When we run testBattery_015, both testBattery_contents_12 and testBattery_contents_13 fail. Why? 
+
+  +- Documentation:
    - Update the documentation file on both github and the website.
      - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
      - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)

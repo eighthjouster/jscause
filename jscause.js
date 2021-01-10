@@ -1883,10 +1883,19 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         path = fsPath.join(fullSitePath, path);
       }
 
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+      const proceedWithOperation = areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, path, allowExeExtensionsInOpr)
+
+      if (proceedWithOperation)
       {
-        fs.readFile(path, encoding, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
-      });
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+        {
+          fs.readFile(path, encoding, makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject));
+        });
+      }
+
+      const errorMessage = `allowExeExtensionsInOpr server configuration configuration disallows read file operation involving ${path}`;
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
     },
     copyFile(source, destination, overwrite = true)
     {

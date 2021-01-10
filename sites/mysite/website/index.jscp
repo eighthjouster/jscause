@@ -14,7 +14,3 @@
     </ul>
   </body>
 </html>
-<js
-rt.fileExists('website/_deleteme.jscp')
-.rtOnSuccess(() => {rt.print('File exists!');})//__RP
-.rtOnError((e) => {rt.print('Nope.');rt.print(e); console.log(e)});//__RP

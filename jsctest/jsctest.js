@@ -2,7 +2,7 @@
 
 const allTests =
 [
-  //__RP 'testBattery_001',
+  // 'testBattery_001',
   // 'testBattery_002',
   // 'testBattery_003',
   // 'testBattery_004',
@@ -16,7 +16,7 @@ const allTests =
   // 'testBattery_012',
   // 'testBattery_013',
   // 'testBattery_014',
-  // 'testBattery_015',
+  'testBattery_015',
   // 'testBattery_016',
   // 'testBattery_017',
   // 'testBattery_018',
@@ -32,6 +32,7 @@ const allTests =
   // 'testBattery_contents_10',
   // 'testBattery_contents_11',
   'testBattery_contents_12',
+  'testBattery_contents_13'
 ];
 
 const fs = require('fs');
