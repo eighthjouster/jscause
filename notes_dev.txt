@@ -7,27 +7,18 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Why are we getting this in the logs during testing?
- - WARNING: Site: My Site: attempted to process already sent response (retriggered timer?)
-
-Should operations on jscp/jscm files be fine as long as they don't occur inside website/?
-
  +- Implement allowexeextensionsinopr.
-  +- Done, but needs testing.
-   +- Almost done, but:
-     +- When we run testBattery_015, both testBattery_contents_12 and testBattery_contents_13 fail. Why? 
-
-  +- Documentation:
+  *- Done.
+  +- Now, let's update the documentation:
    - Update the documentation file on both github and the website.
      - See:  TO-DO: EXPLAIN HERE. in both Documentation.md and docs.md
      - Even if jscause can only run files with lowercase jscp and jscm, if allowexeextensionsinopr is false, it won't accept copying/moving jscp/jscm file of any case (that is, it will reject both jscp and JSCP.)
+    - Should operations on jscp/jscm files be fine as long as they don't occur inside website/? - The answer is yes.
      - Not infallible!:
       - That doesn't mean you shouldn't be careful with the rest of the website dir contents (files with passwords - which shouldn't be there, deletion of important data, etc.)
       - Other nodejs file commands can work just fine.
 
 CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
- - What to do?  A flag that could be set to either: refuse copying/moving JSCP/JSCM into website, or rename the extension to something like ".txt" (whatever happens, should JSCause emit a warning in the logs? Throw an error?)
-  - And tests!!!
  - Then, update the documentation and the tutorial to point this out.
    - It's optional, and it's false by default.
  - I'VE DELETED THE RELEASE FOR NOW.

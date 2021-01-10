@@ -2,35 +2,35 @@
 
 const allTests =
 [
-  // 'testBattery_001',
-  // 'testBattery_002',
-  // 'testBattery_003',
-  // 'testBattery_004',
-  // 'testBattery_005',
-  // 'testBattery_006',
-  // 'testBattery_007',
-  // 'testBattery_008',
-  // 'testBattery_009',
-  // 'testBattery_010',
-  // 'testBattery_011',
-  // 'testBattery_012',
-  // 'testBattery_013',
-  // 'testBattery_014',
+  'testBattery_001',
+  'testBattery_002',
+  'testBattery_003',
+  'testBattery_004',
+  'testBattery_005',
+  'testBattery_006',
+  'testBattery_007',
+  'testBattery_008',
+  'testBattery_009',
+  'testBattery_010',
+  'testBattery_011',
+  'testBattery_012',
+  'testBattery_013',
+  'testBattery_014',
   'testBattery_015',
-  // 'testBattery_016',
-  // 'testBattery_017',
-  // 'testBattery_018',
-  // 'testBattery_contents_01',
-  // 'testBattery_contents_02',
-  // 'testBattery_contents_03',
-  // 'testBattery_contents_04',
-  // 'testBattery_contents_05',
-  // 'testBattery_contents_06',
-  // 'testBattery_contents_07',
-  // 'testBattery_contents_08',
-  // 'testBattery_contents_09',
-  // 'testBattery_contents_10',
-  // 'testBattery_contents_11',
+  'testBattery_016',
+  'testBattery_017',
+  'testBattery_018',
+  'testBattery_contents_01',
+  'testBattery_contents_02',
+  'testBattery_contents_03',
+  'testBattery_contents_04',
+  'testBattery_contents_05',
+  'testBattery_contents_06',
+  'testBattery_contents_07',
+  'testBattery_contents_08',
+  'testBattery_contents_09',
+  'testBattery_contents_10',
+  'testBattery_contents_11',
   'testBattery_contents_12',
   'testBattery_contents_13'
 ];
@@ -43,6 +43,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.onCompletion = onCompletionCb;
   jscTestGlobal.totalTestsRun = 0;
   jscTestGlobal.totalTestsPassed = 0;
+  jscTestGlobal.maxUserFilesOrDirs = 0;
   jscTestGlobal.failedTestNames = [];
   jscTestGlobal.terminateApplication = terminateApplication.bind(jscTestGlobal);
   jscTestGlobal.doEmptyTestDirectory = doEmptyTestDirectory.bind(jscTestGlobal);
@@ -239,6 +240,8 @@ function createNewTestPromise(jscTestContext, currentTest)
 function nextTest(jscTestGlobal)
 {
   jscTestGlobal.testName = `<NOT SET #${jscTestGlobal.totalTestsRun}>`;
+  // Reset to default.
+  jscTestGlobal.maxUserFilesOrDirs = 0;
   const thisTest = jscTestGlobal.testList.shift();
 
   if (!thisTest)
