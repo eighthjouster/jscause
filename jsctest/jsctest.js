@@ -136,6 +136,12 @@ function finishedAllTesting(jscTestGlobal)
       console.info(` - ${name}`);
     });
     console.info(`Total tests failed: ${jscTestGlobal.totalTestsRun - jscTestGlobal.totalTestsPassed}`);
+
+    if (jscTestGlobal.failedTestNames.length > 200)
+    {
+      console.info('Too many tests failing with ECONNRESET without an apparent reason?');
+      console.info(' - Make sure that no other process is using the same HTTP/S port as the test server (usually 3000.)');
+    }
   }
   else
   {

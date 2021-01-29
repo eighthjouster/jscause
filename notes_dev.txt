@@ -19,6 +19,7 @@ Before announcing:
  - Finish the website.
   - It needs a Contribute section. - Maybe?
   - Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
+    - It happens when I use www in the name.  If I don't, it won't happen. Common?
 
 AT THIS POINT, RE-RELEASE THE ALPHA.
 
