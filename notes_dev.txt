@@ -7,7 +7,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Modify the docs (and tutorial?) to indicate that the browser will report "an invalid site" due to the dev cert being self-signed.  This can be ignored, especially because a production server should be using an actual certificate.
+Practise re-generating the dist/ files in preparation to refer to the video tutorial in them.
 
 You have to make a video tutorial and place it in the docs.
 

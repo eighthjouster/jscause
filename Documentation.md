@@ -1159,7 +1159,7 @@ When making this request, the browser will display the following:
 One! Two!
 ```
 
-We were expecting to see "One! Two! And three!".  The `andThree()` callback _ did run_, but too late - JSCause had already sent the response to the browser.
+We were expecting to see "One! Two! And three!".  The `andThree()` callback _did run_, but too late - JSCause had already sent the response to the browser.
 
 We must signal JSCause that it must wait for the callback to complete.  We do that by enclosing it with [`rt.waitFor()`](#rtwaitfor):
 
@@ -3063,7 +3063,7 @@ the [Cookies NodeJS module](https://github.com/pillarjs/cookies).
 
 ## License
 
-Copyright 2020-2021 - Rafael A. Pacheco-Palencia (@eighthjouster)
+Copyright 2020-2021 Rafael A. Pacheco-Palencia (@eighthjouster)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
