@@ -7,15 +7,13 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-New certificate. Let it expire in two years, if possible.
- - And re-run tests.
+Modify the docs (and tutorial?) to indicate that the browser will report "an invalid site" due to the dev cert being self-signed.  This can be ignored, especially because a production server should be using an actual certificate.
 
 You have to make a video tutorial and place it in the docs.
 
 Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
 
 Before announcing:
- - Generate new self-signed certificates.
  - Finish the website.
   - It needs a Contribute section. - Maybe?
   - Also, JSCause.org is giving me an HTTPS warning.  Why?  Check with github.
