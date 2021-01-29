@@ -7,9 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-CRITICAL! moveFile() and copyFile() should NOT accept a destination ending in either `.jscp` or `.jscm` (or any combination of casing.)  Huge security risk!
- +- Update the documentation and the tutorial to point this out.
-
 New certificate. Let it expire in two years, if possible.
  - And re-run tests.
 
