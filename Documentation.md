@@ -91,9 +91,9 @@
 
 ## What is new in JSCause?
 
-Please refer to the project's CHANGELOG.md file for project updates.  Check out the ROADMAP.md file to learn more about planned future features and additions.
+Please refer to the project's CHANGELOG.md file for project updates.
 
-You can also check the ROADMAP.md file to learn more about planned future features and additions.
+You can also check out the ROADMAP.md file to learn more about planned future features and additions.
 
 
 ## What is JSCause?
@@ -261,13 +261,22 @@ If HTTPS is enabled, you must provide JSCause with your certificate file, as wel
 
 ___allowExeExtensionsInOpr___
 
-TO-DO: EXPLAIN HERE.
+This attribute indicates whether `rt` file instructions (such as `rt.copyFile()`) are allowed on files ending in `.jscp` or `.jscm` inside the `website/` directory. Not allowing file operations in such JSCause executable files is considered good practice; any attempt of reading, modification, deletion or similar action by a potential attacker will not succeed.
 
 ```
 "allowExeExtensionsInOpr": false
 ```
 
-TO-DO: EXPLAIN HERE MORE.
+This attribute is optional.  However, if you omit it, it will be assumed `false` by default.
+
+There are two valid values:
+
+ * `true`: JSCause will allow any file operations inside the `website/` directory.  Do this _only_ if you know what you're doing.
+ * `false`: An error will be thrown at any `rt` file operation attempt involving JSCause executable files (ending in either `.jscp` or `.jscm`) inside the `website/` directory. Such error can be caught via `rtOnError()`. The restriction is not case-sensitive so, for example, neither `.jscp` or `.JSCP` will be allowed.
+
+**Important notes**:
+ - File operations done with NodeJS's `fs` module (such as `read()`) WILL be allowed for JSCause executable files inside `website/` regardless of the value set for `allowExeExtensionsInOpr`.  We therefore strongly advise that you stick to using `rt` instructions for predictable file operation behavior and security.
+ - `allowExeExtensionsInOpr` should NOT be considered an all encompassing solution against attacks.  Even when it's set to `false`, keep exercising caution when dealing with sensitive data inside JSCause executable files.  For example, a hard-coded database password should not be present in an executable file.  Even if JSCause can prevent reading such file, a malicious actor could potentially compromise the system by other means and still retrieve or delete your sensitive data.
 
 ### logging:
 
@@ -2841,6 +2850,15 @@ warning: Could not delete unhandled uploaded file: <file name>
 
 Explanation:
 JSCause failed deleting an uploaded file.  It may not have permissions to do so, or there is a problem with the file system.  If the file still exists, it will be located at `<path>`.  You may want to manually delete it.  Note that the file name specified in `<file name>` will most likely differ from `<path>`.
+
+
+Message:
+```
+allowExeExtensionsInOpr server configuration disallows <operation> file operation involving <path>
+```
+
+Explanation:
+JSCause did not allow an `rt` file operation on an executable file defined by `<path>` (with either a `.jscp` or a `.jscm` extension.) This is due to the `allowExeExtensionsInOpr` server configuration attribute being `false`.  This is typically a default behavior imposed for security reasons. Don't just change the value to `true` without understanding the security implications! Read the `allowExeExtensionsInOpr` entry in the [jscause.conf configuration](#jscauseconf-configuring-jscause-to-serve-your-website) section for more information.
 
 
 Message:
