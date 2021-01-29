@@ -590,3 +590,10 @@ Use cases:
 ===
 
 "(note: this feature is yet to be implemented)" in the manual:  Revise this when you add filesystem watching.
+
+===
+
+Need to create/renew a new dev SSL certificate?
+$ openssl req -newkey rsa:2048 -new -nodes -keyout jscause-key.pem -out jscause-csr.pem
+$ openssl x509 -req -days 3650 -in jscause-csr.pem -signkey jscause-key.pem -out jscause-cert.pem
+Just include jscause-cert.pem and jscause-key.pem in the repo.
