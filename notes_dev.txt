@@ -7,7 +7,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Practise re-generating the dist/ files in preparation to refer to the video tutorial in them.
+Practice re-generating the dist/ files in preparation to refer to the video tutorial in them.
 
 You have to make a video tutorial and place it in the docs.
 
@@ -26,14 +26,15 @@ Convert everything below this point into github issues (but document them elsewh
 
 Hmmm. require('path').join(), when creating relative paths, they start from where jscause is run when using fs. operations (as opposed to rt. operations.)  Warn this to the user.
   - There should be a function that sets up the correct path to inside the site.  It should be part of the public list of available rt. functions (I think we use one internally for rt. file operations.)
+  - Shortcut for require('path').join()?
 
-We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version.
+We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version. rt.writeFile()? And rt.appendFile()?
 
 Did we document JSCause's behavior when .rtOnSuccess or .rtOnError have an empty parameter? Not even an empty callback, but an empty parameter.  If not, then document.
 
 Should we give users the ability to output to the logs? I don't think console.error() can do that from a JSCP file.
 
-If JSCause moves/copies/deletes a file that is inside of ./website, it should make it immediately available.
+If the user moves/copies/deletes a file inside of ./website, it should make it immediately available.
 
 A way to include partials during complilation time.
 <jsinclude "some/relative/path.jscp|path.html" />
@@ -51,15 +52,13 @@ Why aren't error 404/500 showing the default browser error when no error4xx/erro
 How can JSCause share the same code (e.g. function definitions) between server and client?
 A tag that indicates "The rest of the line is Javascript"?
 
-Shortcut for require('path').join()?
-
 Why do errors thrown by rt.moveFile() (and I'm assuming other similar ones) report a line (unknown) instead of the actual line number?
 
 Better error message when the page is suspected to be HTML only (remember that we need to add <html />).
 
 <js=/js> quirk: (known issue)
 <js='1');rt.print(/js> will work.
- - Should we eliminate this quirk?
+ - Should we eliminate this quirk?  Or should we document it?
 
 validateLoggingConfigSection():  It should try to include the site name in the instances that apply.  This will require to update the corresponding tests too.
 
@@ -473,6 +472,7 @@ Decorator for rt.runAfter(() => {});
  - Something like:
     - <js-after begin /> does: <js rt.runAfter(() => { /js>
     - <js-after end /> does: <js }); /js>
+      - Or simply <js-after></js-after>
     - Both blocks must be _outside_ of <js /js> blocks.
 
 - Retriggable waitFor(), so stuff like on('data') can work. - Otherwise, the app will ignore later calls since the callback was dropped off the queue.
@@ -491,7 +491,7 @@ Uploading files:  When an upload form is submitted with no files specified, the 
 
 Plugins.  Something as easy as dropping as a folder in a /plugins folder.
 
-Server-side rendering?
+A way to do the "server pre-render" stuff. Server-side rendering?
   - For just-HTML-rendering: A way to render in-line before delivering HTML?
     - If you consider the plugin model, this is where you lay the groundwork.
   - For combined API calls: Deliver the state as a one-time payload?
@@ -502,8 +502,6 @@ JSCause modules.  They are regular npm modules, but certified with no external d
 Better handling of max file size exceeded and uploads forbidden.
 
 If the max file size is reached, the partial uploaded file remains in the system's temp directory.  Deal with this (I tried, I really tried, but just gave up after some time.)
-
-Custom HTTP error pages - 404, 500, 403, etc.
 
 Access to full url.
 
@@ -520,8 +518,6 @@ rt.waitFor():
    - There should be a default somewhere, maybe 0 for "always wait."
    - If it times out, either throw an error, or run a user's function.
 
-Reload on file change?
-
 Cleaner way to process.exit()? (or avoid using it altogether.)
 
 Option to crash the server on fatal error?
@@ -529,6 +525,10 @@ Option to crash the server on fatal error?
  - Reload otherwise?
 
 ESLint.
+
+Typescript support?
+
+Deno support?
 
 Compile everything? (not just wait for a runtime error to find out that a module has syntax errors.)
  - Don't waste too much time on this.  You can defer it to a future version.
@@ -539,35 +539,21 @@ Remove //__RP comments.
 
 ====
 
-The framework should do this:
- - Enumerate the folders in sites/
-   - Each folder will represent a site.
-
-Implement: GET and POST.
- - Static pages.
-Implement: Submit form data.
- - Ajax.
-Implement: Talk to a database.
 Implement:
  - redirections
  - modules/plugins
    - redistributable packages
  - HTTP authentication?
- - How to avoid that the server dies on error?
+ - How to avoid that the server dies on errors?
    - Or at least it should restart itself.
-     - Avoid endless loops?
-
-How to hide the nodeJS way to do stuff and simplify as much as possible?
-
-A way to do the "server pre-render" stuff.
+      - Avoid endless loops?
+   - Isn't this already implemented?
 
 Create a test to ensure all the opening/closing/<html/> tag rules according to the specs.
 
 Security.
  - How to avoid, or at least warn or give control to the site, of DDOS by uploading large files or having too many requests?
  - SSL cypher downgrade attacks?
-
-Docs?
 
 Better rtFileExists() implementation? I dunno, using rtOnError() to signify that the file doesn't exists seems... wrong?
 
