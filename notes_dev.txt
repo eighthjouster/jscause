@@ -7,9 +7,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Practice re-generating the dist/ files in preparation to refer to the video tutorial in them.
-
-You have to make a video tutorial and place it in the docs.
+The docs/tutorial/faq, etc, the title line-height is too short, so when the text wraps, the lines look too close.  Fix this.
 
 Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
 
@@ -29,6 +27,10 @@ Hmmm. require('path').join(), when creating relative paths, they start from wher
   - Shortcut for require('path').join()?
 
 We don't have a JSCause way to create new files.  Perhaps NodeJS's fs module will suffice, but consider it for a next version. rt.writeFile()? And rt.appendFile()?
+
+Watch for and reload changes at this point (hot reloading.)
+ - And only the site it's affected, leaving the rest intact. - If possible.
+ - And if there is a compile-time error, don't bring the whole application down.  This may be tricky.
 
 Did we document JSCause's behavior when .rtOnSuccess or .rtOnError have an empty parameter? Not even an empty callback, but an empty parameter.  If not, then document.
 
@@ -284,10 +286,6 @@ Update notes_testing.txt with any testing that needs to be implemented.
 Put in docs that a favicon.ico should be provided in the website root.
  - Put your own favicon.ico meanwhile.
    - Or at least test that it works as intended.
-
-Watch for and reload changes at this point (hot reloading.)
- - And only the site it's affected, leaving the rest intact. - If possible.
- - And if there is a compile-time error, don't bring the whole application down.  This may be tricky.
 
 Exposure of res and req, for advanced users.
  - But only if a config value allows it.

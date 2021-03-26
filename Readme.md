@@ -59,6 +59,8 @@ If you prefer to use `npm`, you can install it with `npm install -g jscause`.
 
 Please visit [the JSCause.org website](https://jscause.org) for documentation, tutorials and downloads.
 
-Or you can check out the `Documentation.md` file in this repository as well.
+You can also check out the `Documentation.md` file in this repository as well.
+
+Or if you prefer to watch a video tutorial, check out [our official Youtube channel](https://www.youtube.com/channel/UCRX2JsZUI9YEF65XG3_4u8w).
 
 Happy coding!

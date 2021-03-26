@@ -8,7 +8,7 @@ How to use:
 * Scenario 1:  If you downloaded the standalone version *
 *********************************************************
 
-On a terminal window, go to the directory this Readmefile is located at, then run:
+On a terminal window, go to the directory this Readme file is located at, then run:
 
 node jscause.js
 
