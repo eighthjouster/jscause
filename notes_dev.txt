@@ -11,6 +11,12 @@ The docs/tutorial/faq, etc, the title line-height is too short, so when the text
 
 Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
 
+Put this somewhere (knowledge base?)
+# Execute this in the server:
+ln -s /etc/letsencrypt/live/jscsite.net/fullchain.pem jscause-cert.pem
+ln -s /etc/letsencrypt/live/jscsite.net/privkey.pem jscause-key.pem
+
+
 Before announcing:
  - Finish the website.
   - It needs a Contribute section. - Maybe?
