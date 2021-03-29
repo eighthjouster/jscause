@@ -30,6 +30,7 @@
   "dependencies": {
     "cookies": "^0.8.0",
     "formidable": "^1.2.2",
+    "mariadb": "^2.5.3",
     "sanitize-filename": "^1.6.3"
   }
 }

@@ -7,9 +7,11 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+When requiring the modules, I think the system should look for node_modules first, then jscvendor/node_modules next.  Unless this is already happening thanks to some native functionality of node?
+
 The docs/tutorial/faq, etc, the title line-height is too short, so when the text wraps, the lines look too close.  Fix this.
 
-Re-generate the dist/ files.  Remember to rename the zip file to 0.9.4.
+Re-generate the dist/ files.  Remember to rename the zip file to 0.9.5.
 
 Put this somewhere (knowledge base?)
 # Execute this in the server:
