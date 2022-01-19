@@ -7,6 +7,42 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+ - Test inserting/updating and deleting stuff from the database.
+
+ - Convert the code to rt functions.
+
+ - Isolate the hardcoded stuff.
+
+ - Convert the hardcoded stuff to config values.
+
+ - Get rid of rt.getMariaDb().
+
+ - The app should not start if the connection is refused.
+   - Unless there is no connection defined.
+
+ - Create some config tests, if not all.
+   - Document what needs to be tested.
+ - Create some database rt tests, if not all.
+   - Document what needs to be tested.
+
+ - Document.
+  - Also, tide up what you added in notes_specs.txt.
+
+Put in the docs the native promise trick:
+const appContinue = rt.waitFor();
+something
+  .then(() => {
+    /* some code */
+    appContinue();
+  })
+  .catch(() => {
+    /* some code */
+    appContinue();
+  });
+ - Put it alongside the waitFor() trick for setInterval().
+
+How to guarantee that if jscvendor is not available, then we can still use the external node_modules?
+
 When requiring the modules, I think the system should look for node_modules first, then jscvendor/node_modules next.  Unless this is already happening thanks to some native functionality of node?
 
 The docs/tutorial/faq, etc, the title line-height is too short, so when the text wraps, the lines look too close.  Fix this.

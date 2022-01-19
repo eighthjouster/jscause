@@ -14,6 +14,22 @@ Where to update the version (e.g. v0.9.4) before releasing:
  - package.json (and package-json.lock?)
 ====
 
+
+====
+
+```
+create database jsc_example;
+grant all privileges on jsc_example.* to 'jsc_example'@'localhost' identified by 'dbpassword';
+```
+
+process.env.DB_HOST
+process.env.DB_USER
+
+MariaDB:
+ rt.
+
+====
+
 website/ and configuration/ must allow hot reloading.
 
 - To output '<js' and '/js>' as literal text, prefix it with a backslash: '\<js' and '\/js>'.

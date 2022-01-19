@@ -7,7 +7,7 @@
    * Setup
    *
    ************************************** */
-const JSCAUSE_APPLICATION_VERSION = '0.9.4';
+const JSCAUSE_APPLICATION_VERSION = '0.9.5';
 
 const http = require('http');
 const https = require('https');
@@ -155,6 +155,7 @@ const isTestMode = (process.argv[2] === 'runtests');
 const cookies = require('./jscvendor/node_modules/cookies');
 const formidable = require('./jscvendor/node_modules/formidable');
 const sanitizeFilename = require('./jscvendor/node_modules/sanitize-filename');
+const mariaDb = require('./jscvendor/node_modules/mariadb');
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
@@ -2179,6 +2180,10 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
           willHappen: false
         }
       );
+    },
+    getMariaDb() //__RP just for now.
+    {
+      return mariaDb;
     },
     getParams,
     postParams,

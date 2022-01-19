@@ -5,7 +5,61 @@
   </head>
   <body>
     <h1>This is an example site.</h1>
+<js
 
+//  Let's call MariaDB.
+console.log('Let us call MariaDB.');
+
+const mariadb = rt.getMariaDb();
+
+const pool = mariadb.createPool({host: 'localhost', user: 'jsc_example', password: 'dbpassword', connectionLimit: 5});
+
+const appContinue = rt.waitFor();
+
+pool.getConnection()
+  .then(
+      (conn) => {
+    const rows = conn.query("SELECT 1 as val")
+      .then(
+          (result) => {
+        console.log('GREAT SUCCESS!');//__RP
+        for (let i=0;i<result.length;i++) {
+          console.log(result[i]);//__RP
+        }
+        appContinue();
+        // rows: [ {val: 1}, meta: ... ]
+      }
+      )
+      .catch(
+          (e) => {
+        console.log('NO SUCCESS');//__RP
+        console.log(e);//__RP
+        appContinue();
+      }
+      );
+  }
+  )
+  .catch(
+      (e) => {
+    console.log('UGH');//__RP
+    console.log(e);//__RP
+    appContinue();
+  }
+  );
+
+
+//
+//	const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
+//	// res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
+
+/*
+rt.runAfter(() => {
+	if (conn) conn.release(); //release to pool
+  console.log('Disconnected from the mariadb database.');
+});
+*/
+
+/js>
     <p>Here is a random number: <js= Math.random() /js></p>
     <ul>
       <li>Link to another <a href="/exampleFolder/examplePage.jscp">example page within the application.</a></li>
