@@ -7,9 +7,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
- - Test inserting/updating and deleting stuff from the database.
+ - Migrate the connection and disconnection to jscause.js.
+   - Still hard-coded.  It's okay.
+ 
+ - Make the connection values part of a site config.
+   - That's right. No global configs.
 
  - Convert the code to rt functions.
+
+ - What happens if the database gets disconnected? Retry?
+   - Should retries be a configuration value?
 
  - Isolate the hardcoded stuff.
 
@@ -22,6 +29,9 @@ git bundle create jscause-.bundle devel
 
  - Create some config tests, if not all.
    - Document what needs to be tested.
+     - For example:
+       - Two sites, two connections. Test that operations in one database does not affect the other database.
+       - Connection retries?
  - Create some database rt tests, if not all.
    - Document what needs to be tested.
 

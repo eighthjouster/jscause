@@ -12,27 +12,38 @@ console.log('Let us call MariaDB.');
 
 const mariadb = rt.getMariaDb();
 
-const pool = mariadb.createPool({host: 'localhost', user: 'jsc_example', password: 'dbpassword', connectionLimit: 5});
+const pool = mariadb.createPool(
+  {
+    host: 'localhost',
+    database: 'jsc_example',
+    user: 'jsc_example',
+    password: 'dbpassword',
+    connectionLimit: 5
+  });
 
+let dbConn;
 const appContinue = rt.waitFor();
-
+let htmlOutput = '?';
 pool.getConnection()
   .then(
       (conn) => {
-    const rows = conn.query("SELECT 1 as val")
+        dbConn = conn;
+    conn.query("SELECT * from posts")
+    //conn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
       .then(
           (result) => {
-        console.log('GREAT SUCCESS!');//__RP
-        for (let i=0;i<result.length;i++) {
-          console.log(result[i]);//__RP
-        }
+        htmlOutput = 'GREAT SUCCESS!';//__RP
+        console.log(result);
+//        for (let i=0;i<result.length;i++) {
+//          console.log(result[i]);//__RP
+//        }
         appContinue();
         // rows: [ {val: 1}, meta: ... ]
       }
       )
       .catch(
           (e) => {
-        console.log('NO SUCCESS');//__RP
+        htmlOutput = 'NO SUCCESS';//__RP
         console.log(e);//__RP
         appContinue();
       }
@@ -41,7 +52,7 @@ pool.getConnection()
   )
   .catch(
       (e) => {
-    console.log('UGH');//__RP
+    htmlOutput = 'UGH';//__RP
     console.log(e);//__RP
     appContinue();
   }
@@ -52,19 +63,16 @@ pool.getConnection()
 //	const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
 //	// res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
 
-/*
 rt.runAfter(() => {
-	if (conn) conn.release(); //release to pool
+	if (dbConn) dbConn.release(); //release to pool
   console.log('Disconnected from the mariadb database.');
-});
-*/
-
 /js>
-    <p>Here is a random number: <js= Math.random() /js></p>
-    <ul>
-      <li>Link to another <a href="/exampleFolder/examplePage.jscp">example page within the application.</a></li>
-      <li>Link to a <a href="/exampleText.txt">text-only document within the application.</a></li>
-      <li>Link to a non-existing page: <a href="/does_not_exist">Go here to try the 404 page</a>.</li>
-    </ul>
+  <h1>Output:</h1>
+  <h1><js= htmlOutput /js></h1>
   </body>
 </html>
+<js
+});
+
+/js>
+<h1>Hm</h1>
