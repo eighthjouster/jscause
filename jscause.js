@@ -3069,7 +3069,7 @@ function startServer(siteConfig, jscLogConfigBase, options)
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
-  return result;
+  return result ? Promise.resolve({ siteConfig }) : Promise.reject({ siteConfig, error: true });
 }
 
 function readConfigurationFile(name, path = '.', jscLogConfig = {})
@@ -5065,66 +5065,74 @@ function startApplication(options = { rootDir: undefined })
   allSiteNames = null;
 
   serverConfig.sites = allSiteConfigs || [];
-  serverConfig.sites.forEach((site) =>
-  {
-    if (startServer(site, jscLogBase, options))
-    {
-      atLeastOneSiteStarted = true;
-    }
-    else
-    {
-      const { siteName } = site;
-      allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
 
-      JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
-      allFailedSiteNames.push(siteName);
-    }
-  });
+  const allStartingServers = serverConfig.sites.map((siteConfig) => startServer(siteConfig, jscLogBase, options).catch(error => ({ siteConfig, error })));
 
-  serverConfig.requestTimeoutSecs = requestTimeoutSecs;
+  Promise.all(allStartingServers)
+    .then(allServerResults =>
+      {
+        allServerResults.forEach(({ siteConfig, error }) =>
+        {
+          if (error)
+          {
+            const { siteName } = siteConfig;
+            allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
+      
+            JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
+            allFailedSiteNames.push(siteName);
+          }
+          else
+          {
+            atLeastOneSiteStarted = true;
+          }
+        });
 
-  JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
+        serverConfig.requestTimeoutSecs = requestTimeoutSecs;
 
-  if (allReadySiteNames.length)
-  {
-    JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
-    allReadySiteNames.forEach((name) =>
-    {
-      JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
-    });
-  }
+        JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
+  
+        if (allReadySiteNames.length)
+        {
+          JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
+          allReadySiteNames.forEach((name) =>
+          {
+            JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
+          });
+        }
 
-  if (allFailedSiteNames.length)
-  {
-    JSCLog('error', 'The following sites failed to run:', jscLogBase);
-    allFailedSiteNames.forEach((name) =>
-    {
-      JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
-    });
-  }
-
-  if (atLeastOneSiteStarted)
-  {
-    JSCLog('info', 'Will start listening.', jscLogBase);
-  }
-  else
-  {
-    JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-    JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: 'No sites started.  Check the logs for more info.' });
-  }
-
-  if (!isTestMode)
-  {
-    process.on('SIGINT', function()
-    {
-      exitApplication();
-    });
-
-    process.on('SIGTERM', function()
-    {
-      exitApplication();
-    });
-  }
+        if (allFailedSiteNames.length)
+        {
+          JSCLog('error', 'The following sites failed to run:', jscLogBase);
+          allFailedSiteNames.forEach((name) =>
+          {
+            JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
+          });
+        }
+  
+        if (atLeastOneSiteStarted)
+        {
+          JSCLog('info', 'Will start listening.', jscLogBase);
+        }
+        else
+        {
+          JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
+          JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: 'No sites started.  Check the logs for more info.' });
+        }
+  
+        if (!isTestMode)
+        {
+          process.on('SIGINT', function()
+          {
+            exitApplication();
+          });
+  
+          process.on('SIGTERM', function()
+          {
+            exitApplication();
+          });
+        }
+      }
+    );
 }
 
 function exitApplication(options = {})
