@@ -9,6 +9,11 @@ git bundle create jscause-.bundle devel
 
  - Fix current tests.
 
+ - Then deal with __RP:
+   - getMariaDb() //__RP just for now.
+   - //__RP WHY IS THIS 0 AND NOT, SAY, 100 MS?
+     - And if it should be another value, make it a constant, like LOGTERMINATE_WAIT_MS.
+
  - Migrate the connection and disconnection to jscause.js.
    - Still hard-coded.  It's okay.
  

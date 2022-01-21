@@ -810,6 +810,10 @@ function JSCLogQueueNext()
   {
     JSCLogQueueNext();
   }
+  else
+  {
+    isJSCLogMessageQueueProcessing = false;
+  }
 }
 
 function JSCLog(type, message, logOptions = {})
@@ -837,7 +841,7 @@ function waitForLogsProcessingBeforeTerminate(options)
 {
   if (isCurrentlyLogDirCompressing || isJSCLogMessageQueueProcessing)
   {
-    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }), 0);
+    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }), 0); //__RP WHY IS THIS 0 AND NOT, SAY, 100 MS?
   }
   else
   {
