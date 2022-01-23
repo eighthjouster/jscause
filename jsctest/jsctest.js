@@ -286,11 +286,6 @@ function nextTest(jscTestGlobal)
   {
     const { isThenOrCatch = false } = options || {};
     jscTestGlobal.pendingCallbacks -= (isThenOrCatch) ? 2 : 1;
-
-    if (!jscTestGlobal.areCallbacksStillPending())
-    {
-      signalTestEnd(jscTestGlobal);
-    }
   };
 
   jscTestGlobal.waitForDoneSignal = (callbackOnDone) =>
@@ -373,7 +368,7 @@ function nextTest(jscTestGlobal)
       );
     }
   }
-  
+
   const testPromise = new Promise(createNewTestPromise(jscTestGlobal, thisTest));
 
   testPromise
@@ -381,10 +376,7 @@ function nextTest(jscTestGlobal)
     {
       result && console.info(result);
 
-      if (!jscTestGlobal.areCallbacksStillPending())
-      {
-        signalTestEnd(jscTestGlobal);
-      }
+      checkForShouldSignalTestEnd(jscTestGlobal);
     })
     .catch((e) =>
     {
@@ -413,6 +405,18 @@ function stillWaitingForContinueTestingCall(jscTestGlobal)
     jscTestGlobal.continueTesting();
   }
 }
+
+function checkForShouldSignalTestEnd(jscTestGlobal)
+{
+  if (jscTestGlobal.areCallbacksStillPending())
+  {
+    setTimeout(() => { checkForShouldSignalTestEnd(jscTestGlobal); }, 500);
+  }
+  else
+  {
+    signalTestEnd(jscTestGlobal);
+  }
+};
 
 function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = false, error = undefined } = {})
 {

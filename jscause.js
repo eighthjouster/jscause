@@ -2924,6 +2924,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
       {
         JSCLog('error', 'CRITICAL: An application error occurred when processing an incoming request.');
         JSCLog('error', e);
+        console.error(e);
         jscTestGlobal.signalTestEnd(jscTestGlobal, { generalError: true, error: e });
       }
     } :
