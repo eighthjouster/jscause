@@ -7,15 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-This test is stalling:
- - test_014_006_TwoServersTwoSitesAllGood
-   - It happens when I introduced if (jscTestGlobal.isTerminateApplicationAlreadyInvoked) in function terminateApplication({resolveMessage = '', onComplete} = {}).
-
- - Fix current tests.
-
- - Then deal with __RP:
-   - getMariaDb() //__RP just for now.
-
  - Migrate the connection and disconnection to jscause.js.
    - Still hard-coded.  It's okay.
  
@@ -32,6 +23,8 @@ This test is stalling:
  - Convert the hardcoded stuff to config values.
 
  - Get rid of rt.getMariaDb().
+  - Deal with __RP:
+    - getMariaDb() //__RP just for now.
 
  - The app should not start if the connection is refused.
    - Unless there is no connection defined.

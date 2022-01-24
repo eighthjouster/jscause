@@ -122,6 +122,8 @@ const test_014_002_takenServerPortOneServerTwoSites = Object.assign(testUtils.ma
       testServer = testHttp.createServer();
 
       testServer.listen(3100, this.waitForDoneSignal());
+
+      this.serverExpectedToStart = false;
     },
     expectedLogMessages:
     [
@@ -281,6 +283,8 @@ const test_014_005_takenServerPortTwoServersTwoSites_Pt3 = Object.assign(testUti
           new Promise((resolve) => { testServer2.listen(3499, resolve); })
         ])
         .then(this.waitForDoneSignal());
+
+      this.serverExpectedToStart = false;
     },
     expectedLogMessages:
     [
@@ -358,9 +362,9 @@ const test_014_006_TwoServersTwoSitesAllGood = Object.assign(testUtils.makeFromB
 module.exports =
 [
   test_014_001_takenServerPortOneServerOneSite,
-  test_014_002_takenServerPortOneServerTwoSites,//__RP
-  // test_014_003_takenServerPortTwoServersTwoSites_Pt1,
-  // test_014_004_takenServerPortTwoServersTwoSites_Pt2,
-  // test_014_005_takenServerPortTwoServersTwoSites_Pt3,
-  // test_014_006_TwoServersTwoSitesAllGood
+  test_014_002_takenServerPortOneServerTwoSites,
+  test_014_003_takenServerPortTwoServersTwoSites_Pt1,
+  test_014_004_takenServerPortTwoServersTwoSites_Pt2,
+  test_014_005_takenServerPortTwoServersTwoSites_Pt3,
+  test_014_006_TwoServersTwoSitesAllGood
 ];
