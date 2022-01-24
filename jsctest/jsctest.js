@@ -2,41 +2,43 @@
 
 const allTests =
 [
-  // 'testBattery_001', //__RP
-  // 'testBattery_002',
-  // 'testBattery_003',
-  // 'testBattery_004',
-  // 'testBattery_005',
-  // 'testBattery_006',
-  // 'testBattery_007',
-  // 'testBattery_008',
-  // 'testBattery_009',
-  // 'testBattery_010',
-  // 'testBattery_011',
-  // 'testBattery_012',
-  // 'testBattery_013',
-  // 'testBattery_014',
-  // 'testBattery_015',
-  // 'testBattery_016',
-  // 'testBattery_017',
-  // 'testBattery_018',
-  'testBattery_contents_01', //__RP this one also has errors.
-  // 'testBattery_contents_02',
-  // 'testBattery_contents_03',
-  // 'testBattery_contents_04',
-  // 'testBattery_contents_05',
-  // 'testBattery_contents_06',
-  // 'testBattery_contents_07',
-  // 'testBattery_contents_08',
-  // 'testBattery_contents_09',
-  // 'testBattery_contents_10',
-  // 'testBattery_contents_11',
-  // 'testBattery_contents_12',
-  // 'testBattery_contents_13'
+  'testBattery_001',
+  'testBattery_002',
+  'testBattery_003',
+  'testBattery_004',
+  'testBattery_005',
+  'testBattery_006',
+  'testBattery_007',
+  'testBattery_008',
+  'testBattery_009',
+  'testBattery_010',
+  'testBattery_011',
+  'testBattery_012',
+  'testBattery_013',
+  'testBattery_014',
+  'testBattery_015',
+  'testBattery_016',
+  'testBattery_017',
+  'testBattery_018',
+  'testBattery_contents_01',
+  'testBattery_contents_02',
+  'testBattery_contents_03',
+  'testBattery_contents_04',
+  'testBattery_contents_05',
+  'testBattery_contents_06',
+  'testBattery_contents_07',
+  'testBattery_contents_08',
+  'testBattery_contents_09',
+  'testBattery_contents_10',
+  'testBattery_contents_11',
+  'testBattery_contents_12',
+  'testBattery_contents_13'
 ];
 
 const fs = require('fs');
 const fsPath = require('path');
+
+const ASYNC_PROCESS_WAIT_MS = 50;
 
 const start = (jscTestGlobal, onCompletionCb) =>
 {
@@ -198,11 +200,10 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
   }
 }
 
-function createNewTestPromise(jscTestContext, currentTest, /* //__RP */ TESTID)
+function createNewTestPromise(jscTestContext, currentTest)
 {
   return (resolve) =>
   {
-    jscTestContext.testId = TESTID;//__RP
     jscTestContext.maxFilesOrDirInDirectory = undefined;
     jscTestContext.testNextAvailableStepCall = undefined;
     jscTestContext.stepCallToTriggerOnDone = undefined;
@@ -376,14 +377,11 @@ function nextTest(jscTestGlobal)
     }
   }
   const testPromisedId = Math.random();
-  console.log(`+++++++++++++++++++ TO CREATE THE TEST PROMISE! ${testPromisedId}`);//__RP
   const testPromise = new Promise(createNewTestPromise(jscTestGlobal, thisTest, testPromisedId));
 
   testPromise
     .then((result) =>
     {
-      console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> TEST PROMISE THEN! ${testPromisedId}`);//__RP
-      console.log(result);//__RP
       result && console.info(result);
 
       checkForShouldSignalTestEnd(jscTestGlobal);
@@ -434,7 +432,7 @@ function checkForShouldCallOnReadyForRequests(jscTestGlobal)
 {
   if (jscTestGlobal.areCallbacksStillPending())
   {
-    setTimeout(() => { checkForShouldCallOnReadyForRequests(jscTestGlobal); }, 500);//__RP
+    setTimeout(() => { checkForShouldCallOnReadyForRequests(jscTestGlobal); }, ASYNC_PROCESS_WAIT_MS);
   }
   else
   {
@@ -452,7 +450,7 @@ function checkForShouldCallOnBeforeEndTestCall(jscTestGlobal)
 {
   if (jscTestGlobal.areCallbacksStillPending())
   {
-    setTimeout(() => { checkForShouldCallOnBeforeEndTestCall(jscTestGlobal); }, 500);//__RP
+    setTimeout(() => { checkForShouldCallOnBeforeEndTestCall(jscTestGlobal); }, ASYNC_PROCESS_WAIT_MS);
   }
   else
   {
@@ -464,7 +462,7 @@ function checkForShouldSignalTestEnd(jscTestGlobal)
 {
   if (jscTestGlobal.areCallbacksStillPending())
   {
-    setTimeout(() => { checkForShouldSignalTestEnd(jscTestGlobal); }, 500);//__RP
+    setTimeout(() => { checkForShouldSignalTestEnd(jscTestGlobal); }, ASYNC_PROCESS_WAIT_MS);
   }
   else
   {

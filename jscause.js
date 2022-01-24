@@ -665,7 +665,7 @@ function compressLogs(logDir, fileNameForLogging, canOutputErrorsToConsole)
 {
   if (compressLogsDirQueue.indexOf(logDir) > -1)
   {
-    console.log(`${logDir} IS ALREADY QUEUED FOR COMPRESSION!`);
+    // logDir is already queued for compression.
     return;
   }
 
@@ -748,7 +748,6 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
 function JSCLogQueueNext()
 {
   const { type, message, logOptions, dateTimeStamp } = JSCLogMessageQueue.shift();
-  console.log(`NEXT!!! ${message}`);//__RP
 
   let outputToFile = false;
   if (isTestMode)
@@ -819,7 +818,6 @@ function JSCLogQueueNext()
 
 function JSCLog(type, message, logOptions = {})
 {
-  console.log(`JSCLog: ${message}`);//__RP
   if (JSCLogMessageQueue.length <= MAX_FILELOG_QUEUE_ENTRIES)
   {
     const dateTimeStamp = (new Date()).toISOString();
@@ -843,7 +841,7 @@ function waitForLogsProcessingBeforeTerminate(options)
 {
   if (isCurrentlyLogDirCompressing || isJSCLogMessageQueueProcessing)
   {
-    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }), 0); //__RP WHY IS THIS 0 AND NOT, SAY, 100 MS?
+    setTimeout(jscCallback(() => { waitForLogsProcessingBeforeTerminate(options); }), LOGTERMINATE_WAIT_MS);
   }
   else
   {
@@ -933,7 +931,6 @@ function JSCLogTerminate(options)
     applicationIsTerminating = true;
   }
 
-  console.log('APPLICATION IS TERMINATING NOW');//__RP
   waitForLogsProcessingBeforeTerminate(options);
 }
 

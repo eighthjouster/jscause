@@ -6,32 +6,23 @@ Ideally, this document should not exist, and all its content should be transferr
 Useful:
 git bundle create jscause-.bundle devel
 =====
-testBattery_contents_01:
- - It pauses.
-   - That's because the server starts listening, then there is no signal to indicate that it should stop.
-      - That signal used to be at jscTestGlobal.callbackCalled. But we removed it because the test promise's then() is the one looking for the callbacks to complete.
-        - Then, in theory, the then() is invoked, and checkForShouldSignalTestEnd() is called.
-          - But this never happens? No then() invocation? Why?
-            - Remember: This is a different type of test. It's a content test, so it may behave differently from the test that we fixed.
-             - But WHY?! Because no errors?
 
 These tests:
  - Check that the application gracefully fails when starting if a port is taken; one server, one site.
+   - test_014_001_takenServerPortOneServerOneSite
  - Check that the application gracefully fails when starting if a port is taken; one server, two sites.
+   - test_014_002_takenServerPortOneServerTwoSites
   - Gave me these warnings:
     - WARNING!  The server never started (already running in a different process?)
     - WARNING - WARNING - WARNING:  Were we supposed to get here during testing?
-
-Get rid of all the __RP.
-
-Make sure that unit tests also complete (but if they pass, then all is well, then.)
+This test also gave me the first warning (not the second one):
+ - Check that the application gracefully fails when starting if a port is taken; two servers, one site each; both ports taken.
+   - test_014_005_takenServerPortTwoServersTwoSites_Pt3
 
  - Fix current tests.
 
  - Then deal with __RP:
    - getMariaDb() //__RP just for now.
-   - //__RP WHY IS THIS 0 AND NOT, SAY, 100 MS?
-     - And if it should be another value, make it a constant, like LOGTERMINATE_WAIT_MS.
 
  - Migrate the connection and disconnection to jscause.js.
    - Still hard-coded.  It's okay.
