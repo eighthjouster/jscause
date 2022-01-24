@@ -2973,7 +2973,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
   }));
 }
 
-function startServer(siteConfig, jscLogConfigBase, options)
+function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcessCompleted)
 {
   const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
@@ -3077,7 +3077,8 @@ function startServer(siteConfig, jscLogConfigBase, options)
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
-  return result ? Promise.resolve() : Promise.reject(siteConfig);
+  // Eventually we'll use this in conjunction with mariadb async initialization code.
+  onServerStartProcessCompleted({ error: !result });
 }
 
 function readConfigurationFile(name, path = '.', jscLogConfig = {})
@@ -5085,20 +5086,25 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
   if (serverIndex < serverConfig.sites.length)
   {
     const thisSiteConfig = serverConfig.sites[serverIndex];
-    startServer(thisSiteConfig, jscLogBase, options)
-      .then(() =>
+    startServer(thisSiteConfig, jscLogBase, options, ({ error: hasErrorOcurred }) =>
+      {
+        let siteStarted = false;
+        if (hasErrorOcurred)
         {
-          startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted: true });
-        })
-      .catch((siteConfig) =>
-        {
-          const { siteName } = siteConfig;
+          const { siteName } = thisSiteConfig;
           allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
     
           JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
           allFailedSiteNames.push(siteName);
-          startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted });
-        });
+        }
+        else
+        {
+          siteStarted = true;
+        }
+
+        startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted: (atLeastOneSiteStarted || siteStarted) });
+      }
+    );
   }
   else
   {
