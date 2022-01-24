@@ -748,6 +748,7 @@ function outputLogToDir(logDir, fileSizeThreshold = 0, message, canOutputErrorsT
 function JSCLogQueueNext()
 {
   const { type, message, logOptions, dateTimeStamp } = JSCLogMessageQueue.shift();
+  console.log(`NEXT!!! ${message}`);//__RP
 
   let outputToFile = false;
   if (isTestMode)
@@ -818,6 +819,7 @@ function JSCLogQueueNext()
 
 function JSCLog(type, message, logOptions = {})
 {
+  console.log(`JSCLog: ${message}`);//__RP
   if (JSCLogMessageQueue.length <= MAX_FILELOG_QUEUE_ENTRIES)
   {
     const dateTimeStamp = (new Date()).toISOString();
@@ -931,6 +933,7 @@ function JSCLogTerminate(options)
     applicationIsTerminating = true;
   }
 
+  console.log('APPLICATION IS TERMINATING NOW');//__RP
   waitForLogsProcessingBeforeTerminate(options);
 }
 

@@ -59,6 +59,7 @@ const start = (jscTestGlobal, onCompletionCb) =>
   jscTestGlobal.createSymlink = createSymlink.bind(jscTestGlobal);
   jscTestGlobal.isDirectoryEmpty = isDirectoryEmpty.bind(jscTestGlobal);
   jscTestGlobal.signalTestEnd = signalTestEnd.bind(jscTestGlobal);
+  jscTestGlobal.continueTesting = () => { continueTesting(jscTestGlobal) };
   jscTestGlobal.testList = [];
   let onlyTestList = [];
 
@@ -197,10 +198,11 @@ function callTestPhaseIfAvailable({ jscTestContext, testPhaseCallbackName, nextS
   }
 }
 
-function createNewTestPromise(jscTestContext, currentTest)
+function createNewTestPromise(jscTestContext, currentTest, /* //__RP */ TESTID)
 {
   return (resolve) =>
   {
+    jscTestContext.testId = TESTID;//__RP
     jscTestContext.maxFilesOrDirInDirectory = undefined;
     jscTestContext.testNextAvailableStepCall = undefined;
     jscTestContext.stepCallToTriggerOnDone = undefined;
@@ -353,13 +355,18 @@ function nextTest(jscTestGlobal)
           jscTestGlobal.onServerStartedOrError.call(jscTestGlobal);
         }
       };
-  
+      
       jscLib.startApplication(
         {
           onServerStarted: () =>
           {
             jscTestGlobal.serverDidStart = true;
             jscTestGlobal.onServerStarted.call(jscTestGlobal);
+
+            if (jscTestGlobal.isRequestsTest)
+            {
+              checkForShouldCallOnReadyForRequests(jscTestGlobal);
+            }
           },
           onServerError: jscTestGlobal.onServerError.bind(jscTestGlobal),
           onServerStartedOrError: jscTestGlobal.onServerStartedOrError.bind(jscTestGlobal),
@@ -368,12 +375,15 @@ function nextTest(jscTestGlobal)
       );
     }
   }
-
-  const testPromise = new Promise(createNewTestPromise(jscTestGlobal, thisTest));
+  const testPromisedId = Math.random();
+  console.log(`+++++++++++++++++++ TO CREATE THE TEST PROMISE! ${testPromisedId}`);//__RP
+  const testPromise = new Promise(createNewTestPromise(jscTestGlobal, thisTest, testPromisedId));
 
   testPromise
     .then((result) =>
     {
+      console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> TEST PROMISE THEN! ${testPromisedId}`);//__RP
+      console.log(result);//__RP
       result && console.info(result);
 
       checkForShouldSignalTestEnd(jscTestGlobal);
@@ -406,17 +416,91 @@ function stillWaitingForContinueTestingCall(jscTestGlobal)
   }
 }
 
+function onAllRequestsEndedCall(jscTestGlobal)
+{
+  callTestPhaseIfAvailable(
+    {
+      jscTestContext: jscTestGlobal,
+      testPhaseCallbackName: 'onAllRequestsEnded',
+      nextStepCall: () =>
+      {
+        onBeforeEndTestCall(jscTestGlobal);
+      }
+    }
+  );
+}
+
+function checkForShouldCallOnReadyForRequests(jscTestGlobal)
+{
+  if (jscTestGlobal.areCallbacksStillPending())
+  {
+    setTimeout(() => { checkForShouldCallOnReadyForRequests(jscTestGlobal); }, 500);//__RP
+  }
+  else
+  {
+    callTestPhaseIfAvailable(
+      {
+        jscTestContext: jscTestGlobal,
+        testPhaseCallbackName: 'onReadyForRequests',
+        nextStepCall: () => { onAllRequestsEndedCall(jscTestGlobal); }
+      }
+    );
+  }
+};
+
+function checkForShouldCallOnBeforeEndTestCall(jscTestGlobal)
+{
+  if (jscTestGlobal.areCallbacksStillPending())
+  {
+    setTimeout(() => { checkForShouldCallOnBeforeEndTestCall(jscTestGlobal); }, 500);//__RP
+  }
+  else
+  {
+    onAllRequestsEndedCall(jscTestGlobal);
+  }
+};
+
 function checkForShouldSignalTestEnd(jscTestGlobal)
 {
   if (jscTestGlobal.areCallbacksStillPending())
   {
-    setTimeout(() => { checkForShouldSignalTestEnd(jscTestGlobal); }, 500);
+    setTimeout(() => { checkForShouldSignalTestEnd(jscTestGlobal); }, 500);//__RP
   }
   else
   {
     signalTestEnd(jscTestGlobal);
   }
 };
+
+function onBeforeEndTestCall(jscTestGlobal)
+{
+  if (!jscTestGlobal.serverDidTerminate && jscTestGlobal.serverDidStart)
+  {
+    console.warn('WARNING: The server did not terminate by the time all testing was completed.');
+  }
+
+  callTestPhaseIfAvailable(
+    {
+      jscTestContext: jscTestGlobal,
+      testPhaseCallbackName: 'onBeforeTestEnd',
+      nextStepCall: () =>
+      {
+        wrapUpSignalTestEnd(jscTestGlobal);
+      }
+    }
+  );
+};
+
+function continueTesting(jscTestGlobal)
+{
+  jscTestGlobal.waitForContinueTestingCall = false;
+  if (jscTestGlobal.waitForContinueTestingCallHandlerId)
+  {
+    clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
+    jscTestGlobal.waitForContinueTestingCallHandlerId = null;
+  }
+  endTest(jscTestGlobal);
+}
 
 function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = false, error = undefined } = {})
 {
@@ -439,75 +523,29 @@ function signalTestEnd(jscTestGlobal, { followUpCall = false, generalError = fal
   }
   else
   {
-    jscTestGlobal.continueTesting = () =>
-    {
-      jscTestGlobal.waitForContinueTestingCall = false;
-      if (jscTestGlobal.waitForContinueTestingCallHandlerId)
-      {
-        clearInterval(jscTestGlobal.waitForContinueTestingCallHandlerId);
-        jscTestGlobal.waitForContinueTestingCallHandlerId = null;
-      }
-      endTest(jscTestGlobal);
-    };
-
-    const onAllRequestsEndedCall = () =>
-    {
-      callTestPhaseIfAvailable(
-        {
-          jscTestContext: jscTestGlobal,
-          testPhaseCallbackName: 'onAllRequestsEnded',
-          nextStepCall: onBeforeEndTestCall
-        }
-      );
-    };
-
-    const onReadyForRequestsCall = () =>
-    {
-      callTestPhaseIfAvailable(
-        {
-          jscTestContext: jscTestGlobal,
-          testPhaseCallbackName: 'onReadyForRequests',
-          nextStepCall: onAllRequestsEndedCall
-        }
-      );
-    };
-
-    const onBeforeEndTestCall = () =>
-    {
-      if (!jscTestGlobal.serverDidTerminate && jscTestGlobal.serverDidStart)
-      {
-        console.warn('WARNING: The server did not terminate by the time all testing was completed.');
-      }
-
-      callTestPhaseIfAvailable(
-        {
-          jscTestContext: jscTestGlobal,
-          testPhaseCallbackName: 'onBeforeTestEnd',
-          nextStepCall: () =>
-          {
-            wrapUpSignalTestEnd(jscTestGlobal);
-          }
-        }
-      );
-    };
-
     if (jscTestGlobal.isUnitTest)
     {
       callTestPhaseIfAvailable(
         {
           jscTestContext: jscTestGlobal,
           testPhaseCallbackName: 'onUnitTestStarted',
-          nextStepCall: onBeforeEndTestCall
+          nextStepCall: () =>
+          {
+            onBeforeEndTestCall(jscTestGlobal);
+          }
         }
       );
     }
     else if (jscTestGlobal.currentTestPhaseName === 'onAllRequestsEnded')
     {
-      onBeforeEndTestCall();
+      onBeforeEndTestCall(jscTestGlobal);
     }
     else
     {
-      onReadyForRequestsCall();
+      if (!jscTestGlobal.isRequestsTest)
+      {
+        checkForShouldCallOnBeforeEndTestCall(jscTestGlobal);
+      }
     }
   }
 }
