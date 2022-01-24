@@ -3077,7 +3077,7 @@ function startServer(siteConfig, jscLogConfigBase, options)
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
-  return result ? Promise.resolve({ siteConfig }) : Promise.reject({ siteConfig, error: true });
+  return result ? Promise.resolve() : Promise.reject(siteConfig);
 }
 
 function readConfigurationFile(name, path = '.', jscLogConfig = {})
@@ -4501,7 +4501,6 @@ function startApplication(options = { rootDir: undefined })
 
   JSCLog('raw', `*** JSCause Server version ${JSCAUSE_APPLICATION_VERSION}`);
 
-  let atLeastOneSiteStarted = false;
   let readSuccess = false;
   let allSitesInServer;
   let serverWideLoggingInfo;
@@ -4599,7 +4598,6 @@ function startApplication(options = { rootDir: undefined })
 
   const allSiteConfigs = [];
   let allReadySiteNames = [];
-  let allFailedSiteNames = [];
   let allSiteNames = [];
   let allConfigCombos = [];
 
@@ -5073,74 +5071,80 @@ function startApplication(options = { rootDir: undefined })
   allSiteNames = null;
 
   serverConfig.sites = allSiteConfigs || [];
+  serverConfig.requestTimeoutSecs = requestTimeoutSecs;
+  
+  // We could have used a parallel approach instead of a sequential one (e.g. Promise.all)
+  // But starting one server at a time gives us some determinism that we can use during testing.
+  // It also gives us some predictability when debugging certain issues.
+  // This may change in the future, though.
+  startNextServer(0, { jscLogBase, options, allReadySiteNames, allFailedSiteNames: [], atLeastOneSiteStarted: false });
+}
 
-  const allStartingServers = serverConfig.sites.map((siteConfig) => startServer(siteConfig, jscLogBase, options).catch(error => ({ siteConfig, error })));
-
-  Promise.all(allStartingServers)
-    .then(allServerResults =>
-      {
-        allServerResults.forEach(({ siteConfig, error }) =>
+function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted = false })
+{
+  if (serverIndex < serverConfig.sites.length)
+  {
+    const thisSiteConfig = serverConfig.sites[serverIndex];
+    startServer(thisSiteConfig, jscLogBase, options)
+      .then(() =>
         {
-          if (error)
-          {
-            const { siteName } = siteConfig;
-            allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
-      
-            JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
-            allFailedSiteNames.push(siteName);
-          }
-          else
-          {
-            atLeastOneSiteStarted = true;
-          }
+          startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted: true });
+        })
+      .catch((siteConfig) =>
+        {
+          const { siteName } = siteConfig;
+          allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
+    
+          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
+          allFailedSiteNames.push(siteName);
+          startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted });
         });
+  }
+  else
+  {
+    JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
+  
+    if (allReadySiteNames.length)
+    {
+      JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
+      allReadySiteNames.forEach((name) =>
+      {
+        JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
+      });
+    }
 
-        serverConfig.requestTimeoutSecs = requestTimeoutSecs;
+    if (allFailedSiteNames.length)
+    {
+      JSCLog('error', 'The following sites failed to run:', jscLogBase);
+      allFailedSiteNames.forEach((name) =>
+      {
+        JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
+      });
+    }
 
-        JSCLog('info', '************ All sites\' configuration read at this point ********************', jscLogBase);
-  
-        if (allReadySiteNames.length)
-        {
-          JSCLog('info', 'The following sites were set up successfully:', jscLogBase);
-          allReadySiteNames.forEach((name) =>
-          {
-            JSCLog('info', getSiteNameOrNoName(name), jscLogBase);
-          });
-        }
+    if (atLeastOneSiteStarted)
+    {
+      JSCLog('info', 'Will start listening.', jscLogBase);
+    }
+    else
+    {
+      JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
+      JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: 'No sites started.  Check the logs for more info.' });
+    }
 
-        if (allFailedSiteNames.length)
-        {
-          JSCLog('error', 'The following sites failed to run:', jscLogBase);
-          allFailedSiteNames.forEach((name) =>
-          {
-            JSCLog('error', `- ${getSiteNameOrNoName(name)}`, jscLogBase);
-          });
-        }
-  
-        if (atLeastOneSiteStarted)
-        {
-          JSCLog('info', 'Will start listening.', jscLogBase);
-        }
-        else
-        {
-          JSCLog('error', 'Server not started.  No sites are running.', jscLogBase);
-          JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: 'No sites started.  Check the logs for more info.' });
-        }
-  
-        if (!isTestMode)
-        {
-          process.on('SIGINT', function()
-          {
-            exitApplication();
-          });
-  
-          process.on('SIGTERM', function()
-          {
-            exitApplication();
-          });
-        }
-      }
-    );
+    if (!isTestMode)
+    {
+      process.on('SIGINT', function()
+      {
+        exitApplication();
+      });
+
+      process.on('SIGTERM', function()
+      {
+        exitApplication();
+      });
+    }
+  }
 }
 
 function exitApplication(options = {})
