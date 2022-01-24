@@ -7,17 +7,9 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-These tests:
- - Check that the application gracefully fails when starting if a port is taken; one server, one site.
-   - test_014_001_takenServerPortOneServerOneSite
- - Check that the application gracefully fails when starting if a port is taken; one server, two sites.
-   - test_014_002_takenServerPortOneServerTwoSites
-  - Gave me these warnings:
-    - WARNING!  The server never started (already running in a different process?)
-    - WARNING - WARNING - WARNING:  Were we supposed to get here during testing?
-This test also gave me the first warning (not the second one):
- - Check that the application gracefully fails when starting if a port is taken; two servers, one site each; both ports taken.
-   - test_014_005_takenServerPortTwoServersTwoSites_Pt3
+This test is stalling:
+ - test_014_006_TwoServersTwoSitesAllGood
+   - It happens when I introduced if (jscTestGlobal.isTerminateApplicationAlreadyInvoked) in function terminateApplication({resolveMessage = '', onComplete} = {}).
 
  - Fix current tests.
 

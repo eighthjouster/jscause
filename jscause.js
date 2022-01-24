@@ -2944,7 +2944,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 
     if (typeof(options.onServerStartedOrError) === 'function')
     {
-      options.onServerStartedOrError();
+      options.onServerStartedOrError();//__RP
     }
 
     JSCLogTerminate({ onTerminateComplete: options.onServerError, terminateMessage: e.message });
@@ -5155,7 +5155,7 @@ function exitApplication(options = {})
   processExitAttempts++;
   if (processExitAttempts === 1)
   {
-    if (!isTestMode)
+    //if (!isTestMode)//__RP
     {
       console.log('\nReceived interrupt signal.  Cleaning up before exiting...');
     }
