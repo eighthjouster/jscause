@@ -1826,7 +1826,8 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     siteName,
     fullSitePath,
     logging: { siteLogDir, doLogToConsole },
-    allowExeExtensionsInOpr
+    allowExeExtensionsInOpr,
+    mariaDbPool
   } = identifiedSite;
 
   const jscLogConfig =
@@ -2185,16 +2186,13 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         }
       );
     },
-    getMariaDb() //__RP just for now.
-    {
-      return mariaDb;
-    },
     getParams,
     postParams,
     contentType,
     requestMethod,
     uploadedFiles,
-    additional
+    additional,
+    mariaDbPool //__RP for now.
   });
 }
 
@@ -3071,10 +3069,18 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
   if (result)
   {
     runningServer.sites[siteHostName] = siteConfig;
+    runningServer.sites[siteHostName].mariaDbPool = mariaDb.createPool(
+      {
+        host: 'localhost',
+        database: 'jsc_example',
+        user: 'jsc_example',
+        password: 'dbpassword',
+        connectionLimit: 5
+      });
+
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
 
-  // Eventually we'll use this in conjunction with mariadb async initialization code.
   onServerStartProcessCompleted({ error: !result });
 }
 

@@ -10,16 +10,7 @@
 //  Let's call MariaDB.
 console.log('Let us call MariaDB.');
 
-const mariadb = rt.getMariaDb();
-
-const pool = mariadb.createPool(
-  {
-    host: 'localhost',
-    database: 'jsc_example',
-    user: 'jsc_example',
-    password: 'dbpassword',
-    connectionLimit: 5
-  });
+const pool = rt.mariaDbPool;
 
 let dbConn;
 const appContinue = rt.waitFor();
