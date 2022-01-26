@@ -7,7 +7,14 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Don't expose mariaDbPool, but do expose conn.
+Simulate when a connection fails:
+  - The server won't start.  It SHOULD START, but emit a warning.
+    - But keep the current behavior under a temporary flag for now.
+    - Then, index.jscp should deal with it.
+
+Deal with this next:
+  - if (dbConn) dbConn.release(); //release to pool
+    - I mean, that should only happen when the server / site shuts down (with or without errors.)
 
  - Migrate the connection and disconnection to jscause.js.
    - Still hard-coded.  It's okay.
@@ -20,9 +27,15 @@ Don't expose mariaDbPool, but do expose conn.
  - What happens if the database gets disconnected? Retry?
    - Should retries be a configuration value?
 
+ - Should there be a config value to instruct the server (or site) to not to continue starting if the database connection fails?
+   - Right now (if we implemented this already), the application emits a warning and moves on.  With the config value, the site wouldn't start.
+     - I think we have a temporary flag to decide for warning or error at the moment.
+
  - Isolate the hardcoded stuff.
 
  - Convert the hardcoded stuff to config values.
+
+ - Disconnect from database if application gets terminated (or if it exists due to an error.)
 
  - Better names for database stuff.  mariaDbPool?  It should be databasePool or something.
 
@@ -52,6 +65,10 @@ something
     appContinue();
   });
  - Put it alongside the waitFor() trick for setInterval().
+
+"Server not started.  No sites are running."
+ - Shouldn't the server process exit to the console if this happens? At the time of writing this, the server is just up, but not serving anything.
+   - If you change this, re-run the tests.
 
 How to guarantee that if jscvendor is not available, then we can still use the external node_modules?
 

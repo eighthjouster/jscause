@@ -1827,7 +1827,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     fullSitePath,
     logging: { siteLogDir, doLogToConsole },
     allowExeExtensionsInOpr,
-    mariaDbPool
+    mariaDbConn
   } = identifiedSite;
 
   const jscLogConfig =
@@ -2192,7 +2192,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     requestMethod,
     uploadedFiles,
     additional,
-    mariaDbPool //__RP for now.
+    mariaDbConn //__RP for now?
   });
 }
 
@@ -3069,7 +3069,7 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
   if (result)
   {
     runningServer.sites[siteHostName] = siteConfig;
-    runningServer.sites[siteHostName].mariaDbPool = mariaDb.createPool(
+    const mariaDbPool = mariaDb.createPool( //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
       {
         host: 'localhost',
         database: 'jsc_example',
@@ -3078,10 +3078,29 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
         connectionLimit: 5
       });
 
+    runningServer.sites[siteHostName].mariaDbConn = null;
+    mariaDbPool.getConnection()
+      .then(
+        (dbConn) =>
+          {
+            runningServer.sites[siteHostName].mariaDbConn = dbConn;
+            onServerStartProcessCompleted();
+          }
+      )
+      .catch(
+        (e) =>
+          {
+            JSCLog('error', 'Cannot get connection to database.', Object.assign({ e }, jscLogConfig));
+            onServerStartProcessCompleted({ error: true });
+          }
+      );
+
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
-
-  onServerStartProcessCompleted({ error: !result });
+  else
+  {
+    onServerStartProcessCompleted({ error: !result });
+  }
 }
 
 function readConfigurationFile(name, path = '.', jscLogConfig = {})
@@ -5089,7 +5108,7 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
   if (serverIndex < serverConfig.sites.length)
   {
     const thisSiteConfig = serverConfig.sites[serverIndex];
-    startServer(thisSiteConfig, jscLogBase, options, ({ error: hasErrorOcurred }) =>
+    startServer(thisSiteConfig, jscLogBase, options, ({ error: hasErrorOcurred = false } = {}) =>
       {
         let siteStarted = false;
         if (hasErrorOcurred)

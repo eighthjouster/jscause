@@ -7,47 +7,42 @@
     <h1>This is an example site.</h1>
 <js
 
+const appContinue = rt.waitFor();
+
 //  Let's call MariaDB.
 console.log('Let us call MariaDB.');
 
-const pool = rt.mariaDbPool;
-
-let dbConn;
-const appContinue = rt.waitFor();
+const dbConn = rt.mariaDbConn;
 let htmlOutput = '?';
-pool.getConnection()
-  .then(
-      (conn) => {
-        dbConn = conn;
-    conn.query("SELECT * from posts")
-    //conn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
-      .then(
-          (result) => {
-        htmlOutput = 'GREAT SUCCESS!';//__RP
-        console.log(result);
-//        for (let i=0;i<result.length;i++) {
-//          console.log(result[i]);//__RP
-//        }
-        appContinue();
-        // rows: [ {val: 1}, meta: ... ]
-      }
-      )
-      .catch(
-          (e) => {
-        htmlOutput = 'NO SUCCESS';//__RP
-        console.log(e);//__RP
-        appContinue();
-      }
-      );
-  }
-  )
-  .catch(
-      (e) => {
-    htmlOutput = 'UGH';//__RP
-    console.log(e);//__RP
-    appContinue();
-  }
-  );
+if (dbConn)
+{
+  dbConn.query("SELECT * from posts")
+  //dbConn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
+    .then(
+        (result) => {
+      htmlOutput = 'GREAT SUCCESS!';//__RP
+      console.log(result);
+//      for (let i=0;i<result.length;i++) {
+//        console.log(result[i]);//__RP
+//      }
+      appContinue();
+      // rows: [ {val: 1}, meta: ... ]
+    }
+    )
+    .catch(
+        (e) => {
+      htmlOutput = 'NO SUCCESS';//__RP
+      console.log(e);//__RP
+      appContinue();
+    }
+    );
+}
+else
+{
+  htmlOutput = 'UGH';//__RP
+  console.log(e);//__RP
+  appContinue();
+}
 
 
 //
