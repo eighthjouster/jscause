@@ -3132,8 +3132,14 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
       }
     );
 
-    onServerStartProcessCompleted();
-//__RP    onServerStartProcessCompleted({ error: true });
+    if (mariaDbPool)
+    {
+      onServerStartProcessCompleted();
+    }
+    else
+    {
+      onServerStartProcessCompleted({ error: true });
+    }
 
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
