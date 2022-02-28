@@ -144,6 +144,7 @@ let jsclogTerminateRetries;
 let processExitAttempts;
 let serverConfig;
 let runningServers;
+let mariaDbPool;
 
 /* *****************************************
  * 
@@ -1588,6 +1589,13 @@ function doneWith(serverConfig, identifiedSite, ctx, id)
         {
           resObject.statusCode = statusCode;
         }
+
+        if (ctx.mariaDbConn)
+        {
+          ctx.mariaDbConn.release();
+          ctx.mariaDbConn = null;
+        }
+
         resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId }, showContents ? (ctx.outputQueue || []).join('') : '');
       }
     }
@@ -1814,7 +1822,8 @@ function areFileOperationAllowedInWebsiteDir(websiteNormalizedPath, targetPath, 
 function createRunTime(serverConfig, identifiedSite, rtContext)
 {
   const { runFileName, getParams, postParams, contentType,
-    requestMethod, uploadedFiles, additional, reqObject = {}, resObject = {} } = rtContext;
+    requestMethod, uploadedFiles, additional, reqObject = {}, resObject = {},
+    mariaDbConn } = rtContext;
 
   const jsCookies = new cookies(reqObject, resObject);
 
@@ -1826,8 +1835,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     siteName,
     fullSitePath,
     logging: { siteLogDir, doLogToConsole },
-    allowExeExtensionsInOpr,
-    mariaDbConn
+    allowExeExtensionsInOpr
   } = identifiedSite;
 
   const jscLogConfig =
@@ -2192,7 +2200,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     requestMethod,
     uploadedFiles,
     additional,
-    mariaDbConn //__RP for now?
+    mariaDbConn
   });
 }
 
@@ -2252,6 +2260,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       forbiddenUploadAttempted = formForbiddenUploadAttempted
     } = postContext || {};
 
+  let shouldCallDoneWith = true;
   let postParams;
   let uploadedFiles = {};
   const additional = {};
@@ -2310,7 +2319,8 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       statusCode: statusCode || 200,
       uploadedFiles,
       waitForNextId: 1,
-      waitForQueue: {}
+      waitForQueue: {},
+      mariaDbConn: null
     }
   );
 
@@ -2318,8 +2328,6 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
   {
     resContext.statusCode = 400;
   }
-
-  const runTime = createRunTime(serverConfig, identifiedSite, resContext);
 
   if (!maxSizeExceeded && !forbiddenUploadAttempted)
   {
@@ -2329,7 +2337,8 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
     }
     else
     {
-      const { compiledFiles } = identifiedSite;
+      const { compiledFiles, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
+
       const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
       if (compiledCode)
       {
@@ -2338,16 +2347,39 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
 
         assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
 
-        try
-        {
-          compiledCode.call({}, runTime);
-        }
-        catch (e)
-        {
-          setRuntimeException(resContext, e);
-        }
+        shouldCallDoneWith = false;
 
-        finishUpHeaders(resContext);
+        if (mariaDbPool)
+        {
+          mariaDbPool.getConnection()
+          .then(
+            (dbConn) =>
+            {
+              resContext.mariaDbConn = dbConn;
+              runUserCode(serverConfig, identifiedSite, resContext, compiledCode);
+            }
+          )
+          .catch(
+            (e) =>
+            {
+              const { serverLogDir, general: { logFileSizeThreshold } } = serverConfig.logging;
+              const jscLogConfig =
+              {
+                toConsole: doLogToConsole,
+                toServerDir: serverLogDir,
+                toSiteDir: siteLogDir,
+                fileSizeThreshold: logFileSizeThreshold
+              };
+
+              JSCLog('error', 'Cannot get connection to database.', Object.assign({ e }, jscLogConfig));
+              runUserCode(serverConfig, identifiedSite, resContext, compiledCode);
+            }
+          );
+        }
+        else
+        {
+          runUserCode(serverConfig, identifiedSite, resContext, compiledCode);
+        }
       }
       else
       {
@@ -2356,6 +2388,27 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
     }
   }
   
+  if (shouldCallDoneWith)
+  {
+    doneWith(serverConfig, identifiedSite, resContext);
+  }
+}
+
+function runUserCode(serverConfig, identifiedSite, resContext, compiledCode)
+{
+  const runTime = createRunTime(serverConfig, identifiedSite, resContext);
+
+  try
+  {
+    compiledCode.call({}, runTime);
+  }
+  catch (e)
+  {
+    setRuntimeException(resContext, e);
+  }
+
+  finishUpHeaders(resContext);
+
   doneWith(serverConfig, identifiedSite, resContext);
 }
 
@@ -3069,31 +3122,18 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
   if (result)
   {
     runningServer.sites[siteHostName] = siteConfig;
-    const mariaDbPool = mariaDb.createPool( //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
+    mariaDbPool = mariaDb.createPool( //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
       {
         host: 'localhost',
         database: 'jsc_example',
         user: 'jsc_example',
         password: 'dbpassword',
         connectionLimit: 5
-      });
+      }
+    );
 
-    runningServer.sites[siteHostName].mariaDbConn = null;
-    mariaDbPool.getConnection()
-      .then(
-        (dbConn) =>
-          {
-            runningServer.sites[siteHostName].mariaDbConn = dbConn;
-            onServerStartProcessCompleted();
-          }
-      )
-      .catch(
-        (e) =>
-          {
-            JSCLog('error', 'Cannot get connection to database.', Object.assign({ e }, jscLogConfig));
-            onServerStartProcessCompleted({ error: true });
-          }
-      );
+    onServerStartProcessCompleted();
+//__RP    onServerStartProcessCompleted({ error: true });
 
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }

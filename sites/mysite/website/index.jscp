@@ -7,8 +7,6 @@
     <h1>This is an example site.</h1>
 <js
 
-const appContinue = rt.waitFor();
-
 //  Let's call MariaDB.
 console.log('Let us call MariaDB.');
 
@@ -16,6 +14,7 @@ const dbConn = rt.mariaDbConn;
 let htmlOutput = '?';
 if (dbConn)
 {
+  const appContinue = rt.waitFor();
   dbConn.query("SELECT * from posts")
   //dbConn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
     .then(
@@ -40,8 +39,6 @@ if (dbConn)
 else
 {
   htmlOutput = 'UGH';//__RP
-  console.log(e);//__RP
-  appContinue();
 }
 
 
@@ -50,8 +47,7 @@ else
 //	// res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
 
 rt.runAfter(() => {
-	if (dbConn) dbConn.release(); //release to pool
-  console.log('Disconnected from the mariadb database.');
+  console.log('RUN AFTER!');//__RP
 /js>
   <h1>Output:</h1>
   <h1><js= htmlOutput /js></h1>

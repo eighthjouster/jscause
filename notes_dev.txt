@@ -7,10 +7,15 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Maybe we don't need onServerStartProcessCompleted in the end.
+
 Simulate when a connection fails:
   - The server won't start.  It SHOULD START, but emit a warning.
     - But keep the current behavior under a temporary flag for now.
     - Then, index.jscp should deal with it.
+
+How to report when connection to the database via the pool fails?
+ - node sends it to the console, but I'd like to have some control on that. Like .on('error') or something.
 
 Deal with this next:
   - if (dbConn) dbConn.release(); //release to pool
@@ -64,7 +69,13 @@ something
     /* some code */
     appContinue();
   });
+ - NEVER call appContinue() outise of a callback.
+   - If your code seems to hang because it expects the appContinue() to be called somehow, then put the appContinue declaration (where we assign the waitFor) closer to the Promise. e.g., don't put it outside a conditional that may skip the promise call completely.
+     - Symptoms of this error: A duplicate entry in the server request logs (they both refer to the same request.) Or a "headers already sent" exception.
+       - Dev note: I wonder if we could throw a warning when appContinue() is misused this way?
  - Put it alongside the waitFor() trick for setInterval().
+   - This should be addressed in a future version. Sort of like a rt.waitFor(cb, id), in which id allows grouping.
+     - That way, if the same id is used, then don't increment the waiting count.
 
 "Server not started.  No sites are running."
  - Shouldn't the server process exit to the console if this happens? At the time of writing this, the server is just up, but not serving anything.
