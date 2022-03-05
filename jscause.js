@@ -867,31 +867,33 @@ function waitForLogsProcessingBeforeTerminate(options)
 
       jscTestGlobal.serverDidTerminate = true;
       jscTestGlobal.isWaitingForLogTermination = false;
-      if (typeof(options.onTerminateComplete) === 'function')
-      {
-        Promise.all(
-          Object.values(runningServers)
-            .map(
-              (thisServer) => {
-                thisServer.webServer.close(() => Promise.resolve());
-              }
-            )
-        )
-          .then(() =>
+
+      Promise.all(
+        Object.values(runningServers)
+          .map(
+            (thisServer) => {
+              thisServer.webServer.close(() => Promise.resolve());
+            }
+          )
+      )
+        .then(() =>
+        {
+          if (typeof(options.onTerminateComplete) === 'function')
           {
             const terminateMessage = options.terminateMessage;
             options.onTerminateComplete(terminateMessage);
-          })
-          .catch((e) =>
+          }
+          else
           {
-            console.error('ERROR:  Error on server listening termination:');
-            console.error(e);
-          });
-      }
-      else
-      {
-        process.exit();
-      }
+            process.exit();
+          }
+        })
+        .catch((e) =>
+        {
+          console.error('ERROR:  Error on server listening termination:');
+          console.error(e);
+          process.exit();
+        });
     }
     else
     {
