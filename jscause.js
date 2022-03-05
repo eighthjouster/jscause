@@ -1561,6 +1561,12 @@ function doneWith(serverConfig, identifiedSite, ctx, id)
 
       if (runtimeException)
       {
+        if (ctx.mariaDbConn)
+        {
+          ctx.mariaDbConn.release();
+          ctx.mariaDbConn = null;
+        }
+
         ctx.outputQueue = [];
         JSCLog('error', `Site: ${siteName}: Runtime error on file ${runFileName}: ${extractErrorFromRuntimeObject(runtimeException)}`, Object.assign({}, baseLogOptions, { e: runtimeException }));
       }
