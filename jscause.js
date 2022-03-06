@@ -878,6 +878,10 @@ function waitForLogsProcessingBeforeTerminate(options)
       )
         .then(() =>
         {
+          if (mariaDbPool) {
+            mariaDbPool.end(); //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
+          }
+
           if (typeof(options.onTerminateComplete) === 'function')
           {
             const terminateMessage = options.terminateMessage;
@@ -892,6 +896,9 @@ function waitForLogsProcessingBeforeTerminate(options)
         {
           console.error('ERROR:  Error on server listening termination:');
           console.error(e);
+          if (mariaDbPool) {
+            mariaDbPool.end(); //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
+          }
           process.exit();
         });
     }

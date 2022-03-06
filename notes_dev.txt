@@ -8,6 +8,8 @@ git bundle create jscause-.bundle devel
 =====
 
 The testing battery reports that there are too many connections open.  Fix this.
+ - Almost there. Address the two entries marked with:
+   - //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
 
 Fix the tests.  Some instances are _VERY_ slow.  The first one:
 ####### Starting test: Contents; JSCP file; index; empty
