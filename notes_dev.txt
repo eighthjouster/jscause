@@ -7,17 +7,20 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Fix the tests (if it still happens.)  Six of them are currently failing:
- - Site config, empty site, server runs
- - Config file with two http sites running
- - Site config, invalid HTTPS key file, second site is okay
- - Check that general file logging output actually occurs in the file system
- - Check that site file logging appending actually occurs in the file system
- - Check that site file creation occurs in the file system when gz and log above threshold exists
-
 How to report when connection to the database via the pool fails?
  - //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
  - node sends it to the console, but I'd like to have some control on that. Like .on('error') or something.
+   - Just test the connection. Implement this code right after creating the pool, then act accordingly:
+```
+pool.getConnection()
+    .then(conn => {
+      console.log("connected ! connection id is " + conn.threadId);
+      conn.release(); //release to pool
+    })
+    .catch(err => {
+      console.log("not connected due to error: " + err);
+    });
+```
 
  - Make the connection values part of a site config.
    - That's right. No global configs.

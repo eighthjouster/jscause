@@ -3156,6 +3156,8 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
   if (result)
   {
     runningServer.sites[siteHostName] = siteConfig;
+    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
+
     mariaDbPool = mariaDb.createPool( //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
       {
         host: 'localhost',
@@ -3174,8 +3176,6 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
     {
       onServerStartProcessCompleted({ error: true });
     }
-
-    JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
   }
   else
   {
@@ -3825,7 +3825,7 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
 
     siteConfig.logging = loggingConfig;
     soFarSoGood = !!loggingConfig;
-  }
+}
   else
   {
     checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid logging.  Object expected.`, jscLogConfig);
