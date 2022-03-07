@@ -144,8 +144,8 @@ let jsclogTerminateRetries;
 let processExitAttempts;
 let serverConfig;
 let runningServers;
-let mariaDbPool;
-let mariaDbPoolEnding = false;
+let mariaDbPools;
+let mariaDbPoolingEnding = false;
 
 /* *****************************************
  * 
@@ -869,7 +869,7 @@ function waitForLogsProcessingBeforeTerminate(options)
       jscTestGlobal.serverDidTerminate = true;
       jscTestGlobal.isWaitingForLogTermination = false;
 
-      Promise.all(
+      Promise.allSettled(
         Object.values(runningServers)
           .map(
             (thisServer) => {
@@ -877,12 +877,14 @@ function waitForLogsProcessingBeforeTerminate(options)
             }
           )
       )
-        .then(() => continueWithProcessExiting(options))
-        .catch((e) =>
+        .then((results) =>
         {
-          console.error('ERROR:  Error on server listening termination:');
-          console.error(e);
-          continueWithProcessExiting();
+          results.filter(result => result.status === 'rejected')
+            .forEach((result) => {
+              console.error('ERROR:  Error on server listening termination:');
+              console.error(result.reason);
+            });
+          continueWithProcessExiting(options);
         });
     }
     else
@@ -900,8 +902,8 @@ function waitForLogsProcessingBeforeTerminate(options)
 
 function terminateAndExit(onTerminateComplete, terminateMessage)
 {
-  mariaDbPool = null;
-  mariaDbPoolEnding = false;
+  mariaDbPools = null;
+  mariaDbPoolingEnding = false;
   if (typeof(onTerminateComplete) === 'function')
   {
     onTerminateComplete(terminateMessage);
@@ -914,17 +916,23 @@ function terminateAndExit(onTerminateComplete, terminateMessage)
 
 function continueWithProcessExiting({ onTerminateComplete, terminateMessage = '' } = {})
 {
-  if (mariaDbPool)
+  if (mariaDbPools)
   {
-    if (!mariaDbPoolEnding)
+    if (!mariaDbPoolingEnding)
     {
-      mariaDbPoolEnding = true;
-      mariaDbPool.end()
-        .then(() => terminateAndExit(onTerminateComplete, terminateMessage))
-        .catch((e) => {
-          console.error('ERROR:  Error on ending the MariaDb pool:');
-          console.error(e);
-          terminateAndExit();
+      mariaDbPoolingEnding = true;
+
+      Promise.allSettled(Object.values(mariaDbPools).map((mariaDbPool) => mariaDbPool.end()))
+        .then((results) =>
+        {
+          results.filter(result => result.status === 'rejected')
+            .forEach((result) =>
+            {
+              console.error('ERROR:  Error on ending a MariaDb pool entry:');
+              console.error(result.reason);
+            });
+
+          terminateAndExit(onTerminateComplete, terminateMessage);
         });
     }
   }
@@ -2371,7 +2379,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
     }
     else
     {
-      const { compiledFiles, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
+      const { siteHostName, compiledFiles, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
 
       const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
       if (compiledCode)
@@ -2382,6 +2390,8 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
         assignAppHeaders(resContext, {'Content-Type': 'text/html; charset=utf-8'});
 
         shouldCallDoneWith = false;
+
+        const mariaDbPool = mariaDbPools && mariaDbPools[siteHostName];
 
         if (mariaDbPool)
         {
@@ -3158,7 +3168,12 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
     runningServer.sites[siteHostName] = siteConfig;
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
 
-    mariaDbPool = mariaDb.createPool( //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
+    if (!mariaDbPools)
+    {
+      mariaDbPools = [];
+    }
+
+    const mariaDbPool = mariaDb.createPool(
       {
         host: 'localhost',
         database: 'jsc_example',
@@ -3170,7 +3185,13 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
 
     if (mariaDbPool)
     {
-      onServerStartProcessCompleted();
+      mariaDbPools[siteHostName] = mariaDbPool;
+      mariaDbPool.getConnection()
+      .then(onServerStartProcessCompleted)
+      .catch(e => {
+        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Cannot connect to database.`, Object.assign({ e }, jscLogConfig));
+        onServerStartProcessCompleted();
+      });
     }
     else
     {

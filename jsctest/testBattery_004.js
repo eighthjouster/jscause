@@ -351,10 +351,10 @@ const test_004_011_siteConfEmptyWebsite = Object.assign(testUtils.makeFromBaseTe
     [
       [ 'info', 'Reading configuration for site \'My Site\' from \'jsctest/testrootdir/sites/mysite\'' ],
       [ 'info', 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0' ],
+      [ 'info', 'Server 0 listening on port 3000' ],
       [ 'info', 'The following sites were set up successfully:' ],
       [ 'info', '\'My Site\'' ],
-      [ 'info', 'Will start listening.' ],
-      [ 'info', 'Server 0 listening on port 3000' ]
+      [ 'info', 'Will start listening.' ]
     ],
     onServerStarted()
     {

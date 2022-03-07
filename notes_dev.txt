@@ -7,23 +7,20 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-How to report when connection to the database via the pool fails?
- - //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
- - node sends it to the console, but I'd like to have some control on that. Like .on('error') or something.
-   - Just test the connection. Implement this code right after creating the pool, then act accordingly:
-```
-pool.getConnection()
-    .then(conn => {
-      console.log("connected ! connection id is " + conn.threadId);
-      conn.release(); //release to pool
-    })
-    .catch(err => {
-      console.log("not connected due to error: " + err);
-    });
-```
+Fix this test:
+test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix
+
+One MariaDB pool per website.
+
+Mark multi-site MariDB databases experimental in the docs.
+ - Because we'll need a battery of tests that guarantee that this feature works fine.
+
 
  - Make the connection values part of a site config.
-   - That's right. No global configs.
+     - There should be a configuration value to deal with database misconfigurations:
+       - warning? Just warn. Like it's happening right now.
+       - error? Don't start the application.
+         - If there are pools created from other apps, shut them down.
 
 The tests shouldn't depend on the presence of an actual database.
 
