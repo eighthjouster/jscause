@@ -145,6 +145,7 @@ let processExitAttempts;
 let serverConfig;
 let runningServers;
 let mariaDbPool;
+let mariaDbPoolEnding = false;
 
 /* *****************************************
  * 
@@ -876,30 +877,12 @@ function waitForLogsProcessingBeforeTerminate(options)
             }
           )
       )
-        .then(() =>
-        {
-          if (mariaDbPool) {
-            mariaDbPool.end(); //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
-          }
-
-          if (typeof(options.onTerminateComplete) === 'function')
-          {
-            const terminateMessage = options.terminateMessage;
-            options.onTerminateComplete(terminateMessage);
-          }
-          else
-          {
-            process.exit();
-          }
-        })
+        .then(() => continueWithProcessExiting(options))
         .catch((e) =>
         {
           console.error('ERROR:  Error on server listening termination:');
           console.error(e);
-          if (mariaDbPool) {
-            mariaDbPool.end(); //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
-          }
-          process.exit();
+          continueWithProcessExiting();
         });
     }
     else
@@ -912,6 +895,42 @@ function waitForLogsProcessingBeforeTerminate(options)
         options.onTerminateComplete(terminateMessage);
       }
     }
+  }
+}
+
+function terminateAndExit(onTerminateComplete, terminateMessage)
+{
+  mariaDbPool = null;
+  mariaDbPoolEnding = false;
+  if (typeof(onTerminateComplete) === 'function')
+  {
+    onTerminateComplete(terminateMessage);
+  }
+  else
+  {
+    process.exit();
+  }
+}
+
+function continueWithProcessExiting({ onTerminateComplete, terminateMessage = '' } = {})
+{
+  if (mariaDbPool)
+  {
+    if (!mariaDbPoolEnding)
+    {
+      mariaDbPoolEnding = true;
+      mariaDbPool.end()
+        .then(() => terminateAndExit(onTerminateComplete, terminateMessage))
+        .catch((e) => {
+          console.error('ERROR:  Error on ending the MariaDb pool:');
+          console.error(e);
+          terminateAndExit();
+        });
+    }
+  }
+  else
+  {
+    terminateAndExit(onTerminateComplete, terminateMessage);
   }
 }
 

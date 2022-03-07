@@ -7,17 +7,13 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-The testing battery reports that there are too many connections open.  Fix this.
- - Almost there. Address the two entries marked with:
-   - //__RP TO-DO: NEEDS THEN/CATCH PROMISE HANDLING.
-
-Fix the tests.  Some instances are _VERY_ slow.  The first one:
-####### Starting test: Contents; JSCP file; index; empty
-onReadyForRequests: Waiting for this.doneRequestsTesting() invocation...
-And there is a bunch reporting sql connection errors:
-SqlError: (conn=-1, no: 1040, SQLState: HY000) Too many connections
- - So I'm suspecting we must make sure that the pool connections really ends when the app ends!
-   - If it still happens. At this point, that error should already be fixed.
+Fix the tests (if it still happens.)  Six of them are currently failing:
+ - Site config, empty site, server runs
+ - Config file with two http sites running
+ - Site config, invalid HTTPS key file, second site is okay
+ - Check that general file logging output actually occurs in the file system
+ - Check that site file logging appending actually occurs in the file system
+ - Check that site file creation occurs in the file system when gz and log above threshold exists
 
 How to report when connection to the database via the pool fails?
  - //__RP TO-DO: WHAT HAPPENS IF THE CONNECTION FAILS HERE?
