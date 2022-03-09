@@ -7,16 +7,23 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Fix this test:
-test_contents_007_jscp_hangingExceptionBug_extn_ry_sp_in_en_ix
+Two tests are failing:
+ - Site config, empty site, server runs
+ - Config file with two http sites running
 
-One MariaDB pool per website.
+And at this point, back up.
+
+I think I found a bug:
+ - Two sites, same host, different ports.  Can they co-exist? What do the specs say?
+   - Because I think the sites[] hash should have 'host' values as key, not just the host name.
+     - e.g. host = localhost:3000? The key should be 'localhost:3000', not just 'localhost'.
+     - If you do this, fix incomingRequestHandler so that identifies a site this way.
 
 Mark multi-site MariDB databases experimental in the docs.
  - Because we'll need a battery of tests that guarantee that this feature works fine.
 
-
  - Make the connection values part of a site config.
+     - One MariaDB pool per website.
      - There should be a configuration value to deal with database misconfigurations:
        - warning? Just warn. Like it's happening right now.
        - error? Don't start the application.

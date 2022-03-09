@@ -932,7 +932,7 @@ function continueWithProcessExiting({ onTerminateComplete, terminateMessage = ''
               console.error(result.reason);
             });
 
-          terminateAndExit(onTerminateComplete, terminateMessage);
+            terminateAndExit(onTerminateComplete, terminateMessage);
         });
     }
   }
@@ -2379,7 +2379,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
     }
     else
     {
-      const { siteHostName, compiledFiles, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
+      const { siteName, compiledFiles, logging: { siteLogDir, doLogToConsole } } = identifiedSite;
 
       const compiledCode = compiledFiles && compiledFiles[baseResContext.runFileName];
       if (compiledCode)
@@ -2391,7 +2391,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
 
         shouldCallDoneWith = false;
 
-        const mariaDbPool = mariaDbPools && mariaDbPools[siteHostName];
+        const mariaDbPool = mariaDbPools && mariaDbPools[siteName];
 
         if (mariaDbPool)
         {
@@ -3185,13 +3185,8 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
 
     if (mariaDbPool)
     {
-      mariaDbPools[siteHostName] = mariaDbPool;
-      mariaDbPool.getConnection()
-      .then(onServerStartProcessCompleted)
-      .catch(e => {
-        JSCLog('warning', `Site ${getSiteNameOrNoName(siteName)}: Cannot connect to database.`, Object.assign({ e }, jscLogConfig));
-        onServerStartProcessCompleted();
-      });
+      mariaDbPools[siteName] = mariaDbPool;
+      onServerStartProcessCompleted();
     }
     else
     {
