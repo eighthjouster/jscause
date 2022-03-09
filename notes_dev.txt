@@ -7,12 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Two tests are failing:
- - Site config, empty site, server runs
- - Config file with two http sites running
-
-And at this point, back up.
-
 I think I found a bug:
  - Two sites, same host, different ports.  Can they co-exist? What do the specs say?
    - Because I think the sites[] hash should have 'host' values as key, not just the host name.

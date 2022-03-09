@@ -106,13 +106,13 @@ const test_006_001_configFileTwoHttpSitesRunning = Object.assign(testUtils.makeF
     expectedLogMessages:
     [
       [ 'info' , 'Site \'My Site\' at http://jscausesite1:3000/ assigned to server 0' ],
-      [ 'info' , 'Server 0 listening on port 3000' ],
       [ 'info' , 'Site \'My Site 2\' at http://jscausesite2:3001/ assigned to server 1' ],
-      [ 'info' , 'Server 1 listening on port 3001' ],
       [ 'info' , 'The following sites were set up successfully:' ],
       [ 'info' , '\'My Site\'' ],
       [ 'info' , '\'My Site 2\'' ],
       [ 'info' , 'Will start listening.' ],
+      [ 'info' , 'Server 0 listening on port 3000' ],
+      [ 'info' , 'Server 1 listening on port 3001' ]
     ],
     onServerStartedOrError()
     {
