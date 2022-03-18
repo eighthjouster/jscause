@@ -3067,7 +3067,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 
 function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcessCompleted)
 {
-  const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
+  const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging, database = null } = siteConfig;
   let result = true;
 
   const jscLogConfig = Object.assign({}, jscLogConfigBase,
@@ -3173,24 +3173,24 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
       mariaDbPools = [];
     }
 
-    const mariaDbPool = mariaDb.createPool(
-      {
-        host: 'localhost',
-        database: 'jsc_example',
-        user: 'jsc_example',
-        password: 'dbpassword',
-        connectionLimit: 5
-      }
-    );
-
-    if (mariaDbPool)
+    if (database === null)
     {
-      mariaDbPools[siteName] = mariaDbPool;
       onServerStartProcessCompleted();
     }
     else
     {
-      onServerStartProcessCompleted({ error: true });
+      const { database: { host, dbname, user, password } } = siteConfig;
+      const mariaDbPool = mariaDb.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
+
+      if (mariaDbPool)
+      {
+        mariaDbPools[siteName] = mariaDbPool;
+        onServerStartProcessCompleted();
+      }
+      else
+      {
+        onServerStartProcessCompleted({ error: true });
+      }
     }
   }
   else
@@ -3305,14 +3305,24 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
 
 function createInitialSiteConfig(siteInfo)
 {
-  const { name: siteName, port: sitePort, rootdirectoryname: rootDirectoryName, enablehttps: enableHTTPS, allowexeextensionsinopr: allowExeExtensionsInOpr } = siteInfo;
+  const
+  {
+    name: siteName,
+    port: sitePort,
+    rootdirectoryname: rootDirectoryName,
+    enablehttps: enableHTTPS,
+    allowexeextensionsinopr: allowExeExtensionsInOpr,
+    database: mariaDbDatabase
+  } = siteInfo;
+
   return Object.assign({}, defaultSiteConfig,
     {
       siteName,
       sitePort,
       rootDirectoryName,
       enableHTTPS: (typeof(enableHTTPS) === 'undefined') ? false : enableHTTPS,
-      allowExeExtensionsInOpr: (typeof(allowExeExtensionsInOpr) === 'undefined') ? false : allowExeExtensionsInOpr
+      allowExeExtensionsInOpr: (typeof(allowExeExtensionsInOpr) === 'undefined') ? false : allowExeExtensionsInOpr,
+      database: (typeof(mariaDbDatabase) === 'undefined') ? null : mariaDbDatabase,
     }
   );
 }
@@ -3712,6 +3722,34 @@ function parseMimeTypes(processedConfigJSON, siteConfig, requiredKeysNotFound, j
   return soFarSoGood;
 }
 
+function parseDatabaseInfo(processedConfigJSON, siteConfig, jscLogConfig)
+{
+  let soFarSoGood = true;
+  const configKeyName = 'database';
+  const configValue = processedConfigJSON[configKeyName];
+
+  if (typeof(configValue) === 'object' && !Array.isArray(configValue))
+  {
+    const databaseConfigValues = {};
+    Object.keys(configValue).forEach((keyName) =>
+    {
+      databaseConfigValues[keyName.toLocaleLowerCase()] = configValue[keyName];
+    });
+    
+    const databaseConfig = validateDatabaseConfigSection(databaseConfigValues, jscLogConfig);
+
+    siteConfig.database = databaseConfig;
+    soFarSoGood = !!databaseConfig;
+  }
+  else if (typeof(configValue) !== 'undefined')
+  {
+    JSCLog('error', 'Site configuration: Expected a valid database configuration value.', jscLogConfig);
+    soFarSoGood = false;
+  }
+
+  return soFarSoGood;
+}
+
 function parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogConfig)
 {
   let soFarSoGood = true;
@@ -3841,7 +3879,7 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
 
     siteConfig.logging = loggingConfig;
     soFarSoGood = !!loggingConfig;
-}
+  }
   else
   {
     checkForUndefinedConfigValue(configKeyName, configValue, requiredKeysNotFound, `Site configuration: Site name ${getSiteNameOrNoName(siteConfig.siteName)}: Invalid logging.  Object expected.`, jscLogConfig);
@@ -4556,6 +4594,82 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   return loggingConfig;
 }
 
+function validateDatabaseConfigSection(databaseInfo, jscLogConfig = {})
+{
+  let readSuccess = true;
+  let databaseConfig;
+
+  // Let's check for invalid entries.
+  const validEntries = ['host', 'dbname', 'user', 'password'];
+
+  Object.keys(databaseInfo || {}).every((infoKey) =>
+  {
+    if (!validEntries.includes(infoKey))
+    {
+      JSCLog('error', `Site configuration: Database: '${infoKey}' is not a valid configuration key.`, jscLogConfig);
+      readSuccess = false;
+    }
+  });
+
+  if (!readSuccess)
+  {
+    return;
+  }
+
+  // Let's check the specified directory.
+  let { host, dbname, user, password } = databaseInfo || {};
+  if (typeof(host) === 'undefined')
+  {
+    JSCLog('error', 'Site configuration: Database: \'host\' is missing.', jscLogConfig);
+    readSuccess = false;
+  }
+  else if (typeof(host) !== 'string')
+  {
+    JSCLog('error', 'Site configuration: Database: \'host\' is invalid.  String expected.', jscLogConfig);
+    readSuccess = false;
+  }
+  
+  if (typeof(dbname) === 'undefined')
+  {
+    JSCLog('error', 'Site configuration: Database: \'dbname\' is missing.', jscLogConfig);
+    readSuccess = false;
+  }
+  else if (typeof(dbname) !== 'string')
+  {
+    JSCLog('error', 'Site configuration: Database: \'dbname\' is invalid.  String expected.', jscLogConfig);
+    readSuccess = false;
+  }
+  
+  if (typeof(user) === 'undefined')
+  {
+    JSCLog('error', 'Site configuration: Database: \'user\' is missing.', jscLogConfig);
+    readSuccess = false;
+  }
+  else if (typeof(user) !== 'string')
+  {
+    JSCLog('error', 'Site configuration: Database: \'user\' is invalid.  String expected.', jscLogConfig);
+    readSuccess = false;
+  }
+  
+  if (typeof(password) === 'undefined')
+  {
+    JSCLog('error', 'Site configuration: Database: \'password\' is missing.', jscLogConfig);
+    readSuccess = false;
+  }
+  else if (typeof(password) !== 'string')
+  {
+    JSCLog('error', 'Site configuration: Database: \'password\' is invalid.  String expected.', jscLogConfig);
+    readSuccess = false;
+  }
+  
+  if (readSuccess)
+  {
+    databaseConfig = { host, dbname, user, password };
+  }
+
+  return databaseConfig;
+}
+
 function setupSiteLoggingForRequests(siteName, siteConfigLogging, serverConfigLogging, jscLogConfig)
 {
   let readSuccess = true;
@@ -4855,7 +4969,8 @@ function startApplication(options = { rootDir: undefined })
               'httppoweredbyheader',
               'httpscertfile',
               'httpskeyfile',
-              'logging'
+              'logging',
+              'database'
             ];
 
             const requiredKeysNotFound = [];
@@ -4890,6 +5005,7 @@ function startApplication(options = { rootDir: undefined })
               soFarSoGood = parseTempWorkDirectory(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
               soFarSoGood = parseJscpExtensionRequired(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
               soFarSoGood = parseHttpPoweredByHeader(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite) && soFarSoGood;
+              soFarSoGood = parseDatabaseInfo(processedConfigJSON, siteConfig, jscLogBaseWithSite) && soFarSoGood;
               
               parseHttpsCertResult = parseHttpsCertFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);
               parseHttpsKeyResult = parseHttpsKeyFile(processedConfigJSON, siteConfig, requiredKeysNotFound, jscLogBaseWithSite);

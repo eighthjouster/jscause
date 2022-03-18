@@ -12,5 +12,11 @@
     "directoryName": "./localLogs",
     "consoleOutput": "enabled",
     "fileOutput": "enabled"
+  },
+  "database": {
+    "host": "localhost",
+    "dbname": "jsc_example",
+    "user": "jsc_example",
+    "password": "dbpassword"
   }
 }

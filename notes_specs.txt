@@ -14,6 +14,15 @@ Where to update the version (e.g. v0.9.4) before releasing:
  - package.json (and package-json.lock?)
 ====
 
+Databases:
+We're using MariaDB.  It's a per-site configuration:
+  database: {
+    host: <the database's server's host name>,
+    dbname: <the database's name>,
+    user: <the database's user>,
+    password: <the database's password>
+  }
+  - 'database' is optional.
 
 ====
 

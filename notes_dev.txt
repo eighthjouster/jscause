@@ -7,21 +7,16 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-I think I found a bug:
- - Two sites, same host, different ports.  Can they co-exist? What do the specs say?
-   - Because I think the sites[] hash should have 'host' values as key, not just the host name.
-     - e.g. host = localhost:3000? The key should be 'localhost:3000', not just 'localhost'.
-     - If you do this, fix incomingRequestHandler so that identifies a site this way.
++- Make the connection values part of a site config.
+    +- There should be a configuration value to deal with database misconfigurations:
+      - warning? Just warn. Like it's happening right now.
+      - error? Don't start the application.
+        - If there are pools created from other apps, shut them down.
+
+Test two simulataneous MariaDB databases.
 
 Mark multi-site MariDB databases experimental in the docs.
  - Because we'll need a battery of tests that guarantee that this feature works fine.
-
- - Make the connection values part of a site config.
-     - One MariaDB pool per website.
-     - There should be a configuration value to deal with database misconfigurations:
-       - warning? Just warn. Like it's happening right now.
-       - error? Don't start the application.
-         - If there are pools created from other apps, shut them down.
 
 The tests shouldn't depend on the presence of an actual database.
 
@@ -414,6 +409,11 @@ So far:
 ==========================
 
 Order by priority:
+
+- Remember that 'database' is optional.
+  - Put this in the tests design:
+    - Validate all the database config values!
+    - One MariaDB pool per website.
 
 - Will JSCause run files that end in .JSCM/.JSCP (all upper-case) in a case-insensitive filysystem? (It shouldn't.)
       - Update the docs with whatever you find.
