@@ -19,7 +19,7 @@ if (dbConn)
   //dbConn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
     .then(
         (result) => {
-      htmlOutput = 'GREAT SUCCESS!';//__RP
+      htmlOutput = 'GREAT SUCCESS 2!';//__RP
       console.log(result);
 //      for (let i=0;i<result.length;i++) {
 //        console.log(result[i]);//__RP

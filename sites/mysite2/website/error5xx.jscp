@@ -1,0 +1,10 @@
+<html />
+<html>
+    <head>
+    <title>Internal server error</title>
+    </head>
+    <body>
+      <h1>Internal server error</h1>
+      <p>Go back to <a href="/">the home page</a>.</p>
+    </body>
+</html>

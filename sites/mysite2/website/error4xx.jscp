@@ -1,0 +1,13 @@
+<js
+  const aNumber = Math.floor(Math.random() * 1000) + 1;
+/js>
+<html>
+    <head>
+    <title>Not found</title>
+    </head>
+    <body>
+      <h1>Document not found</h1>
+      <p>Anyway.  Here is a number between 1 and 1000: <js= aNumber /js></p>
+      <p>Go back to <a href="/">the home page</a>.</p>
+    </body>
+</html>

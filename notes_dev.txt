@@ -13,10 +13,10 @@ git bundle create jscause-.bundle devel
       - error? Don't start the application.
         - If there are pools created from other apps, shut them down.
 
-Test two simulataneous MariaDB databases.
+- What happens if the database gets disconnected? Retry?
+  - Should retries be a configuration value?
 
-Mark multi-site MariDB databases experimental in the docs.
- - Because we'll need a battery of tests that guarantee that this feature works fine.
+ - Disconnect from database if application gets terminated (or if it exists due to an error.)
 
 The tests shouldn't depend on the presence of an actual database.
 
@@ -25,34 +25,11 @@ The tests shouldn't depend on the presence of an actual database.
      .rtOnSuccess()
      .rtOnError()
 
- - What happens if the database gets disconnected? Retry?
-   - Should retries be a configuration value?
-
- - Should there be a config value to instruct the server (or site) to not to continue starting if the database connection fails?
-   - Right now (if we implemented this already), the application emits a warning and moves on.  With the config value, the site wouldn't start.
-     - I think we have a temporary flag to decide for warning or error at the moment.
-
- - Isolate the hardcoded stuff.
-
- - Convert the hardcoded stuff to config values.
-
- - Disconnect from database if application gets terminated (or if it exists due to an error.)
-
- - Better names for database stuff.  mariaDbPool?  It should be databasePool or something.
-
- - The app should not start if the connection is refused.
-   - Unless there is no connection defined.
-
- - Create some config tests, if not all.
-   - Document what needs to be tested.
-     - For example:
-       - Two sites, two connections. Test that operations in one database does not affect the other database.
-       - Connection retries?
- - Create some database rt tests, if not all.
-   - Document what needs to be tested.
-
  - Document.
   - Also, tide up what you added in notes_specs.txt.
+  - Mention that we can connect to multiple databases, one per site.
+  - Mark multi-site MariDB databases experimental in the docs.
+    - Because we'll need a battery of tests that guarantee that this feature works fine.
 
 Put in the docs the native promise trick:
 const appContinue = rt.waitFor();
@@ -72,10 +49,6 @@ something
  - Put it alongside the waitFor() trick for setInterval().
    - This should be addressed in a future version. Sort of like a rt.waitFor(cb, id), in which id allows grouping.
      - That way, if the same id is used, then don't increment the waiting count.
-
-"Server not started.  No sites are running."
- - Shouldn't the server process exit to the console if this happens? At the time of writing this, the server is just up, but not serving anything.
-   - If you change this, re-run the tests.
 
 How to guarantee that if jscvendor is not available, then we can still use the external node_modules?
 
@@ -355,12 +328,6 @@ On the site.json file:
 
 Back up.
 
-Databases.
- - Basic.
-   - We'll use MariaDB.
-     - https://www.npmjs.com/package/mariadb
-       - Just 4 dependencies.
-
 Update notes_testing.txt with any testing that needs to be implemented.
 
 Put in docs that a favicon.ico should be provided in the website root.
@@ -409,6 +376,14 @@ So far:
 ==========================
 
 Order by priority:
+
+ - Create some config tests, if not all.
+   - Document what needs to be tested.
+     - For example:
+       - Two sites, two connections. Test that operations in one database does not affect the other database.
+       - Connection retries?
+ - Create some database rt tests, if not all.
+   - Document what needs to be tested.
 
 - Remember that 'database' is optional.
   - Put this in the tests design:

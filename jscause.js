@@ -144,8 +144,8 @@ let jsclogTerminateRetries;
 let processExitAttempts;
 let serverConfig;
 let runningServers;
-let mariaDbPools;
-let mariaDbPoolingEnding = false;
+let databasePools;
+let databasePoolingEnding = false;
 
 /* *****************************************
  * 
@@ -157,7 +157,7 @@ const isTestMode = (process.argv[2] === 'runtests');
 const cookies = require('./jscvendor/node_modules/cookies');
 const formidable = require('./jscvendor/node_modules/formidable');
 const sanitizeFilename = require('./jscvendor/node_modules/sanitize-filename');
-const mariaDb = require('./jscvendor/node_modules/mariadb');
+const dbManager = require('./jscvendor/node_modules/mariadb');
 const RUNTIME_ROOT_DIR = process.cwd();
 
 const jscTestGlobal = {};
@@ -902,8 +902,8 @@ function waitForLogsProcessingBeforeTerminate(options)
 
 function terminateAndExit(onTerminateComplete, terminateMessage)
 {
-  mariaDbPools = null;
-  mariaDbPoolingEnding = false;
+  databasePools = null;
+  databasePoolingEnding = false;
   if (typeof(onTerminateComplete) === 'function')
   {
     onTerminateComplete(terminateMessage);
@@ -916,19 +916,19 @@ function terminateAndExit(onTerminateComplete, terminateMessage)
 
 function continueWithProcessExiting({ onTerminateComplete, terminateMessage = '' } = {})
 {
-  if (mariaDbPools)
+  if (databasePools)
   {
-    if (!mariaDbPoolingEnding)
+    if (!databasePoolingEnding)
     {
-      mariaDbPoolingEnding = true;
+      databasePoolingEnding = true;
 
-      Promise.allSettled(Object.values(mariaDbPools).map((mariaDbPool) => mariaDbPool.end()))
+      Promise.allSettled(Object.values(databasePools).map((databasePool) => databasePool.end()))
         .then((results) =>
         {
           results.filter(result => result.status === 'rejected')
             .forEach((result) =>
             {
-              console.error('ERROR:  Error on ending a MariaDb pool entry:');
+              console.error('ERROR:  Error on ending a database pool entry:');
               console.error(result.reason);
             });
 
@@ -1595,10 +1595,10 @@ function doneWith(serverConfig, identifiedSite, ctx, id)
 
       if (runtimeException)
       {
-        if (ctx.mariaDbConn)
+        if (ctx.databaseConn)
         {
-          ctx.mariaDbConn.release();
-          ctx.mariaDbConn = null;
+          ctx.databaseConn.release();
+          ctx.databaseConn = null;
         }
 
         ctx.outputQueue = [];
@@ -1632,10 +1632,10 @@ function doneWith(serverConfig, identifiedSite, ctx, id)
           resObject.statusCode = statusCode;
         }
 
-        if (ctx.mariaDbConn)
+        if (ctx.databaseConn)
         {
-          ctx.mariaDbConn.release();
-          ctx.mariaDbConn = null;
+          ctx.databaseConn.release();
+          ctx.databaseConn = null;
         }
 
         resEnd(reqObject, resObject, { doLogToConsole, serverLogDir, siteLogDir, logFileSizeThreshold, siteHostName, requestTickTockId }, showContents ? (ctx.outputQueue || []).join('') : '');
@@ -1865,7 +1865,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
 {
   const { runFileName, getParams, postParams, contentType,
     requestMethod, uploadedFiles, additional, reqObject = {}, resObject = {},
-    mariaDbConn } = rtContext;
+    databaseConn } = rtContext;
 
   const jsCookies = new cookies(reqObject, resObject);
 
@@ -2242,7 +2242,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     requestMethod,
     uploadedFiles,
     additional,
-    mariaDbConn
+    databaseConn
   });
 }
 
@@ -2362,7 +2362,7 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
       uploadedFiles,
       waitForNextId: 1,
       waitForQueue: {},
-      mariaDbConn: null
+      databaseConn: null
     }
   );
 
@@ -2391,15 +2391,15 @@ function responder(serverConfig, identifiedSite, baseResContext, { formContext, 
 
         shouldCallDoneWith = false;
 
-        const mariaDbPool = mariaDbPools && mariaDbPools[siteName];
+        const databasePool = databasePools && databasePools[siteName];
 
-        if (mariaDbPool)
+        if (databasePool)
         {
-          mariaDbPool.getConnection()
+          databasePool.getConnection()
           .then(
             (dbConn) =>
             {
-              resContext.mariaDbConn = dbConn;
+              resContext.databaseConn = dbConn;
               runUserCode(serverConfig, identifiedSite, resContext, compiledCode);
             }
           )
@@ -3168,9 +3168,9 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
     runningServer.sites[siteHostName] = siteConfig;
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
 
-    if (!mariaDbPools)
+    if (!databasePools)
     {
-      mariaDbPools = [];
+      databasePools = [];
     }
 
     if (database === null)
@@ -3180,11 +3180,11 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
     else
     {
       const { database: { host, dbname, user, password } } = siteConfig;
-      const mariaDbPool = mariaDb.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
+      const databasePool = dbManager.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
 
-      if (mariaDbPool)
+      if (databasePool)
       {
-        mariaDbPools[siteName] = mariaDbPool;
+        databasePools[siteName] = databasePool;
         onServerStartProcessCompleted();
       }
       else
@@ -3312,7 +3312,7 @@ function createInitialSiteConfig(siteInfo)
     rootdirectoryname: rootDirectoryName,
     enablehttps: enableHTTPS,
     allowexeextensionsinopr: allowExeExtensionsInOpr,
-    database: mariaDbDatabase
+    database
   } = siteInfo;
 
   return Object.assign({}, defaultSiteConfig,
@@ -3322,7 +3322,7 @@ function createInitialSiteConfig(siteInfo)
       rootDirectoryName,
       enableHTTPS: (typeof(enableHTTPS) === 'undefined') ? false : enableHTTPS,
       allowExeExtensionsInOpr: (typeof(allowExeExtensionsInOpr) === 'undefined') ? false : allowExeExtensionsInOpr,
-      database: (typeof(mariaDbDatabase) === 'undefined') ? null : mariaDbDatabase,
+      database: (typeof(database) === 'undefined') ? null : database,
     }
   );
 }
