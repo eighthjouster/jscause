@@ -1,5 +1,0 @@
-This is a plain text example.
-
-Some utf-8 characters: ñ £ ¢ ∞ ™ ¡
-
-Thanks for reading.

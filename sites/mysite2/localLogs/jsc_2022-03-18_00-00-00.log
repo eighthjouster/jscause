@@ -1,9 +1,0 @@
-2022-03-18T07:08:28.185Z: INFO: Site 'My Site 2' at https://localhost:3001/ assigned to server 1
-2022-03-18T07:08:28.186Z: INFO: Server 1 listening on port 3001
-2022-03-18T07:08:48.481Z: Fri, 18 Mar 2022 07:08:48 GMT - localhost - GET: / - 200
-2022-03-18T07:08:48.583Z: Fri, 18 Mar 2022 07:08:48 GMT - localhost - GET: /favicon.ico - 404
-2022-03-18T07:10:49.248Z: Fri, 18 Mar 2022 07:10:49 GMT - localhost - GET: / - 200
-2022-03-18T07:11:03.426Z: Fri, 18 Mar 2022 07:11:03 GMT - localhost - GET: / - 200
-2022-03-18T07:25:51.449Z: INFO: Site 'My Site 2' at https://localhost:3001/ assigned to server 1
-2022-03-18T07:25:51.450Z: INFO: Server 1 listening on port 3001
-2022-03-18T07:25:54.301Z: Fri, 18 Mar 2022 07:25:54 GMT - localhost - GET: / - 200
