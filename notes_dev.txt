@@ -7,11 +7,22 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
+Tests don't run entirely.  The first test of testBattery_004 just... exists.
+  - Fix this asap!
+
 +- Make the connection values part of a site config.
     +- There should be a configuration value to deal with database misconfigurations:
       - warning? Just warn. Like it's happening right now.
-      - error? Don't start the application.
-        - If there are pools created from other apps, shut them down.
+      - error? Don't start the site.
+        - All ready to implement this.  Look for:
+          - if (true) //__RP CONFIGURATION SAYS SO
+            - There are two of them.
+
+If I change:
+"dbname": "jsc_example",
+to:
+"dbname": "jsc_example2",
+The application hangs until the db connection times out.  Also, "no sites are running" is displayed, but the application doesn't exit.  Why is this?  With wrong db password credentials, thing work fine.
 
 - What happens if the database gets disconnected? Retry?
   - Should retries be a configuration value?

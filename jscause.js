@@ -3067,7 +3067,7 @@ function runWebServer(runningServer, serverPort, jscLogConfig, options = {})
 
 function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcessCompleted)
 {
-  const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging, database = null } = siteConfig;
+  const { siteName, siteHostName, sitePort, fullSitePath, enableHTTPS, httpsCertFile: certFileName, httpsKeyFile: keyFileName, logging: siteLogging } = siteConfig;
   let result = true;
 
   const jscLogConfig = Object.assign({}, jscLogConfigBase,
@@ -3163,40 +3163,18 @@ function startServer(siteConfig, jscLogConfigBase, options, onServerStartProcess
     }
   }
 
+  let onStartCompletedOptions;
   if (result)
   {
     runningServer.sites[siteHostName] = siteConfig;
     JSCLog('info', `Site ${getSiteNameOrNoName(siteName)} at http${enableHTTPS ? 's' : ''}://${siteHostName}:${sitePort}/ assigned to server ${serverName}`, jscLogConfig);
-
-    if (!databasePools)
-    {
-      databasePools = [];
-    }
-
-    if (database === null)
-    {
-      onServerStartProcessCompleted();
-    }
-    else
-    {
-      const { database: { host, dbname, user, password } } = siteConfig;
-      const databasePool = dbManager.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
-
-      if (databasePool)
-      {
-        databasePools[siteName] = databasePool;
-        onServerStartProcessCompleted();
-      }
-      else
-      {
-        onServerStartProcessCompleted({ error: true });
-      }
-    }
   }
   else
   {
-    onServerStartProcessCompleted({ error: !result });
+    onStartCompletedOptions = { error: true };
   }
+
+  onServerStartProcessCompleted(onStartCompletedOptions);
 }
 
 function readConfigurationFile(name, path = '.', jscLogConfig = {})
@@ -5320,25 +5298,73 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
   if (serverIndex < serverConfig.sites.length)
   {
     const thisSiteConfig = serverConfig.sites[serverIndex];
-    startServer(thisSiteConfig, jscLogBase, options, ({ error: hasErrorOcurred = false } = {}) =>
-      {
-        let siteStarted = false;
-        if (hasErrorOcurred)
-        {
-          const { siteName } = thisSiteConfig;
-          allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
-    
-          JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
-          allFailedSiteNames.push(siteName);
-        }
-        else
-        {
-          siteStarted = true;
-        }
+    const { siteName, database = null } = thisSiteConfig;
 
-        startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted: (atLeastOneSiteStarted || siteStarted) });
+    const startServerCompletedHandler = ({ error: hasErrorOcurred = false } = {}) =>
+    {
+      let siteStarted = false;
+      if (hasErrorOcurred)
+      {
+        allReadySiteNames.splice(allReadySiteNames.indexOf(siteName), 1);
+  
+        JSCLog('error', `Site ${getSiteNameOrNoName(siteName)} not started.`, jscLogBase);
+        allFailedSiteNames.push(siteName);
       }
-    );
+      else
+      {
+        siteStarted = true;
+      }
+
+      startNextServer(serverIndex + 1, { jscLogBase, options, allReadySiteNames, allFailedSiteNames, atLeastOneSiteStarted: (atLeastOneSiteStarted || siteStarted) });
+    };
+
+    if (!databasePools)
+    {
+      databasePools = [];
+    }
+
+    if (database === null)
+    {
+      if (true) //__RP CONFIGURATION SAYS SO
+      {
+        //__RP      startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
+      }
+      else
+      {
+        startServerCompletedHandler({ error: true });
+      }
+    }
+    else
+    {
+      const { host, dbname, user, password } = database;
+      const databasePool = dbManager.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
+
+      if (databasePool)
+      {
+        databasePool.getConnection()
+        .then(
+          () =>
+          {
+            databasePools[siteName] = databasePool;
+            startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
+          }
+        )
+        .catch(
+          (e) =>
+          {
+            JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot get connection to database.`, Object.assign({ e }, jscLogBase));
+            if (true) //__RP CONFIGURATION SAYS SO
+            {
+//__RP            startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
+            }
+            else
+            {
+              startServerCompletedHandler({ error: true });
+            }
+          }
+        );
+      }
+    }
   }
   else
   {
