@@ -3708,16 +3708,28 @@ function parseDatabaseInfo(processedConfigJSON, siteConfig, jscLogConfig)
 
   if (typeof(configValue) === 'object' && !Array.isArray(configValue))
   {
-    const databaseConfigValues = {};
-    Object.keys(configValue).forEach((keyName) =>
-    {
-      databaseConfigValues[keyName.toLocaleLowerCase()] = configValue[keyName];
-    });
-    
-    const databaseConfig = validateDatabaseConfigSection(databaseConfigValues, jscLogConfig);
+    const allAllowedKeys =
+    [
+      'host',
+      'dbname',
+      'user',
+      'password',
+      'onerror'
+    ];
 
-    siteConfig.database = databaseConfig;
-    soFarSoGood = !!databaseConfig;
+    const databaseConfigValues = prepareConfiguration(configValue, allAllowedKeys, `'database' in ${JSCAUSE_SITECONF_FILENAME}`, jscLogConfig);
+    
+    if (databaseConfigValues)
+    {
+      const databaseConfig = validateDatabaseConfigSection(databaseConfigValues, jscLogConfig);
+
+      if (databaseConfig)
+      {
+        siteConfig.database = databaseConfig;
+      }
+    }
+
+    soFarSoGood = !!siteConfig.database;
   }
   else if (typeof(configValue) !== 'undefined')
   {
@@ -3840,23 +3852,31 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
 
   if (typeof(configValue) === 'object' && !Array.isArray(configValue))
   {
-    const loggingConfigValues = {};
-    Object.keys(configValue).forEach((keyName) =>
-    {
-      loggingConfigValues[keyName.toLocaleLowerCase()] = configValue[keyName];
-    });
-    
-    const perSiteData =
-    {
-      siteName,
-      perSiteDirectoryName: loggingConfigValues.directoryname,
-      fullSitePath
-    };
+    const allAllowedKeys =
+    [
+      'directoryname',
+      'consoleoutput',
+      'fileoutput',
+      'logfilesizethreshold'
+    ];
 
-    const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData }, jscLogConfig, rootDir);
+    const loggingConfigValues = prepareConfiguration(configValue, allAllowedKeys, `'logging' in ${JSCAUSE_SITECONF_FILENAME}`, jscLogConfig);
 
-    siteConfig.logging = loggingConfig;
-    soFarSoGood = !!loggingConfig;
+    if (loggingConfigValues)
+    {
+      const perSiteData =
+      {
+        siteName,
+        perSiteDirectoryName: loggingConfigValues.directoryname,
+        fullSitePath
+      };
+
+      const loggingConfig = validateLoggingConfigSection(loggingConfigValues, { serverWide: false, perSiteData }, jscLogConfig, rootDir);
+
+      siteConfig.logging = loggingConfig;
+    }
+
+    soFarSoGood = !!siteConfig.logging;
   }
   else
   {
@@ -4577,25 +4597,8 @@ function validateDatabaseConfigSection(databaseInfo, jscLogConfig = {})
   let readSuccess = true;
   let databaseConfig;
 
-  // Let's check for invalid entries.
-  const validEntries = ['host', 'dbname', 'user', 'password'];
-
-  Object.keys(databaseInfo || {}).every((infoKey) =>
-  {
-    if (!validEntries.includes(infoKey))
-    {
-      JSCLog('error', `Site configuration: Database: '${infoKey}' is not a valid configuration key.`, jscLogConfig);
-      readSuccess = false;
-    }
-  });
-
-  if (!readSuccess)
-  {
-    return;
-  }
-
   // Let's check the specified directory.
-  let { host, dbname, user, password } = databaseInfo || {};
+  let { host, dbname, user, password, onerror = 'warn' } = databaseInfo || {};
   if (typeof(host) === 'undefined')
   {
     JSCLog('error', 'Site configuration: Database: \'host\' is missing.', jscLogConfig);
@@ -4640,9 +4643,32 @@ function validateDatabaseConfigSection(databaseInfo, jscLogConfig = {})
     readSuccess = false;
   }
   
+  if (typeof(onerror) !== 'undefined')
+  {
+    if (typeof(onerror) === 'string')
+    {
+      readSuccess =
+        (
+          (onerror === 'ignore') ||
+          (onerror === 'warn') ||
+          (onerror === 'serverstop')
+        );
+
+        if (!readSuccess)
+        {
+          JSCLog('error', 'Site configuration: Database: \'onerror\' is invalid.  \'ignore\', \'warn\', or \'serverstop\' expected.', jscLogConfig);
+        }
+    }
+    else
+    {
+      JSCLog('error', 'Site configuration: Database: \'onerror\' is invalid.  String expected.', jscLogConfig);
+      readSuccess = false;
+    }
+  }
+  
   if (readSuccess)
   {
-    databaseConfig = { host, dbname, user, password };
+    databaseConfig = { host, dbname, user, password, onerror };
   }
 
   return databaseConfig;
@@ -5325,18 +5351,11 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
 
     if (database === null)
     {
-      if (true) //__RP CONFIGURATION SAYS SO
-      {
-        //__RP      startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
-      }
-      else
-      {
-        startServerCompletedHandler({ error: true });
-      }
+        startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
     }
     else
     {
-      const { host, dbname, user, password } = database;
+      const { host, dbname, user, password, onerror: dbOnError } = database;
       const databasePool = dbManager.createPool({ host, database: dbname, user, password, connectionLimit: 32 });
 
       if (databasePool)
@@ -5352,14 +5371,18 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
         .catch(
           (e) =>
           {
-            JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot get connection to database.`, Object.assign({ e }, jscLogBase));
-            if (true) //__RP CONFIGURATION SAYS SO
+            if ((dbOnError === 'warn') || (dbOnError === 'serverstop'))
             {
-//__RP            startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
+              JSCLog('error', `Site ${getSiteNameOrNoName(siteName)}: Cannot get connection to database.`, Object.assign({ e }, jscLogBase));
+            }
+
+            if (dbOnError === 'serverstop')
+            {
+              startServerCompletedHandler({ error: true });
             }
             else
             {
-              startServerCompletedHandler({ error: true });
+              startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
             }
           }
         );

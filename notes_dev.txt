@@ -7,29 +7,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-Tests don't run entirely.  The first test of testBattery_004 just... exists.
-  - Fix this asap!
-
-+- Make the connection values part of a site config.
-    +- There should be a configuration value to deal with database misconfigurations:
-      - warning? Just warn. Like it's happening right now.
-      - error? Don't start the site.
-        - All ready to implement this.  Look for:
-          - if (true) //__RP CONFIGURATION SAYS SO
-            - There are two of them.
-
-If I change:
-"dbname": "jsc_example",
-to:
-"dbname": "jsc_example2",
-The application hangs until the db connection times out.  Also, "no sites are running" is displayed, but the application doesn't exit.  Why is this?  With wrong db password credentials, thing work fine.
-
 - What happens if the database gets disconnected? Retry?
   - Should retries be a configuration value?
 
- - Disconnect from database if application gets terminated (or if it exists due to an error.)
-
-The tests shouldn't depend on the presence of an actual database.
+ - Disconnect from database if application gets terminated (or if it exits due to an error.)
+  - This should be happening by now, but test.
+    - Especially the exiting part.)
 
  - Convert the query code to rt functions.
    - rt.runDbQuery()
@@ -39,8 +22,13 @@ The tests shouldn't depend on the presence of an actual database.
  - Document.
   - Also, tide up what you added in notes_specs.txt.
   - Mention that we can connect to multiple databases, one per site.
-  - Mark multi-site MariDB databases experimental in the docs.
+  - Mark multi-site MariaDB databases experimental in the docs.
     - Because we'll need a battery of tests that guarantee that this feature works fine.
+
+This error in the tests:
+[ 'error', '"random" is not a valid configuration key.' ]
+should say instead:
+[ 'error', 'Site configuration: Logging: "random" is not a valid configuration key.' ],
 
 Put in the docs the native promise trick:
 const appContinue = rt.waitFor();
@@ -53,7 +41,7 @@ something
     /* some code */
     appContinue();
   });
- - NEVER call appContinue() outise of a callback.
+ - NEVER call appContinue() outside of a callback.
    - If your code seems to hang because it expects the appContinue() to be called somehow, then put the appContinue declaration (where we assign the waitFor) closer to the Promise. e.g., don't put it outside a conditional that may skip the promise call completely.
      - Symptoms of this error: A duplicate entry in the server request logs (they both refer to the same request.) Or a "headers already sent" exception.
        - Dev note: I wonder if we could throw a warning when appContinue() is misused this way?
@@ -407,10 +395,6 @@ Order by priority:
 There must by a way to chroot a process, so it doesn't escape the directory it's running on.
  - Preferably with node.
    - But necessary.  Publishing an article should work too.
-
-Sometimes, this test fails:
- - Check that site file creation occurs in the file system when gz and log above threshold exists
-Please fix.
 
 Are all caught errors cleaning up properly after themselves? Open connections, file descriptors, and the like...
 

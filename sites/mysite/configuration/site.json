@@ -17,6 +17,7 @@
     "host": "localhost",
     "dbname": "jsc_example",
     "user": "jsc_example",
-    "password": "dbpassword"
+    "password": "dbpassword",
+    "onerror": "serverstop"
   }
 }

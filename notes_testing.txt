@@ -3,6 +3,15 @@ Pending:
 
 (Order by priority)
 
+'database' configuration section in site.json:
+  "database": {
+    "host": "localhost",
+    "dbname": "jsc_example",
+    "user": "jsc_example",
+    "password": "dbpassword",
+    "onerror": "ignore" | "warn" | "serverstop" (default: "warn")
+  }
+
 Test that an empty rt.waitFor() in a callback doesn't throw an error (e.g. it has a default callback.)
 
 Test the <js=/js> feature.

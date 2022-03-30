@@ -76,7 +76,7 @@ const test_004_001_siteConfInvalidLoggingKey = Object.assign(testUtils.makeFromB
     },
     expectedLogMessages:
     [
-      [ 'error', 'Site configuration: Logging: \'random\' is not a valid configuration key.' ],
+      [ 'error', '"random" is not a valid configuration key.' ],
       [ 'error', 'Site \'My Site\' not started.' ],
       [ 'error', 'Server not started.  No sites are running.' ]
     ],

@@ -5,6 +5,17 @@ This document contains all the bits that need to be added to the official docume
 Ideally, this document should not exist, and all its contents transferred to github issues.
 
 ====
+
+'database' configuration section in site.json:
+  "database": {
+    "host": "localhost",
+    "dbname": "jsc_example",
+    "user": "jsc_example",
+    "password": "dbpassword",
+    "onerror": "ignore" | "warn" | "serverstop" (default: "warn")
+  }
+
+====
 Where to update the version (e.g. v0.9.4) before releasing:
  - Git tags
  - Dist zip files (the folder name may have a suffix, such as -alpha or -beta, or none at all!)
@@ -205,6 +216,8 @@ Very important: Every use of jscThen() requires using jscCatch(), even if the la
 
 Known issues:
 =============
+
+- 'database': If "dbname" has an invalid value (e.g. a name of a non-existent database), the application takes a long time to star. It just stalls until the db connection times out (default: 10 seconds.)  If "onerror" is set to "serverstop", instead of starting, the application will terminate - but only after stalling like described above.
 
 - Does not support resuming of interrupted large file downloads.  For a future version.
 
