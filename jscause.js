@@ -5362,8 +5362,9 @@ function startNextServer(serverIndex, { jscLogBase, options, allReadySiteNames, 
       {
         databasePool.getConnection()
         .then(
-          () =>
+          (conn) =>
           {
+            conn.release();
             databasePools[siteName] = databasePool;
             startServer(thisSiteConfig, jscLogBase, options, startServerCompletedHandler);
           }

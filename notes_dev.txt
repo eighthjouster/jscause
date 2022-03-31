@@ -7,14 +7,7 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- What happens if the database gets disconnected? Retry?
-  - Should retries be a configuration value?
-
- - Disconnect from database if application gets terminated (or if it exits due to an error.)
-  - This should be happening by now, but test.
-    - Especially the exiting part.)
-
- - Convert the query code to rt functions.
+- Convert the query code to rt functions.
    - rt.runDbQuery()
      .rtOnSuccess()
      .rtOnError()
@@ -375,6 +368,9 @@ So far:
 ==========================
 
 Order by priority:
+
+If a database server is not running, and there is a database configured in site.json, the application will correctly report an error, but it won't quit (unless it has a very long timeout?) Address this.
+  - Remember: Use onerror: "serverstop" to instruct JSCause to quit on database connection error.
 
  - Create some config tests, if not all.
    - Document what needs to be tested.
