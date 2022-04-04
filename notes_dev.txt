@@ -7,10 +7,14 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-- Convert the query code to rt functions.
-   - rt.runDbQuery()
-     .rtOnSuccess()
-     .rtOnError()
++- Convert the query code to rt functions.
+   +- rt.runDbQuery()
+     +- Almost there:
+       - Deal with:
+         - /* DO WE HAVE A DATABASE? //__RP */
+         - Add to pending docs.
+           - Esp. how to include parameters.
+         - Add to pending tests.
 
  - Document.
   - Also, tide up what you added in notes_specs.txt.

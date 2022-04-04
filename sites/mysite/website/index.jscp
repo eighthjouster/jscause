@@ -14,6 +14,21 @@ const dbConn = rt.databaseConn;
 let htmlOutput = '?';
 if (dbConn)
 {
+  rt.dbQuery("SELECT * from posts")
+//  rt.dbQuery("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES (?,?,now())",['Great success', 'Very nice success contents!'])
+    .rtOnSuccess((result) => {
+      htmlOutput = 'GREAT SUCCESS 2!';//__RP
+      console.log(result);
+//      for (let i=0;i<result.length;i++) {
+//        console.log(result[i]);//__RP
+//      }
+
+    })
+  .rtOnError((err) => {
+      htmlOutput = 'NO SUCCESS 2';//__RP
+      console.log(err);//__RP
+  });
+  /*
   const appContinue = rt.waitFor();
   dbConn.query("SELECT * from posts")
   //dbConn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
@@ -35,6 +50,7 @@ if (dbConn)
       appContinue();
     }
     );
+    */
 }
 else
 {

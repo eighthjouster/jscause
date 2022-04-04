@@ -2236,6 +2236,23 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
         }
       );
     },
+    dbQuery(queryToRun, queryParams)
+    {
+      if (true/* DO WE HAVE A DATABASE? //__RP */)
+      {
+        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
+        {
+          const promiseHandler = makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject);
+          databaseConn.query(queryToRun, queryParams)
+            .then((result) => promiseHandler(undefined, result))
+            .catch((err) => promiseHandler(err));
+        });
+      }
+
+      const errorMessage = 'rt.dbQuery: cannot run query. No database connection present.';
+      const error = new Error(errorMessage);
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
+    },
     getParams,
     postParams,
     contentType,
