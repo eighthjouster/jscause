@@ -7,13 +7,6 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-+-This error in the tests:
-  [ 'error', '"random" is not a valid configuration key.' ]
-should say instead:
-  [ 'error', 'Site configuration: Logging: "random" is not a valid configuration key.' ],
- +- Done, but you will need to fix some tests:
-   - Run the tests and fix the messages _in the tests_ accordingly.
-
 Why do we get this in database operation errors?:
  - attempted to process already sent response
 
