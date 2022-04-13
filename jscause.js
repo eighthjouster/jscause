@@ -2238,20 +2238,21 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     dbQuery(queryToRun, queryParams)
     {
-      if (databaseConn !== null)
+      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
       {
-        return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
-        {
           const promiseHandler = makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, reject);
-          databaseConn.query(queryToRun, queryParams)
+          if (databaseConn)
+          {
+            databaseConn.query(queryToRun, queryParams)
             .then((result) => promiseHandler(undefined, result))
             .catch((err) => promiseHandler(err));
-        });
-      }
-
-      const errorMessage = 'rt.dbQuery: cannot run query. No database connection present.';
-      const error = new Error(errorMessage);
-      return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) => reject(error));
+          }
+          else
+          {
+            const errorMessage = 'rt.dbQuery: cannot run query. No database connection present.';
+            promiseHandler(new Error(errorMessage));
+          }
+      });
     },
     getParams,
     postParams,
