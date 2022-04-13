@@ -7,10 +7,12 @@ Useful:
 git bundle create jscause-.bundle devel
 =====
 
-This error in the tests:
-[ 'error', '"random" is not a valid configuration key.' ]
++-This error in the tests:
+  [ 'error', '"random" is not a valid configuration key.' ]
 should say instead:
-[ 'error', 'Site configuration: Logging: "random" is not a valid configuration key.' ],
+  [ 'error', 'Site configuration: Logging: "random" is not a valid configuration key.' ],
+ +- Done, but you will need to fix some tests:
+   - Run the tests and fix the messages _in the tests_ accordingly.
 
 Why do we get this in database operation errors?:
  - attempted to process already sent response
@@ -20,6 +22,7 @@ How to guarantee that if jscvendor is not available, then we can still use the e
 When requiring the modules, I think the system should look for node_modules first, then jscvendor/node_modules next.  Unless this is already happening thanks to some native functionality of node?
 
 The docs/tutorial/faq, etc, the title line-height is too short, so when the text wraps, the lines look too close.  Fix this.
+ - Also, make it more readable. Don't let the text get too wide.
 
 Re-generate the dist/ files.  Remember to rename the zip file to 0.9.5.
 

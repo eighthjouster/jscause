@@ -14,48 +14,15 @@ let htmlOutput = '?';
   rt.dbQuery("SELECT * from posts")
 //  rt.dbQuery("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES (?,?,now())",['Great success', 'Very nice success contents!'])
     .rtOnSuccess((result) => {
-      htmlOutput = 'GREAT SUCCESS 2!';//__RP
-      console.log(result);
-//      for (let i=0;i<result.length;i++) {
-//        console.log(result[i]);//__RP
-//      }
-
+      htmlOutput = 'GREAT SUCCESS 2!';
+//    console.log(result);
     })
   .rtOnError((err) => {
-      htmlOutput = 'NO SUCCESS 2';//__RP
-      console.log(err);//__RP
+      htmlOutput = 'NO SUCCESS 2';
+      console.log(err);
   });
-  /*
-  const appContinue = rt.waitFor();
-  dbConn.query("SELECT * from posts")
-  //dbConn.query("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES ('Great success', 'Very nice success contents!', now())")
-    .then(
-        (result) => {
-      htmlOutput = 'GREAT SUCCESS!';//__RP
-      console.log(result);
-//      for (let i=0;i<result.length;i++) {
-//        console.log(result[i]);//__RP
-//      }
-      appContinue();
-      // rows: [ {val: 1}, meta: ... ]
-    }
-    )
-    .catch(
-        (e) => {
-      htmlOutput = 'NO SUCCESS';//__RP
-      console.log(e);//__RP
-      appContinue();
-    }
-    );
-    */
-
-
-//
-//	const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
-//	// res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
 
 rt.runAfter(() => {
-  console.log('RUN AFTER!');//__RP
 /js>
   <h1>Output:</h1>
   <h1><js= htmlOutput /js></h1>

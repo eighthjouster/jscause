@@ -3261,7 +3261,7 @@ function readAndProcessJSONFile(jsonFileName, jsonFilePath, jscLogConfig)
   return finalConfigJSON;
 }
 
-function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = {})
+function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = {}, sectionInFile = '', messagePrefix = '')
 {
   const configKeys = Object.keys(configJSON);
   const configKeysLength = configKeys.length;
@@ -3275,9 +3275,10 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
     const configKeyLowerCase = configKey.toLowerCase();
     if (allowedKeys.indexOf(configKeyLowerCase) === -1)
     {
-      const emptyValueReport = (configKey) ? '': ' (empty value)';
+      const addedPrefix = messagePrefix ? `${messagePrefix}: ` : '';
+      const emptyValueReport = (configKey) ? '' : ' (empty value)';
       const casingReport = (configKey === configKeyLowerCase) ? '' : ` ("${configKey}")`;
-      JSCLog('error', `"${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`, jscLogConfig);
+      JSCLog('error', `${addedPrefix}"${configKeyLowerCase}"${casingReport}${emptyValueReport} is not a valid configuration key.`, jscLogConfig);
       invalidKeysFound = true;
     }
     else
@@ -3288,7 +3289,8 @@ function prepareConfiguration(configJSON, allowedKeys, fileName, jscLogConfig = 
 
   if (invalidKeysFound)
   {
-    JSCLog('error', `Check that all the keys and values in ${fileName} are valid.`, jscLogConfig);
+    const sectionInFileMsg = (sectionInFile) ? `'${sectionInFile}' in ` : '';
+    JSCLog('error', `Check that all the keys and values in ${sectionInFileMsg}${fileName} are valid.`, jscLogConfig);
   }
   else
   {
@@ -3734,7 +3736,7 @@ function parseDatabaseInfo(processedConfigJSON, siteConfig, jscLogConfig)
       'onerror'
     ];
 
-    const databaseConfigValues = prepareConfiguration(configValue, allAllowedKeys, `'database' in ${JSCAUSE_SITECONF_FILENAME}`, jscLogConfig);
+    const databaseConfigValues = prepareConfiguration(configValue, allAllowedKeys, JSCAUSE_SITECONF_FILENAME, jscLogConfig, 'database');
     
     if (databaseConfigValues)
     {
@@ -3877,7 +3879,7 @@ function parsePerSiteLogging(processedConfigJSON, siteConfig, requiredKeysNotFou
       'logfilesizethreshold'
     ];
 
-    const loggingConfigValues = prepareConfiguration(configValue, allAllowedKeys, `'logging' in ${JSCAUSE_SITECONF_FILENAME}`, jscLogConfig);
+    const loggingConfigValues = prepareConfiguration(configValue, allAllowedKeys, JSCAUSE_SITECONF_FILENAME, jscLogConfig, configKeyName, `Site configuration: Site name ${getSiteNameOrNoName(siteName)}`);
 
     if (loggingConfigValues)
     {
@@ -4319,7 +4321,7 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
                   Object.assign(loggingInfo[configKeyLowerCase], { [attributeKeyLowerCase]: keyValue[attributeKey] });
                   break;
                 default:
-                  JSCLog('error', `Configuration: logging: ${configKey}: ${attributeKey} is not a valid configuration key.`, jscLogConfig);
+                  JSCLog('error', `Configuration: logging: ${configKey}: "${attributeKey}" is not a valid configuration key.`, jscLogConfig);
                   result = false;
               }
 
@@ -4333,7 +4335,7 @@ function parseLoggingConfigJSON(processedConfigJSON, jscLogConfig)
           }
           break;
         default:
-          JSCLog('error', `Configuration: logging:  ${configKey} is not a valid configuration key.`, jscLogConfig);
+          JSCLog('error', `Configuration: logging: "${configKey}" is not a valid configuration key.`, jscLogConfig);
           result = false;
       }
       return result;
@@ -4386,7 +4388,7 @@ function validateLoggingConfigSection(loggingInfo, { serverWide = true, perSite 
   {
     if (!validEntries.includes(infoKey))
     {
-      JSCLog('error', `Site configuration: Logging: '${infoKey}' is not a valid configuration key.`, jscLogConfig);
+      JSCLog('error', `Site configuration: Logging: "${infoKey}" is not a valid configuration key.`, jscLogConfig);
       readSuccess = false;
     }
   });
@@ -5301,11 +5303,6 @@ function startApplication(options = { rootDir: undefined })
               readSuccess = false;
             }
           }
-        }
-        else if (readSuccess)
-        {
-          JSCLog('error', 'Site configuration: invalid or missing rootDirectoryName.', jscLogBaseWithSite);
-          readSuccess = false;
         }
 
         if (readSuccess)
