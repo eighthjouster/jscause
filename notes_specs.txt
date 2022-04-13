@@ -2,7 +2,7 @@ JSCause: A JS framework.  Bringing the good bits back.
 
 This document contains all the bits that need to be added to the official documentation.  Feel free to add what's pending to add to the docs here, and delete what is already in the docs.
 
-Ideally, this document should not exist, and all its contents transferred to github issues.
+Ideally, this document should not exist, and all its contents transferred to github issues or directly to the docs.
 
 ====
 
@@ -14,6 +14,42 @@ Ideally, this document should not exist, and all its contents transferred to git
     "password": "dbpassword",
     "onerror": "ignore" | "warn" | "serverstop" (default: "warn")
   }
+
+  rt.dbQuery("SELECT * from posts where id=? or id=?", [ 2, 3 ])
+    .rtOnSuccess((result) => {
+      // Query operation succeeded.
+      console.log(result);
+    })
+    .rtOnError((err) => {
+      // Query operation failed.
+      console.error(err);
+    });
+
+We can connect to multiple databases, one per site.
+  - Multi-site MariaDB databases support is experimental.
+- We'll need a battery of tests that guarantees that this feature works fine.
+
+====
+
+Put in the docs the native promise trick:
+const appContinue = rt.waitFor();
+something
+  .then(() => {
+    /* some code */
+    appContinue();
+  })
+  .catch(() => {
+    /* some code */
+    appContinue();
+  });
+ - NEVER call appContinue() outside of a callback.
+   - If your code seems to hang because it expects the appContinue() to be called somehow, then put the appContinue declaration (where we assign the waitFor) closer to the Promise. e.g., don't put it outside a conditional that may skip the promise call completely.
+     - Symptoms of this error: A duplicate entry in the server request logs (they both refer to the same request.) Or a "headers already sent" exception.
+       - Dev note: I wonder if we could throw a warning when appContinue() is misused this way?
+ - Put it alongside the waitFor() trick for setInterval().
+   - This should be addressed in a future version. Sort of like a rt.waitFor(cb, id), in which id allows grouping.
+     - That way, if the same id is used, then don't increment the waiting count.
+
 
 ====
 Where to update the version (e.g. v0.9.4) before releasing:

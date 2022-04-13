@@ -2238,7 +2238,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     },
     dbQuery(queryToRun, queryParams)
     {
-      if (true/* DO WE HAVE A DATABASE? //__RP */)
+      if (databaseConn !== null)
       {
         return makeRTPromise(serverConfig, identifiedSite, rtContext, (resolve, reject) =>
         {
@@ -2258,8 +2258,7 @@ function createRunTime(serverConfig, identifiedSite, rtContext)
     contentType,
     requestMethod,
     uploadedFiles,
-    additional,
-    databaseConn
+    additional
   });
 }
 

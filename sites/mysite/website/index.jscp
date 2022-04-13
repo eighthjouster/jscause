@@ -10,10 +10,7 @@
 //  Let's call MariaDB.
 console.log('Let us call MariaDB.');
 
-const dbConn = rt.databaseConn;
 let htmlOutput = '?';
-if (dbConn)
-{
   rt.dbQuery("SELECT * from posts")
 //  rt.dbQuery("INSERT INTO `posts` (`title`, `contents`, `created_at`) VALUES (?,?,now())",['Great success', 'Very nice success contents!'])
     .rtOnSuccess((result) => {
@@ -51,11 +48,6 @@ if (dbConn)
     }
     );
     */
-}
-else
-{
-  htmlOutput = 'UGH';//__RP
-}
 
 
 //
