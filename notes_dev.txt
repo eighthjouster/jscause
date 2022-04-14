@@ -8,7 +8,11 @@ git bundle create jscause-.bundle devel
 =====
 
 Why do we get this in database operation errors?:
- - attempted to process already sent response
+ +- attempted to process already sent response
+   +- Fixed! But we should probably add a test so this doesn't happen again.
+     +- Or at least, describe the test.
+
+At this point, do some real-world simple example project with this.
 
 How to guarantee that if jscvendor is not available, then we can still use the external node_modules?
 

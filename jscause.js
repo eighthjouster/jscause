@@ -1688,14 +1688,18 @@ function makeRTPromiseHandler(serverConfig, identifiedSite, rtContext, resolve, 
   return rtContext.waitForQueue[waitForId];
 }
 
-function cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId)
+function cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, options = {})
 {
   if (defaultSuccessWaitForId)
   {
     doneWith(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId);
   }
 
-  if (defaultErrorWaitForId)
+  // If options.isDefaultErrorTrigger is true, it means that we'll be using the default error later,
+  // and we'll call doneWith() with it as well. So, we don't need to call doneWith() here.
+  // If we don't do this check, then we'd call doneWith() twice for this same default error id.
+  // That would issue an 'attempted to process already sent response' warning, confusing users.
+  if (defaultErrorWaitForId && !options.isDefaultErrorTrigger)
   {
     doneWith(serverConfig, identifiedSite, rtContext, defaultErrorWaitForId);
   }
@@ -1787,7 +1791,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
     cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
   });
 
-  defaultErrorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, (e) =>
+  defaultErrorWaitForId = createWaitForCallback(serverConfig, identifiedSite, rtContext, (e, options) =>
   {
     setRuntimeException(rtContext, e);
   
@@ -1796,7 +1800,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
       doneWith(serverConfig, identifiedSite, rtContext, promiseContext.successWaitForId, true);
     }
 
-    cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId);
+    cancelDefaultRTPromises(serverConfig, identifiedSite, rtContext, defaultSuccessWaitForId, defaultErrorWaitForId, options);
   });
 
   new Promise(rtAsyncPromiseFn)
@@ -1832,7 +1836,7 @@ function makeRTPromise(serverConfig, identifiedSite, rtContext, rtAsyncPromiseFn
       }
       else
       {
-        rtContext.waitForQueue[defaultErrorWaitForId](e);
+        rtContext.waitForQueue[defaultErrorWaitForId](e, { isDefaultErrorTrigger: true });
       }
     }));
 
